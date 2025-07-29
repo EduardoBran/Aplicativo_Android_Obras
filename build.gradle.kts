@@ -2,4 +2,11 @@
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
+    // Add the dependency for the Google services Gradle plugin
+    id("com.google.gms.google-services") version "4.4.3" apply false
+    // Safe Args
+    id("androidx.navigation.safeargs") version "2.9.1" apply false
+    // Hilt
+    id("com.google.devtools.ksp") version "2.0.21-1.0.27" apply false
+    id("com.google.dagger.hilt.android") version "2.56.2" apply false
 }
