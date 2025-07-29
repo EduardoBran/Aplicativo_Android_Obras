@@ -179,5 +179,7 @@
     <string name="resumo_balance_initial">Saldo Inicial: R$ %1$s</string>
     <string name="resumo_balance_remaining">Saldo Restante: R$ %1$s</string>
     <string name="resumo_button_update_balance">Atualizar Saldo</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>
