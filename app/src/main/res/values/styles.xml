@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Material 3 Theme  -->
+    <style name="Theme.ObrasApp" parent="Theme.Material3.DynamicColors.Light.NoActionBar">
+        <!-- Cor base -->
+        <item name="colorPrimary">@color/md_theme_light_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_light_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_light_onPrimaryContainer</item>
+
+        <item name="colorSecondary">@color/md_theme_light_secondary</item>
+        <item name="colorOnSecondary">@color/md_theme_light_onSecondary</item>
+
+        <item name="colorError">@color/md_theme_light_error</item>
+
+        <!-- Component radius -->
+        <item name="shapeAppearanceSmallComponent">@style/App.Shape.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/App.Shape.Medium</item>
+        <item name="shapeAppearanceLargeComponent">@style/App.Shape.Large</item>
+    </style>
+
+
+
+    <!-- Shapes -->
+    <style name="App.Shape.Small" parent="@style/ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerSize">6dp</item>
+    </style>
+    <style name="App.Shape.Medium" parent="@style/ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">8dp</item>
+    </style>
+    <style name="App.Shape.Large" parent="@style/ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <!-- Buttons -->
+    <style name="Widget.ObrasApp.Button" parent="Widget.Material3.Button">
+        <item name="android:background">@drawable/selector_button_primary</item>
+        <item name="android:textColor">@color/md_theme_light_onPrimary</item>
+        <item name="android:insetLeft">16dp</item>
+        <item name="android:insetRight">16dp</item>
+        <item name="android:insetTop">8dp</item>
+        <item name="android:insetBottom">8dp</item>
+    </style>
+
+    <style name="Widget.ObrasApp.OutlinedButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:strokeColor">@color/md_theme_light_outline</item>
+        <item name="android:textColor">@color/md_theme_light_primary</item>
+    </style>
+
+    <!-- TextInput -->
+    <style name="Widget.ObrasApp.TextInputLayout" parent="Widget.Material3.TextInputLayout.FilledBox.Dense">
+        <item name="boxBackgroundColor">@color/md_theme_light_surfaceVariant</item>
+        <item name="boxStrokeColor">@color/md_theme_light_primary</item>
+        <item name="errorTextColor">@color/md_theme_light_error</item>
+        <item name="helperTextTextColor">@color/md_theme_light_secondary</item>
+    </style>
+
+    <!--  Menu / Toolbar icons -->
+    <style name="ThemeOverlay.ObrasApp.Toolbar" parent="ThemeOverlay.Material3.ActionBar">
+        <item name="android:colorControlNormal">@color/md_theme_light_onPrimary</item>
+        <item name="android:textColorPrimary">@color/md_theme_light_onPrimary</item>
+    </style>
+
+    <!-- Tabs -->
+    <style name="Widget.ObrasApp.TabLayout" parent="Widget.Material3.TabLayout">
+        <item name="tabIndicatorColor">@color/md_theme_light_primary</item>
+        <item name="tabTextColor">@color/md_theme_light_onSurfaceVariant</item>
+        <item name="tabSelectedTextColor">@color/md_theme_light_primary</item>
+    </style>
+
+</resources>

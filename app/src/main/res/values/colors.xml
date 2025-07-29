@@ -2,4 +2,39 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Brand -->
+    <color name="md_theme_light_primary">#256C47</color>          <!-- Verde petróleo 600 -->
+    <color name="md_theme_light_onPrimary">#FFFFFF</color>
+    <color name="md_theme_light_primaryContainer">#A7D9BB</color> <!-- Verde claro 200 -->
+    <color name="md_theme_light_onPrimaryContainer">#002114</color>
+
+    <!-- Secondary -->
+    <color name="md_theme_light_secondary">#FFC107</color>         <!-- Âmbar 500 -->
+    <color name="md_theme_light_onSecondary">#000000</color>
+    <color name="md_theme_light_secondaryContainer">#FFECB3</color>
+    <color name="md_theme_light_onSecondaryContainer">#4A3500</color>
+
+    <!-- Tertiary -->
+    <color name="md_theme_light_tertiary">#1E62A4</color>          <!-- Azul 700 -->
+    <color name="md_theme_light_onTertiary">#FFFFFF</color>
+    <color name="md_theme_light_tertiaryContainer">#C8E0FF</color>
+    <color name="md_theme_light_onTertiaryContainer">#002C61</color>
+
+    <!-- Neutrals -->
+    <color name="md_theme_light_background">#FFFFFF</color>
+    <color name="md_theme_light_onBackground">#1C1B1F</color>
+    <color name="md_theme_light_surface">#FFFFFF</color>
+    <color name="md_theme_light_onSurface">#1C1B1F</color>
+    <color name="md_theme_light_surfaceVariant">#F4F4F4</color>
+    <color name="md_theme_light_onSurfaceVariant">#424242</color>
+    <color name="md_theme_light_outline">#BDBDBD</color>
+
+    <!-- Utility -->
+    <color name="md_theme_light_error">#B3261E</color>
+    <color name="md_theme_light_onError">#FFFFFF</color>
+    <color name="success">#388E3C</color>
+    <color name="onSuccess">#FFFFFF</color>
+    <color name="warning">#F57C00</color>
+    <color name="onWarning">#000000</color>
 </resources>

@@ -1,3 +1,183 @@
 <resources>
+
     <string name="app_name">Obra</string>
+
+    <!-- GERAL-->
+    <string name="generic_save">Salvar</string>
+    <string name="generic_update">Alterar</string>
+    <string name="generic_cancel">Cancelar</string>
+    <string name="generic_back">Voltar</string>
+    <string name="generic_ok">Ok</string>
+    <string name="generic_yes">Sim</string>
+    <string name="generic_no">Não</string>
+    <string name="generic_continue">Continuar</string>
+    <string name="generic_new">Nova</string>
+    <string name="generic_loading">Carregando…</string>
+
+    <!-- SnackbarFragment -->
+    <string name="snack_attention">Atenção</string>
+    <string name="snack_error">Erro</string>
+    <string name="snack_success">Sucesso</string>
+    <string name="snack_warning">Aviso</string>
+
+    <!-- LoginFragment -->
+    <string name="login_title">Entrar</string>
+    <string name="login_email_hint">E‑mail</string>
+    <string name="login_password_hint">Senha</string>
+    <string name="login_button">Entrar</string>
+    <string name="login_create_account">Criar Conta</string>
+    <string name="login_forgot_password">Esqueceu a senha?</string>
+    <string name="login_toast_success">Usuário logado.</string>
+    <string name="login_error_user_not_found">Usuário não encontrado.</string>
+    <string name="login_error_wrong_password">Senha incorreta.</string>
+
+    <!-- RegisterFragment -->
+    <string name="register_title">Registrar Conta</string>
+    <string name="register_name_hint">Nome</string>
+    <string name="register_email_hint">E‑mail</string>
+    <string name="register_password_hint">Senha</string>
+    <string name="register_button">Cadastrar</string>
+    <string name="register_toast_success">Usuário criado.</string>
+    <string name="register_error_email_exists">E‑mail já cadastrado.</string>
+
+    <!-- ResetPasswordFragment -->
+    <string name="reset_title">Recuperar Conta</string>
+    <string name="reset_email_hint">E‑mail</string>
+    <string name="reset_button">Enviar</string>
+    <string name="reset_toast_success">Verifique seu e‑mail cadastrado.</string>
+    <string name="reset_error_email_not_found">E‑mail não encontrado.</string>
+
+    <!-- WorkFragment -->
+    <string name="work_title">Obras</string>
+    <string name="work_no_items">Sem obras cadastradas.</string>
+    <string name="work_select_prompt">Selecione a obra</string>
+    <string name="work_new_button">Nova Obra</string>
+    <string name="work_spinner_default">Selecione a obra</string>
+    <string name="work_toast_selected">Obra %1$s selecionada.</string>
+    <string name="work_toast_saved">Informações da obra salvas.</string>
+    <string name="work_error_save">Erro ao salvar obra. Verifique sua conexão.</string>
+
+    <!-- HomeFragment -->
+    <string name="home_logout">Sair</string>
+    <string name="home_toast_logout">Usuário deslogado.</string>
+    <string name="home_btn_funcionarios">Funcionários</string>
+    <string name="home_btn_notas">Notas de Materiais</string>
+    <string name="home_btn_cronograma">Cronograma da Obra</string>
+    <string name="home_btn_dados_obra">Dados da Obra</string>
+    <string name="home_btn_resumo">Resumo</string>
+    <string name="home_btn_fotos">Fotos da Obra</string>
+    <string name="home_fotos_not_impl">Funcionalidade ainda não implementada.</string>
+
+    <!-- FuncionarioFragment -->
+    <string name="func_title">Funcionários</string>
+    <string name="func_no_items">Sem funcionários cadastrados.</string>
+    <string name="func_tab_all">Todos</string>
+    <string name="func_tab_active">Ativos</string>
+    <string name="func_tab_inactive">Inativos</string>
+    <string name="func_menu_summary">Resumo</string>
+    <string name="func_snack_delete_msg">Você quer mesmo excluir este funcionário?</string>
+    <string name="func_toast_removed">Funcionário removido com sucesso.</string>
+    <string name="func_toast_added">Funcionário adicionado.</string>
+    <string name="func_toast_updated">Dados do funcionário atualizados.</string>
+
+    <!-- FuncionarioRegisterFragment -->
+    <string name="func_reg_title">Registro de Funcionários</string>
+    <string name="func_reg_name_hint">Nome do Funcionário</string>
+    <string name="func_reg_salary_hint">Salário</string>
+    <string name="func_reg_pix_hint">Pix (opcional)</string>
+    <string name="func_reg_days_hint">Dias Trabalhados</string>
+    <string name="func_reg_role">Função</string>
+    <string name="func_reg_payment">Forma de Pagamento</string>
+    <string name="func_reg_status">Status</string>
+    <string name="func_reg_button_save">Salvar</string>
+    <string name="func_reg_button_update">Alterar</string>
+    <string name="func_reg_error_required">Preencha todos os campos obrigatórios.</string>
+
+    <!-- DetalheFuncionarioFragment -->
+    <string name="func_detail_title">Funcionário %1$s</string>
+    <string name="func_detail_total">Total Gasto: R$ %1$s</string>
+
+    <!-- ResumoFuncionarioFragment -->
+    <string name="func_sum_title">Resumo de Funcionários</string>
+    <string name="func_sum_total">Total Geral: R$ %1$s</string>
+
+    <!-- NotasFragment -->
+    <string name="nota_title">Notas de Materiais</string>
+    <string name="nota_no_items">Sem notas lançadas.</string>
+    <string name="nota_tab_due">A Pagar</string>
+    <string name="nota_tab_paid">Pago</string>
+    <string name="nota_menu_summary">Resumo</string>
+    <string name="nota_snack_delete_msg">Você quer mesmo excluir esta nota?</string>
+    <string name="nota_toast_removed">Nota removida com sucesso.</string>
+    <string name="nota_toast_added">Nota adicionada.</string>
+    <string name="nota_toast_updated">Dados da nota atualizados.</string>
+
+    <!-- NotaRegisterFragment -->
+    <string name="nota_reg_title">Cadastro de Notas</string>
+    <string name="nota_reg_material_hint">Nome do Material</string>
+    <string name="nota_reg_desc_hint">Descrição (opcional)</string>
+    <string name="nota_reg_store_hint">Loja</string>
+    <string name="nota_reg_date_hint">Data</string>
+    <string name="nota_reg_value_hint">Valor</string>
+    <string name="nota_reg_type">Tipo</string>
+    <string name="nota_reg_status">Status</string>
+    <string name="nota_reg_error_required">Preencha todos os campos obrigatórios.</string>
+    <string name="nota_reg_error_value">Valor inválido.</string>
+
+    <!-- DetalheNotaFragment -->
+    <string name="nota_detail_title">Nota %1$s</string>
+
+    <!-- ResumoMaterialFragment -->
+    <string name="nota_sum_title">Resumo das Notas</string>
+    <string name="nota_sum_total">Total Geral: R$ %1$s</string>
+
+    <!-- CronogramaFragment -->
+    <string name="cron_title">Cronograma da Obra</string>
+    <string name="cron_no_items">Sem etapas cadastradas.</string>
+    <string name="cron_tab_pending">Pendente</string>
+    <string name="cron_tab_progress">Andamento</string>
+    <string name="cron_tab_done">Concluído</string>
+    <string name="cron_snack_delete_msg">Você quer mesmo excluir esta etapa?</string>
+    <string name="cron_toast_removed">Etapa removida com sucesso.</string>
+    <string name="cron_toast_added">Etapa adicionada.</string>
+    <string name="cron_toast_updated">Dados da etapa atualizados.</string>
+
+    <!-- EtapaRegisterFragment -->
+    <string name="etapa_reg_title">Cadastro de Etapa</string>
+    <string name="etapa_reg_name_hint">Título da Etapa</string>
+    <string name="etapa_reg_desc_hint">Descrição (opcional)</string>
+    <string name="etapa_reg_employee_hint">Funcionário(s)</string>
+    <string name="etapa_reg_date_start_hint">Data para Início</string>
+    <string name="etapa_reg_date_end_hint">Data para Término</string>
+    <string name="etapa_reg_status">Status</string>
+    <string name="etapa_reg_error_required">Preencha todos os campos obrigatórios.</string>
+    <string name="etapa_reg_error_date">Data de término anterior à data de início.</string>
+
+    <!-- DetalheEtapaFragment -->
+    <string name="etapa_detail_title">Etapa %1$s</string>
+
+    <!-- DadosObraFragment -->
+    <string name="obra_data_title">Dados da obra de %1$s</string>
+    <string name="obra_data_client_hint">Nome do Cliente</string>
+    <string name="obra_data_address_hint">Endereço</string>
+    <string name="obra_data_desc_hint">Descrição</string>
+    <string name="obra_data_balance_hint">Saldo Inicial</string>
+    <string name="obra_data_date_start_hint">Data de Início</string>
+    <string name="obra_data_date_end_hint">Data de Término</string>
+    <string name="obra_data_button_delete">Excluir</string>
+    <string name="obra_data_snack_delete_msg">Você quer mesmo excluir esta obra e todos os seus dados?</string>
+    <string name="obra_data_toast_deleted">Obra excluída.</string>
+    <string name="obra_data_toast_updated">Dados da obra atualizados.</string>
+    <string name="obra_data_error_required">Preencha todos os campos obrigatórios antes de salvar.</string>
+
+    <!-- ResumoFragment -->
+    <string name="resumo_title">Resumo da Obra</string>
+    <string name="resumo_total_workers">Total Funcionários: %1$d</string>
+    <string name="resumo_total_worker_cost">Custo com Funcionários: R$ %1$s</string>
+    <string name="resumo_total_notes">Total Notas: %1$d</string>
+    <string name="resumo_total_material_cost">Custo com Materiais: R$ %1$s</string>
+    <string name="resumo_balance_initial">Saldo Inicial: R$ %1$s</string>
+    <string name="resumo_balance_remaining">Saldo Restante: R$ %1$s</string>
+    <string name="resumo_button_update_balance">Atualizar Saldo</string>
+
 </resources>
