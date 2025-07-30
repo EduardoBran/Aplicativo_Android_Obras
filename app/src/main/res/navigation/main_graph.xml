@@ -34,10 +34,28 @@
         android:name="com.luizeduardobrandao.obra.ui.home.HomeFragment"
         android:label="HomeFragment"
         tools:layout="@layout/fragment_home"/>
-    
+
     <fragment
         android:id="@+id/funcionarioFragment"
         android:name="com.luizeduardobrandao.obra.ui.funcionario.FuncionarioFragment"
         android:label="FuncionarioFragment"
         tools:layout="@layout/fragment_funcionario"/>
+
+    <fragment
+        android:id="@+id/funcionarioRegisterFragment"
+        android:name="com.luizeduardobrandao.obra.ui.funcionario.FuncionarioRegisterFragment"
+        android:label="FuncionarioRegisterFragment"
+        tools:layout="@layout/fragment_funcionario_register"/>
+
+    <fragment
+        android:id="@+id/detalheFuncionarioFragment"
+        android:name="com.luizeduardobrandao.obra.ui.funcionario.DetalheFuncionarioFragment"
+        android:label="DetalheFuncionarioFragment"
+        tools:layout="@layout/fragment_detalhe_funcionario"/>
+
+    <fragment
+        android:id="@+id/resumoFuncionarioFragment"
+        android:name="com.luizeduardobrandao.obra.ui.funcionario.ResumoFuncionarioFragment"
+        android:label="ResumoFuncionarioFragment"
+        tools:layout="@layout/fragment_resumo_funcionario"/>
 </navigation>

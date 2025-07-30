@@ -99,7 +99,8 @@
 
     <!-- ResumoFuncionarioFragment -->
     <string name="func_sum_title">Resumo de Funcionários</string>
-    <string name="func_sum_total">Total Geral: R$ %1$s</string>
+    <string name="total_geral">Total geral:</string>
+    <string name="func_sum_total">R$ %1$s</string>
 
     <!-- NotasFragment -->
     <string name="nota_title">Notas de Materiais</string>
