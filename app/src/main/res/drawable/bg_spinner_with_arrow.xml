@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 1) O seu bg_spinner original -->
+    <item android:drawable="@drawable/bg_spinner" />
+
+    <!-- 2) A seta no canto direito -->
+    <item
+        android:drawable="@drawable/ic_arrow_drop_down"
+        android:gravity="end|center_vertical"
+        android:right="12dp"/>
+</layer-list>

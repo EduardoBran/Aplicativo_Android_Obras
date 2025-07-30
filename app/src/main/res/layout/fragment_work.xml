@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Toolbar – título centralizado, sem ícone de voltar -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarWork"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.ObrasApp.Toolbar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:title="@string/work_title"
+        app:titleCentered="true" />
+
+    <!-- Área rolável com todos os elementos centralizados -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/workScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbarWork">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/workContent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="24dp">
+
+            <!-- Guideline para centrar verticalmente -->
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/gCenter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintGuide_percent="0.5" />
+
+
+            <!-- Cenário: sem obras -->
+            <LinearLayout
+                android:id="@+id/layoutEmpty"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@id/gCenter"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@id/gCenter"
+                tools:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvNoWorks"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/work_no_items"
+                    android:textAlignment="center"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnNewWorkEmpty"
+                    style="@style/Widget.ObrasApp.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="@string/work_new_button" />
+            </LinearLayout>
+
+
+            <!-- Cenário: obras existentes -->
+            <LinearLayout
+                android:id="@+id/layoutSelect"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@id/gCenter"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@id/gCenter"
+                tools:visibility="visible">
+
+                <TextView
+                    android:id="@+id/tvSelectWork"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/work_select_prompt"
+                    android:textAlignment="center"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                <!-- Spinner elegante -->
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/spinnerWorks"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_spinner_with_arrow"
+                    android:paddingHorizontal="12dp"
+                    android:spinnerMode="dropdown" />
+
+                <!-- Botões Nova Obra / Continuar -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnNewWork"
+                        style="@style/Widget.ObrasApp.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/work_new_button" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnContinue"
+                        style="@style/Widget.ObrasApp.Button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:enabled="false"
+                        android:text="@string/generic_continue" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- CardView Novo Cadastro -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardNewWork"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="8dp"
+                app:layout_constraintBottom_toBottomOf="@id/gCenter"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@id/gCenter"
+                tools:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <!-- Nome cliente -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.ObrasApp.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etCliente"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:drawableStart="@drawable/ic_person"
+                            android:drawablePadding="12dp"
+                            android:hint="@string/obra_data_client_hint"
+                            android:maxLength="15"
+                            android:minHeight="60dp"
+                            android:paddingVertical="16dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Endereço -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.ObrasApp.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etEndereco"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:drawableStart="@drawable/ic_person"
+                            android:drawablePadding="12dp"
+                            android:hint="@string/obra_data_address_hint"
+                            android:minHeight="60dp"
+                            android:paddingVertical="16dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Descrição -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.ObrasApp.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDescricao"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:drawableStart="@drawable/ic_summary"
+                            android:drawablePadding="12dp"
+                            android:hint="@string/obra_data_desc_hint"
+                            android:minHeight="60dp"
+                            android:paddingVertical="16dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Saldo -->
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.ObrasApp.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etSaldo"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:drawableStart="@drawable/ic_money"
+                            android:drawablePadding="12dp"
+                            android:hint="@string/obra_data_balance_hint"
+                            android:inputType="numberDecimal"
+                            android:minHeight="60dp"
+                            android:paddingVertical="16dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Datas -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:baselineAligned="false"
+                        android:orientation="vertical">
+
+                        <!-- Data de Início -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.ObrasApp.TextInputLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etDataInicio"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:drawableStart="@drawable/ic_schedule"
+                                android:drawablePadding="12dp"
+                                android:focusable="false"
+                                android:hint="@string/obra_data_date_start_hint"
+                                android:minHeight="60dp"
+                                android:paddingVertical="16dp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Espaço entre os campos -->
+                        <Space
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp" />
+
+                        <!-- Data de Término -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.ObrasApp.TextInputLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etDataFim"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:drawableStart="@drawable/ic_schedule"
+                                android:drawablePadding="12dp"
+                                android:focusable="false"
+                                android:hint="@string/obra_data_date_end_hint"
+                                android:minHeight="60dp"
+                                android:paddingVertical="16dp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <!-- Botões Salvar / Voltar -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSaveWork"
+                            style="@style/Widget.ObrasApp.Button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:enabled="false"
+                            android:text="@string/generic_save" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCancelWork"
+                            style="@style/Widget.ObrasApp.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:text="@string/generic_back" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- depois de todos os seus containers (layoutEmpty, layoutSelect, cardNewWork) -->
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/barrierScenarios"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="layoutEmpty,layoutSelect" />
+
+            <!-- ProgressBar sempre abaixo do barrier -->
+            <ProgressBar
+                android:id="@+id/progressWork"
+                style="@style/Widget.AppCompat.ProgressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/barrierScenarios"
+                tools:visibility="visible" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Resumo de notas -->
+    <item
+        android:id="@+id/action_summary_note"
+        android:icon="@drawable/ic_summary"
+        android:title="@string/nota_menu_summary"
+        app:showAsAction="ifRoom|withText" />
 
 </menu>

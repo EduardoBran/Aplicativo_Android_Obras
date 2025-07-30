@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Disabled -->
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <!-- define altura fixa -->
+            <size android:height="48dp" />
+            <solid android:color="@color/md_theme_light_surfaceVariant" />
+            <stroke android:width="1dp" android:color="@color/md_theme_light_outline" />
+            <corners android:radius="6dp" />
+            <!-- opcional: padding interno -->
+            <padding android:bottom="8dp" android:left="12dp" android:right="12dp" android:top="8dp" />
+        </shape>
+    </item>
+
+    <!-- Pressed -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <size android:height="48dp" />
+            <solid android:color="@color/md_theme_light_primaryContainer" />
+            <stroke android:width="1dp" android:color="@color/md_theme_light_primary" />
+            <corners android:radius="6dp" />
+        </shape>
+    </item>
+
+    <!-- Focused -->
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <size android:height="48dp" />
+            <solid android:color="@color/md_theme_light_primaryContainer" />
+            <stroke android:width="1dp" android:color="@color/md_theme_light_primary" />
+            <corners android:radius="6dp" />
+        </shape>
+    </item>
+
+    <!-- Activated -->
+    <item android:state_activated="true">
+        <shape android:shape="rectangle">
+            <size android:height="48dp" />
+            <solid android:color="@color/md_theme_light_primaryContainer" />
+            <stroke android:width="1dp" android:color="@color/md_theme_light_primary" />
+            <corners android:radius="6dp" />
+        </shape>
+    </item>
+
+    <!-- Default -->
+    <item>
+        <shape android:shape="rectangle">
+            <size android:height="48dp" />
+            <solid android:color="@color/md_theme_light_surfaceVariant" />
+            <stroke android:width="1dp" android:color="@color/md_theme_light_outline" />
+            <corners android:radius="6dp" />
+        </shape>
+    </item>
+
+</selector>
