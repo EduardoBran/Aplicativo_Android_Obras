@@ -1,13 +1,238 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.home.HomeFragment">
+    android:layout_height="match_parent">
 
-    <TextView
+    <!-- Toolbar: título = nome do cliente, menu Logout -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarHome"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Hello" />
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.ObrasApp.Toolbar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/menu_home_logout"
+        app:titleCentered="true" />
 
-</FrameLayout>
+    <!-- ScrollView preenchendo t0do o espaço abaixo da Toolbar -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/homeScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbarHome">
+
+        <!-- Container centralizado -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Item 1  (Funcionários) -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/btnEmployees"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_item_click"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:id="@+id/icEmployees"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="16dp"
+                    android:src="@drawable/ic_worker"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvEmployees"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:text="@string/home_btn_funcionarios"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    app:layout_constraintBottom_toBottomOf="@id/icEmployees"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/icEmployees"
+                    app:layout_constraintTop_toTopOf="@id/icEmployees" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Item 2  (Notas de Materiais -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/btnNotes"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_item_click"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:id="@+id/icReceipt"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="16dp"
+                    android:src="@drawable/ic_receipt"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:text="@string/home_btn_notas"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    app:layout_constraintBottom_toBottomOf="@id/icReceipt"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/icReceipt"
+                    app:layout_constraintTop_toTopOf="@id/icReceipt" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Item 3  (Cronograma) -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/btnSchedule"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_item_click"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:id="@+id/icSchedule"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="16dp"
+                    android:src="@drawable/ic_schedule"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:text="@string/home_btn_cronograma"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    app:layout_constraintBottom_toBottomOf="@id/icSchedule"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/icSchedule"
+                    app:layout_constraintTop_toTopOf="@id/icSchedule" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Item 4  (Dados da Obra) -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/btnProjectData"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_item_click"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:id="@+id/icBuild"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="16dp"
+                    android:src="@drawable/ic_build"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:text="@string/home_btn_dados_obra"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    app:layout_constraintBottom_toBottomOf="@id/icBuild"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/icBuild"
+                    app:layout_constraintTop_toTopOf="@id/icBuild" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Item 5  (Resumo) -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/btnSummary"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_item_click"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:id="@+id/icSummary"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="16dp"
+                    android:src="@drawable/ic_summary"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:text="@string/home_btn_resumo"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    app:layout_constraintBottom_toBottomOf="@id/icSummary"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/icSummary"
+                    app:layout_constraintTop_toTopOf="@id/icSummary" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Item 6  (Fotos da Obra) -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/btnPhotos"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_item_click"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:id="@+id/icPhoto"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="16dp"
+                    android:src="@drawable/ic_photo"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:text="@string/home_btn_fotos"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    app:layout_constraintBottom_toBottomOf="@id/icPhoto"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/icPhoto"
+                    app:layout_constraintTop_toTopOf="@id/icPhoto" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

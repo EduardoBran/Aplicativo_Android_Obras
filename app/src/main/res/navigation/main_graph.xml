@@ -10,4 +10,28 @@
         android:name="com.luizeduardobrandao.obra.ui.login.LoginFragment"
         android:label="LoginFragment"
         tools:layout="@layout/fragment_login"/>
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.luizeduardobrandao.obra.ui.register.RegisterFragment"
+        android:label="RegisterFragment"
+        tools:layout="@layout/fragment_register"/>
+
+    <fragment
+        android:id="@+id/resetPasswordFragment"
+        android:name="com.luizeduardobrandao.obra.ui.resetpassword.ResetPasswordFragment"
+        android:label="ResetPasswordFragment"
+        tools:layout="@layout/fragment_reset_password"/>
+
+    <fragment
+        android:id="@+id/workFragment"
+        android:name="com.luizeduardobrandao.obra.ui.work.WorkFragment"
+        android:label="WorkFragment"
+        tools:layout="@layout/fragment_work"/>
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.luizeduardobrandao.obra.ui.home.HomeFragment"
+        android:label="HomeFragment"
+        tools:layout="@layout/fragment_home"/>
 </navigation>
