@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ─────────  Toolbar  ───────── -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarResumoNotas"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.ObrasApp.Toolbar"
+        app:navigationIcon="@drawable/ic_back"
+        app:title="@string/nota_sum_title"
+        app:titleCentered="true"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <!-- ─────────  Lista de Notas  ───────── -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvNotasResumo"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintTop_toBottomOf="@id/toolbarResumoNotas"
+        app:layout_constraintBottom_toTopOf="@+id/llTotaisContainer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:listitem="@layout/item_nota" />
+
+    <!-- ─────────  Área de Totais  ───────── -->
+    <LinearLayout
+        android:id="@+id/llTotaisContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="?attr/colorSurfaceVariant"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Total Geral -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/total_geral"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/tvResumoTotalGeral"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text="@string/nota_sum_total"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Espaço -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="12dp"/>
+
+        <!-- Totais por Tipo -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nota_sum_type"
+                    android:textAlignment="center"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textStyle="bold"/>
+
+                <!-- Container onde o ViewModel injeta linhas de tipo + valor -->
+                <LinearLayout
+                    android:id="@+id/containerTiposValores"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="8dp"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

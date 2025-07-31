@@ -14,47 +14,47 @@
         android:layout_height="wrap_content"
         android:padding="12dp">
 
-        <!-- Nome  -->
+        <!-- Nome do material (destaque) -->
         <TextView
-            android:id="@+id/tvNomeFunc"
+            android:id="@+id/tvNomeMaterial"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@id/tvSalario"
+            app:layout_constraintEnd_toStartOf="@id/tvValor"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Salário + forma  -->
+        <!-- Valor (direita) -->
         <TextView
-            android:id="@+id/tvSalario"
+            android:id="@+id/tvValor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintBaseline_toBaselineOf="@id/tvNomeFunc"
+            app:layout_constraintBaseline_toBaselineOf="@id/tvNomeMaterial"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:text="R$ 0,00 (diária)" />
+            tools:text="R$ 0,00" />
 
-        <!-- Função -->
+        <!-- Nome da loja -->
         <TextView
-            android:id="@+id/tvFuncao"
+            android:id="@+id/tvLoja"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorOnSurfaceVariant"
             app:layout_constraintEnd_toStartOf="@id/tvStatus"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvNomeFunc" />
+            app:layout_constraintTop_toBottomOf="@id/tvNomeMaterial" />
 
         <!-- Status -->
         <TextView
             android:id="@+id/tvStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/success"
-            app:layout_constraintBaseline_toBaselineOf="@id/tvFuncao"
+            android:textColor="@color/md_theme_light_error"
+            app:layout_constraintBaseline_toBaselineOf="@id/tvLoja"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:text="Ativo" />
+            tools:text="A Pagar" />
 
-        <!-- Divider -->
+        <!-- Divisor -->
         <View
             android:layout_width="0dp"
             android:layout_height="1dp"
@@ -62,9 +62,9 @@
             android:background="@color/md_theme_light_outline"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvFuncao" />
+            app:layout_constraintTop_toBottomOf="@id/tvLoja" />
 
-        <!-- Ações -->
+        <!-- Ícones de ação -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -74,10 +74,10 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvFuncao">
+            app:layout_constraintTop_toBottomOf="@id/tvLoja">
 
             <ImageButton
-                android:id="@+id/btnEdit"
+                android:id="@+id/btnEditNota"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -86,20 +86,22 @@
                 app:tint="@color/md_theme_light_tertiary" />
 
             <ImageButton
-                android:id="@+id/btnDetail"
+                android:id="@+id/btnDetailNota"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_marginStart="16dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/detail"
                 android:src="@drawable/ic_info"
                 app:tint="@color/warning" />
 
             <ImageButton
-                android:id="@+id/btnDelete"
+                android:id="@+id/btnDeleteNota"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_marginStart="16dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/generic_delete"
                 android:src="@drawable/ic_delete"
                 app:tint="@color/md_theme_light_error" />
         </LinearLayout>

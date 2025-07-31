@@ -58,4 +58,28 @@
         android:name="com.luizeduardobrandao.obra.ui.funcionario.ResumoFuncionarioFragment"
         android:label="ResumoFuncionarioFragment"
         tools:layout="@layout/fragment_resumo_funcionario"/>
+
+    <fragment
+        android:id="@+id/notasFragment"
+        android:name="com.luizeduardobrandao.obra.ui.notas.NotasFragment"
+        android:label="NotasFragment"
+        tools:layout="@layout/fragment_notas"/>
+
+    <fragment
+        android:id="@+id/notaRegisterFragment"
+        android:name="com.luizeduardobrandao.obra.ui.notas.NotaRegisterFragment"
+        android:label="NotaRegisterFragment"
+        tools:layout="@layout/fragment_nota_register"/>
+
+    <fragment
+        android:id="@+id/detalheNotaFragment"
+        android:name="com.luizeduardobrandao.obra.ui.notas.DetalheNotaFragment"
+        android:label="DetalheNotaFragment"
+        tools:layout="@layout/fragment_detalhe_nota"/>
+
+    <fragment
+        android:id="@+id/resumoNotasFragment"
+        android:name="com.luizeduardobrandao.obra.ui.notas.ResumoNotasFragment"
+        android:label="ResumoNotasFragment"
+        tools:layout="@layout/fragment_resumo_notas"/>
 </navigation>

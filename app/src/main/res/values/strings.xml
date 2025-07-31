@@ -112,11 +112,15 @@
     <string name="nota_toast_removed">Nota removida com sucesso.</string>
     <string name="nota_toast_added">Nota adicionada.</string>
     <string name="nota_toast_updated">Dados da nota atualizados.</string>
+    <string name="nota_reg_button_save">Adicionar nota</string>
+    <string name="detail">Detalhes</string>
+    <string name="generic_delete">Excluir nota</string>
 
     <!-- NotaRegisterFragment -->
     <string name="nota_reg_title">Cadastro de Notas</string>
     <string name="nota_reg_material_hint">Nome do Material</string>
     <string name="nota_reg_desc_hint">Descrição (opcional)</string>
+    <string name="nota_reg_desc">Descrição</string>
     <string name="nota_reg_store_hint">Loja</string>
     <string name="nota_reg_date_hint">Data</string>
     <string name="nota_reg_value_hint">Valor</string>
@@ -128,9 +132,10 @@
     <!-- DetalheNotaFragment -->
     <string name="nota_detail_title">Nota %1$s</string>
 
-    <!-- ResumoMaterialFragment -->
+    <!-- ResumoNotasFragment -->
     <string name="nota_sum_title">Resumo das Notas</string>
-    <string name="nota_sum_total">Total Geral: R$ %1$s</string>
+    <string name="nota_sum_total">R$ %1$s</string>
+    <string name="nota_sum_type">Totais por Tipo de Material</string>
 
     <!-- CronogramaFragment -->
     <string name="cron_title">Cronograma da Obra</string>
