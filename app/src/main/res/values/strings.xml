@@ -181,6 +181,7 @@
     <string name="obra_data_toast_deleted">Obra excluída.</string>
     <string name="obra_data_toast_updated">Dados da obra atualizados.</string>
     <string name="obra_data_error_required">Preencha todos os campos obrigatórios antes de salvar.</string>
+    <string name="resumo_button_update_balance">Atualizar Saldo</string>
 
     <!-- ResumoFragment -->
     <string name="resumo_title">Resumo da Obra</string>
@@ -190,7 +191,15 @@
     <string name="resumo_total_material_cost">Custo com Materiais: R$ %1$s</string>
     <string name="resumo_balance_initial">Saldo Inicial: R$ %1$s</string>
     <string name="resumo_balance_remaining">Saldo Restante: R$ %1$s</string>
-    <string name="resumo_button_update_balance">Atualizar Saldo</string>
+    <!-- Funcionários -->
+    <string name="resumo_func_header">Total Gasto com Funcionários</string>
+
+    <!-- Materiais -->
+    <string name="resumo_mat_header">Total Gasto com Materiais</string>
+
+    <!-- Saldo -->
+    <string name="resumo_saldo_atual">Saldo Atual da Obra</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 

@@ -106,4 +106,10 @@
         android:name="com.luizeduardobrandao.obra.ui.dadosobra.DadosObraFragment"
         android:label="DadosObraFragment"
         tools:layout="@layout/fragment_dados_obra" />
+
+    <fragment
+        android:id="@+id/resumoFragment"
+        android:name="com.luizeduardobrandao.obra.ui.resumo.ResumoFragment"
+        android:label="ResumoFragment"
+        tools:layout="@layout/fragment_resumo"/>
 </navigation>
