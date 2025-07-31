@@ -99,5 +99,11 @@
         android:id="@+id/detalheCronogramaFragment"
         android:name="com.luizeduardobrandao.obra.ui.cronograma.DetalheCronogramaFragment"
         android:label="DetalheCronogramaFragment"
-        tools:layout="@layout/fragment_detalhe_cronograma"/>
+        tools:layout="@layout/fragment_detalhe_cronograma" />
+
+    <fragment
+        android:id="@+id/dadosObraFragment"
+        android:name="com.luizeduardobrandao.obra.ui.dadosobra.DadosObraFragment"
+        android:label="DadosObraFragment"
+        tools:layout="@layout/fragment_dados_obra" />
 </navigation>

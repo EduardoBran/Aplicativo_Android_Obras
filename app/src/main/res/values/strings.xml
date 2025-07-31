@@ -170,9 +170,10 @@
     <!-- DadosObraFragment -->
     <string name="obra_data_title">Dados da obra de %1$s</string>
     <string name="obra_data_client_hint">Nome do Cliente</string>
-    <string name="obra_data_address_hint">Endereço</string>
-    <string name="obra_data_desc_hint">Descrição</string>
+    <string name="obra_data_address_hint">Endereço da obra</string>
+    <string name="obra_data_desc_hint">Descrição da obra</string>
     <string name="obra_data_balance_hint">Saldo Inicial</string>
+    <string name="obra_data_balance_current">Saldo Atual</string>
     <string name="obra_data_date_start_hint">Data de Início</string>
     <string name="obra_data_date_end_hint">Data de Término</string>
     <string name="obra_data_button_delete">Excluir</string>

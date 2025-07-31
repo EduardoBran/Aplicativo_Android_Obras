@@ -186,7 +186,7 @@
                             android:id="@+id/etEndereco"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:drawableStart="@drawable/ic_person"
+                            android:drawableStart="@drawable/ic_address"
                             android:drawablePadding="12dp"
                             android:hint="@string/obra_data_address_hint"
                             android:minHeight="60dp"
