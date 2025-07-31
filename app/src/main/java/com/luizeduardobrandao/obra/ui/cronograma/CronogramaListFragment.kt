@@ -7,14 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import com.luizeduardobrandao.obra.R
 
+class CronogramaListFragment : Fragment() {
 
-class EtapaRegisterFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_etapa_register, container, false)
+        return inflater.inflate(R.layout.fragment_cronograma_list, container, false)
     }
 }

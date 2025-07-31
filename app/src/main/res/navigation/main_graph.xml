@@ -82,4 +82,22 @@
         android:name="com.luizeduardobrandao.obra.ui.notas.ResumoNotasFragment"
         android:label="ResumoNotasFragment"
         tools:layout="@layout/fragment_resumo_notas"/>
+
+    <fragment
+        android:id="@+id/cronogramaFragment"
+        android:name="com.luizeduardobrandao.obra.ui.cronograma.CronogramaFragment"
+        android:label="CronogramaFragment"
+        tools:layout="@layout/fragment_cronograma" />
+
+    <fragment
+        android:id="@+id/cronogramaRegisterFragment"
+        android:name="com.luizeduardobrandao.obra.ui.cronograma.CronogramaRegisterFragment"
+        android:label="CronogramaRegisterFragment"
+        tools:layout="@layout/fragment_cronograma_register" />
+
+    <fragment
+        android:id="@+id/detalheCronogramaFragment"
+        android:name="com.luizeduardobrandao.obra.ui.cronograma.DetalheCronogramaFragment"
+        android:label="DetalheCronogramaFragment"
+        tools:layout="@layout/fragment_detalhe_cronograma"/>
 </navigation>

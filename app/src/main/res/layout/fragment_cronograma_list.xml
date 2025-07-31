@@ -7,7 +7,7 @@
 
     <!-- Loading -->
     <ProgressBar
-        android:id="@+id/progressNotasList"
+        android:id="@+id/progressEtapas"
         style="@style/Widget.AppCompat.ProgressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -18,10 +18,10 @@
 
     <!-- Texto vazio -->
     <TextView
-        android:id="@+id/tvEmptyNotas"
+        android:id="@+id/tvEmptyEtapas"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/nota_no_items"
+        android:text="@string/cron_no_items"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -30,7 +30,7 @@
 
     <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvNotas"
+        android:id="@+id/rvEtapas"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:visibility="gone"
@@ -38,6 +38,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/item_nota"
+        tools:listitem="@layout/item_cronograma"
         tools:visibility="visible" />
 </androidx.constraintlayout.widget.ConstraintLayout>

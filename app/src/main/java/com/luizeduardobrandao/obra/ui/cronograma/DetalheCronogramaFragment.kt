@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.luizeduardobrandao.obra.R
 
-class DetalheEtapaFragment : Fragment() {
+class DetalheCronogramaFragment : Fragment() {
 
 
     override fun onCreateView(
@@ -15,6 +15,6 @@ class DetalheEtapaFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_detalhe_etapa, container, false)
+        return inflater.inflate(R.layout.fragment_detalhe_cronograma, container, false)
     }
 }
