@@ -4,7 +4,7 @@ import androidx.annotation.ColorRes
 import com.luizeduardobrandao.obra.R
 
 /**
- * Conjunto de constantes reutilizadas em todo o projeto.
+ * Conjunto de constantes reutilizadas em t0do o projeto.
  * Coloque aqui somente valores realmente “globais” — evita *magic numbers*
  * ou *hard-coded strings* espalhados pelo código.
  */
