@@ -5,111 +5,344 @@
     android:id="@+id/main_graph"
     app:startDestination="@id/loginFragment">
 
+    <!-- ────────────────────────────  ►  LOGIN  ◄  ──────────────────────────── -->
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.luizeduardobrandao.obra.ui.login.LoginFragment"
-        android:label="LoginFragment"
-        tools:layout="@layout/fragment_login"/>
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
 
+        <action
+            android:id="@+id/action_login_to_register"
+            app:destination="@id/registerFragment" />
+
+        <action
+            android:id="@+id/action_login_to_reset"
+            app:destination="@id/resetPasswordFragment" />
+
+        <action
+            android:id="@+id/action_login_to_work"
+            app:destination="@id/workFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+
+    </fragment>
+
+
+    <!-- ────────────────────────────  ►  REGISTER  ◄  ─────────────────────────── -->
     <fragment
         android:id="@+id/registerFragment"
         android:name="com.luizeduardobrandao.obra.ui.register.RegisterFragment"
-        android:label="RegisterFragment"
-        tools:layout="@layout/fragment_register"/>
+        android:label="Registrar Conta"
+        tools:layout="@layout/fragment_register">
 
+        <action
+            android:id="@+id/action_register_to_work"
+            app:destination="@id/workFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+
+    </fragment>
+
+
+    <!-- ────────────────────────────  ►  RESET PASSWORD  ◄  ─────────────────── -->
     <fragment
         android:id="@+id/resetPasswordFragment"
         android:name="com.luizeduardobrandao.obra.ui.resetpassword.ResetPasswordFragment"
-        android:label="ResetPasswordFragment"
-        tools:layout="@layout/fragment_reset_password"/>
+        android:label="Recuperar Conta"
+        tools:layout="@layout/fragment_reset_password">
 
+        <action
+            android:id="@+id/action_reset_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+
+    </fragment>
+
+
+    <!-- ────────────────────────────  ►  WORK  ◄  ───────────────────────────── -->
     <fragment
         android:id="@+id/workFragment"
         android:name="com.luizeduardobrandao.obra.ui.work.WorkFragment"
-        android:label="WorkFragment"
-        tools:layout="@layout/fragment_work"/>
+        android:label="Obras"
+        tools:layout="@layout/fragment_work">
 
+        <!-- envia Obra (Parcelable) selecionada -->
+        <action
+            android:id="@+id/action_work_to_home"
+            app:destination="@id/homeFragment" />
+
+    </fragment>
+
+
+    <!-- ────────────────────────────  ►  HOME  ◄  ───────────────────────────── -->
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.luizeduardobrandao.obra.ui.home.HomeFragment"
-        android:label="HomeFragment"
-        tools:layout="@layout/fragment_home"/>
+        android:label="Home"
+        tools:layout="@layout/fragment_home">
 
+        <!-- seções -->
+        <action
+            android:id="@+id/action_home_to_funcionario"
+            app:destination="@id/funcionarioFragment" />
+
+        <action
+            android:id="@+id/action_home_to_notas"
+            app:destination="@id/notasFragment" />
+
+        <action
+            android:id="@+id/action_home_to_cronograma"
+            app:destination="@id/cronogramaFragment" />
+
+        <action
+            android:id="@+id/action_home_to_dadosObra"
+            app:destination="@id/dadosObraFragment" />
+
+        <action
+            android:id="@+id/action_home_to_resumo"
+            app:destination="@id/resumoFragment" />
+
+        <!-- logout: volta diretamente ao Login limpando pilha -->
+        <action
+            android:id="@+id/action_home_logout"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+
+    </fragment>
+
+
+    <!-- ────────────────────────────  ►  FUNCIONÁRIOS  ◄  ───────────────────── -->
     <fragment
         android:id="@+id/funcionarioFragment"
         android:name="com.luizeduardobrandao.obra.ui.funcionario.FuncionarioFragment"
-        android:label="FuncionarioFragment"
-        tools:layout="@layout/fragment_funcionario"/>
+        android:label="Funcionários"
+        tools:layout="@layout/fragment_funcionario">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_func_to_register"
+            app:destination="@id/funcionarioRegisterFragment" />
+
+        <action
+            android:id="@+id/action_func_to_detail"
+            app:destination="@id/detalheFuncionarioFragment" />
+
+        <action
+            android:id="@+id/action_func_to_resumo"
+            app:destination="@id/resumoFuncionarioFragment" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/funcionarioRegisterFragment"
         android:name="com.luizeduardobrandao.obra.ui.funcionario.FuncionarioRegisterFragment"
-        android:label="FuncionarioRegisterFragment"
-        tools:layout="@layout/fragment_funcionario_register"/>
+        android:label="Cadastrar Funcionário"
+        tools:layout="@layout/fragment_funcionario_register">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+        <argument
+            android:name="funcionarioId"
+            app:argType="string"
+            app:nullable="true" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/detalheFuncionarioFragment"
         android:name="com.luizeduardobrandao.obra.ui.funcionario.DetalheFuncionarioFragment"
-        android:label="DetalheFuncionarioFragment"
-        tools:layout="@layout/fragment_detalhe_funcionario"/>
+        android:label="Detalhe Funcionário"
+        tools:layout="@layout/fragment_detalhe_funcionario">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+        <argument
+            android:name="funcionarioId"
+            app:argType="string" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/resumoFuncionarioFragment"
         android:name="com.luizeduardobrandao.obra.ui.funcionario.ResumoFuncionarioFragment"
-        android:label="ResumoFuncionarioFragment"
-        tools:layout="@layout/fragment_resumo_funcionario"/>
+        android:label="Resumo Funcionários"
+        tools:layout="@layout/fragment_resumo_funcionario">
 
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+
+    </fragment>
+
+
+    <!-- ────────────────────────────  ►  NOTAS  ◄  ──────────────────────────── -->
     <fragment
         android:id="@+id/notasFragment"
         android:name="com.luizeduardobrandao.obra.ui.notas.NotasFragment"
-        android:label="NotasFragment"
-        tools:layout="@layout/fragment_notas"/>
+        android:label="Notas"
+        tools:layout="@layout/fragment_notas">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_notas_to_register"
+            app:destination="@id/notaRegisterFragment" />
+
+        <action
+            android:id="@+id/action_notas_to_detail"
+            app:destination="@id/detalheNotaFragment" />
+
+        <action
+            android:id="@+id/action_notas_to_resumo"
+            app:destination="@id/resumoNotasFragment" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/notaRegisterFragment"
         android:name="com.luizeduardobrandao.obra.ui.notas.NotaRegisterFragment"
-        android:label="NotaRegisterFragment"
-        tools:layout="@layout/fragment_nota_register"/>
+        android:label="Cadastrar Nota"
+        tools:layout="@layout/fragment_nota_register">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+        <argument
+            android:name="notaId"
+            app:argType="string"
+            app:nullable="true" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/detalheNotaFragment"
         android:name="com.luizeduardobrandao.obra.ui.notas.DetalheNotaFragment"
-        android:label="DetalheNotaFragment"
-        tools:layout="@layout/fragment_detalhe_nota"/>
+        android:label="Detalhe Nota"
+        tools:layout="@layout/fragment_detalhe_nota">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+        <argument
+            android:name="notaId"
+            app:argType="string" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/resumoNotasFragment"
         android:name="com.luizeduardobrandao.obra.ui.notas.ResumoNotasFragment"
-        android:label="ResumoNotasFragment"
-        tools:layout="@layout/fragment_resumo_notas"/>
+        android:label="Resumo Notas"
+        tools:layout="@layout/fragment_resumo_notas">
 
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+
+    </fragment>
+
+
+    <!-- ────────────────────────────  ►  CRONOGRAMA  ◄  ─────────────────────── -->
     <fragment
         android:id="@+id/cronogramaFragment"
         android:name="com.luizeduardobrandao.obra.ui.cronograma.CronogramaFragment"
-        android:label="CronogramaFragment"
-        tools:layout="@layout/fragment_cronograma" />
+        android:label="Cronograma"
+        tools:layout="@layout/fragment_cronograma">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_cronograma_to_register"
+            app:destination="@id/cronogramaRegisterFragment" />
+
+        <action
+            android:id="@+id/action_cronograma_to_detail"
+            app:destination="@id/detalheCronogramaFragment" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/cronogramaRegisterFragment"
         android:name="com.luizeduardobrandao.obra.ui.cronograma.CronogramaRegisterFragment"
-        android:label="CronogramaRegisterFragment"
-        tools:layout="@layout/fragment_cronograma_register" />
+        android:label="Cadastrar Etapa"
+        tools:layout="@layout/fragment_cronograma_register">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+        <argument
+            android:name="etapaId"
+            app:argType="string"
+            app:nullable="true" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/detalheCronogramaFragment"
         android:name="com.luizeduardobrandao.obra.ui.cronograma.DetalheCronogramaFragment"
-        android:label="DetalheCronogramaFragment"
-        tools:layout="@layout/fragment_detalhe_cronograma" />
+        android:label="Detalhe Etapa"
+        tools:layout="@layout/fragment_detalhe_cronograma">
 
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+        <argument
+            android:name="etapaId"
+            app:argType="string" />
+
+    </fragment>
+
+
+    <!-- ────────────────────────────  ►  DADOS DA OBRA  ◄  ─────────────────── -->
     <fragment
         android:id="@+id/dadosObraFragment"
         android:name="com.luizeduardobrandao.obra.ui.dadosobra.DadosObraFragment"
-        android:label="DadosObraFragment"
-        tools:layout="@layout/fragment_dados_obra" />
+        android:label="Dados da Obra"
+        tools:layout="@layout/fragment_dados_obra">
 
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+
+        <!-- volta para Home após salvar -->
+        <action
+            android:id="@+id/action_dadosObra_to_home"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="true" />
+
+        <!-- volta para Work após exclusão -->
+        <action
+            android:id="@+id/action_dadosObra_to_work"
+            app:destination="@id/workFragment"
+            app:popUpTo="@id/workFragment"
+            app:popUpToInclusive="true" />
+
+    </fragment>
+
+
+    <!-- ────────────────────────────  ►  RESUMO OBRA  ◄  ────────────────────── -->
     <fragment
         android:id="@+id/resumoFragment"
         android:name="com.luizeduardobrandao.obra.ui.resumo.ResumoFragment"
-        android:label="ResumoFragment"
-        tools:layout="@layout/fragment_resumo"/>
+        android:label="Resumo"
+        tools:layout="@layout/fragment_resumo">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+
+    </fragment>
 </navigation>
