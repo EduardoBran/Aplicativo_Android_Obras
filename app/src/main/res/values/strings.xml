@@ -173,6 +173,7 @@
     <string name="cron_toast_updated">Dados da etapa atualizados.</string>
     <string name="cron_reg_button_save">Adicionar cronograma</string>
     <string name="cron_reg_button_edit">Editar cronograma</string>
+    <string name="cronograma_load_error">Não foi possível carregar as etapas do cronograma.</string>
 
     <!-- CronogramaRegisterFragment -->
     <string name="etapa_reg_title">Cadastro de Etapa</string>
