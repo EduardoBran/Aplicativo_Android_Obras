@@ -4,8 +4,10 @@ import javax.inject.Singleton
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.getValue
 import com.luizeduardobrandao.obra.data.model.Funcionario
+import com.luizeduardobrandao.obra.data.model.Nota
 import com.luizeduardobrandao.obra.data.repository.AuthRepository
 import com.luizeduardobrandao.obra.data.repository.FuncionarioRepository
+import com.luizeduardobrandao.obra.data.repository.ObraRepository
 import com.luizeduardobrandao.obra.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
@@ -15,27 +17,29 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import com.luizeduardobrandao.obra.utils.valueEventListener
-import java.util.Locale
 
 @Singleton
 class FuncionarioRepositoryImpl @Inject constructor(
     private val authRepo: AuthRepository,
     private val obrasRoot: DatabaseReference,
+    private val obraRepository: ObraRepository,    // para atualizar gastoTotal
     @IoDispatcher private val io: CoroutineDispatcher
 ) : FuncionarioRepository {
 
-    private fun funcRef(obraId: String): DatabaseReference =
-        obrasRoot.child(authRepo.currentUid ?: "semUid")
-            .child(obraId)
-            .child("funcionarios")
+    private fun baseRef(obraId: String) = obrasRoot
+        .child(authRepo.currentUid ?: error("Usuário não autenticado"))
+        .child(obraId)
+
+    private fun funcRef(obraId: String) = baseRef(obraId).child("funcionarios")
+    private fun notaRef(obraId: String) = baseRef(obraId).child("notas")
 
     override fun observeFuncionarios(obraId: String): Flow<List<Funcionario>> = callbackFlow {
         val listener = funcRef(obraId).addValueEventListener(
             valueEventListener { snap ->
                 val list = snap.children
                     .mapNotNull { it.getValue<Funcionario>() }
-                    .sortedBy { it.nome.lowercase(Locale.ROOT) }
-                trySend(list)
+                    .sortedBy { it.nome.lowercase() }
+                trySend(list).isSuccess
             }
         )
         awaitClose { funcRef(obraId).removeEventListener(listener) }
@@ -46,15 +50,10 @@ class FuncionarioRepositoryImpl @Inject constructor(
         funcionarioId: String
     ): Flow<Funcionario?> = callbackFlow {
         val ref = funcRef(obraId).child(funcionarioId)
-
-        // listener utilitário (DataSnapshot → Funcionario?)
-        val listener = valueEventListener { snapshot ->
-            val funcionario = snapshot.getValue<Funcionario>()   // tipagem explícita
-            trySend(funcionario).isSuccess                       // evita exceção se o canal fechar
+        val listener = valueEventListener { snap ->
+            trySend(snap.getValue<Funcionario>()).isSuccess
         }
-
         ref.addValueEventListener(listener)
-
         awaitClose { ref.removeEventListener(listener) }
     }
 
@@ -62,28 +61,65 @@ class FuncionarioRepositoryImpl @Inject constructor(
         obraId: String,
         funcionario: Funcionario
     ): Result<String> = withContext(io) {
-        kotlin.runCatching {
-            val key = funcRef(obraId).push().key ?: error("Sem key")
-            funcRef(obraId).child(key).setValue(funcionario.copy(id = key)).await()
+        val result = runCatching {
+            val key = funcRef(obraId).push().key ?: error("Sem key para funcionário")
+            funcRef(obraId).child(key)
+                .setValue(funcionario.copy(id = key))
+                .await()
             key
         }
+        if (result.isSuccess) recalcTotalGasto(obraId)
+        result
     }
 
     override suspend fun updateFuncionario(
         obraId: String,
         funcionario: Funcionario
     ): Result<Unit> = withContext(io) {
-        kotlin.runCatching { funcRef(obraId).child(funcionario.id).setValue(funcionario).await()
-        Unit
+        val result = runCatching {
+            funcRef(obraId).child(funcionario.id)
+                .setValue(funcionario)
+                .await()
+            Unit
         }
+        if (result.isSuccess) recalcTotalGasto(obraId)
+        result
     }
 
     override suspend fun deleteFuncionario(
         obraId: String,
         funcionarioId: String
     ): Result<Unit> = withContext(io) {
-        kotlin.runCatching { funcRef(obraId).child(funcionarioId).removeValue().await()
-        Unit }
+        val result = runCatching {
+            funcRef(obraId).child(funcionarioId)
+                .removeValue()
+                .await()
+            Unit
+        }
+        if (result.isSuccess) recalcTotalGasto(obraId)
+        result
     }
 
+    /**
+     * Soma:
+     *   • totalGasto de todos os funcionários
+     *   • valor de todas as notas
+     * e grava em gastoTotal da obra.
+     */
+    private suspend fun recalcTotalGasto(obraId: String) {
+        // 1) soma custos de mão-de-obra
+        val funcsSnap = funcRef(obraId).get().await()
+        val totalFuncs = funcsSnap.children
+            .mapNotNull { it.getValue<Funcionario>() }
+            .sumOf { it.totalGasto }
+
+        // 2) soma custos de material
+        val notasSnap = notaRef(obraId).get().await()
+        val totalNotas = notasSnap.children
+            .mapNotNull { it.getValue<Nota>() }
+            .sumOf { it.valor }
+
+        // 3) grava a soma agregada
+        obraRepository.updateGastoTotal(obraId, totalFuncs + totalNotas)
+    }
 }

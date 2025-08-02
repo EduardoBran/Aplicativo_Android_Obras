@@ -7,16 +7,21 @@ import kotlinx.parcelize.Parcelize // Anotação que gera automaticamente a impl
 
 
 /**
- * Representa uma “obra” cadastrada pelo usuário no app.
+ * Representa uma “obra” cadastrada pelo usuário.
  *
  * • obraId         → chave única gerada pelo mét0do push() do Firebase
  * • nomeCliente    → nome do cliente responsável pela obra
- * • endereco       → endereço onde a obra está sendo executada
- * • descricao      → breve descrição do serviço ou projeto
- * • saldo          → valor total inicialmente informado no cadastro
- * • saldoRestante  → valor que sobra à medida que notas e funcionários são lançados
- * • dataInicio     → data de início da obra (formato dd/MM/yyyy)
- * • dataFim        → data de término da obra (formato dd/MM/yyyy)
+ * • endereco       → endereço da obra
+ * • descricao      → breve descrição do projeto
+ * • saldoInicial   → valor orçado/informado no cadastro (imutável)
+ * • gastoTotal     → soma de todos os custos lançados (dinâmico)
+ * • dataInicio     → data de início da obra (dd/MM/yyyy)
+ * • dataFim        → data de término da obra (dd/MM/yyyy)
+ *
+ * A propriedade [saldoRestante] é calculada em tempo de execução:
+ * ```
+ * saldoRestante = saldoInicial - gastoTotal
+ * ```
  */
 
 @Parcelize                // Gera código para serializar/deserializar em Parcel
@@ -27,8 +32,12 @@ data class Obra(
     val nomeCliente: String = "",
     val endereco: String = "",
     val descricao: String = "",
-    val saldo: Double = 0.0,
-    val saldoRestante: Double = 0.0,
+    val saldoInicial: Double = 0.0,
+    val gastoTotal: Double = 0.0,
     val dataInicio: String = "",
-    val dataFim: String = "",
-) : Parcelable                    // Implementa Parcelable para transporte em Intents/Bundles
+    val dataFim: String = ""
+) : Parcelable {
+    /** Valor que ainda resta do orçamento inicial após lançar custos. */
+    val saldoRestante: Double
+        get() = saldoInicial - gastoTotal
+}
