@@ -68,7 +68,13 @@
     <string name="work_spinner_default">Selecione a obra</string>
     <string name="work_toast_selected">Obra %1$s selecionada.</string>
     <string name="work_toast_saved">Informações da obra salvas.</string>
+    <string name="work_load_error">
+        Não foi possível carregar as obras. Verifique sua conexão.
+    </string>
     <string name="work_error_save">Erro ao salvar obra. Verifique sua conexão.</string>
+    <string name="work_create_error">
+        Falha ao salvar a obra. Tente novamente mais tarde.
+    </string>
 
     <!-- HomeFragment -->
     <string name="home_logout">Sair</string>
@@ -80,6 +86,8 @@
     <string name="home_btn_resumo">Resumo</string>
     <string name="home_btn_fotos">Fotos da Obra</string>
     <string name="home_fotos_not_impl">Funcionalidade ainda não implementada.</string>
+    <string name="home_error_missing_obra">Obra não encontrada.</string>
+    <string name="home_error_load">Não foi possível carregar os dados da obra. Tente novamente.</string>
 
     <!-- FuncionarioFragment -->
     <string name="func_title">Funcionários</string>

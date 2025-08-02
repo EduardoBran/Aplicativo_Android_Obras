@@ -71,7 +71,14 @@
         <!-- envia Obra (Parcelable) selecionada -->
         <action
             android:id="@+id/action_work_to_home"
-            app:destination="@id/homeFragment" />
+            app:destination="@id/homeFragment">
+
+            <!-- Safe-Args gera WorkFragmentDirections.actionWorkToHome(obraId) -->
+            <argument
+                android:name="obraId"
+                app:argType="string" />
+
+        </action>
 
     </fragment>
 
