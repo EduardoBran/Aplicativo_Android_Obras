@@ -100,6 +100,7 @@
     <string name="func_toast_removed">Funcionário removido com sucesso.</string>
     <string name="func_toast_added">Funcionário adicionado.</string>
     <string name="func_toast_updated">Dados do funcionário atualizados.</string>
+    <string name="func_load_error">Não foi possível carregar funcionários.</string>
 
     <!-- FuncionarioRegisterFragment -->
     <string name="func_reg_title">Registro de Funcionários</string>
@@ -137,6 +138,7 @@
     <string name="nota_reg_button_edit">Editar nota</string>
     <string name="detail">Detalhes</string>
     <string name="generic_delete">Excluir nota</string>
+    <string name="nota_load_error">Não foi possível carregar notas.</string>
 
     <!-- NotaRegisterFragment -->
     <string name="nota_reg_title">Cadastro de Notas</string>
