@@ -1,14 +1,16 @@
 package com.luizeduardobrandao.obra.data.model
 
+import androidx.annotation.StringRes
+
 /**
  * Representa estados de tela ou fluxos assíncronos nos ViewModels.
  *
- * • [Idle]       → estado neutro / inicial (nada acontecendo)
+ * • [Idle]       → estado neutro / inicial (nenhuma ação em andamento)
  * • [Loading]    → operação em andamento
- * • [Success<T>] → operação bem-sucedida com dado resultante
- * • [Error]      → falha com mensagem amigável
+ * • [Success<T>] → operação bem-sucedida, trazendo o dado [T]
+ * • [Error]      → falha com mensagem em texto livre
+ * • [ErrorRes]   → falha com mensagem identificada por resource ID (StringRes)
  */
-
 sealed interface UiState<out T> {
 
     // Estado neutro – útil após consumir um evento de sucesso/erro.
@@ -22,6 +24,9 @@ sealed interface UiState<out T> {
 
     // Resultado de erro com mensagem legível ao usuário.
     data class Error(val message: String) : UiState<Nothing>
+
+    /** Erro identificado por um String‐res ID. */
+    data class ErrorRes(@StringRes val resId: Int) : UiState<Nothing>
 }
 
 /*

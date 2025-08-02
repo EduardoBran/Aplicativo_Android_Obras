@@ -24,13 +24,16 @@
     <!-- LoginFragment -->
     <string name="login_title">Entrar</string>
     <string name="login_email_hint">E‑mail</string>
+    <string name="login_email_error">E‑mail inválido.</string>
     <string name="login_password_hint">Senha</string>
+    <string name="login_password_error">Senha deve ter ao menos 6 caracteres.</string>
     <string name="login_button">Entrar</string>
     <string name="login_create_account">Criar Conta</string>
     <string name="login_forgot_password">Esqueceu a senha?</string>
     <string name="login_toast_success">Usuário logado.</string>
     <string name="login_error_user_not_found">Usuário não encontrado.</string>
     <string name="login_error_wrong_password">Senha incorreta.</string>
+    <string name="login_error_generic">Falha ao logar. Tente novamente.</string>
 
     <!-- RegisterFragment -->
     <string name="register_title">Registrar Conta</string>
@@ -39,7 +42,12 @@
     <string name="register_password_hint">Senha</string>
     <string name="register_button">Cadastrar</string>
     <string name="register_toast_success">Usuário criado.</string>
-    <string name="register_error_email_exists">E‑mail já cadastrado.</string>
+    <string name="register_email_in_use_error">E-mail já cadastrado. Faça login ou recupere sua senha.</string>
+    <string name="register_name_error">Nome deve ter ao menos 3 caracteres.</string>
+    <string name="register_email_error">E-mail inválido.</string>
+    <string name="register_password_error">Senha deve ter ao menos 6 caracteres.</string>
+    <string name="register_error_generic">Falha ao criar a conta. Tente novamente.</string>
+
 
     <!-- ResetPasswordFragment -->
     <string name="reset_title">Recuperar Conta</string>
@@ -47,6 +55,10 @@
     <string name="reset_button">Enviar</string>
     <string name="reset_toast_success">Verifique seu e‑mail cadastrado.</string>
     <string name="reset_error_email_not_found">E‑mail não encontrado.</string>
+    <string name="reset_password_email_error">E-mail inválido.</string>
+    <string name="reset_password_error_generic">
+        Falha ao enviar e-mail de redefinição. Tente novamente.
+    </string>
 
     <!-- WorkFragment -->
     <string name="work_title">Obras</string>
