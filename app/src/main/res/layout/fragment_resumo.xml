@@ -151,7 +151,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="12dp" />
 
-                <!-- Card Saldo Inicial -->
+                <!-- ───── Card Saldo Inicial ───── -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -186,7 +186,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="12dp" />
 
-                <!-- Card Saldo Atualizado / Restante -->
+                <!-- ───── Card Saldo Ajustado + Restante ───── -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -199,17 +199,15 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <!-- Título -->
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/resumo_saldo_updated_header"
+                            android:text="@string/resumo_adjusted_balance_header"
                             android:textAppearance="?attr/textAppearanceBodyLarge"
                             android:textStyle="bold" />
 
-                        <!-- Valor Atualizado -->
                         <TextView
-                            android:id="@+id/tvSaldoAtualResumo"
+                            android:id="@+id/tvSaldoAjustadoResumo"
                             style="@style/TextAppearance.Material3.TitleMedium"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -217,16 +215,14 @@
                             android:text="—"
                             android:textStyle="bold" />
 
-                        <!-- Label Restante -->
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
                             android:text="@string/resumo_saldo_remaining_header"
                             android:textAppearance="?attr/textAppearanceBodyLarge"
-                            android:textStyle="bold"
-                            android:layout_marginTop="12dp" />
+                            android:textStyle="bold" />
 
-                        <!-- Valor Restante -->
                         <TextView
                             android:id="@+id/tvSaldoRestanteResumo"
                             style="@style/TextAppearance.Material3.TitleLarge"

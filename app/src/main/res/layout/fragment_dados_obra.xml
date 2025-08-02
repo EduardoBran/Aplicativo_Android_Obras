@@ -85,13 +85,13 @@
                     android:paddingVertical="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Saldo Inicial (somente leitura) -->
+            <!-- ───── Saldo Inicial (só leitura) ───── -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -111,16 +111,16 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Saldo Atualizado (entrada direta) -->
+            <!-- ───── Campo saldoAjustado (entrada) ───── -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:hint="@string/obra_data_balance_updated_hint">
+                android:layout_marginTop="16dp"
+                android:hint="@string/obra_data_balance_adjust_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etSaldoAtualizado"
+                    android:id="@+id/etSaldoAjustado"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="numberDecimal"
@@ -128,14 +128,14 @@
                     android:paddingVertical="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Botão Atualizar Saldo -->
+            <!-- Botão para gravar saldoAjustado -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAtualizarSaldo"
                 style="@style/Widget.ObrasApp.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="@string/resumo_button_update_balance" />
+                android:text="@string/obra_button_update_balance" />
 
             <!-- Data Início -->
             <com.google.android.material.textfield.TextInputLayout

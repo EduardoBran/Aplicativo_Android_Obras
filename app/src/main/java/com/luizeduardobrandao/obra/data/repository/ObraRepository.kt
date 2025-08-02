@@ -28,4 +28,7 @@ interface ObraRepository {
      * A UI deve calcular o valor correto de gastoTotal antes de chamar.
      */
     suspend fun updateGastoTotal(obraId: String, gastoTotal: Double): Result<Unit>
+
+    /** Atualiza apenas o campo saldoAjustado. */
+    suspend fun updateSaldoAjustado(obraId: String, novoValor: Double): Result<Unit>
 }

@@ -88,4 +88,17 @@ class ObraRepositoryImpl @Inject constructor(
             Unit
         }
     }
+
+    override suspend fun updateSaldoAjustado(
+        obraId: String, novoValor: Double
+    ): Result<Unit> = withContext(io) {
+        runCatching {
+            userRef()
+                .child(obraId)
+                .child("saldoAjustado")
+                .setValue(novoValor)
+                .await()
+            Unit
+        }
+    }
 }

@@ -32,12 +32,13 @@ data class Obra(
     val nomeCliente: String = "",
     val endereco: String = "",
     val descricao: String = "",
-    val saldoInicial: Double = 0.0,
-    val gastoTotal: Double = 0.0,
+    val saldoInicial: Double = 0.0,     // imutável
+    val saldoAjustado: Double = 0.0,    // mutável via botão
+    val gastoTotal: Double = 0.0,       // calculado pelos repositórios
     val dataInicio: String = "",
     val dataFim: String = ""
 ) : Parcelable {
-    /** Valor que ainda resta do orçamento inicial após lançar custos. */
+    /** Quanto ainda resta considerando aportes/débitos posteriores. */
     val saldoRestante: Double
-        get() = saldoInicial - gastoTotal
+        get() = saldoInicial + saldoAjustado - gastoTotal
 }

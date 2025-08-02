@@ -208,6 +208,9 @@
     <string name="obra_data_balance_initial_label">Saldo Inicial</string>
     <string name="obra_data_balance_updated_hint">Informe o novo saldo</string>
 
+    <string name="obra_data_balance_adjust_hint">Valor de ajuste (positivo ou negativo)</string>
+    <string name="obra_button_update_balance">Atualizar Saldo</string>
+
     <!-- ResumoFragment -->
     <string name="resumo_title">Resumo da Obra</string>
     <string name="resumo_total_workers">Total Funcionários: %1$d</string>
@@ -219,6 +222,7 @@
     <string name="resumo_initial_balance_header">Saldo Inicial</string>
     <!-- Cabeçalho do card de Saldo Atualizado -->
     <string name="resumo_saldo_updated_header">Saldo Atualizado</string>
+    <string name="resumo_adjusted_balance_header">Saldo Ajustado</string>
     <!-- Cabeçalho do card de Saldo Restante -->
     <string name="resumo_saldo_remaining_header">Saldo Restante</string>
     <!-- Funcionários -->
