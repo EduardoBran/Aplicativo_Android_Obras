@@ -212,6 +212,12 @@
     <string name="obra_data_balance_adjust_hint">Valor de ajuste (positivo ou negativo)</string>
     <string name="obra_button_update_balance">Atualizar Saldo</string>
 
+    <string name="dados_obra_not_found">Obra não encontrada.</string>
+    <string name="dados_obra_load_error">Erro ao carregar dados da obra.</string>
+    <string name="dados_obra_update_error">Falha ao atualizar dados da obra.</string>
+    <string name="dados_obra_update_balance_error">Falha ao atualizar saldo.</string>
+    <string name="dados_obra_delete_error">Falha ao excluir obra.</string>
+
     <!-- ResumoFragment -->
     <string name="resumo_title">Resumo da Obra</string>
     <string name="resumo_total_workers">Total Funcionários: %1$d</string>
@@ -228,6 +234,8 @@
     <string name="resumo_saldo_remaining_header">Saldo Restante</string>
     <!-- Funcionários -->
     <string name="resumo_func_header">Total Gasto com Funcionários</string>
+    <string name="resumo_obra_not_found">Obra não encontrada.</string>
+    <string name="resumo_generic_error">Erro ao gerar o resumo.</string>
 
     <!-- Materiais -->
     <string name="resumo_mat_header">Total Gasto com Materiais</string>
