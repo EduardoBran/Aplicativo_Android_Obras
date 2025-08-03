@@ -275,6 +275,27 @@
     <string name="resumo_obra_not_found">Obra não encontrada.</string>
     <string name="resumo_generic_error">Erro ao gerar o resumo.</string>
 
+    <!-- Plural de quantidade de funcionários -->
+    <plurals name="resumo_func_qtd">
+        <item quantity="one">%d funcionário</item>
+        <item quantity="other">%d funcionários</item>
+    </plurals>
+
+    <!-- Plural de total de dias -->
+    <plurals name="resumo_func_days">
+        <item quantity="one">%d dia</item>
+        <item quantity="other">%d dias</item>
+    </plurals>
+
+    <!-- Plural de quantidade de materiais -->
+    <plurals name="resumo_mat_qtd">
+        <item quantity="one">%d material</item>
+        <item quantity="other">%d materiais</item>
+    </plurals>
+
+    <!-- Mensagem quando não há tipos de material -->
+    <string name="resumo_mat_no_types">Nenhum tipo de material</string>
+
     <!-- Materiais -->
     <string name="resumo_mat_header">Total Gasto com Materiais</string>
 
