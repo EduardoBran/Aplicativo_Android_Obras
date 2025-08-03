@@ -12,6 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -103,6 +104,28 @@ class WorkFragment : Fragment() {
         // Date pickers no card
         etDataInicio.attachDatePicker()
         etDataFim.attachDatePicker()
+
+        /* 1️⃣  —— NOVO: TextWatchers em TODOS os campos do card ——————— */
+        listOf(
+            etCliente,
+            etEndereco,
+            etDescricao,
+            etSaldo,
+            etDataInicio,      // ← agora incluídos
+            etDataFim          // ← 〃
+        ).forEach { edit ->
+            edit.doAfterTextChanged { validateCard() }
+        }
+
+        /* 2️⃣  —— NOVO: revalida logo que o card aparece ———————————*/
+        btnNewWorkEmpty.setOnClickListener {
+            toggleNewWorkCard(true)
+            validateCard()           // força estado inicial do botão
+        }
+        btnNewWork.setOnClickListener {
+            toggleNewWorkCard(true)
+            validateCard()
+        }
     }
 
     /* ──────────────────────────── collect ViewModel ─────────────────────────── */
@@ -180,47 +203,65 @@ class WorkFragment : Fragment() {
         cardNewWork.isGone = true
     }
 
+    /** Preenche o spinner com a lista de obras ordenada alfabeticamente. */
     private fun renderWorks(lista: List<Obra>) = with(binding) {
         progressWork.isGone = true
 
-        // cenário 1 (sem obras cadastradas)
+        /* ─────────  cenário 1 – sem obras cadastradas  ───────── */
         if (lista.isEmpty()) {
             layoutEmpty.isVisible = true
-            layoutSelect.isGone = true
+            layoutSelect.isGone   = true
+            return@with
         }
-        // cenário 2 (com obras cadastradas)
-        else {
-            layoutEmpty.isGone = true
-            layoutSelect.isVisible = true
 
-            /* Adapter com item 0 de placeholder */
-            val sorted = lista.sortedBy { it.nomeCliente.lowercase(Locale.ROOT) }
-            val items = mutableListOf<Obra>()
+        /* ─────────  cenário 2 – com obras  ───────── */
+        layoutEmpty.isGone   = true
+        layoutSelect.isVisible = true
 
-            items += Obra(nomeCliente = getString(R.string.work_spinner_default))
-            items += sorted
+        // 1) ordena alfabeticamente
+        val sorted = lista.sortedBy { it.nomeCliente.lowercase(Locale.ROOT) }
 
-            val adapter = object : ArrayAdapter<Obra>(
-                requireContext(),
-                R.layout.item_spinner,  // android.R.layout.simple_spinner_item
-                items
-            ) {
-                override fun isEnabled(position: Int) = position != 0
-                override fun getDropDownView(
-                    pos: Int, convert: View?, parent: ViewGroup
-                ): View = super.getDropDownView(pos, convert, parent).apply {
-                    /* cinza p/ placeholder */
-                    if (pos == 0) (this as TextView).setTextColor(
+        // 2) cria coleção com placeholder na posição 0
+        val items = buildList {
+            add(Obra(nomeCliente = getString(R.string.work_spinner_default))) // placeholder
+            addAll(sorted)
+        }
+
+        // 3) adapter que mostra só o nomeCliente
+        val adapter = object : ArrayAdapter<Obra>(
+            requireContext(),
+            R.layout.item_spinner,          // layout com um TextView
+            items
+        ) {
+            /** linha “fechada” do spinner (após seleção) */
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View =
+                (super.getView(position, convertView, parent) as TextView).apply {
+                    text = getItem(position)?.nomeCliente ?: ""
+                    // placeholder cinza
+                    if (position == 0) setTextColor(
                         requireContext().getColor(R.color.md_theme_light_outline)
                     )
                 }
+
+            /** itens do menu suspenso */
+            override fun getDropDownView(
+                position: Int,
+                convertView: View?,
+                parent: ViewGroup
+            ): View = (super.getDropDownView(position, convertView, parent) as TextView).apply {
+                text = getItem(position)?.nomeCliente ?: ""
+                if (position == 0) setTextColor(
+                    requireContext().getColor(R.color.md_theme_light_outline)
+                )
             }
 
-            adapter.setDropDownViewResource(R.layout.item_spinner_dropdown)  // android.R.layout.simple_spinner_dropdown_item
-            spinnerWorks.adapter = adapter
-            spinnerWorks.setSelection(0, false)
-            btnContinue.isEnabled = false
+            override fun isEnabled(position: Int) = position != 0 // bloqueia placeholder
         }
+
+        adapter.setDropDownViewResource(R.layout.item_spinner_dropdown)
+        spinnerWorks.adapter = adapter
+        spinnerWorks.setSelection(0, false)   // força placeholder exibido
+        btnContinue.isEnabled = false         // exige seleção válida
     }
 
     private fun toggleNewWorkCard(show: Boolean) = with(binding) {
