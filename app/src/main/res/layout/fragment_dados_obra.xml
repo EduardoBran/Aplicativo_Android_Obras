@@ -34,6 +34,7 @@
 
             <!-- Nome do Cliente -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilNomeCliente"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -51,6 +52,7 @@
 
             <!-- Endereço -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilEnderecoObra"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -69,6 +71,7 @@
 
             <!-- Descrição -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilDescricao"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -139,6 +142,7 @@
 
             <!-- Data Início -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilDataInicioObra"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -158,6 +162,7 @@
 
             <!-- Data Término -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilDataFimObra"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

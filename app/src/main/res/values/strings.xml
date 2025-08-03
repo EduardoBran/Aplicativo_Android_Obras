@@ -234,6 +234,7 @@
     <string name="obra_data_snack_delete_msg">Você quer mesmo excluir esta obra e todos os seus dados?</string>
     <string name="obra_data_toast_deleted">Obra excluída.</string>
     <string name="obra_data_toast_updated">Dados da obra atualizados.</string>
+    <string name="dados_obra_balance_updated">Saldo atualizado.</string>
     <string name="obra_data_error_required">Preencha todos os campos obrigatórios antes de salvar.</string>
     <string name="resumo_button_update_balance">Atualizar Saldo</string>
     <string name="obra_data_balance_initial_label">Saldo Inicial</string>
@@ -241,12 +242,19 @@
 
     <string name="obra_data_balance_adjust_hint">Valor de ajuste (positivo ou negativo)</string>
     <string name="obra_button_update_balance">Atualizar Saldo</string>
+    <string name="saldo_ajustado_prefix">0%s</string>
 
     <string name="dados_obra_not_found">Obra não encontrada.</string>
     <string name="dados_obra_load_error">Erro ao carregar dados da obra.</string>
     <string name="dados_obra_update_error">Falha ao atualizar dados da obra.</string>
     <string name="dados_obra_update_balance_error">Falha ao atualizar saldo.</string>
     <string name="dados_obra_delete_error">Falha ao excluir obra.</string>
+    <string name="date_picker_title">Selecione a data</string>
+
+    <string name="dados_obra_name_error">O nome do cliente deve ter pelo menos 3 caracteres.</string>
+    <string name="dados_obra_address_error">Informe o endereço da obra.</string>
+    <string name="dados_obra_date_start_error">Informe a data de início.</string>
+    <string name="dados_obra_date_end_error">Informe a data de término.</string>
 
     <!-- ResumoFragment -->
     <string name="resumo_title">Resumo da Obra</string>
