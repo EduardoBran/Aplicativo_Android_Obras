@@ -24,14 +24,19 @@ fun Fragment.showSnackbarFragment(
     btnText: String? = null,
     onAction: (() -> Unit)? = null
 ) {
-    // evita múltiplos snackbars empilhados
     val tag = SnackbarFragment.TAG
-    if (childFragmentManager.findFragmentByTag(tag) != null) return
+    // 1) captura o FragmentManager do seu Fragment HOSPEDEIRO
+    val fm = parentFragmentManager
 
-    SnackbarFragment.newInstance(type, title, msg, btnText).apply {
-        actionCallback = onAction
-        show(childFragmentManager, tag)
-    }
+    // 2) evita empilhar mais de um com o mesmo tag
+    if (fm.findFragmentByTag(tag) != null) return
+
+    // 3) cria e configura
+    val sheet = SnackbarFragment.newInstance(type, title, msg, btnText)
+    sheet.actionCallback = onAction
+
+    // 4) exibe **no** fm da Activity, não no do SnackbarFragment
+    sheet.show(fm, tag)
 }
 
 /**

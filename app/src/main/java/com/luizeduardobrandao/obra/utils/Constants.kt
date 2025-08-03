@@ -60,7 +60,7 @@ object Constants {
 
         ERROR(
             R.color.md_theme_light_error,
-            R.color.md_theme_light_error
+            R.color.white
         ),
 
         WARNING(

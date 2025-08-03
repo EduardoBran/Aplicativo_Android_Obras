@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -12,10 +11,10 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         android:theme="@style/ThemeOverlay.ObrasApp.Toolbar"
+        app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_back"
         app:title="@string/func_reg_title"
-        app:titleCentered="true"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:titleCentered="true" />
 
     <!-- ─────────  Formulário rolável  ───────── -->
     <androidx.core.widget.NestedScrollView
@@ -23,16 +22,16 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/toolbarFuncReg"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/toolbarFuncReg">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:gravity="center"
+            android:orientation="vertical"
             android:padding="24dp">
 
             <!-- Nome -->
@@ -45,12 +44,11 @@
                     android:id="@+id/etNomeFunc"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_person"
+                    android:drawablePadding="12dp"
                     android:hint="@string/func_reg_name_hint"
                     android:minHeight="60dp"
-                    android:minLength="3"
-                    android:paddingVertical="16dp"
-                    android:drawableStart="@drawable/ic_person"
-                    android:drawablePadding="12dp"/>
+                    android:paddingVertical="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Função -->
@@ -59,65 +57,65 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/func_reg_role"
-                android:textAppearance="?attr/textAppearanceBodyMedium"/>
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
 
             <!-- Linha 1 de funções -->
             <RadioGroup
                 android:id="@+id/rgFuncao"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:layout_marginTop="8dp">
+                android:orientation="horizontal">
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbPintor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pintor"/>
+                    android:text="Pintor" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbPedreiro"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pedreiro"
-                    android:layout_marginStart="12dp"/>
+                    android:layout_marginStart="12dp"
+                    android:text="Pedreiro" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbEletricista"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Eletricista"
-                    android:layout_marginStart="12dp"/>
+                    android:layout_marginStart="12dp"
+                    android:text="Eletricista" />
             </RadioGroup>
 
             <!-- Linha 2 de funções -->
             <RadioGroup
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginTop="4dp"
                 android:gravity="center"
-                android:layout_marginTop="4dp">
+                android:orientation="horizontal">
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbEncanador"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Encanador"/>
+                    android:text="Encanador" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbAjudante"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ajudante"
-                    android:layout_marginStart="12dp"/>
+                    android:layout_marginStart="12dp"
+                    android:text="Ajudante" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbOutro"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Outro"
-                    android:layout_marginStart="12dp"/>
+                    android:layout_marginStart="12dp"
+                    android:text="Outro" />
             </RadioGroup>
 
             <!-- Salário -->
@@ -131,12 +129,12 @@
                     android:id="@+id/etSalario"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_money"
+                    android:drawablePadding="12dp"
                     android:hint="@string/func_reg_salary_hint"
                     android:inputType="numberDecimal"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp"
-                    android:drawableStart="@drawable/ic_money"
-                    android:drawablePadding="12dp"/>
+                    android:paddingVertical="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Forma de Pagamento -->
@@ -145,35 +143,35 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/func_reg_payment"
-                android:textAppearance="?attr/textAppearanceBodyMedium"/>
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
 
             <RadioGroup
                 android:id="@+id/rgPagamento"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp">
+                android:orientation="horizontal">
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbDiaria"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Diária"/>
+                    android:text="Diária" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbSemanal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Semanal"
-                    android:layout_marginStart="16dp"/>
+                    android:layout_marginStart="16dp"
+                    android:text="Semanal" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbMensal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Mensal"
-                    android:layout_marginStart="16dp"/>
+                    android:layout_marginStart="16dp"
+                    android:text="Mensal" />
             </RadioGroup>
 
             <!-- Pix -->
@@ -187,11 +185,11 @@
                     android:id="@+id/etPix"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_pix"
+                    android:drawablePadding="12dp"
                     android:hint="@string/func_reg_pix_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp"
-                    android:drawableStart="@drawable/ic_pix"
-                    android:drawablePadding="12dp"/>
+                    android:paddingVertical="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Dias trabalhados -->
@@ -200,39 +198,39 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/func_reg_days_hint"
-                android:textAppearance="?attr/textAppearanceBodyMedium"/>
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:layout_marginTop="8dp">
+                android:orientation="horizontal">
 
                 <ImageButton
                     android:id="@+id/btnMinus"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:src="@drawable/ic_minus"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="menos"/>
+                    android:contentDescription="menos"
+                    android:src="@drawable/ic_minus" />
 
                 <TextView
                     android:id="@+id/tvDias"
                     android:layout_width="56dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
+                    android:paddingVertical="8dp"
                     android:text="0"
-                    android:textSize="18sp"
-                    android:paddingVertical="8dp"/>
+                    android:textSize="18sp" />
 
                 <ImageButton
                     android:id="@+id/btnPlus"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:src="@drawable/ic_add"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="mais"/>
+                    android:contentDescription="mais"
+                    android:src="@drawable/ic_add" />
             </LinearLayout>
 
             <!-- Status -->
@@ -241,29 +239,29 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/func_reg_status"
-                android:textAppearance="?attr/textAppearanceBodyMedium"/>
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
 
             <RadioGroup
                 android:id="@+id/rgStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:layout_marginTop="8dp">
+                android:orientation="horizontal">
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbStatusAtivo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ativo"
-                    android:checked="true"/>
+                    android:checked="true"
+                    android:text="Ativo" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbStatusInativo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Inativo"
-                    android:layout_marginStart="16dp"/>
+                    android:layout_marginStart="16dp"
+                    android:text="Inativo" />
             </RadioGroup>
 
             <!-- Botão -->
@@ -273,7 +271,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="@string/func_reg_button_save"/>
+                android:text="@string/func_reg_button_save" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

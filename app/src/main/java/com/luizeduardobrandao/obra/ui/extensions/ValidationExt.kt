@@ -6,14 +6,11 @@ import android.widget.EditText
 import com.luizeduardobrandao.obra.utils.Constants
 import java.text.NumberFormat
 import java.util.Locale
-import java.util.regex.Pattern
+import android.util.Patterns
 
 // ―――――――――――――――――――――――――――――――――――――――――――
 // Pré-compila padrões para evitar recompilação em cada chamada
 // ―――――――――――――――――――――――――――――――――――――――――――
-/** Regex completo RFC 5322 para validar e-mail, definido em Constants */
-private val EMAIL_PATTERN: Pattern =
-    Pattern.compile(Constants.Validation.EMAIL_REGEX)
 
 // Regex para remover tudo que não é dígito na formatação
 private val NON_DIGITS_REGEX = Regex("\\D+")
@@ -23,7 +20,7 @@ private val NON_DIGITS_REGEX = Regex("\\D+")
  * Retorna true se a string corresponder ao padrão completo RFC 5322.
  */
 fun String.isValidEmail(): Boolean =
-    EMAIL_PATTERN.matcher(this.trim()).matches()
+    Patterns.EMAIL_ADDRESS.matcher(this).matches()
 
 
 // ―――――――――――――― 2. Validação de comprimento mínimo ――――――――――――――

@@ -118,6 +118,7 @@ class LoginFragment : Fragment() {
             msg = message,
             btnText = getString(R.string.snack_button_ok)
         )
+        viewModel.resetState()
     }
 
     // Navega para WorkFragment e mostra Toast.
