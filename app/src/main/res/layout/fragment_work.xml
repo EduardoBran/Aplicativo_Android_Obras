@@ -307,6 +307,16 @@
                             android:layout_weight="1"
                             android:text="@string/generic_back" />
                     </LinearLayout>
+
+                    <ProgressBar
+                        android:id="@+id/progressCard"
+                        style="@style/Widget.AppCompat.ProgressBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="16dp"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

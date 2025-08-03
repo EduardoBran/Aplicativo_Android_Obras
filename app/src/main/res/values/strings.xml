@@ -74,6 +74,12 @@
         Não foi possível carregar as obras. Verifique sua conexão.
     </string>
     <string name="work_error_save">Erro ao salvar obra. Verifique sua conexão.</string>
+    <string name="work_error_nome">Nome deve ter pelo menos 3 caracteres.</string>
+    <string name="work_error_endereco">Informe o endereço da obra.</string>
+    <string name="work_error_desc">Informe a descrição da obra.</string>
+    <string name="work_error_saldo">Valor de saldo inválido.</string>
+    <string name="work_error_data_inicio">Informe uma data de início.</string>
+    <string name="work_error_data_fim">Informe uma data de término.</string>
     <string name="work_create_error">
         Falha ao salvar a obra. Tente novamente mais tarde.
     </string>
