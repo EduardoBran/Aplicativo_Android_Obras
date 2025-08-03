@@ -155,6 +155,7 @@
     <string name="detail">Detalhes</string>
     <string name="generic_delete">Excluir nota</string>
     <string name="nota_load_error">Não foi possível carregar notas.</string>
+    <string name="nota_load_error2">Não foi possível encontrar esta nota.</string>
 
     <!-- NotaRegisterFragment -->
     <string name="nota_reg_title">Cadastro de Notas</string>
@@ -176,6 +177,7 @@
     <string name="nota_sum_title">Resumo das Notas</string>
     <string name="nota_sum_total">R$ %1$s</string>
     <string name="nota_sum_type">Totais por Tipo de Material</string>
+    <string name="tipo_valor_mask">%1$s – R$ %2$.2f</string>
 
     <!-- CronogramaFragment -->
     <string name="cron_title">Cronograma da Obra</string>

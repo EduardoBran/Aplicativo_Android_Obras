@@ -62,6 +62,9 @@ class NotasViewModel @Inject constructor(
         }
     }
 
+    fun observeNota(obraId: String, notaId: String) =
+        repoNota.observeNota(obraId, notaId)
+
     // Adiciona nota e recarrega + recalcula gastoTotal.
     fun addNota(nota: Nota) {
         viewModelScope.launch(io) {
