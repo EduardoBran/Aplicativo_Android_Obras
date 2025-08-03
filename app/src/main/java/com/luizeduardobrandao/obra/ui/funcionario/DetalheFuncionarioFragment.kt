@@ -1,21 +1,89 @@
 package com.luizeduardobrandao.obra.ui.funcionario
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.luizeduardobrandao.obra.R
+import com.luizeduardobrandao.obra.data.model.Funcionario
+import com.luizeduardobrandao.obra.databinding.FragmentDetalheFuncionarioBinding
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class DetalheFuncionarioFragment : Fragment() {
+
+    private var _binding: FragmentDetalheFuncionarioBinding? = null
+    private val binding get() = _binding!!
+
+    private val args: DetalheFuncionarioFragmentArgs by navArgs()
+    private val viewModel: FuncionarioViewModel by viewModels({ requireParentFragment() })
 
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_detalhe_funcionario, container, false)
+        _binding = FragmentDetalheFuncionarioBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.toolbarDetalheFuncionario.setNavigationOnClickListener {
+            findNavController().navigateUp()
+        }
+
+        observeFuncionario()
+    }
+
+    private fun observeFuncionario() {
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.observeFuncionario(args.obraId, args.funcionarioId).collect { func ->
+                    func?.let { bindData(it) }
+                }
+            }
+        }
+    }
+
+    private fun bindData(f: Funcionario) = with(binding) {
+        // 1) Título da Toolbar: "Funcionário [nome]"
+        toolbarDetalheFuncionario.title =
+            getString(R.string.func_detail_title, f.nome)
+
+        // 2) Campos simples
+        tvDetailNome.text = f.nome
+        tvDetailFuncao.text = f.funcao
+
+        // 3) Salário formatado
+        tvDetailSalario.text = getString(R.string.money_mask, f.salario)
+
+        // 4) Forma de pagamento
+        tvDetailPagamento.text = f.formaPagamento
+
+        // 5) Pix — só exibimos valor se não for nulo/não em branco
+        tvDetailPix.text = if (f.pix.isNullOrBlank()) "—" else f.pix
+
+        // 6) Dias e status
+        tvDetailDias.text = f.diasTrabalhados.toString()
+        tvDetailStatus.text = f.status.replaceFirstChar { it.titlecase() }
+
+        // 7) Total gasto
+        tvDetailTotalGasto.text = getString(R.string.money_mask, f.totalGasto)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

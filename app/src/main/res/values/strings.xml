@@ -104,11 +104,14 @@
     <string name="func_tab_active">Ativos</string>
     <string name="func_tab_inactive">Inativos</string>
     <string name="func_menu_summary">Resumo</string>
-    <string name="func_snack_delete_msg">Você quer mesmo excluir este funcionário?</string>
-    <string name="func_toast_removed">Funcionário removido com sucesso.</string>
+    <string name="func_snack_delete_msg">Você quer mesmo excluir o funcionário %1$s?</string>
+    <string name="func_toast_removed">Funcionário %1$s removido com sucesso.</string>
     <string name="func_toast_added">Funcionário adicionado.</string>
     <string name="func_toast_updated">Dados do funcionário atualizados.</string>
     <string name="func_load_error">Não foi possível carregar funcionários.</string>
+    <string name="func_list_salary_format">%1$s (%2$s)</string>
+    <string name="func_save_error">Erro ao salvar funcionário. Verifique sua conexão.</string>
+    <string name="func_update_error">Erro ao atualizar funcionário. Verifique sua conexão.</string>
 
     <!-- FuncionarioRegisterFragment -->
     <string name="func_reg_title">Registro de Funcionários</string>
@@ -122,10 +125,15 @@
     <string name="func_reg_button_save">Salvar</string>
     <string name="func_reg_button_update">Alterar</string>
     <string name="func_reg_error_required">Preencha todos os campos obrigatórios.</string>
+    <string name="func_error_nome">O nome deve ter ao menos 3 caracteres.</string>
+    <string name="func_error_salario">Informe um salário válido (> 0).</string>
+    <string name="func_error_funcao">Selecione a função.</string>
+    <string name="func_error_pagamento">Selecione a forma de pagamento.</string>
 
     <!-- DetalheFuncionarioFragment -->
     <string name="func_detail_title">Funcionário %1$s</string>
     <string name="func_detail_total">Total Gasto: R$ %1$s</string>
+    <string name="money_mask">R$ %1$.2f</string>
 
     <!-- ResumoFuncionarioFragment -->
     <string name="func_sum_title">Resumo de Funcionários</string>

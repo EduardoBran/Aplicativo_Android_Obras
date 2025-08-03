@@ -49,6 +49,9 @@ class FuncionarioViewModel @Inject constructor(
     private val _state = MutableStateFlow<UiState<List<Funcionario>>>(UiState.Loading)
     val state: StateFlow<UiState<List<Funcionario>>> = _state.asStateFlow()
 
+    private val _opState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
+    val opState: StateFlow<UiState<Unit>> = _opState.asStateFlow()
+
     // Job para manter somente um listener ativo
     private var loadJob: Job? = null
 
@@ -69,21 +72,38 @@ class FuncionarioViewModel @Inject constructor(
         }
     }
 
+    fun observeFuncionario(obraId: String, funcionarioId: String) =
+        repoFun.observeFuncionario(obraId, funcionarioId)
+
     // Adiciona e depois recarrega + recalcula gastoTotal.
     fun addFuncionario(func: Funcionario) {
         viewModelScope.launch(io) {
-            repoFun.addFuncionario(obraId, func)
-            recalcGastoTotal()
-            loadFuncionarios()
+            _opState.value = UiState.Loading
+            val result = repoFun.addFuncionario(obraId, func)
+            _opState.value = result.fold(
+                onSuccess  = { UiState.Success(Unit) },
+                onFailure  = { UiState.ErrorRes(R.string.func_save_error) }
+            )
+            if (_opState.value is UiState.Success) {
+                recalcGastoTotal()
+                loadFuncionarios()
+            }
         }
     }
 
     // Atualiza e depois recarrega + recalcula gastoTotal.
     fun updateFuncionario(func: Funcionario) {
         viewModelScope.launch(io) {
-            repoFun.updateFuncionario(obraId, func)
-            recalcGastoTotal()
-            loadFuncionarios()
+            _opState.value = UiState.Loading
+            val result = repoFun.updateFuncionario(obraId, func)
+            _opState.value = result.fold(
+                onSuccess  = { UiState.Success(Unit) },
+                onFailure  = { UiState.ErrorRes(R.string.func_update_error) }
+            )
+            if (_opState.value is UiState.Success) {
+                recalcGastoTotal()
+                loadFuncionarios()
+            }
         }
     }
 
