@@ -20,6 +20,8 @@
     <string name="snack_success">Sucesso</string>
     <string name="snack_warning">Aviso</string>
     <string name="snack_title">Aviso</string>
+    <string name="snack_button_ok">OK</string>
+    <string name="snack_button_yes">SIM</string>
 
     <!-- LoginFragment -->
     <string name="login_title">Entrar</string>
