@@ -1,20 +1,149 @@
 package com.luizeduardobrandao.obra.ui.cronograma
 
+import android.content.Context
 import android.os.Bundle
+import android.view.*
+import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.luizeduardobrandao.obra.R
+import com.luizeduardobrandao.obra.data.model.UiState
+import com.luizeduardobrandao.obra.databinding.FragmentCronogramaListBinding
+import com.luizeduardobrandao.obra.ui.cronograma.adapter.EtapaAdapter
+import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.utils.Constants
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
+/**
+ * Um dos “páginas” do ViewPager2 do Cronograma.
+ * Recebe [status] (“Pendente”, “Andamento” ou “Concluído”) via arguments.
+ */
+@AndroidEntryPoint
 class CronogramaListFragment : Fragment() {
 
+    private var _binding: FragmentCronogramaListBinding? = null
+    private val binding get() = _binding!!
+
+    private val viewModel: CronogramaViewModel by viewModels({ requireParentFragment() })
+
+    private lateinit var obraId: String
+    private lateinit var status: String
+
+    /* Call-backs delegadas ao CronogramaFragment */
+    private var actions: EtapaActions? = null
+
+    private val adapter by lazy {
+        EtapaAdapter(
+            onEdit = { actions?.onEdit(it) },
+            onDetail = { actions?.onDetail(it) },
+            onDelete = { actions?.onDelete(it) }
+        )
+    }
+
+    /*──────────── Attach / Args ────────────*/
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        actions = parentFragment as? EtapaActions
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            obraId  = it.getString(ARG_OBRA)   ?: error("obraId ausente")
+            status  = it.getString(ARG_STATUS) ?: error("status ausente")
+        }
+        viewModel.loadEtapas()  // listener único no pai
+    }
+
+    /*──────────── UI ────────────*/
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_cronograma_list, container, false)
+        _binding = FragmentCronogramaListBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // configura o adapter dentro do binding
+        binding.rvEtapas.adapter = adapter
+
+        // inicia o collector de estado
+        observeState()
+    }
+
+
+    /*──────────── State collector ────────────*/
+    private fun observeState() = with(binding) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { ui ->
+                    when (ui) {
+                        is UiState.Loading -> progress(true)
+                        is UiState.Success -> {
+                            progress(false)
+                            val list = ui.data.filter { it.status == status }
+                            adapter.submitList(list)
+
+                            rvEtapas.isVisible     = list.isNotEmpty()
+                            tvEmptyEtapas.isVisible = list.isEmpty()
+                        }
+                        is UiState.ErrorRes -> {
+                            progress(false)
+                            showSnackbarFragment(
+                                Constants.SnackType.ERROR.name,
+                                getString(R.string.snack_error),
+                                getString(ui.resId),
+                                getString(R.string.snack_button_ok)
+                            )
+                        }
+                        else -> Unit
+                    }
+                }
+            }
+        }
+    }
+
+    private fun progress(show: Boolean) = with(binding) {
+        progressEtapas.isVisible = show
+        rvEtapas.isVisible       = !show
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    /*──────────── Companion / Factory ────────────*/
+    companion object {
+        private const val ARG_OBRA   = "obraId"
+        private const val ARG_STATUS = "status"
+
+        fun newInstance(obraId: String, status: String) =
+            CronogramaListFragment().apply {
+                arguments = bundleOf(
+                    ARG_OBRA   to obraId,
+                    ARG_STATUS to status
+                )
+            }
     }
 }
+
+///* Interface para que CronogramaFragment receba eventos do Adapter */
+//interface EtapaActions {
+//    fun onEdit(etapa: Etapa)
+//    fun onDetail(etapa: Etapa)
+//    fun onDelete(etapa: Etapa)
+//
+//}
+
+

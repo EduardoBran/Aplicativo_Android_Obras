@@ -330,9 +330,7 @@
         <!-- volta para Home após salvar -->
         <action
             android:id="@+id/action_dadosObra_to_home"
-            app:destination="@id/homeFragment"
-            app:popUpTo="@id/homeFragment"
-            app:popUpToInclusive="true" />
+            app:destination="@id/homeFragment"/>
 
         <!-- volta para Work após exclusão -->
         <action
