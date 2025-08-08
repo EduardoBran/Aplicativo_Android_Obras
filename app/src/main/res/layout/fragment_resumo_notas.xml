@@ -17,6 +17,20 @@
         app:title="@string/nota_sum_title"
         app:titleCentered="true" />
 
+    <!-- Mensagem de lista vazia -->
+    <TextView
+        android:id="@+id/tvEmptyNotas"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/nota_empty_message"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/llTotaisContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbarResumoNotas" />
+
     <ProgressBar
         android:id="@+id/progressNotasList"
         style="?android:attr/progressBarStyleLarge"
@@ -52,45 +66,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <!-- Total Geral -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="4dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/total_geral"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvResumoTotalGeral"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="@string/nota_sum_total"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- Espaço -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="12dp" />
-
-        <!-- Totais por Tipo -->
+        <!-- Card: Totais (a pagar / pago / geral) -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -101,23 +77,183 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="12dp">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/nota_sum_type"
-                    android:textAlignment="center"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    android:textStyle="bold" />
-
-                <!-- Container onde o ViewModel injeta linhas de tipo + valor -->
+                <!-- Bloco: Total comprado (aguardando pagamento) -->
                 <LinearLayout
-                    android:id="@+id/containerTiposValores"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:orientation="vertical" />
+                    android:background="@color/totalDue_bg"
+                    android:orientation="vertical"
+                    android:paddingVertical="8dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/nota_sum_total_due"
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="@color/totalDue_text"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvResumoTotalAPagar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/nota_sum_total"
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="@color/totalDue_value"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Espaço -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="12dp" />
+
+                <!-- Bloco: Total pago -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/totalPaid_bg"
+                    android:orientation="vertical"
+                    android:paddingVertical="8dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/nota_sum_total_paid"
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="@color/totalPaid_text"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvResumoTotalPago"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/nota_sum_total"
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="@color/totalPaid_value"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Espaço -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="12dp" />
+
+                <!-- Bloco: Total geral -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/totalOverall_bg"
+                    android:orientation="vertical"
+                    android:paddingVertical="8dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/total_geral"
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="@color/totalOverall_text"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvResumoTotalGeral"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/nota_sum_total"
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="@color/totalOverall_value"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Espaço -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="12dp" />
+
+        <!-- Card: Totais por Tipo (A Pagar) e (Pago) -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <!-- Bloco: Totais por tipo (aguardando pagamento) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/totalDue_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp"> <!-- mesmo fundo vermelho -->
+
+                    <!-- Título A Pagar -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/nota_sum_type_due"
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="@color/totalDue_text"
+                        android:textStyle="bold" /> <!-- mesma cor do texto -->
+
+                    <!-- Lista por tipo (A Pagar) -->
+                    <LinearLayout
+                        android:id="@+id/containerTiposValoresAPagar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical" />
+                </LinearLayout>
+
+                <!-- Espaço entre blocos -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="12dp" />
+
+                <!-- Bloco: Totais por tipo (pago) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/totalPaid_bg"
+                    android:orientation="vertical"
+                    android:padding="16dp"> <!-- mesmo fundo verde -->
+
+                    <!-- Título Pago -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/nota_sum_type_paid"
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="@color/totalPaid_text"
+                        android:textStyle="bold" /> <!-- mesma cor do texto -->
+
+                    <!-- Lista por tipo (Pago) -->
+                    <LinearLayout
+                        android:id="@+id/containerTiposValoresPago"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical" />
+                </LinearLayout>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>

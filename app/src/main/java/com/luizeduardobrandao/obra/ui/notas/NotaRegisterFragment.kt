@@ -22,6 +22,8 @@ import com.luizeduardobrandao.obra.ui.notas.adapter.NotaPagerAdapter
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import androidx.core.widget.doAfterTextChanged
+import com.google.android.material.checkbox.MaterialCheckBox
 import java.util.*
 
 @AndroidEntryPoint
@@ -38,41 +40,43 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
 
     private val calendar = Calendar.getInstance()
 
-
-    /*──────────────────────── Ciclo de Vida ────────────────────────*/
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
         _binding = FragmentNotaRegisterBinding.inflate(inflater, container, false)
         return binding.root
     }
 
+    /* ───────────────────────── lifecycle ───────────────────────── */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         with(binding) {
             toolbarNotaReg.setNavigationOnClickListener { findNavController().navigateUp() }
 
-            /* Date picker */
             etDataNota.setOnClickListener { showDatePicker() }
-
             btnSaveNota.setOnClickListener { onSaveClick() }
 
-            /* Se vier notaId → modo edição */
+            btnSaveNota.isEnabled = false
+            etNomeMaterial.doAfterTextChanged { validateForm() }
+            etLoja.doAfterTextChanged { validateForm() }
+            etValorNota.doAfterTextChanged { validateForm() }
+            listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbOutros).forEach { cb ->
+                cb.setOnCheckedChangeListener { _, _ -> validateForm() }
+            }
+
             args.notaId?.let { notaId ->
                 isEdit = true
                 observeNota(notaId)
             }
 
-            // <-- chama o collector para tratar add/update
             collectOperationState()
+            validateForm()
         }
     }
 
-
-    /*────────────────────── Observa Nota para edição ───────────────────────*/
+    /* ────────────────────── Observa Nota (edição) ────────────────────── */
     private fun observeNota(notaId: String) {
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -80,33 +84,32 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
                     nota ?: return@collect
                     notaOriginal = nota
                     prefillFields(nota)
+                    // revalida depois de preencher
+                    validateForm()
                 }
             }
         }
     }
 
-    /*────────────────────── Validação & Salvar ─────────────────────────────*/
+    /* ────────────────────── Validação & Salvar ────────────────────── */
     private fun onSaveClick() = with(binding) {
-        /* Validações */
-        val nome = etNomeMaterial.text.toString().trim()
-        val loja = etLoja.text.toString().trim()
-        val data = etDataNota.text.toString()
-        val valor = etValorNota.text.toString().toDoubleOrNull() ?: -1.0
+        val nome  = etNomeMaterial.text.toString().trim()
+        val loja  = etLoja.text.toString().trim()
+        val data  = etDataNota.text.toString()
+        val valor = etValorNota.text.toString().replace(',', '.').toDoubleOrNull() ?: -1.0
         val status = if (rbStatusPagar.isChecked) NotaPagerAdapter.STATUS_A_PAGAR
-        else NotaPagerAdapter.STATUS_PAGO
+        else                         NotaPagerAdapter.STATUS_PAGO
 
         val tipos = mutableListOf<String>()
         listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbOutros)
             .filter { it.isChecked }
             .forEach { tipos.add(it.text.toString()) }
 
-        if (nome.isBlank() || loja.isBlank() || data.isBlank() ||
-            tipos.isEmpty() || valor <= 0.0
-        ) {
+        if (nome.isBlank() || loja.isBlank() || data.isBlank() || tipos.isEmpty() || valor <= 0.0) {
             showSnackbarFragment(
                 Constants.SnackType.ERROR.name,
                 getString(R.string.snack_error),
-                getString(R.string.nota_load_error),
+                getString(R.string.nota_reg_error_required),
                 getString(R.string.snack_button_ok)
             )
             return
@@ -123,41 +126,35 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
             valor = valor
         )
 
-        /* Aciona o ViewModel */
         if (isEdit) viewModel.updateNota(notaOriginal, nota)
         else viewModel.addNota(nota)
 
         btnSaveNota.isEnabled = false
         progress(true)
-        /* Feedback & navegação no collector abaixo */
     }
 
-    /*────────────────────── State collector ───────────────────────────────*/
+    /* ────────────────────── State collector ────────────────────── */
     private fun collectOperationState() {
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { ui ->
                     if (ui !is UiState.Loading) progress(false)
-                    if (ui is UiState.Success || ui is UiState.ErrorRes) binding.btnSaveNota.isEnabled =
-                        true
+                    if (ui is UiState.Success || ui is UiState.ErrorRes) binding.btnSaveNota.isEnabled = true
 
                     when (ui) {
                         is UiState.Success -> {
-                            val msgRes =
-                                if (isEdit) R.string.nota_toast_updated
-                                else R.string.nota_toast_added
+                            val msgRes = if (isEdit) R.string.nota_toast_updated
+                            else        R.string.nota_toast_added
                             Toast.makeText(requireContext(), msgRes, Toast.LENGTH_SHORT).show()
                             binding.root.hideKeyboard()
                             findNavController().navigateUp()
                         }
-
                         is UiState.ErrorRes -> showSnackbarFragment(
                             Constants.SnackType.ERROR.name,
                             getString(R.string.snack_error),
                             getString(ui.resId),
                             getString(R.string.snack_button_ok)
                         )
-
                         else -> Unit
                     }
                 }
@@ -165,9 +162,9 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
         }
     }
 
-    /*────────────────────── Utilitários ─────────────────────────────*/
+    /* ────────────────────── Utilitários ────────────────────── */
     private fun prefillFields(n: Nota) = with(binding) {
-        toolbarNotaReg.title = getString(R.string.nota_detail_title)
+        toolbarNotaReg.title = getString(R.string.nota_reg_button_edit)
         btnSaveNota.setText(R.string.generic_update)
 
         etNomeMaterial.setText(n.nomeMaterial)
@@ -195,6 +192,36 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
     override fun onDateSet(dp: DatePicker, y: Int, m: Int, d: Int) {
         val date = "%02d/%02d/%04d".format(d, m + 1, y)
         binding.etDataNota.setText(date)
+
+        // aviso se data no passado (informativo)
+        val sel = Calendar.getInstance().apply {
+            set(y, m, d, 0, 0, 0); set(Calendar.MILLISECOND, 0)
+        }
+        val hoje = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+        binding.tilDataNota.helperText =
+            if (sel.before(hoje)) getString(R.string.nota_past_date_warning) else null
+
+        validateForm()
+    }
+
+    private fun validateForm(): Boolean = with(binding) {
+        val nomeOk  = etNomeMaterial.text?.toString()?.trim()?.isNotEmpty() == true
+        val lojaOk  = etLoja.text?.toString()?.trim()?.isNotEmpty() == true
+        val dataOk  = etDataNota.text?.toString()?.matches(Regex("""\d{2}/\d{2}/\d{4}""")) == true
+        val valorOk = etValorNota.text?.toString()
+            ?.replace(',', '.')
+            ?.toDoubleOrNull()
+            ?.let { it > 0.0 } == true
+
+        val algumTipo = listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbOutros)
+            .any { it.isChecked }
+
+        val ok = nomeOk && lojaOk && dataOk && valorOk && algumTipo
+        btnSaveNota.isEnabled = ok
+        ok
     }
 
     private fun progress(show: Boolean) = with(binding) {

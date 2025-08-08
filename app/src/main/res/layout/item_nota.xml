@@ -23,7 +23,8 @@
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@id/tvValor"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Nome do Material" />
 
         <!-- Valor (direita) -->
         <TextView
@@ -42,7 +43,8 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             app:layout_constraintEnd_toStartOf="@id/tvStatus"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvNomeMaterial" />
+            app:layout_constraintTop_toBottomOf="@id/tvNomeMaterial"
+            tools:text="Nome da Loja" />
 
         <!-- Status -->
         <TextView
@@ -54,18 +56,49 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:text="A Pagar" />
 
+        <!-- Tipos do material (esquerda, na mesma linha da Data) -->
+        <TextView
+            android:id="@+id/tvTipos"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tvData"
+            app:layout_constraintTop_toBottomOf="@id/tvLoja"
+            tools:text="Pintura, Elétrica" />
+
+        <!-- Data da nota (direita, na mesma linha dos Tipos, e abaixo do Status) -->
+        <TextView
+            android:id="@+id/tvData"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBaseline_toBaselineOf="@id/tvTipos"
+            tools:text="12/08/2025" />
+
+        <!-- Barrier para posicionar o divisor abaixo da linha Tipos+Data -->
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrierBottomHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="tvTipos,tvData" />
+
         <!-- Divisor -->
         <View
+            android:id="@+id/dividerActions"
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_marginTop="8dp"
             android:background="@color/md_theme_light_outline"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvLoja" />
+            app:layout_constraintTop_toBottomOf="@id/barrierBottomHeader" />
 
         <!-- Ícones de ação -->
         <LinearLayout
+            android:id="@+id/llActions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -74,7 +107,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvLoja">
+            app:layout_constraintTop_toBottomOf="@id/dividerActions">
 
             <ImageButton
                 android:id="@+id/btnEditNota"

@@ -149,7 +149,7 @@
     <!-- NotasFragment -->
     <string name="nota_title">Notas de Materiais</string>
     <string name="nota_no_items">Sem notas lançadas.</string>
-    <string name="nota_tab_due">A Pagar</string>
+    <string name="nota_tab_due">A Receber</string>
     <string name="nota_tab_paid">Pago</string>
     <string name="nota_menu_summary">Resumo</string>
     <string name="nota_snack_delete_msg">Você quer mesmo excluir esta nota?</string>
@@ -162,6 +162,13 @@
     <string name="generic_delete">Excluir nota</string>
     <string name="nota_load_error">Não foi possível carregar notas.</string>
     <string name="nota_load_error2">Não foi possível encontrar esta nota.</string>
+    <plurals name="nota_list_types">
+        <item quantity="one">Tipo: %1$s</item>
+        <item quantity="other">Tipos: %1$s</item>
+    </plurals>
+    <string name="nota_status_purchased">A Receber</string>
+    <string name="nota_status_paid_client">Pago</string>
+
 
     <!-- NotaRegisterFragment -->
     <string name="nota_reg_title">Cadastro de Notas</string>
@@ -173,8 +180,10 @@
     <string name="nota_reg_value_hint">Valor</string>
     <string name="nota_reg_type">Tipo</string>
     <string name="nota_reg_status">Status</string>
-    <string name="nota_reg_error_required">Preencha todos os campos obrigatórios.</string>
+    <string name="nota_reg_error_required2">Preencha todos os campos obrigatórios.</string>
     <string name="nota_reg_error_value">Valor inválido.</string>
+    <string name="nota_reg_error_required">Preencha: material, loja, data, pelo menos um tipo e valor &gt; 0.</string>
+    <string name="nota_past_date_warning">Você selecionou uma data no passado.</string>
 
     <!-- DetalheNotaFragment -->
     <string name="nota_detail_title">Nota %1$s</string>
@@ -184,6 +193,13 @@
     <string name="nota_sum_total">R$ %1$s</string>
     <string name="nota_sum_type">Totais por Tipo de Material</string>
     <string name="tipo_valor_mask">%1$s – R$ %2$.2f</string>
+    <string name="nota_empty_message">Sem notas cadastradas.</string>
+    <string name="money_mask_notas">R$ %1$.2f</string>
+    <string name="nota_sum_total_due">Total comprado (aguardando pagamento)</string>
+    <string name="nota_sum_total_paid">Total recebido:</string>
+    <string name="nota_sum_type_due">Totais por tipo (aguardando pagamento)</string>
+    <string name="nota_sum_type_paid">Totais por tipo (recebido)</string>
+
 
     <!-- CronogramaFragment -->
     <string name="cron_title">Cronograma da Obra</string>

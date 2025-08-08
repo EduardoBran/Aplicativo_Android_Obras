@@ -70,6 +70,10 @@ class NotaListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(binding) {
+            // 👇 sem isso a lista não aparece
+            rvNotas.layoutManager =
+                androidx.recyclerview.widget.LinearLayoutManager(requireContext())
+
             rvNotas.adapter = adapter
             observeViewModel()
         }
@@ -85,8 +89,10 @@ class NotaListFragment : Fragment() {
                         }
                         is UiState.Success -> {
                             progressNotasList.visibility = View.GONE
-                            val list = ui.data.filter { it.status == status }
-                            adapter.submitList(list)
+                            val list = ui.data
+                                .filter { it.status == status }
+                                .sortedBy { dataToEpoch(it.data) }
+                            adapter.submitList(list.toList())
 
                             rvNotas.visibility   = if (list.isEmpty()) View.GONE else View.VISIBLE
                             tvEmptyNotas.visibility =
@@ -108,6 +114,26 @@ class NotaListFragment : Fragment() {
         }
     }
 
+    private fun dataToEpoch(data: String?): Long {
+        if (data.isNullOrBlank()) return Long.MIN_VALUE
+        val s = data.trim()
+        val formatos = arrayOf(
+            "dd/MM/yyyy",   // 01/08/2025
+            "d/M/yyyy",     // 1/8/2025
+            "d/MM/yyyy",    // 1/08/2025
+            "dd/M/yyyy"     // 01/8/2025
+        )
+        for (f in formatos) {
+            try {
+                val sdf = java.text.SimpleDateFormat(f, java.util.Locale("pt", "BR"))
+                sdf.isLenient = false
+                val time = sdf.parse(s)?.time
+                if (time != null) return time
+            } catch (_: Exception) { /* tenta o próximo formato */ }
+        }
+        return Long.MIN_VALUE
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -127,5 +153,4 @@ class NotaListFragment : Fragment() {
                 )
             }
     }
-
 }

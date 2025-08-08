@@ -4,9 +4,9 @@
 
     <!-- Resumo de notas -->
     <item
-        android:id="@+id/action_summary_note"
+        android:id="@+id/action_notas_to_resumo"
         android:icon="@drawable/ic_summary"
         android:title="@string/nota_menu_summary"
-        app:showAsAction="ifRoom|withText" />
+        app:showAsAction="never" />
 
 </menu>

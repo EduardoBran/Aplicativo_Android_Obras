@@ -135,6 +135,7 @@
 
             <!-- Data -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilDataNota"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -173,14 +174,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
-                    android:text="A Pagar" />
+                    android:text="@string/nota_tab_due" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbStatusPago"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    tools:text="Pago" />
+                    android:text="@string/nota_tab_paid" />
             </RadioGroup>
 
             <!-- Valor -->

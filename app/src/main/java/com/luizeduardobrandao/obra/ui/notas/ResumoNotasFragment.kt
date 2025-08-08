@@ -27,10 +27,10 @@ class ResumoNotasFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val args: ResumoNotasFragmentArgs by navArgs()
-    private val viewModel: NotasViewModel by viewModels({ requireParentFragment() })
+    private val viewModel: NotasViewModel by viewModels()
 
     /* Adapter sem ações – só exibição */
-    private val adapter by lazy { NotaAdapter() }
+    private val adapter by lazy { NotaAdapter(showActions = false) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,9 +44,17 @@ class ResumoNotasFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(binding) {
+            progressNotasList.isVisible = true
+            rvNotasResumo.isVisible = false
+            tvEmptyNotas.isVisible = false
+
             toolbarResumoNotas.setNavigationOnClickListener { findNavController().navigateUp() }
             rvNotasResumo.adapter = adapter
         }
+
+        // 🔽 sem isso o estado fica eternamente em Loading
+        viewModel.loadNotas()
+
         observeState()
     }
 
@@ -76,24 +84,56 @@ class ResumoNotasFragment : Fragment() {
 
     private fun showNotas(list: List<Nota>) = with(binding) {
         progress(false)
+
+        if (list.isEmpty()) {
+            rvNotasResumo.isVisible = false
+            tvEmptyNotas.isVisible = true
+            llTotaisContainer.isVisible = false
+            return@with
+        }
+
+        tvEmptyNotas.isVisible = false
+        llTotaisContainer.isVisible = true
+        rvNotasResumo.isVisible = true
+
+        // Lista completa nas cards
         adapter.submitList(list)
 
-        /* total geral */
-        val total = list.sumOf { it.valor }
-        tvResumoTotalGeral.text = getString(R.string.money_mask, total)
+        // ---- Totais (valores) ----
+        val totalAPagar = list.filter { it.status == "A Pagar" }.sumOf { it.valor }
+        val totalPago   = list.filter { it.status == "Pago" }.sumOf { it.valor }
+        val totalGeral  = totalAPagar + totalPago
 
-        /* totais por tipo */
-        containerTiposValores.removeAllViews()
-        val mapa = mutableMapOf<String, Double>()
-        list.forEach { n ->
-            n.tipos.forEach { t -> mapa[t] = (mapa[t] ?: 0.0) + n.valor }
+        tvResumoTotalAPagar.text = getString(R.string.money_mask, totalAPagar)
+        tvResumoTotalPago  .text = getString(R.string.money_mask, totalPago)
+        tvResumoTotalGeral .text = getString(R.string.money_mask, totalGeral)
+
+        // ---- Totais por tipo: (A Pagar) ----
+        containerTiposValoresAPagar.removeAllViews()
+        val porTipoAPagar = mutableMapOf<String, Double>()
+        list.filter { it.status == "A Pagar" }.forEach { n ->
+            n.tipos.forEach { t -> porTipoAPagar[t] = (porTipoAPagar[t] ?: 0.0) + n.valor }
         }
-        mapa.forEach { (tipo, v) ->
+        porTipoAPagar.forEach { (tipo, v) ->
             val tv = layoutInflater.inflate(
-                R.layout.item_tipo_valor, containerTiposValores, false
-            ) as android.widget.TextView   // simples TextView “Tipo – R$ …”
+                R.layout.item_tipo_valor, containerTiposValoresAPagar, false
+            ) as android.widget.TextView
             tv.text = getString(R.string.tipo_valor_mask, tipo, v)
-            containerTiposValores.addView(tv)
+            containerTiposValoresAPagar.addView(tv)
+        }
+
+        // ---- Totais por tipo: (Pago) ----
+        containerTiposValoresPago.removeAllViews()
+        val porTipoPago = mutableMapOf<String, Double>()
+        list.filter { it.status == "Pago" }.forEach { n ->
+            n.tipos.forEach { t -> porTipoPago[t] = (porTipoPago[t] ?: 0.0) + n.valor }
+        }
+        porTipoPago.forEach { (tipo, v) ->
+            val tv = layoutInflater.inflate(
+                R.layout.item_tipo_valor, containerTiposValoresPago, false
+            ) as android.widget.TextView
+            tv.text = getString(R.string.tipo_valor_mask, tipo, v)
+            containerTiposValoresPago.addView(tv)
         }
     }
 

@@ -14,6 +14,7 @@ import androidx.navigation.fragment.navArgs
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.databinding.FragmentDetalheNotaBinding
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.ui.notas.adapter.NotaPagerAdapter
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -69,7 +70,12 @@ class DetalheNotaFragment : Fragment() {
                         tvDetLoja.text   = nota.loja
                         tvDetTipos.text  = nota.tipos.joinToString(", ")
                         tvDetData.text   = nota.data
-                        tvDetStatus.text = nota.status
+                        tvDetStatus.text = getString(
+                            if (nota.status == NotaPagerAdapter.STATUS_A_PAGAR)
+                                R.string.nota_status_purchased
+                            else
+                                R.string.nota_status_paid_client
+                        )
                         tvDetValor.text  = getString(
                             R.string.money_mask,
                             nota.valor

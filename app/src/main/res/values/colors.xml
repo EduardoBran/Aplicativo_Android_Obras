@@ -37,4 +37,19 @@
     <color name="onSuccess">#FFFFFF</color>
     <color name="warning">#F57C00</color>
     <color name="onWarning">#000000</color>
+
+    <!-- Fundo e textos para "Aguardando pagamento" -->
+    <color name="totalDue_bg">#FFF1F1</color>        <!-- vermelho claro -->
+    <color name="totalDue_text">#B3261E</color>      <!-- título -->
+    <color name="totalDue_value">#D32F2F</color>     <!-- valor -->
+
+    <!-- Fundo e textos para "Pago" -->
+    <color name="totalPaid_bg">#EEF7F0</color>       <!-- verde claro -->
+    <color name="totalPaid_text">#1B5E20</color>     <!-- título -->
+    <color name="totalPaid_value">#2E7D32</color>    <!-- valor -->
+
+    <!-- Fundo e textos para "Total geral" -->
+    <color name="totalOverall_bg">#ECE6F0</color>    <!-- roxo claro -->
+    <color name="totalOverall_text">#4A4458</color>  <!-- título -->
+    <color name="totalOverall_value">#2D2A35</color> <!-- valor -->
 </resources>

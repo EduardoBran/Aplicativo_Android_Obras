@@ -15,6 +15,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:menu="@menu/menu_nota"
         app:navigationIcon="@drawable/ic_back"
+        app:popupTheme="@style/PopupMenu.WhiteBg_BlackText"
         app:title="@string/nota_title"
         app:titleCentered="true" />
 

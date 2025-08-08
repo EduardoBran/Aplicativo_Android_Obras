@@ -25,13 +25,11 @@ class NotasFragment : Fragment(), NotaActions {
     private val binding get() = _binding!!
 
     private val args: NotasFragmentArgs by navArgs()
-
     private val viewModel: NotasViewModel by viewModels()
 
-    private val pagerAdapter by lazy { NotaPagerAdapter(this, args.obraId) }
-
-
-    /*───────────────────────────── Ciclo de Vida ─────────────────────────────*/
+    // NÃO manter adapter como lazy de campo imutável
+    private var pagerAdapter: NotaPagerAdapter? = null
+    private var pageChangeCallback: ViewPager2.OnPageChangeCallback? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,45 +54,54 @@ class NotasFragment : Fragment(), NotaActions {
         }
 
         /* Tabs & Pager */
+        pagerAdapter = NotaPagerAdapter(this@NotasFragment, args.obraId)
         pagerNotas.adapter = pagerAdapter
+
         TabLayoutMediator(tabNotas, pagerNotas) { tab, pos ->
             tab.text = if (pos == 0) getString(R.string.nota_tab_due)
-            else       getString(R.string.nota_tab_paid)
+            else                     getString(R.string.nota_tab_paid)
         }.attach()
 
-        /* FAB – visível apenas na aba “A Pagar” (pos 0) */
+        // FAB — criar nota
         fabNewNota.setOnClickListener {
             findNavController().navigate(
-                NotasFragmentDirections.actionNotasToRegister(
-                    obraId = args.obraId, notaId = null        // novo cadastro
-                )
+                NotasFragmentDirections.actionNotasToRegister(args.obraId, null)
             )
         }
-        pagerNotas.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                fabNewNota.isVisible = position == 0
-            }
-        })
-        fabNewNota.isVisible = true         // começa em “A Pagar”
+
+        // FAB visível somente na aba 0 (A Pagar)
+        fun updateFabVisibility() { fabNewNota.isVisible = pagerNotas.currentItem == 0 }
+        updateFabVisibility()
+
+        pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) = updateFabVisibility()
+        }.also { pagerNotas.registerOnPageChangeCallback(it) }
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
+        // Desanexar tudo para não reaproveitar referências da old view (evita o crash)
+        pageChangeCallback?.let { binding.pagerNotas.unregisterOnPageChangeCallback(it) }
+        pageChangeCallback = null
+        binding.pagerNotas.adapter = null
+        pagerAdapter = null
         _binding = null
+        super.onDestroyView()
     }
 
-    /*───────────────────────────── NotaActions ───────────────────────────────*/
-
+    /*────────────── NotaActions (Adapter callbacks) ─────────────*/
     override fun onEdit(nota: Nota) {
-        NotasFragmentDirections.actionNotasToRegister(args.obraId, nota.id)
+        findNavController().navigate(
+            NotasFragmentDirections.actionNotasToRegister(args.obraId, nota.id)
+        )
     }
 
     override fun onDetail(nota: Nota) {
-        NotasFragmentDirections.actionNotasToDetail(args.obraId, nota.id)
+        findNavController().navigate(
+            NotasFragmentDirections.actionNotasToDetail(args.obraId, nota.id)
+        )
     }
 
     override fun onDelete(nota: Nota) {
-        /* Confirmação via SnackbarFragment */
         showSnackbarFragment(
             Constants.SnackType.WARNING.name,
             getString(R.string.snack_attention),
