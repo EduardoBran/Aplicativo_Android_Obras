@@ -24,7 +24,7 @@ class DetalheFuncionarioFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val args: DetalheFuncionarioFragmentArgs by navArgs()
-    private val viewModel: FuncionarioViewModel by viewModels({ requireParentFragment() })
+    private val viewModel: FuncionarioViewModel by viewModels()
 
 
     override fun onCreateView(

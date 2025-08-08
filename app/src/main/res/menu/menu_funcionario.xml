@@ -4,9 +4,8 @@
 
     <!-- Resumo de funcionários -->
     <item
-        android:id="@+id/action_summary_employee"
+        android:id="@+id/action_func_to_resumo"
         android:icon="@drawable/ic_summary"
         android:title="@string/func_menu_summary"
-        app:showAsAction="ifRoom|withText" />
-
+        app:showAsAction="never" />
 </menu>

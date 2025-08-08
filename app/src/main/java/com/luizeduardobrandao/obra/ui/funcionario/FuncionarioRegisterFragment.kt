@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.radiobutton.MaterialRadioButton
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Funcionario
@@ -32,17 +33,15 @@ class FuncionarioRegisterFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val args: FuncionarioRegisterFragmentArgs by navArgs()
-    private val viewModel: FuncionarioViewModel by viewModels({ requireParentFragment() })
+    private val viewModel: FuncionarioViewModel by viewModels()
 
     private val isEdit get() = args.funcionarioId != null
-
     private var diasTrabalhados = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
         _binding = FragmentFuncionarioRegisterBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -50,134 +49,97 @@ class FuncionarioRegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Toolbar
         binding.toolbarFuncReg.setNavigationOnClickListener { findNavController().navigateUp() }
 
-
-        // Pré-carrega dados se edição
         if (isEdit) prefillFields()
 
-
-        // Stepper + / − dias
         binding.btnPlus.setOnClickListener { updateDias(+1) }
         binding.btnMinus.setOnClickListener { updateDias(-1) }
 
-
-        // Habilita botão quando nome ≥ 3 && salário > 0
         listOf(binding.etNomeFunc, binding.etSalario).forEach { edit ->
             edit.doAfterTextChanged { validateForm() }
         }
 
+        // Escuta mudanças nos checkboxes de função
+        getAllFuncaoCheckboxes().forEach { cb ->
+            cb.setOnCheckedChangeListener { _, _ -> validateForm() }
+        }
+        binding.rgPagamento.setOnCheckedChangeListener { _, _ -> validateForm() }
+
         observeSaveState()
 
-        // Submissão
         binding.btnSaveFuncionario.setOnClickListener { onSave() }
+
+        validateForm()
     }
 
-    /*------------------------------------------------*/
-    /* Prefill em modo edição                         */
-    /*------------------------------------------------*/
     private fun prefillFields() {
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.observeFuncionario(args.obraId, args.funcionarioId!!)
+                    .collect { func ->
+                        func ?: return@collect
+                        binding.apply {
+                            etNomeFunc.setText(func.nome)
+                            etSalario.setText(func.salario.toString())
+                            etPix.setText(func.pix)
+                            tvDias.text = func.diasTrabalhados.toString()
+                            diasTrabalhados = func.diasTrabalhados
+                            btnSaveFuncionario.setText(R.string.generic_update)
 
-                viewModel.observeFuncionario(args.obraId, args.funcionarioId!!).collect { func ->
+                            // Marca múltiplas funções
+                            val funcoesMarcadas = func.funcao.split("/").map { it.trim() }
+                            getAllFuncaoCheckboxes().forEach { cb ->
+                                cb.isChecked = funcoesMarcadas.any {
+                                    it.equals(cb.text.toString(), ignoreCase = true)
+                                }
+                            }
 
-                    func ?: return@collect
-                    binding.etNomeFunc.setText(func.nome)
-                    selectRadio(binding.rgFuncao, func.funcao)
-                    binding.etSalario.setText(func.salario.toString())
-                    selectRadio(binding.rgPagamento, func.formaPagamento)
-                    binding.etPix.setText(func.pix)
-                    diasTrabalhados = func.diasTrabalhados
-                    binding.tvDias.text = diasTrabalhados.toString()
-                    selectRadio(binding.rgStatus, func.status)
-                    binding.btnSaveFuncionario.setText(R.string.generic_update)
-                    validateForm()
-                }
+                            // Forma de pagamento e status continuam com RadioButton
+                            selectSingleChoice(binding.rgPagamento, func.formaPagamento)
+                            selectSingleChoice(binding.rgStatus, func.status)
+                        }
+                        validateForm()
+                    }
             }
         }
     }
 
-    // Marca o RadioButton cujo texto coincide com [text].
-    private fun selectRadio(group: RadioGroup, text: String) {
+    private fun selectSingleChoice(group: RadioGroup, text: String) {
         for (i in 0 until group.childCount) {
-            // rb é MaterialRadioButton? aqui
-            val rb = group.getChildAt(i) as? MaterialRadioButton
-            // primeiro checamos se não é nulo e o texto bate
-            if (rb != null && rb.text.toString().equals(text, ignoreCase = true)) {
-                rb.isChecked = true
+            val child = group.getChildAt(i)
+            if (child is MaterialRadioButton &&
+                child.text.toString().equals(text, ignoreCase = true)
+            ) {
+                child.isChecked = true
                 return
             }
         }
     }
 
+    private fun validateForm(): Boolean {
+        val nomeOk = binding.etNomeFunc.text.toString()
+            .trim().length >= Constants.Validation.MIN_NAME
 
-    /*------------------------------------------------*/
-    // Exibe Snackbars de erro e só habilita o salvar se tudo válido.
-    /*------------------------------------------------*/
-    private fun validateForm(){
-        // 1) Nome
-        val nome = binding.etNomeFunc.text.toString().trim()
-        if (nome.length < Constants.Validation.MIN_NAME) {
-            showSnackbarFragment(
-                Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
-                getString(R.string.func_error_nome),
-                getString(R.string.snack_button_ok)
-            )
-            binding.btnSaveFuncionario.isEnabled = false
-            return
-        }
-        // 2) Salário
-        val salario = binding.etSalario.text.toString().toDoubleOrNull()
-        if (salario == null || salario <= Constants.Validation.MIN_SALDO) {
-            showSnackbarFragment(
-                Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
-                getString(R.string.func_error_salario),
-                getString(R.string.snack_button_ok)
-            )
-            binding.btnSaveFuncionario.isEnabled = false
-            return
-        }
-        // 3) Função
-        if (binding.rgFuncao.checkedRadioButtonId == -1) {
-            showSnackbarFragment(
-                Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
-                getString(R.string.func_error_funcao),
-                getString(R.string.snack_button_ok)
-            )
-            binding.btnSaveFuncionario.isEnabled = false
-            return
-        }
-        // 4) Pagamento
-        if (binding.rgPagamento.checkedRadioButtonId == -1) {
-            showSnackbarFragment(
-                Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
-                getString(R.string.func_error_pagamento),
-                getString(R.string.snack_button_ok)
-            )
-            binding.btnSaveFuncionario.isEnabled = false
-            return
-        }
-        // tudo ok
-        binding.btnSaveFuncionario.isEnabled = true
+        val salarioOk = binding.etSalario.text.toString()
+            .replace(',', '.')
+            .toDoubleOrNull()
+            ?.let { it > Constants.Validation.MIN_SALDO } == true
+
+        val funcaoOk = getCheckedFuncaoTexts().isNotEmpty()
+        val pagtoOk = binding.rgPagamento.checkedRadioButtonId != -1
+
+        val formOk = nomeOk && salarioOk && funcaoOk && pagtoOk
+        binding.btnSaveFuncionario.isEnabled = formOk
+        return formOk
     }
 
-    // Observa o estado de criação/atualização no ViewModel.
     private fun observeSaveState() {
         lifecycleScope.launch {
             viewModel.opState.collect { state ->
                 when (state) {
-                    is UiState.Loading -> {
-                        binding.btnSaveFuncionario.isEnabled = false
-                    }
-                    is UiState.Success -> {
-                        findNavController().navigateUp()
-                    }
+                    is UiState.Loading -> binding.btnSaveFuncionario.isEnabled = false
+                    is UiState.Success -> findNavController().navigateUp()
                     is UiState.ErrorRes -> {
                         binding.btnSaveFuncionario.isEnabled = true
                         showSnackbarFragment(
@@ -193,71 +155,68 @@ class FuncionarioRegisterFragment : Fragment() {
         }
     }
 
-
-    /*------------------------------------------------*/
-    /* Stepper                                        */
-    /*------------------------------------------------*/
     private fun updateDias(delta: Int) {
         diasTrabalhados = (diasTrabalhados + delta).coerceAtLeast(0)
         binding.tvDias.text = diasTrabalhados.toString()
     }
 
-
-    /*------------------------------------------------*/
-    /* Salvar / Atualizar                             */
-    /*------------------------------------------------*/
     private fun onSave() {
-        // esconde o teclado
+        if (!validateForm()) {
+            showSnackbarFragment(
+                Constants.SnackType.ERROR.name,
+                getString(R.string.snack_error),
+                getString(R.string.func_reg_error_required),
+                getString(R.string.snack_button_ok)
+            )
+            return
+        }
+
         binding.root.hideKeyboard()
 
-        val nome = binding.etNomeFunc.text.toString().trim()
-        val funcao = getCheckedText(binding.rgFuncao)
-        val sal = binding.etSalario.text.toString().toDoubleOrNull() ?: 0.0
-        val forma = getCheckedText(binding.rgPagamento)
-        val pix = binding.etPix.text.toString().trim()
-        val stat  = getCheckedText(binding.rgStatus)
-
         val funcionario = Funcionario(
-            id = args.funcionarioId ?: "", // será setado no repo se novo
-            nome = nome,
-            funcao = funcao,
-            salario = sal,
-            formaPagamento  = forma,
-            pix = pix,
+            id = args.funcionarioId ?: "",
+            nome = binding.etNomeFunc.text.toString().trim(),
+            funcao = getCheckedFuncaoTexts().joinToString(" / "),
+            salario = binding.etSalario.text.toString().replace(',', '.').toDouble(),
+            formaPagamento = getCheckedRadioText(binding.rgPagamento),
+            pix = binding.etPix.text.toString().trim(),
             diasTrabalhados = diasTrabalhados,
-            status = stat
+            status = getCheckedRadioText(binding.rgStatus).lowercase()
         )
 
-        // Progress UI
         binding.btnSaveFuncionario.isEnabled = false
         binding.funcRegScroll.visibility = View.INVISIBLE
 
-        // chama direto — o ViewModel cuidará de lançar no I/O dispatcher
         if (isEdit) {
             viewModel.updateFuncionario(funcionario)
             Toast.makeText(
                 requireContext(),
-                getString(R.string.func_toast_updated),
+                getString(R.string.func_updated, funcionario.nome),
                 Toast.LENGTH_SHORT
             ).show()
         } else {
             viewModel.addFuncionario(funcionario)
             Toast.makeText(
                 requireContext(),
-                getString(R.string.func_toast_added),
+                getString(R.string.func_added, funcionario.nome),
                 Toast.LENGTH_SHORT
             ).show()
         }
-
-        // volta
-        findNavController().navigateUp()
     }
 
-    private fun getCheckedText(group: RadioGroup): String =
-        group.findViewById<MaterialRadioButton>(
-            group.checkedRadioButtonId
-        ).text.toString()
+    private fun getCheckedRadioText(group: RadioGroup): String {
+        val id = group.checkedRadioButtonId
+        if (id == -1) return ""  // segurança, embora o validateForm já garanta seleção
+        val rb = group.findViewById<MaterialRadioButton>(id)
+        return rb.text.toString()
+    }
 
+    private fun getCheckedFuncaoTexts(): List<String> =
+        getAllFuncaoCheckboxes().filter { it.isChecked }.map { it.text.toString() }
+
+    private fun getAllFuncaoCheckboxes(): List<MaterialCheckBox> =
+        (0 until binding.rgFuncao.childCount).mapNotNull { binding.rgFuncao.getChildAt(it) as? MaterialCheckBox } +
+                (0 until binding.rgFuncao2.childCount).mapNotNull { binding.rgFuncao2.getChildAt(it) as? MaterialCheckBox }
 
     override fun onDestroyView() {
         super.onDestroyView()

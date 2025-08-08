@@ -68,20 +68,20 @@
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <com.google.android.material.radiobutton.MaterialRadioButton
+                <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/rbPintor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Pintor" />
 
-                <com.google.android.material.radiobutton.MaterialRadioButton
+                <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/rbPedreiro"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:text="Pedreiro" />
 
-                <com.google.android.material.radiobutton.MaterialRadioButton
+                <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/rbEletricista"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -91,26 +91,27 @@
 
             <!-- Linha 2 de funções -->
             <RadioGroup
+                android:id="@+id/rgFuncao2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <com.google.android.material.radiobutton.MaterialRadioButton
+                <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/rbEncanador"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Encanador" />
 
-                <com.google.android.material.radiobutton.MaterialRadioButton
+                <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/rbAjudante"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:text="Ajudante" />
 
-                <com.google.android.material.radiobutton.MaterialRadioButton
+                <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/rbOutro"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

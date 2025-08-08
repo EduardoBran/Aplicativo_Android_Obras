@@ -107,19 +107,20 @@ class FuncionarioRepositoryImpl @Inject constructor(
      * e grava em gastoTotal da obra.
      */
     private suspend fun recalcTotalGasto(obraId: String) {
-        // 1) soma custos de mão-de-obra
+        // 1) soma custos de mão-de-obra (cada funcionário já traz totalGasto calculado)
         val funcsSnap = funcRef(obraId).get().await()
         val totalFuncs = funcsSnap.children
             .mapNotNull { it.getValue<Funcionario>() }
             .sumOf { it.totalGasto }
 
-        // 2) soma custos de material
+        // 2) soma custos de material (apenas notas "A Pagar")
         val notasSnap = notaRef(obraId).get().await()
         val totalNotas = notasSnap.children
             .mapNotNull { it.getValue<Nota>() }
+            .filter { it.status == "A Pagar" }   // ← ajuste aqui
             .sumOf { it.valor }
 
-        // 3) grava a soma agregada
+        // 3) grava a soma agregada na obra
         obraRepository.updateGastoTotal(obraId, totalFuncs + totalNotas)
     }
 }

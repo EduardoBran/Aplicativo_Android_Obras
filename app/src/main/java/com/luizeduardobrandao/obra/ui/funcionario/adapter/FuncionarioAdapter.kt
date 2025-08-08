@@ -1,6 +1,7 @@
 package com.luizeduardobrandao.obra.ui.funcionario.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -27,7 +28,8 @@ import java.util.Locale
 class FuncionarioAdapter (
     private val onEdit:   (Funcionario) -> Unit = {},
     private val onDetail: (Funcionario) -> Unit = {},
-    private val onDelete: (Funcionario) -> Unit = {}
+    private val onDelete: (Funcionario) -> Unit = {},
+    private val showActions: Boolean = true
 ) : ListAdapter<Funcionario, FuncionarioAdapter.FuncViewHolder>(DIFF) {
 
     // melhora animações / reciclagem
@@ -46,10 +48,8 @@ class FuncionarioAdapter (
             tvNomeFunc.text = item.nome
             tvFuncao.text = item.funcao
             tvStatus.apply {
-                text = item.status.replaceFirstChar { it.uppercase() }   // Ativo / Inativo
-
-                // Cor conforme status
-                val coloRes = if(item.status.equals("ativo", true))
+                text = item.status.replaceFirstChar { it.uppercase() }
+                val coloRes = if (item.status.equals("ativo", true))
                     R.color.success else R.color.md_theme_light_error
                 setTextColor(ContextCompat.getColor(root.context, coloRes))
             }
@@ -58,19 +58,37 @@ class FuncionarioAdapter (
             val formatoBR = NumberFormat.getCurrencyInstance(
                 Locale(Constants.Format.CURRENCY_LOCALE, Constants.Format.CURRENCY_COUNTRY)
             )
-
-            val salarioTxt = root.resources.getString(
+            tvSalario.text = root.resources.getString(
                 R.string.func_list_salary_format,
                 formatoBR.format(item.salario),
                 item.formaPagamento.lowercase()
             )
 
-            tvSalario.text = salarioTxt
+            // ②.1 Dias trabalhados (strings.xml com placeholder)
+            val diasStrRes = if (item.diasTrabalhados == 1)
+                R.string.func_dias_trabalhados_singular
+            else
+                R.string.func_dias_trabalhados_plural
+            tvDiasTrabalhados.text = root.resources.getString(diasStrRes, item.diasTrabalhados)
 
-            // ③ Listeners dos ícones
-            btnEdit.setOnClickListener { onEdit(item) }
-            btnDetail.setOnClickListener { onDetail(item) }
-            btnDelete.setOnClickListener { onDelete(item) }
+            // ③ Ações
+            if (showActions) {
+                layoutActions.visibility = View.VISIBLE
+                dividerActions.visibility = View.VISIBLE
+
+                btnEdit.setOnClickListener { onEdit(item) }
+                btnDetail.setOnClickListener { onDetail(item) }
+                btnDelete.setOnClickListener { onDelete(item) }
+            } else {
+                // Esconde tudo no resumo
+                layoutActions.visibility = View.GONE
+                dividerActions.visibility = View.GONE
+
+                // Evita cliques fantasmas
+                btnEdit.setOnClickListener(null)
+                btnDetail.setOnClickListener(null)
+                btnDelete.setOnClickListener(null)
+            }
         }
     }
 

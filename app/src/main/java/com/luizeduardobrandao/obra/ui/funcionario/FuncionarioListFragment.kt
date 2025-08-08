@@ -82,6 +82,10 @@ class FuncionarioListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // ADICIONE esta linha:
+        binding.rvFuncionarios.layoutManager =
+            androidx.recyclerview.widget.LinearLayoutManager(requireContext())
+
         binding.rvFuncionarios.adapter = adapter
         observeViewModel()
 

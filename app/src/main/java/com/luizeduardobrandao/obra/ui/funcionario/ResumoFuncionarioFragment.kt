@@ -26,9 +26,9 @@ class ResumoFuncionarioFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val args: ResumoFuncionarioFragmentArgs by navArgs()
-    private val viewModel: FuncionarioViewModel by viewModels({ requireParentFragment() })
+    private val viewModel: FuncionarioViewModel by viewModels()
 
-    private val adapter by lazy { FuncionarioAdapter() }
+    private val adapter by lazy { FuncionarioAdapter(showActions = false) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,25 +39,32 @@ class ResumoFuncionarioFragment : Fragment() {
         return binding.root
     }
 
+    /* ───────────────────────── lifecycle ───────────────────────── */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentResumoFuncionarioBinding.bind(view)
 
         binding.toolbarResumoFuncionario.setNavigationOnClickListener {
             findNavController().navigateUp()
         }
 
         binding.rvFuncionarios.adapter = adapter
+
         observeViewModel()
+
+        /*  disparo único do listener  */
+        viewModel.loadFuncionarios()
     }
 
+    /* ───────────────────────── observers ───────────────────────── */
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { ui ->
                     when (ui) {
-                        is UiState.Loading -> binding.progressFuncList.visibility = View.VISIBLE
-                        is UiState.Success -> showList(ui.data)
-                        is UiState.ErrorRes -> showError(ui.resId)
+                        is UiState.Loading   -> showLoading()
+                        is UiState.Success   -> renderList(ui.data)
+                        is UiState.ErrorRes  -> showError(ui.resId)
                         else -> Unit
                     }
                 }
@@ -65,11 +72,31 @@ class ResumoFuncionarioFragment : Fragment() {
         }
     }
 
-    private fun showList(list: List<Funcionario>) = with(binding) {
+    /* ───────────────────────── UI helpers ──────────────────────── */
+    private fun showLoading() = with(binding) {
+        progressFuncList.visibility = View.VISIBLE
+        rvFuncionarios .visibility  = View.GONE
+        llTotalGeral    .visibility = View.GONE
+        tvEmptySum      .visibility = View.GONE
+    }
+
+    private fun renderList(list: List<Funcionario>) = with(binding) {
         progressFuncList.visibility = View.GONE
-        adapter.submitList(list)
-        val total = list.sumOf { it.totalGasto }
-        tvTotalGeral.text = getString(R.string.money_mask, total)
+
+        if (list.isEmpty()) {
+            tvEmptySum.visibility      = View.VISIBLE
+            rvFuncionarios.visibility  = View.GONE
+            llTotalGeral.visibility    = View.GONE
+        } else {
+            tvEmptySum.visibility      = View.GONE
+            rvFuncionarios.visibility  = View.VISIBLE
+            llTotalGeral.visibility    = View.VISIBLE
+
+            adapter.submitList(list)
+
+            val total = list.sumOf { it.totalGasto }
+            tvTotalGeral.text = getString(R.string.money_mask, total)
+        }
     }
 
     private fun showError(resId: Int) {

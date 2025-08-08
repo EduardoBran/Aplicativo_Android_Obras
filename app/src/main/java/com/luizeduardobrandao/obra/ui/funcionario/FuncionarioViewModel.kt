@@ -85,7 +85,7 @@ class FuncionarioViewModel @Inject constructor(
                 onFailure  = { UiState.ErrorRes(R.string.func_save_error) }
             )
             if (_opState.value is UiState.Success) {
-                recalcGastoTotal()
+//                recalcGastoTotal()
                 loadFuncionarios()
             }
         }
@@ -101,7 +101,7 @@ class FuncionarioViewModel @Inject constructor(
                 onFailure  = { UiState.ErrorRes(R.string.func_update_error) }
             )
             if (_opState.value is UiState.Success) {
-                recalcGastoTotal()
+//                recalcGastoTotal()
                 loadFuncionarios()
             }
         }
@@ -113,7 +113,7 @@ class FuncionarioViewModel @Inject constructor(
             // obtém antes o objeto para saber o valor já lançado (opcional)
             repoFun.observeFuncionario(obraId, funcId).firstOrNull()?.let {
                 repoFun.deleteFuncionario(obraId, funcId)
-                recalcGastoTotal()
+//                recalcGastoTotal()
                 loadFuncionarios()
             }
         }

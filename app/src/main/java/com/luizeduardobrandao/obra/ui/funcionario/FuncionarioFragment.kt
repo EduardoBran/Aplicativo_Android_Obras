@@ -2,10 +2,8 @@ package com.luizeduardobrandao.obra.ui.funcionario
 
 import android.os.Bundle
 import android.view.*
-import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.tabs.TabLayoutMediator
@@ -38,30 +36,18 @@ class FuncionarioFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Toolbar navegação
-        binding.toolbarFuncionario.setNavigationOnClickListener {
-            findNavController().navigateUp()
+        // Mantemos apenas o listener direto da Toolbar
+        binding.toolbarFuncionario.apply {
+            setNavigationOnClickListener { findNavController().navigateUp() }
+            setOnMenuItemClickListener { item ->
+                if (item.itemId == R.id.action_func_to_resumo) {
+                    findNavController().navigate(
+                        FuncionarioFragmentDirections.actionFuncToResumo(args.obraId)
+                    )
+                    true
+                } else false
+            }
         }
-
-        // Toolbar Menu Provider (opção de resumo)
-        requireActivity().addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, inflater: MenuInflater) {
-                inflater.inflate(R.menu.menu_funcionario, menu)
-            }
-
-            override fun onMenuItemSelected(item: MenuItem): Boolean {
-                return when (item.itemId) {
-                    R.id.action_func_to_resumo -> {
-                        findNavController().navigate(
-                            FuncionarioFragmentDirections
-                                .actionFuncToResumo(args.obraId)
-                        )
-                        true
-                    }
-
-                    else -> false
-                }
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
 
         // ViewPager2 + TabLayout
@@ -71,6 +57,9 @@ class FuncionarioFragment : Fragment() {
             tab.text = if (pos == 0) getString(R.string.func_tab_active)
             else getString(R.string.func_tab_inactive)
         }.attach()
+
+        binding.fabNewFuncionario.visibility =
+            if (binding.pagerFuncionario.currentItem == 0) View.VISIBLE else View.GONE
 
 
         // FAB: visível apenas na aba 'Ativos' (pos 0)

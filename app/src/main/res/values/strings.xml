@@ -104,7 +104,7 @@
     <string name="func_tab_active">Ativos</string>
     <string name="func_tab_inactive">Inativos</string>
     <string name="func_menu_summary">Resumo</string>
-    <string name="func_snack_delete_msg">Você quer mesmo excluir o funcionário %1$s?</string>
+    <string name="func_snack_delete_msg">Tem certeza que deseja excluir o funcionário %1$s? Todos os dados e gastos relacionados serão removidos do resumo da obra.</string>
     <string name="func_toast_removed">Funcionário %1$s removido com sucesso.</string>
     <string name="func_toast_added">Funcionário adicionado.</string>
     <string name="func_toast_updated">Dados do funcionário atualizados.</string>
@@ -112,6 +112,10 @@
     <string name="func_list_salary_format">%1$s (%2$s)</string>
     <string name="func_save_error">Erro ao salvar funcionário. Verifique sua conexão.</string>
     <string name="func_update_error">Erro ao atualizar funcionário. Verifique sua conexão.</string>
+    <!-- Singular -->
+    <string name="func_dias_trabalhados_singular">%1$d dia trabalhado</string>
+    <!-- Plural -->
+    <string name="func_dias_trabalhados_plural">%1$d dias trabalhados</string>
 
     <!-- FuncionarioRegisterFragment -->
     <string name="func_reg_title">Registro de Funcionários</string>
@@ -129,6 +133,8 @@
     <string name="func_error_salario">Informe um salário válido (> 0).</string>
     <string name="func_error_funcao">Selecione a função.</string>
     <string name="func_error_pagamento">Selecione a forma de pagamento.</string>
+    <string name="func_added">Funcionário %1$s adicionado.</string>
+    <string name="func_updated">Dados do %1$s alterado.</string>
 
     <!-- DetalheFuncionarioFragment -->
     <string name="func_detail_title">Funcionário %1$s</string>

@@ -22,4 +22,14 @@
     </style>
 
     <style name="Theme.Obra" parent="Base.Theme.Obra" />
+
+    <style name="PopupMenu.WhiteBg_BlackText" parent="ThemeOverlay.Material3.Light">
+        <!-- fundo do menu -->
+        <item name="colorSurface">@android:color/white</item>
+        <!-- cor dos títulos / ícones -->
+        <item name="colorOnSurface">@android:color/black</item>
+
+        <!-- se quiser também deixar o ícone preto,
+             garanta que seu svg não tenha cor hard-coded -->
+    </style>
 </resources>
