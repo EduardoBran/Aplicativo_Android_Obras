@@ -2,7 +2,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- ─────────  Toolbar  ───────── -->
     <com.google.android.material.appbar.MaterialToolbar
@@ -36,6 +37,7 @@
 
             <!-- Nome -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilNomeFunc"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -119,8 +121,20 @@
                     android:text="Outro" />
             </RadioGroup>
 
+            <TextView
+                android:id="@+id/tvFuncaoError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/md_theme_light_error"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:visibility="gone"
+                tools:text="@string/func_reg_error_role"
+                tools:visibility="visible"/>
+
             <!-- Salário -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilSalario"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -174,6 +188,17 @@
                     android:layout_marginStart="16dp"
                     android:text="Mensal" />
             </RadioGroup>
+
+            <TextView
+                android:id="@+id/tvPagamentoError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/md_theme_light_error"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:visibility="gone"
+                tools:text="@string/func_reg_error_pagamento"
+                tools:visibility="visible"/>
 
             <!-- Pix -->
             <com.google.android.material.textfield.TextInputLayout

@@ -37,6 +37,7 @@
 
             <!-- Nome do Material -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilNomeMaterial"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -72,6 +73,7 @@
 
             <!-- Nome da Loja -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilLoja"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -133,6 +135,17 @@
                     android:text="Outros" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/tvTipoError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/md_theme_light_error"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:visibility="gone"
+                tools:text="@string/nota_reg_error_tipo"
+                tools:visibility="visible"/>
+
             <!-- Data -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilDataNota"
@@ -186,6 +199,7 @@
 
             <!-- Valor -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilValorNota"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

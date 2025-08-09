@@ -43,7 +43,7 @@ class EtapaAdapter(
             val desc = e.descricao.orEmpty().trim()
             b.tvDescEtapa.text = when {
                 desc.isBlank() -> "—"
-                desc.length > 15 -> desc.take(20) + "..."
+                desc.length > 15 -> desc.take(20) + " ..."
                 else -> desc
             }
 

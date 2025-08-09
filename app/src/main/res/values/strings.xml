@@ -138,6 +138,10 @@
     <string name="func_error_pagamento">Selecione a forma de pagamento.</string>
     <string name="func_added">Funcionário %1$s adicionado.</string>
     <string name="func_updated">Dados do %1$s alterado.</string>
+    <string name="func_reg_error_nome">Informe o nome (mín. %1$d caracteres)</string>
+    <string name="func_reg_error_salario">Informe um salário válido</string>
+    <string name="func_reg_error_role">Selecione ao menos uma função</string>
+    <string name="func_reg_error_pagamento">Selecione a forma de pagamento</string>
 
     <!-- DetalheFuncionarioFragment -->
     <string name="func_detail_title">Funcionário %1$s</string>
@@ -188,6 +192,11 @@
     <string name="nota_reg_error_value">Valor inválido.</string>
     <string name="nota_reg_error_required">Preencha: material, loja, data, pelo menos um tipo e valor &gt; 0.</string>
     <string name="nota_past_date_warning">Você selecionou uma data no passado.</string>
+    <string name="nota_reg_error_nome">Informe o nome do material</string>
+    <string name="nota_reg_error_loja">Informe o nome da loja</string>
+    <string name="nota_reg_error_data">Selecione a data</string>
+    <string name="nota_reg_error_valor">Informe um valor maior que zero</string>
+    <string name="nota_reg_error_tipo">Selecione ao menos um tipo</string>
 
     <!-- DetalheNotaFragment -->
     <string name="nota_detail_title">Nota %1$s</string>
@@ -235,8 +244,11 @@
     <string name="etapa_reg_error_date">Data de término anterior à data de início.</string>
     <!-- Feedback de salvamento -->
     <string name="generic_saving">Salvando…</string>
-    <string name="etapa_error_date_order">Data de término deve ser após a data de início.</string>
+    <string name="etapa_error_date_order">A data de término deve ser igual ou posterior à data de início.</string>
     <string name="etapa_reg_employee_helper">Separe os nomes com vírgula (,)</string>
+    <string name="etapa_error_title_required">Informe o título da etapa</string>
+    <string name="etapa_error_date_start_required">Selecione a data de início</string>
+    <string name="etapa_error_date_end_required">Selecione a data de término</string>
 
 
     <!-- Erros de validação -->

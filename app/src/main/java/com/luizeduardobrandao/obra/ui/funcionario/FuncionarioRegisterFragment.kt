@@ -117,21 +117,33 @@ class FuncionarioRegisterFragment : Fragment() {
         }
     }
 
-    private fun validateForm(): Boolean {
-        val nomeOk = binding.etNomeFunc.text.toString()
-            .trim().length >= Constants.Validation.MIN_NAME
+    private fun validateForm(): Boolean = with(binding) {
+        // Nome (mínimo de caracteres)
+        val nome = etNomeFunc.text?.toString()?.trim().orEmpty()
+        val nomeOk = nome.length >= Constants.Validation.MIN_NAME
+        tilNomeFunc.error = if (!nomeOk)
+            getString(R.string.func_reg_error_nome, Constants.Validation.MIN_NAME)
+        else null
 
-        val salarioOk = binding.etSalario.text.toString()
-            .replace(',', '.')
-            .toDoubleOrNull()
-            ?.let { it > Constants.Validation.MIN_SALDO } == true
+        // Salário (> MIN_SALDO)
+        val salario = etSalario.text?.toString()?.replace(',', '.')?.toDoubleOrNull()
+        val salarioOk = salario != null && salario > Constants.Validation.MIN_SALDO
+        tilSalario.error = if (!salarioOk) getString(R.string.func_reg_error_salario) else null
 
-        val funcaoOk = getCheckedFuncaoTexts().isNotEmpty()
-        val pagtoOk = binding.rgPagamento.checkedRadioButtonId != -1
+        // Pelo menos UMA função marcada
+        val funcoes = getCheckedFuncaoTexts()
+        val funcaoOk = funcoes.isNotEmpty()
+        tvFuncaoError.text = if (!funcaoOk) getString(R.string.func_reg_error_role) else null
+        tvFuncaoError.visibility = if (!funcaoOk) View.VISIBLE else View.GONE
+
+        // Uma forma de pagamento selecionada
+        val pagtoOk = rgPagamento.checkedRadioButtonId != -1
+        tvPagamentoError.text = if (!pagtoOk) getString(R.string.func_reg_error_pagamento) else null
+        tvPagamentoError.visibility = if (!pagtoOk) View.VISIBLE else View.GONE
 
         val formOk = nomeOk && salarioOk && funcaoOk && pagtoOk
-        binding.btnSaveFuncionario.isEnabled = formOk
-        return formOk
+        btnSaveFuncionario.isEnabled = formOk
+        formOk
     }
 
     private fun observeSaveState() {

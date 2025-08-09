@@ -108,9 +108,9 @@ class CronogramaRegisterFragment : Fragment() {
         etDataInicioEtapa.setText(e.dataInicio)
         etDataFimEtapa.setText(e.dataFim)
         when (e.status) {
-            CronogramaPagerAdapter.STATUS_PENDENTE  -> rbStatPend.isChecked = true
+            CronogramaPagerAdapter.STATUS_PENDENTE -> rbStatPend.isChecked = true
             CronogramaPagerAdapter.STATUS_ANDAMENTO -> rbStatAnd.isChecked = true
-            else                                    -> rbStatConcl.isChecked = true
+            else -> rbStatConcl.isChecked = true
         }
         // Atualiza estado do botão após preencher
         validateForm()
@@ -118,7 +118,7 @@ class CronogramaRegisterFragment : Fragment() {
 
     /*──────────── Salvar / Validar ───────────*/
     private fun onSaveClicked() {
-        val titulo  = binding.etTituloEtapa.text.toString().trim()
+        val titulo = binding.etTituloEtapa.text.toString().trim()
         val dataIni = binding.etDataInicioEtapa.text.toString().trim()
         val dataFim = binding.etDataFimEtapa.text.toString().trim()
 
@@ -138,19 +138,19 @@ class CronogramaRegisterFragment : Fragment() {
         }
 
         val status = when (binding.rgStatusEtapa.checkedRadioButtonId) {
-            R.id.rbStatAnd   -> CronogramaPagerAdapter.STATUS_ANDAMENTO
+            R.id.rbStatAnd -> CronogramaPagerAdapter.STATUS_ANDAMENTO
             R.id.rbStatConcl -> CronogramaPagerAdapter.STATUS_CONCLUIDO
-            else             -> CronogramaPagerAdapter.STATUS_PENDENTE
+            else -> CronogramaPagerAdapter.STATUS_PENDENTE
         }
 
         val etapa = Etapa(
-            id           = etapaOriginal?.id ?: "",
-            titulo       = titulo,
-            descricao    = binding.etDescEtapa.text.toString().trim(),
+            id = etapaOriginal?.id ?: "",
+            titulo = titulo,
+            descricao = binding.etDescEtapa.text.toString().trim(),
             funcionarios = binding.etFuncEtapa.text.toString().trim(),
-            dataInicio   = dataIni,
-            dataFim      = dataFim,
-            status       = status
+            dataInicio = dataIni,
+            dataFim = dataFim,
+            status = status
         )
 
         binding.btnSaveEtapa.isEnabled = false
@@ -183,6 +183,7 @@ class CronogramaRegisterFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 validateForm()
             }
+
             override fun afterTextChanged(s: Editable?) {}
         }
 
@@ -197,24 +198,32 @@ class CronogramaRegisterFragment : Fragment() {
     }
 
     private fun validateForm() = with(binding) {
-        val tituloOk = etTituloEtapa.text?.toString()?.isNotBlank() == true
-        val iniStr   = etDataInicioEtapa.text?.toString()
-        val fimStr   = etDataFimEtapa.text?.toString()
+        // 1) Título (obrigatório)
+        val titulo = etTituloEtapa.text?.toString()?.trim().orEmpty()
+        val tituloOk = titulo.isNotEmpty()
+        tilTituloEtapa.error =
+            if (!tituloOk) getString(R.string.etapa_error_title_required) else null
 
-        val iniOk    = !iniStr.isNullOrBlank()
-        val fimOk    = !fimStr.isNullOrBlank()
+        // 2) Datas (obrigatórias)
+        val iniStr = etDataInicioEtapa.text?.toString().orEmpty()
+        val fimStr = etDataFimEtapa.text?.toString().orEmpty()
 
-        // valida ordem das datas (só checa se ambos preenchidos)
-        val ordemOk  = if (iniOk && fimOk) isDateOrderValid(iniStr, fimStr) else false
+        val iniOk = iniStr.isNotBlank()
+        val fimOk = fimStr.isNotBlank()
 
-        // Exibe erro em VERMELHO no TextInputLayout da data fim se a ordem for inválida
-        tilDataFimEtapa.error = when {
-            !iniOk || !fimOk -> null // ainda não vamos acusar erro de ordem sem ambas as datas
-            ordemOk          -> null
-            else             -> getString(R.string.etapa_error_date_order)
+        tilDataInicioEtapa.error =
+            if (!iniOk) getString(R.string.etapa_error_date_start_required) else null
+        tilDataFimEtapa.error =
+            if (!fimOk) getString(R.string.etapa_error_date_end_required) else null
+
+        // 3) Ordem das datas (somente quando ambas preenchidas): fim >= início
+        val ordemOk = if (iniOk && fimOk) isDateOrderValid(iniStr, fimStr) else false
+        if (iniOk && fimOk && !ordemOk) {
+            // mostra erro de ordem no campo de término (vermelho)
+            tilDataFimEtapa.error = getString(R.string.etapa_error_date_order)
         }
 
-        // habilita botão somente se todos os obrigatórios + ordem ok
+        // 4) Habilita o botão
         btnSaveEtapa.isEnabled = tituloOk && iniOk && fimOk && ordemOk
     }
 
@@ -225,7 +234,15 @@ class CronogramaRegisterFragment : Fragment() {
             requireContext(),
             { _, year, month, day ->
                 (target as? android.widget.EditText)
-                    ?.setText(String.format(Locale.getDefault(), "%02d/%02d/%04d", day, month + 1, year))
+                    ?.setText(
+                        String.format(
+                            Locale.getDefault(),
+                            "%02d/%02d/%04d",
+                            day,
+                            month + 1,
+                            year
+                        )
+                    )
                 validateForm() // revalida após escolher a data
             },
             cal.get(Calendar.YEAR),

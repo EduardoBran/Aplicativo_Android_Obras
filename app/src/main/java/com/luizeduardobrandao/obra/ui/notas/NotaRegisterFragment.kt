@@ -23,7 +23,6 @@ import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import androidx.core.widget.doAfterTextChanged
-import com.google.android.material.checkbox.MaterialCheckBox
 import java.util.*
 
 @AndroidEntryPoint
@@ -208,16 +207,34 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
     }
 
     private fun validateForm(): Boolean = with(binding) {
-        val nomeOk  = etNomeMaterial.text?.toString()?.trim()?.isNotEmpty() == true
-        val lojaOk  = etLoja.text?.toString()?.trim()?.isNotEmpty() == true
-        val dataOk  = etDataNota.text?.toString()?.matches(Regex("""\d{2}/\d{2}/\d{4}""")) == true
+        // Nome do material
+        val nome = etNomeMaterial.text?.toString()?.trim().orEmpty()
+        val nomeOk = nome.isNotEmpty()
+        tilNomeMaterial.error = if (!nomeOk) getString(R.string.nota_reg_error_nome) else null
+
+        // Loja
+        val loja = etLoja.text?.toString()?.trim().orEmpty()
+        val lojaOk = loja.isNotEmpty()
+        tilLoja.error = if (!lojaOk) getString(R.string.nota_reg_error_loja) else null
+
+        // Data (formato dd/MM/yyyy)
+        val data = etDataNota.text?.toString().orEmpty()
+        val dataOk = data.matches(Regex("""\d{2}/\d{2}/\d{4}"""))
+        // Obs.: helperText de "data no passado" continua sendo setado no onDateSet()
+        tilDataNota.error = if (!dataOk) getString(R.string.nota_reg_error_data) else null
+
+        // Valor (> 0)
         val valorOk = etValorNota.text?.toString()
             ?.replace(',', '.')
             ?.toDoubleOrNull()
             ?.let { it > 0.0 } == true
+        tilValorNota.error = if (!valorOk) getString(R.string.nota_reg_error_valor) else null
 
+        // Tipos (ao menos um marcado)
         val algumTipo = listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbOutros)
             .any { it.isChecked }
+        tvTipoError.text = if (!algumTipo) getString(R.string.nota_reg_error_tipo) else null
+        tvTipoError.visibility = if (!algumTipo) View.VISIBLE else View.GONE
 
         val ok = nomeOk && lojaOk && dataOk && valorOk && algumTipo
         btnSaveNota.isEnabled = ok
