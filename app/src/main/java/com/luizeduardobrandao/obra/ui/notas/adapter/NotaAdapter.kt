@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.text.HtmlCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -34,8 +35,14 @@ class NotaAdapter(
 
     inner class VH(private val b: ItemNotaBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(nota: Nota) = with(b) {
+
             tvNomeMaterial.text = nota.nomeMaterial
-            tvLoja.text = nota.loja
+
+            tvLoja.text = HtmlCompat.fromHtml(
+                tvLoja.context.getString(R.string.label_loja, nota.loja),
+                HtmlCompat.FROM_HTML_MODE_LEGACY
+            )
+
             tvValor.text = root.context.getString(R.string.money_mask, nota.valor)
 
             // 👉 novos "Tipos", entre loja e divisor

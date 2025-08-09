@@ -84,25 +84,24 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/totalDue_bg"
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="12dp"
                     android:paddingVertical="8dp">
 
                     <TextView
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:text="@string/nota_sum_total_due"
-                        android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         android:textColor="@color/totalDue_text"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvResumoTotalAPagar"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
                         android:text="@string/nota_sum_total"
-                        android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         android:textColor="@color/totalDue_value"
                         android:textStyle="bold" />
@@ -118,25 +117,24 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/totalPaid_bg"
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="12dp"
                     android:paddingVertical="8dp">
 
                     <TextView
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:text="@string/nota_sum_total_paid"
-                        android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         android:textColor="@color/totalPaid_text"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvResumoTotalPago"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
                         android:text="@string/nota_sum_total"
-                        android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         android:textColor="@color/totalPaid_value"
                         android:textStyle="bold" />
@@ -152,25 +150,24 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/totalOverall_bg"
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="12dp"
                     android:paddingVertical="8dp">
 
                     <TextView
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:text="@string/total_geral"
-                        android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         android:textColor="@color/totalOverall_text"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvResumoTotalGeral"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
                         android:text="@string/nota_sum_total"
-                        android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         android:textColor="@color/totalOverall_value"
                         android:textStyle="bold" />

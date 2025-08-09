@@ -168,6 +168,7 @@
     </plurals>
     <string name="nota_status_purchased">A Receber</string>
     <string name="nota_status_paid_client">Pago</string>
+    <string name="label_loja"><![CDATA[<b>Loja:</b> %1$s]]></string>
 
 
     <!-- NotaRegisterFragment -->
@@ -195,10 +196,10 @@
     <string name="tipo_valor_mask">%1$s – R$ %2$.2f</string>
     <string name="nota_empty_message">Sem notas cadastradas.</string>
     <string name="money_mask_notas">R$ %1$.2f</string>
-    <string name="nota_sum_total_due">Total comprado (aguardando pagamento)</string>
-    <string name="nota_sum_total_paid">Total recebido:</string>
-    <string name="nota_sum_type_due">Totais por tipo (aguardando pagamento)</string>
-    <string name="nota_sum_type_paid">Totais por tipo (recebido)</string>
+    <string name="nota_sum_total_due">Total a receber:</string>
+    <string name="nota_sum_total_paid">Total pago:</string>
+    <string name="nota_sum_type_due">Totais por tipo (a receber)</string>
+    <string name="nota_sum_type_paid">Totais por tipo (pago)</string>
 
 
     <!-- CronogramaFragment -->
