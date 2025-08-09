@@ -212,7 +212,6 @@
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- Saldo -->
-
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/Widget.ObrasApp.TextInputLayout"
                         android:layout_width="match_parent"
@@ -241,6 +240,7 @@
 
                         <!-- Data de Início -->
                         <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilDataInicio"
                             style="@style/Widget.ObrasApp.TextInputLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content">
@@ -264,6 +264,7 @@
 
                         <!-- Data de Término -->
                         <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilDataFim"
                             style="@style/Widget.ObrasApp.TextInputLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content">

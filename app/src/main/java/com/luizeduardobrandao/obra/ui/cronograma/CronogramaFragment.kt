@@ -27,7 +27,6 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class CronogramaFragment : Fragment(), EtapaActions {
 
-
     /*---------- boilerplate ----------*/
     private var _binding: FragmentCronogramaBinding? = null
     private val binding get() = _binding!!
@@ -102,6 +101,8 @@ class CronogramaFragment : Fragment(), EtapaActions {
                 }
             }
         }
+
+        viewModel.loadEtapas()
     }
 
     /*────────────────────────  EtapaActions (callbacks do Adapter) ────────────────────────*/

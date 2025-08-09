@@ -83,6 +83,7 @@
     <string name="work_create_error">
         Falha ao salvar a obra. Tente novamente mais tarde.
     </string>
+    <string name="work_error_date_order">Data de término deve ser igual ou posterior à data de início.</string>
 
     <!-- HomeFragment -->
     <string name="home_logout">Sair</string>
@@ -216,6 +217,8 @@
     <string name="cron_reg_button_edit">Editar cronograma</string>
     <string name="cronograma_load_error">Não foi possível carregar as etapas do cronograma.</string>
     <string name="cronograma_date_range">%1$s → %2$s</string>
+    <string name="cronograma_funcionario_singular">Funcionário: %1$s</string>
+    <string name="cronograma_funcionarios_plural">Funcionários: %1$s</string>
 
     <!-- CronogramaRegisterFragment -->
     <string name="etapa_reg_title">Cadastro de Etapa</string>
@@ -230,6 +233,9 @@
     <string name="etapa_reg_error_date">Data de término anterior à data de início.</string>
     <!-- Feedback de salvamento -->
     <string name="generic_saving">Salvando…</string>
+    <string name="etapa_error_date_order">Data de término deve ser após a data de início.</string>
+    <string name="etapa_reg_employee_helper">Separe os nomes com vírgula (,)</string>
+
 
     <!-- Erros de validação -->
     <string name="etapa_error_title">Título da etapa muito curto.</string>

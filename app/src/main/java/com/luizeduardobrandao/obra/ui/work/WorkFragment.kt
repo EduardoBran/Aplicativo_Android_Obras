@@ -28,6 +28,9 @@ import com.luizeduardobrandao.obra.utils.Constants
 import com.luizeduardobrandao.obra.utils.attachDatePicker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 @AndroidEntryPoint
@@ -37,6 +40,11 @@ class WorkFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: WorkViewModel by viewModels()
+
+    // Formato dd/MM/yyyy sem leniência
+    private val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+        isLenient = false
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -302,16 +310,29 @@ class WorkFragment : Fragment() {
             R.string.work_error_saldo
         ) || hasError
 
-        // datas
+        // datas (presença)
         val dataInicio = etDataInicio.text?.toString().orEmpty()
-        val dataFim = etDataFim.text?.toString().orEmpty()
-        hasError =
-            etDataInicio.validate(dataInicio.isBlank(), R.string.work_error_data_inicio) || hasError
-        hasError = etDataFim.validate(dataFim.isBlank(), R.string.work_error_data_fim) || hasError
+        val dataFim    = etDataFim.text?.toString().orEmpty()
+        val faltouInicio = etDataInicio.validate(dataInicio.isBlank(), R.string.work_error_data_inicio)
+        val faltouFim    = etDataFim.validate(dataFim.isBlank(), R.string.work_error_data_fim)
+        hasError = faltouInicio || faltouFim || hasError
 
-        btnSaveWork.isEnabled = !hasError
+        // tem as duas datas?
+        val haveBoth = dataInicio.isNotBlank() && dataFim.isNotBlank()
 
-        return !hasError
+        // ordem das datas: só é válida se tiver as duas e fim >= início
+        val ordemOk = haveBoth && isDateOrderValid(dataInicio, dataFim)
+
+        // erro em VERMELHO no TextInputLayout da data fim apenas quando ambas existem e a ordem é inválida
+        tilDataFim.error = if (haveBoth && !ordemOk)
+            getString(R.string.work_error_date_order)   // "Data de término deve ser igual ou posterior à data de início"
+        else
+            null
+
+        // habilita botão somente se não há outros erros e a ordem das datas está ok
+        val ok = !hasError && ordemOk
+        btnSaveWork.isEnabled = ok
+        ok
     }
 
     private fun saveNewWork() = with(binding) {
@@ -324,5 +345,18 @@ class WorkFragment : Fragment() {
             dataFim = etDataFim.text!!.toString()
         )
         viewModel.createObra(obra)
+    }
+
+    private fun parseDateOrNull(s: String?): Date? = try {
+        if (s.isNullOrBlank()) null else sdf.parse(s)
+    } catch (_: ParseException) {
+        null
+    }
+
+    /** true se dataFim >= dataInicio (ambas válidas), false caso contrário */
+    private fun isDateOrderValid(dataInicio: String?, dataFim: String?): Boolean {
+        val ini = parseDateOrNull(dataInicio) ?: return false
+        val fim = parseDateOrNull(dataFim) ?: return false
+        return !fim.before(ini)
     }
 }

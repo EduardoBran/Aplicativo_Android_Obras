@@ -39,38 +39,28 @@ class DetalheCronogramaFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         with(binding) {
-            // botão de voltar
-            toolbarDetEtapa.setNavigationOnClickListener {
-                findNavController().navigateUp()
-            }
+            toolbarDetEtapa.setNavigationOnClickListener { findNavController().navigateUp() }
 
-            // observa o estado e preenche os campos
+            // ▼ IMPORTANTE: carregar lista para conseguir achar a etapa pelo ID
+            viewModel.loadEtapas()
+
             lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     viewModel.state.collect { ui ->
                         when (ui) {
                             is UiState.Success -> {
-                                val et = ui.data.firstOrNull { it.id == args.etapaId }
-                                    ?: return@collect
+                                val et = ui.data.firstOrNull { it.id == args.etapaId } ?: return@collect
 
-                                // título da toolbar e do detalhe
                                 toolbarDetEtapa.title = et.titulo.orEmpty()
                                 tvDetTitulo.text = et.titulo.orEmpty()
 
-                                // descrição e responsáveis, tratando nulos e strings em branco
-                                tvDetDescricao.text = et.descricao
-                                    ?.ifBlank { "—" }
-                                    ?: "—"
-                                tvDetFunc.text = et.funcionarios
-                                    ?.ifBlank { "—" }
-                                    ?: "—"
+                                tvDetDescricao.text = et.descricao?.ifBlank { "—" } ?: "—"
+                                tvDetFunc.text      = et.funcionarios?.ifBlank { "—" } ?: "—"
 
-                                // datas e status
                                 tvDetDataIni.text = et.dataInicio.orEmpty()
                                 tvDetDataFim.text = et.dataFim.orEmpty()
-                                tvDetStatus.text = et.status.orEmpty()
+                                tvDetStatus.text  = et.status.orEmpty()
                             }
-
                             is UiState.ErrorRes -> {
                                 showSnackbarFragment(
                                     Constants.SnackType.ERROR.name,
@@ -79,7 +69,6 @@ class DetalheCronogramaFragment : Fragment() {
                                     getString(R.string.snack_button_ok)
                                 )
                             }
-
                             else -> Unit
                         }
                     }

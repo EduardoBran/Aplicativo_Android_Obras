@@ -91,5 +91,4 @@ class CronogramaViewModel @Inject constructor(
         repo.deleteEtapa(obraId, etapa.id)
         loadEtapas() // re-inicia listener para refletir exclusão
     }
-
 }

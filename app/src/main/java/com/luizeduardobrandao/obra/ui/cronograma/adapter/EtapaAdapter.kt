@@ -39,21 +39,32 @@ class EtapaAdapter(
             // ① Título
             b.tvTituloEtapa.text = e.titulo.orEmpty()
 
-            // ② Descrição (trata nulo ou em branco)
-            b.tvDescEtapa.text = if (e.descricao.isNullOrBlank()) {
-                "—"
-            } else {
-                e.descricao
+            // ② Descrição (limite 15 chars + "…")
+            val desc = e.descricao.orEmpty().trim()
+            b.tvDescEtapa.text = when {
+                desc.isBlank() -> "—"
+                desc.length > 15 -> desc.take(20) + "..."
+                else -> desc
             }
 
-            // ③ Datas (usa string resource com placeholders)
+            // ③ Funcionários (singular/plural conforme vírgula)
+            val funcionarios = e.funcionarios.orEmpty().trim()
+            b.tvFuncsEtapa.text = when {
+                funcionarios.isBlank() -> "—"
+                funcionarios.contains(",") ->
+                    ctx.getString(R.string.cronograma_funcionarios_plural, funcionarios)
+                else ->
+                    ctx.getString(R.string.cronograma_funcionario_singular, funcionarios)
+            }
+
+            // ④ Datas
             b.tvDatasEtapa.text = ctx.getString(
                 R.string.cronograma_date_range,
                 e.dataInicio.orEmpty(),
                 e.dataFim.orEmpty()
             )
 
-            // ④ Status com cor
+            // ⑤ Status com cor
             b.tvStatusEtapa.apply {
                 text = e.status.orEmpty()
                 val colorRes = when (e.status) {
@@ -64,7 +75,7 @@ class EtapaAdapter(
                 setTextColor(ContextCompat.getColor(ctx, colorRes))
             }
 
-            // ⑤ Call-backs
+            // ⑥ Call-backs
             b.btnEditEtapa.setOnClickListener   { onEdit(e) }
             b.btnDetailEtapa.setOnClickListener { onDetail(e) }
             b.btnDeleteEtapa.setOnClickListener { onDelete(e) }

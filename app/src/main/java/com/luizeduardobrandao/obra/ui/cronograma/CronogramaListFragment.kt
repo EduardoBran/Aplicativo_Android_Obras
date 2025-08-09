@@ -10,6 +10,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentCronogramaListBinding
@@ -57,7 +59,6 @@ class CronogramaListFragment : Fragment() {
             obraId  = it.getString(ARG_OBRA)   ?: error("obraId ausente")
             status  = it.getString(ARG_STATUS) ?: error("status ausente")
         }
-        viewModel.loadEtapas()  // listener único no pai
     }
 
     /*──────────── UI ────────────*/
@@ -75,7 +76,12 @@ class CronogramaListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // configura o adapter dentro do binding
-        binding.rvEtapas.adapter = adapter
+        binding.rvEtapas.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            setHasFixedSize(true)
+            itemAnimator = DefaultItemAnimator().apply { supportsChangeAnimations = false }
+            adapter = this@CronogramaListFragment.adapter
+        }
 
         // inicia o collector de estado
         observeState()

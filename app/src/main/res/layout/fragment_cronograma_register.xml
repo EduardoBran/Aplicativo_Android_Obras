@@ -73,7 +73,8 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="12dp"
+                app:helperText="@string/etapa_reg_employee_helper">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etFuncEtapa"
@@ -88,6 +89,7 @@
 
             <!-- Data de Início -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilDataInicioEtapa"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -107,6 +109,7 @@
 
             <!-- Data de Término -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilDataFimEtapa"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -128,9 +131,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="24dp"
                 android:text="@string/etapa_reg_status"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textStyle="bold" />
 
             <RadioGroup
                 android:id="@+id/rgStatusEtapa"
