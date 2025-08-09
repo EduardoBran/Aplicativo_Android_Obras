@@ -119,6 +119,8 @@
     <string name="func_dias_trabalhados_singular">%1$d dia trabalhado</string>
     <!-- Plural -->
     <string name="func_dias_trabalhados_plural">%1$d dias trabalhados</string>
+    <string name="func_label_funcao">Função:</string>
+    <string name="func_label_funcoes">Funções:</string>
 
     <!-- FuncionarioRegisterFragment -->
     <string name="func_reg_title">Registro de Funcionários</string>
@@ -230,6 +232,9 @@
     <string name="cronograma_date_range">%1$s → %2$s</string>
     <string name="cronograma_funcionario_singular">Funcionário: %1$s</string>
     <string name="cronograma_funcionarios_plural">Funcionários: %1$s</string>
+    <string name="cronograma_descricao_prefix">Descrição:</string>
+    <string name="cronograma_funcionario_prefix">Funcionário:</string>
+    <string name="cronograma_funcionarios_prefix">Funcionários:</string>
 
     <!-- CronogramaRegisterFragment -->
     <string name="etapa_reg_title">Cadastro de Etapa</string>

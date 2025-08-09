@@ -1,5 +1,7 @@
 package com.luizeduardobrandao.obra.ui.cronograma.adapter
 
+import android.text.SpannableStringBuilder
+import android.text.Spanned
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -17,7 +19,7 @@ import com.luizeduardobrandao.obra.databinding.ItemCronogramaBinding
  */
 
 class EtapaAdapter(
-    private val onEdit:   (Etapa) -> Unit = {},
+    private val onEdit: (Etapa) -> Unit = {},
     private val onDetail: (Etapa) -> Unit = {},
     private val onDelete: (Etapa) -> Unit = {}
 ) : ListAdapter<Etapa, EtapaAdapter.VH>(DIFF) {
@@ -39,22 +41,45 @@ class EtapaAdapter(
             // ① Título
             b.tvTituloEtapa.text = e.titulo.orEmpty()
 
-            // ② Descrição (limite 15 chars + "…")
+            // ② Descrição (limite 15 chars + "…") com "Descrição:" em negrito
             val desc = e.descricao.orEmpty().trim()
-            b.tvDescEtapa.text = when {
+            val descText = when {
                 desc.isBlank() -> "—"
-                desc.length > 15 -> desc.take(20) + " ..."
+                desc.length > 20 -> desc.take(20) + " ..."
                 else -> desc
             }
+            val descPrefix = ctx.getString(R.string.cronograma_descricao_prefix) // "Descrição: "
+            b.tvDescEtapa.text = SpannableStringBuilder("$descPrefix $descText").apply {
+                setSpan(
+                    android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                    0,
+                    descPrefix.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
 
-            // ③ Funcionários (singular/plural conforme vírgula)
+            // ③ Funcionários com "Funcionário:" ou "Funcionários:" em negrito + limite de 25 chars
             val funcionarios = e.funcionarios.orEmpty().trim()
-            b.tvFuncsEtapa.text = when {
+            val funcPrefix = if (funcionarios.contains(",")) {
+                ctx.getString(R.string.cronograma_funcionarios_prefix) // "Funcionários:"
+            } else {
+                ctx.getString(R.string.cronograma_funcionario_prefix)  // "Funcionário:"
+            }
+
+            // Aplica limite de 25 caracteres no texto
+            val funcText = when {
                 funcionarios.isBlank() -> "—"
-                funcionarios.contains(",") ->
-                    ctx.getString(R.string.cronograma_funcionarios_plural, funcionarios)
-                else ->
-                    ctx.getString(R.string.cronograma_funcionario_singular, funcionarios)
+                funcionarios.length > 20 -> funcionarios.take(20) + " ..."
+                else -> funcionarios
+            }
+
+            b.tvFuncsEtapa.text = SpannableStringBuilder("$funcPrefix $funcText").apply {
+                setSpan(
+                    android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                    0,
+                    funcPrefix.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
             }
 
             // ④ Datas
@@ -68,15 +93,15 @@ class EtapaAdapter(
             b.tvStatusEtapa.apply {
                 text = e.status.orEmpty()
                 val colorRes = when (e.status) {
-                    CronogramaPagerAdapter.STATUS_PENDENTE  -> R.color.md_theme_light_error
+                    CronogramaPagerAdapter.STATUS_PENDENTE -> R.color.md_theme_light_error
                     CronogramaPagerAdapter.STATUS_ANDAMENTO -> R.color.warning
-                    else                                    -> R.color.success
+                    else -> R.color.success
                 }
                 setTextColor(ContextCompat.getColor(ctx, colorRes))
             }
 
             // ⑥ Call-backs
-            b.btnEditEtapa.setOnClickListener   { onEdit(e) }
+            b.btnEditEtapa.setOnClickListener { onEdit(e) }
             b.btnDetailEtapa.setOnClickListener { onDetail(e) }
             b.btnDeleteEtapa.setOnClickListener { onDelete(e) }
         }

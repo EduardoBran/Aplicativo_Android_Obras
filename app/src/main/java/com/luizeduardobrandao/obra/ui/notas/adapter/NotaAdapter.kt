@@ -1,5 +1,9 @@
 package com.luizeduardobrandao.obra.ui.notas.adapter
 
+import android.graphics.Typeface
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -47,16 +51,31 @@ class NotaAdapter(
 
             // 👉 novos "Tipos", entre loja e divisor
             val tipos = nota.tipos
-            if (tipos.isNullOrEmpty()) {
+            if (tipos.isEmpty()) {
                 tvTipos.visibility = View.GONE
             } else {
                 tvTipos.visibility = View.VISIBLE
                 val tiposJoined = tipos.joinToString(", ")
-                tvTipos.text = tvTipos.resources.getQuantityString(
+
+                // rótulo sozinho já com espaço no final: "Tipo: " ou "Tipos: "
+                val prefixOnly = tvTipos.resources.getQuantityString(
                     R.plurals.nota_list_types,
-                    tipos.size,            // seleciona "Tipo" ou "Tipos"
-                    tiposJoined            // %1$s
+                    tipos.size,
+                    ""                         // preenche %1$s com vazio
                 )
+
+                val fullText = prefixOnly + tiposJoined
+
+                val spannable = SpannableStringBuilder(fullText).apply {
+                    setSpan(
+                        StyleSpan(Typeface.BOLD),
+                        0,
+                        prefixOnly.length,      // deixa só o rótulo em negrito
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+
+                tvTipos.text = spannable
             }
 
             val ctx = b.root.context
@@ -78,7 +97,7 @@ class NotaAdapter(
 
             tvData.apply {
                 // se vier vazia por algum motivo, esconde
-                if (nota.data.isNullOrBlank()) {
+                if (nota.data.isBlank()) {
                     visibility = View.GONE
                 } else {
                     visibility = View.VISIBLE

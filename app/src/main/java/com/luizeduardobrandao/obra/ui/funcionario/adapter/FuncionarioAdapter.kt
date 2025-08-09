@@ -1,5 +1,9 @@
 package com.luizeduardobrandao.obra.ui.funcionario.adapter
 
+import android.graphics.Typeface
+import android.text.SpannableStringBuilder
+import android.text.style.StyleSpan
+import android.text.Spanned
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,15 +29,17 @@ import java.util.Locale
  * @param onDelete  callback quando o usuário toca no botão 🗑️ excluir
  */
 
-class FuncionarioAdapter (
-    private val onEdit:   (Funcionario) -> Unit = {},
+class FuncionarioAdapter(
+    private val onEdit: (Funcionario) -> Unit = {},
     private val onDetail: (Funcionario) -> Unit = {},
     private val onDelete: (Funcionario) -> Unit = {},
     private val showActions: Boolean = true
 ) : ListAdapter<Funcionario, FuncionarioAdapter.FuncViewHolder>(DIFF) {
 
     // melhora animações / reciclagem
-    init { setHasStableIds(true) }
+    init {
+        setHasStableIds(true)
+    }
 
     override fun getItemId(position: Int) = getItem(position).id.hashCode().toLong()
 
@@ -44,14 +50,41 @@ class FuncionarioAdapter (
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: Funcionario) = with(binding) {
-            // ① Nome / Função / Status
+            // ① Nome / Função(s) / Status
             tvNomeFunc.text = item.nome
-            tvFuncao.text = item.funcao
+
+            // Função/Funções com prefixo em negrito (mostra no máx. 4; se >4, adiciona " ...")
+            val funcoesLista = item.funcao
+                .split("/")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+
+            val funcoesTexto = if (funcoesLista.size > 3) {
+                funcoesLista.take(4).joinToString(", ") + " ..."
+            } else {
+                funcoesLista.joinToString(", ")
+            }
+
+            val prefix = root.context.getString(
+                if (funcoesLista.size > 1) R.string.func_label_funcoes else R.string.func_label_funcao
+            )
+
+            val funcoesSpannable = SpannableStringBuilder("$prefix $funcoesTexto").apply {
+                setSpan(
+                    StyleSpan(Typeface.BOLD),
+                    0,
+                    prefix.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+            tvFuncao.text = funcoesSpannable
+
+            // Status (com cor)
             tvStatus.apply {
                 text = item.status.replaceFirstChar { it.uppercase() }
-                val coloRes = if (item.status.equals("ativo", true))
+                val colorRes = if (item.status.equals("ativo", true))
                     R.color.success else R.color.md_theme_light_error
-                setTextColor(ContextCompat.getColor(root.context, coloRes))
+                setTextColor(ContextCompat.getColor(root.context, colorRes))
             }
 
             // ② Salário (formatação + forma de pagamento)
@@ -64,8 +97,8 @@ class FuncionarioAdapter (
                 item.formaPagamento.lowercase()
             )
 
-            // ②.1 Dias trabalhados (strings.xml com placeholder)
-            val diasStrRes = if (item.diasTrabalhados == 1)
+            // ②.1 Dias trabalhados → singular para 0 ou 1, plural para >1
+            val diasStrRes = if (item.diasTrabalhados <= 1)
                 R.string.func_dias_trabalhados_singular
             else
                 R.string.func_dias_trabalhados_plural
@@ -80,11 +113,8 @@ class FuncionarioAdapter (
                 btnDetail.setOnClickListener { onDetail(item) }
                 btnDelete.setOnClickListener { onDelete(item) }
             } else {
-                // Esconde tudo no resumo
                 layoutActions.visibility = View.GONE
                 dividerActions.visibility = View.GONE
-
-                // Evita cliques fantasmas
                 btnEdit.setOnClickListener(null)
                 btnDetail.setOnClickListener(null)
                 btnDelete.setOnClickListener(null)
@@ -92,11 +122,10 @@ class FuncionarioAdapter (
         }
     }
 
-
     // ————— ListAdapter overrides —————————————————
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FuncViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val binding  = ItemFuncionarioBinding.inflate(inflater, parent, false)
+        val binding = ItemFuncionarioBinding.inflate(inflater, parent, false)
         return FuncViewHolder(binding)
     }
 
