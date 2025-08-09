@@ -32,6 +32,10 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.net.ConnectivityManager
+import com.luizeduardobrandao.obra.utils.isConnectedToInternet
+import com.luizeduardobrandao.obra.utils.registerConnectivityCallback
+import com.luizeduardobrandao.obra.utils.unregisterConnectivityCallback
 
 @AndroidEntryPoint
 class WorkFragment : Fragment() {
@@ -44,6 +48,42 @@ class WorkFragment : Fragment() {
     // Formato dd/MM/yyyy sem leniência
     private val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
         isLenient = false
+    }
+
+    // Conexão a Internet
+    private var netCallback: ConnectivityManager.NetworkCallback? = null
+
+    override fun onStart() {
+        super.onStart()
+
+        if (!requireContext().isConnectedToInternet()) {
+            showSnackbarFragment(
+                Constants.SnackType.WARNING.name,
+                getString(R.string.snack_warning),
+                getString(R.string.error_no_internet),
+                getString(R.string.snack_button_ok)
+            )
+        }
+
+        netCallback = requireContext().registerConnectivityCallback(
+            onAvailable = { /* opcional */ },
+            onLost = {
+                if (view != null) {
+                    showSnackbarFragment(
+                        Constants.SnackType.WARNING.name,
+                        getString(R.string.snack_warning),
+                        getString(R.string.error_no_internet),
+                        getString(R.string.snack_button_ok)
+                    )
+                }
+            }
+        )
+    }
+
+    override fun onStop() {
+        super.onStop()
+        netCallback?.let { requireContext().unregisterConnectivityCallback(it) }
+        netCallback = null
     }
 
     override fun onCreateView(

@@ -21,6 +21,10 @@ import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import android.net.ConnectivityManager
+import com.luizeduardobrandao.obra.utils.isConnectedToInternet
+import com.luizeduardobrandao.obra.utils.registerConnectivityCallback
+import com.luizeduardobrandao.obra.utils.unregisterConnectivityCallback
 
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
@@ -29,6 +33,47 @@ class LoginFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: LoginViewModel by viewModels()
+
+    // Conexão a internet
+    private var netCallback: ConnectivityManager.NetworkCallback? = null
+
+    override fun onStart() {
+        super.onStart()
+
+        // Checagem imediata ao entrar na tela
+        if (!requireContext().isConnectedToInternet()) {
+            showSnackbarFragment(
+                Constants.SnackType.WARNING.name,
+                getString(R.string.snack_warning),
+                getString(R.string.error_no_internet),
+                getString(R.string.snack_button_ok)
+            )
+        }
+
+        // Observa mudanças de conectividade enquanto a tela está visível
+        netCallback = requireContext().registerConnectivityCallback(
+            onAvailable = {
+                // opcional: pode ocultar um aviso, ou ignorar
+            },
+            onLost = {
+                // Mostrar snackbar quando perder internet
+                if (view != null) {
+                    showSnackbarFragment(
+                        Constants.SnackType.WARNING.name,
+                        getString(R.string.snack_warning),
+                        getString(R.string.error_no_internet),
+                        getString(R.string.snack_button_ok)
+                    )
+                }
+            }
+        )
+    }
+
+    override fun onStop() {
+        super.onStop()
+        netCallback?.let { requireContext().unregisterConnectivityCallback(it) }
+        netCallback = null
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

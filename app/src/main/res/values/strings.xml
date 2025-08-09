@@ -13,6 +13,7 @@
     <string name="generic_continue">Continuar</string>
     <string name="generic_new">Nova</string>
     <string name="generic_loading">Carregando…</string>
+    <string name="error_no_internet">Você está sem conexão à internet.</string>
 
     <!-- SnackbarFragment -->
     <string name="snack_attention">Atenção</string>
@@ -161,7 +162,7 @@
     <string name="nota_tab_due">A Receber</string>
     <string name="nota_tab_paid">Pago</string>
     <string name="nota_menu_summary">Resumo</string>
-    <string name="nota_snack_delete_msg">Você quer mesmo excluir esta nota?</string>
+    <string name="nota_snack_delete_msg">Você quer mesmo excluir esta nota? Todos os dados e gastos relacionados serão removidos do resumo da obra.</string>
     <string name="nota_toast_removed">Nota removida com sucesso.</string>
     <string name="nota_toast_added">Nota adicionada.</string>
     <string name="nota_toast_updated">Dados da nota atualizados.</string>
