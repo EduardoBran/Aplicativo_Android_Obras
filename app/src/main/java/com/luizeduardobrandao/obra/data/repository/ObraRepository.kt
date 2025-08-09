@@ -31,4 +31,7 @@ interface ObraRepository {
 
     /** Atualiza apenas o campo saldoAjustado. */
     suspend fun updateSaldoAjustado(obraId: String, novoValor: Double): Result<Unit>
+
+    /** Atualiza apenas campos específicos da obra (merge no nó). */
+    suspend fun updateObraCampos(obraId: String, campos: Map<String, Any?>): Result<Unit>
 }

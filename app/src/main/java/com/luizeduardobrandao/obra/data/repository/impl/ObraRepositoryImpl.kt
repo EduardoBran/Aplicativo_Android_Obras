@@ -101,4 +101,18 @@ class ObraRepositoryImpl @Inject constructor(
             Unit
         }
     }
+
+    // ObraRepositoryImpl.kt
+    override suspend fun updateObraCampos(
+        obraId: String,
+        campos: Map<String, Any?>
+    ): Result<Unit> = withContext(io) {
+        runCatching {
+            userRef()
+                .child(obraId)
+                .updateChildren(campos)   // ← não apaga subnós
+                .await()
+            Unit
+        }
+    }
 }

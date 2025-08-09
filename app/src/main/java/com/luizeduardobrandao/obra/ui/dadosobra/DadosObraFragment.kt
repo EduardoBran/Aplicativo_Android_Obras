@@ -48,7 +48,11 @@ class DadosObraFragment : Fragment() {
     private val formatter =
         SimpleDateFormat(Constants.Format.DATE_PATTERN_BR, Locale.getDefault())
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentDadosObraBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -86,7 +90,7 @@ class DadosObraFragment : Fragment() {
 
     private fun setupDatePickers() = with(binding) {
         etDataInicioObra.setOnClickListener { showDatePicker { etDataInicioObra.setText(it) } }
-        etDataFimObra.setOnClickListener     { showDatePicker { etDataFimObra.setText(it) } }
+        etDataFimObra.setOnClickListener { showDatePicker { etDataFimObra.setText(it) } }
     }
 
     private fun showDatePicker(onResult: (String) -> Unit) {
@@ -108,11 +112,11 @@ class DadosObraFragment : Fragment() {
             if (!validateForm()) return@setOnClickListener
             it.hideKeyboard()
             viewModel.salvarObra(
-                nome       = etNomeCliente.text.toString(),
-                endereco   = etEnderecoObra.text.toString(),
-                descricao  = etDescricaoObra.text.toString(),
+                nome = etNomeCliente.text.toString(),
+                endereco = etEnderecoObra.text.toString(),
+                descricao = etDescricaoObra.text.toString(),
                 dataInicio = etDataInicioObra.text.toString(),
-                dataFim    = etDataFimObra.text.toString()
+                dataFim = etDataFimObra.text.toString()
             )
         }
 
@@ -136,7 +140,7 @@ class DadosObraFragment : Fragment() {
                 Constants.SnackType.WARNING.name,
                 getString(R.string.snack_warning),
                 getString(R.string.obra_data_snack_delete_msg),
-                getString(R.string.generic_delete)
+                getString(R.string.obra_data_button_delete)
             ) { viewModel.excluirObra() }
         }
     }
@@ -148,11 +152,14 @@ class DadosObraFragment : Fragment() {
                 launch {
                     viewModel.obraState.collect { ui ->
                         when (ui) {
-                            is UiState.Loading -> binding.progressDadosObra.visibility = View.VISIBLE
+                            is UiState.Loading -> binding.progressDadosObra.visibility =
+                                View.VISIBLE
+
                             is UiState.Success -> {
                                 binding.progressDadosObra.visibility = View.GONE
                                 populateFields(ui.data)
                             }
+
                             is UiState.ErrorRes -> {
                                 binding.progressDadosObra.visibility = View.GONE
                                 showSnackbarFragment(
@@ -162,6 +169,7 @@ class DadosObraFragment : Fragment() {
                                     getString(R.string.snack_button_ok)
                                 )
                             }
+
                             else -> Unit
                         }
                     }
@@ -170,7 +178,9 @@ class DadosObraFragment : Fragment() {
                 launch {
                     viewModel.opState.collect { ui ->
                         when (ui) {
-                            is UiState.Loading -> binding.progressDadosObra.visibility = View.VISIBLE
+                            is UiState.Loading -> binding.progressDadosObra.visibility =
+                                View.VISIBLE
+
                             is UiState.Success -> {
                                 binding.progressDadosObra.visibility = View.GONE
                                 Toast.makeText(
@@ -181,6 +191,7 @@ class DadosObraFragment : Fragment() {
                                 findNavController().navigateUp()
                                 viewModel.resetOpState()
                             }
+
                             is UiState.ErrorRes -> {
                                 binding.progressDadosObra.visibility = View.GONE
                                 showSnackbarFragment(
@@ -191,6 +202,7 @@ class DadosObraFragment : Fragment() {
                                 )
                                 viewModel.resetOpState()
                             }
+
                             else -> Unit
                         }
                     }
@@ -218,10 +230,10 @@ class DadosObraFragment : Fragment() {
         var isValid = true
 
         binding.apply {
-            tilNomeCliente.error    = null
-            tilEnderecoObra.error   = null
+            tilNomeCliente.error = null
+            tilEnderecoObra.error = null
             tilDataInicioObra.error = null
-            tilDataFimObra.error    = null
+            tilDataFimObra.error = null
 
             if (etNomeCliente.text.isNullOrBlank() ||
                 etNomeCliente.text!!.trim().length < Constants.Validation.MIN_NAME

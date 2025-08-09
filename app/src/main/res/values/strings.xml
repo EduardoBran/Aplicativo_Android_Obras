@@ -280,7 +280,7 @@
     <string name="obra_data_balance_current">Saldo Atual</string>
     <string name="obra_data_date_start_hint">Data de Início</string>
     <string name="obra_data_date_end_hint">Data de Término</string>
-    <string name="obra_data_button_delete">Excluir</string>
+    <string name="obra_data_button_delete">Excluir obra</string>
     <string name="obra_data_snack_delete_msg">Você quer mesmo excluir esta obra e todos os seus dados?</string>
     <string name="obra_data_toast_deleted">Obra excluída.</string>
     <string name="obra_data_toast_updated">Dados da obra atualizados.</string>

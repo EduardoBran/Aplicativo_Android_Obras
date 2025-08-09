@@ -71,23 +71,25 @@ class DadosObraViewModel @Inject constructor(
         dataInicio: String,
         dataFim: String
     ) {
-        val current = (_obraState.value as? UiState.Success)?.data ?: return
-        val updated = current.copy(
-            nomeCliente = nome.trim(),
-            endereco    = endereco.trim(),
-            descricao   = descricao.trim(),
-            dataInicio  = dataInicio,
-            dataFim     = dataFim
-        )
         viewModelScope.launch(io) {
             _opState.value = UiState.Loading
-            _opState.value = obraRepo.updateObra(updated)
+
+            val campos = mapOf(
+                "nomeCliente" to nome.trim(),
+                "endereco"    to endereco.trim(),
+                "descricao"   to descricao.trim(),
+                "dataInicio"  to dataInicio,
+                "dataFim"     to dataFim
+            )
+
+            _opState.value = obraRepo.updateObraCampos(obraId, campos)
                 .fold(
                     onSuccess = { UiState.Success(Unit) },
-                    onFailure = { UiState.ErrorRes(R.string.dados_obra_update_error)}
+                    onFailure = { UiState.ErrorRes(R.string.dados_obra_update_error) }
                 )
         }
     }
+
 
     // Atualiza apenas o campo saldoAjustado.
     fun atualizarSaldoAjustado(novoValor: Double) {
