@@ -3,6 +3,12 @@
     android:id="@android:id/text1"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="12dp"
+    android:minHeight="?attr/listPreferredItemHeightSmall"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:maxLines="1"
+    android:ellipsize="end"
     android:textAppearance="?attr/textAppearanceBody1"
     android:textColor="?attr/colorOnSurface" />

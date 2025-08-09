@@ -98,15 +98,28 @@
                     android:textAlignment="center"
                     android:textAppearance="?attr/textAppearanceBodyMedium" />
 
-                <!-- Spinner elegante -->
-                <androidx.appcompat.widget.AppCompatSpinner
-                    android:id="@+id/spinnerWorks"
+                <!-- Exposed Dropdown -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilObras"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:background="@drawable/bg_spinner_with_arrow"
-                    android:paddingHorizontal="12dp"
-                    android:spinnerMode="dropdown" />
+                    android:hint="@string/work_dropdown_hint"
+                    app:boxBackgroundMode="filled"
+                    app:endIconMode="dropdown_menu"
+                    app:hintEnabled="true">
+
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                        android:id="@+id/autoObras"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:dropDownVerticalOffset="0dp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Botões Nova Obra / Continuar -->
                 <LinearLayout

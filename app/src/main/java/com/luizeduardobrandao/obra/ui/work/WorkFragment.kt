@@ -45,10 +45,13 @@ class WorkFragment : Fragment() {
 
     private val viewModel: WorkViewModel by viewModels()
 
+    /** obra selecionada no dropdown */
+    private var selectedObra: Obra? = null
+    // guarda a lista ordenada para mapear posição -> Obra
+    private var obrasOrdenadas: List<Obra> = emptyList()
+
     // Formato dd/MM/yyyy sem leniência
-    private val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
-        isLenient = false
-    }
+    private val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false }
 
     // Conexão a Internet
     private var netCallback: ConnectivityManager.NetworkCallback? = null
@@ -96,7 +99,6 @@ class WorkFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupListeners()
         collectViewModel()
     }
@@ -109,11 +111,9 @@ class WorkFragment : Fragment() {
     /* ───────────────────────────── listeners / UI ───────────────────────────── */
     private fun setupListeners() = with(binding) {
 
-        // "Nova Obra" (cenário vazio)
-        btnNewWorkEmpty.setOnClickListener { toggleNewWorkCard(true) }
-
-        // "Nova Obra” (cenário com obras)
-        btnNewWork.setOnClickListener { toggleNewWorkCard(true) }
+        // "Nova Obra" (cenário vazio e com obras)
+        btnNewWorkEmpty.setOnClickListener { toggleNewWorkCard(true); validateCard() }
+        btnNewWork.setOnClickListener { toggleNewWorkCard(true); validateCard() }
 
         // Voltar no Card
         btnCancelWork.setOnClickListener { toggleNewWorkCard(false) }
@@ -121,30 +121,27 @@ class WorkFragment : Fragment() {
         // Salvar nova obra
         btnSaveWork.setOnClickListener {
             root.hideKeyboard()
-
-            if(validateCard()) saveNewWork()
+            if (validateCard()) saveNewWork()
         }
 
-        // Spinner – habilita continuar apenas com seleção válida
-        spinnerWorks.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>, view: View?, pos: Int, id: Long
-            ) {
-                btnContinue.isEnabled = pos > 0
-            }
-            override fun onNothingSelected(parent: AdapterView<*>) = Unit
+        // Exposed Dropdown – habilita continuar após seleção
+        autoObras.setOnItemClickListener { _, _, pos, _ ->
+            selectedObra = obrasOrdenadas.getOrNull(pos)
+            autoObras.setText(selectedObra?.nomeCliente ?: "", false) // mostra só o nome
+            autoObras.clearFocus()                                    // opcional: melhora UX
+            tilObras.error = null                                     // opcional: limpa erro
+            btnContinue.isEnabled = selectedObra != null
         }
 
         // Continuar → HomeFragment
         btnContinue.setOnClickListener {
             showLoading(true)
-            val obra = spinnerWorks.selectedItem as? Obra ?: return@setOnClickListener
+            val obra = selectedObra ?: return@setOnClickListener
             Toast.makeText(
                 requireContext(),
                 getString(R.string.work_toast_selected, obra.nomeCliente),
                 Toast.LENGTH_SHORT
             ).show()
-
             findNavController()
                 .navigate(WorkFragmentDirections.actionWorkToHome(obraId = obra.obraId))
         }
@@ -153,27 +150,9 @@ class WorkFragment : Fragment() {
         etDataInicio.attachDatePicker()
         etDataFim.attachDatePicker()
 
-        /* 1️⃣  —— NOVO: TextWatchers em TODOS os campos do card ——————— */
-        listOf(
-            etCliente,
-            etEndereco,
-            etDescricao,
-            etSaldo,
-            etDataInicio,      // ← agora incluídos
-            etDataFim          // ← 〃
-        ).forEach { edit ->
-            edit.doAfterTextChanged { validateCard() }
-        }
-
-        /* 2️⃣  —— NOVO: revalida logo que o card aparece ———————————*/
-        btnNewWorkEmpty.setOnClickListener {
-            toggleNewWorkCard(true)
-            validateCard()           // força estado inicial do botão
-        }
-        btnNewWork.setOnClickListener {
-            toggleNewWorkCard(true)
-            validateCard()
-        }
+        // TextWatchers em todos os campos do card
+        listOf(etCliente, etEndereco, etDescricao, etSaldo, etDataInicio, etDataFim)
+            .forEach { it.doAfterTextChanged { validateCard() } }
     }
 
     /* ──────────────────────────── collect ViewModel ─────────────────────────── */
@@ -206,12 +185,9 @@ class WorkFragment : Fragment() {
                     viewModel.createState.collect { state ->
                         when (state) {
                             is UiState.Loading -> {
-                                // mostra o ProgressBar dentro do Card
                                 binding.progressCard.isVisible = true
-                                // desabilita o botão de salvar pra evitar clique duplo
                                 binding.btnSaveWork.isEnabled = false
                             }
-
                             is UiState.Success -> {
                                 binding.progressCard.isGone = true
                                 toggleNewWorkCard(false)
@@ -222,7 +198,6 @@ class WorkFragment : Fragment() {
                                 ).show()
                                 viewModel.resetCreateState()
                             }
-
                             is UiState.ErrorRes -> {
                                 binding.progressCard.isGone = true
                                 showSnackbarFragment(
@@ -241,7 +216,6 @@ class WorkFragment : Fragment() {
         }
     }
 
-
     /* ─────────────────────────────── UI helpers ────────────────────────────── */
 
     private fun showLoading(show: Boolean) = with(binding) {
@@ -251,71 +225,41 @@ class WorkFragment : Fragment() {
         cardNewWork.isGone = true
     }
 
-    /** Preenche o spinner com a lista de obras ordenada alfabeticamente. */
+    /** Preenche o dropdown com a lista de obras ordenada alfabeticamente. */
     private fun renderWorks(lista: List<Obra>) = with(binding) {
         progressWork.isGone = true
 
-        /* ─────────  cenário 1 – sem obras cadastradas  ───────── */
         if (lista.isEmpty()) {
             layoutEmpty.isVisible = true
-            layoutSelect.isGone   = true
+            layoutSelect.isGone = true
             return@with
         }
 
-        /* ─────────  cenário 2 – com obras  ───────── */
-        layoutEmpty.isGone   = true
+        layoutEmpty.isGone = true
         layoutSelect.isVisible = true
 
-        // 1) ordena alfabeticamente
-        val sorted = lista.sortedBy { it.nomeCliente.lowercase(Locale.ROOT) }
+        obrasOrdenadas = lista.sortedBy { it.nomeCliente.lowercase(Locale.ROOT) }
+        val nomes = obrasOrdenadas.map { it.nomeCliente }
 
-        // 2) cria coleção com placeholder na posição 0
-        val items = buildList {
-            add(Obra(nomeCliente = getString(R.string.work_spinner_default))) // placeholder
-            addAll(sorted)
-        }
-
-        // 3) adapter que mostra só o nomeCliente
-        val adapter = object : ArrayAdapter<Obra>(
+        val adapter = ArrayAdapter(
             requireContext(),
-            R.layout.item_spinner,          // layout com um TextView
-            items
-        ) {
-            /** linha “fechada” do spinner (após seleção) */
-            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View =
-                (super.getView(position, convertView, parent) as TextView).apply {
-                    text = getItem(position)?.nomeCliente ?: ""
-                    // placeholder cinza
-                    if (position == 0) setTextColor(
-                        requireContext().getColor(R.color.md_theme_light_outline)
-                    )
-                }
+            R.layout.item_spinner,           // linha “fechada”
+            nomes
+        ).apply { setDropDownViewResource(R.layout.item_spinner_dropdown) }
 
-            /** itens do menu suspenso */
-            override fun getDropDownView(
-                position: Int,
-                convertView: View?,
-                parent: ViewGroup
-            ): View = (super.getDropDownView(position, convertView, parent) as TextView).apply {
-                text = getItem(position)?.nomeCliente ?: ""
-                if (position == 0) setTextColor(
-                    requireContext().getColor(R.color.md_theme_light_outline)
-                )
-            }
+        autoObras.setAdapter(adapter)
 
-            override fun isEnabled(position: Int) = position != 0 // bloqueia placeholder
-        }
-
-        adapter.setDropDownViewResource(R.layout.item_spinner_dropdown)
-        spinnerWorks.adapter = adapter
-        spinnerWorks.setSelection(0, false)   // força placeholder exibido
-        btnContinue.isEnabled = false         // exige seleção válida
+        // começa vazio (só hint visível)
+        autoObras.setText("", false)
+        selectedObra = null
+        btnContinue.isEnabled = false
     }
 
     private fun toggleNewWorkCard(show: Boolean) = with(binding) {
         cardNewWork.isVisible = show
-        workScroll.scrollTo(0, 0)     // garante card visível
+        workScroll.scrollTo(0, 0)
     }
+
 
     /* ───────────────────── validação / envio de nova obra ──────────────────── */
 
@@ -352,27 +296,24 @@ class WorkFragment : Fragment() {
 
         // datas (presença)
         val dataInicio = etDataInicio.text?.toString().orEmpty()
-        val dataFim    = etDataFim.text?.toString().orEmpty()
+        val dataFim = etDataFim.text?.toString().orEmpty()
         val faltouInicio = etDataInicio.validate(dataInicio.isBlank(), R.string.work_error_data_inicio)
-        val faltouFim    = etDataFim.validate(dataFim.isBlank(), R.string.work_error_data_fim)
+        val faltouFim = etDataFim.validate(dataFim.isBlank(), R.string.work_error_data_fim)
         hasError = faltouInicio || faltouFim || hasError
 
         // tem as duas datas?
         val haveBoth = dataInicio.isNotBlank() && dataFim.isNotBlank()
 
-        // ordem das datas: só é válida se tiver as duas e fim >= início
+        // ordem das datas: fim >= início
         val ordemOk = haveBoth && isDateOrderValid(dataInicio, dataFim)
 
-        // erro em VERMELHO no TextInputLayout da data fim apenas quando ambas existem e a ordem é inválida
+        // erro no TextInputLayout da data fim quando ordem é inválida
         tilDataFim.error = if (haveBoth && !ordemOk)
-            getString(R.string.work_error_date_order)   // "Data de término deve ser igual ou posterior à data de início"
-        else
-            null
+            getString(R.string.work_error_date_order) else null
 
-        // habilita botão somente se não há outros erros e a ordem das datas está ok
         val ok = !hasError && ordemOk
         btnSaveWork.isEnabled = ok
-        ok
+        return ok
     }
 
     private fun saveNewWork() = with(binding) {

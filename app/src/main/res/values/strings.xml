@@ -69,6 +69,7 @@
     <string name="work_select_prompt">Selecione a obra</string>
     <string name="work_new_button">Nova Obra</string>
     <string name="work_spinner_default">Selecione a obra</string>
+    <string name="work_dropdown_hint">Obras Cadastradas</string>
     <string name="work_toast_selected">Obra %1$s selecionada.</string>
     <string name="work_toast_saved">Informações da obra salvas.</string>
     <string name="work_load_error">

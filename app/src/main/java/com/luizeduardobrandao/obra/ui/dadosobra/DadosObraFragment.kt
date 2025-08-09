@@ -48,6 +48,8 @@ class DadosObraFragment : Fragment() {
     private val formatter =
         SimpleDateFormat(Constants.Format.DATE_PATTERN_BR, Locale.getDefault())
 
+    private var isDeleting = false
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -141,54 +143,69 @@ class DadosObraFragment : Fragment() {
                 getString(R.string.snack_warning),
                 getString(R.string.obra_data_snack_delete_msg),
                 getString(R.string.obra_data_button_delete)
-            ) { viewModel.excluirObra() }
+            ) {
+                isDeleting = true                 // ⬅️ marque que iniciou exclusão
+                viewModel.excluirObra()
+            }
         }
     }
 
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // observa dados da obra
+
+                // 1) Observa dados da obra (apenas UI, sem navegação!)
                 launch {
                     viewModel.obraState.collect { ui ->
                         when (ui) {
-                            is UiState.Loading -> binding.progressDadosObra.visibility =
-                                View.VISIBLE
+                            is UiState.Loading -> binding.progressDadosObra.visibility = View.VISIBLE
 
                             is UiState.Success -> {
                                 binding.progressDadosObra.visibility = View.GONE
-                                populateFields(ui.data)
+                                populateFields(ui.data)   // só atualiza campos
                             }
 
                             is UiState.ErrorRes -> {
                                 binding.progressDadosObra.visibility = View.GONE
-                                showSnackbarFragment(
-                                    Constants.SnackType.ERROR.name,
-                                    getString(R.string.snack_error),
-                                    getString(ui.resId),
-                                    getString(R.string.snack_button_ok)
-                                )
+                                // Se estiver deletando, ignore este erro transitório
+                                if (!isDeleting) {
+                                    showSnackbarFragment(
+                                        Constants.SnackType.ERROR.name,
+                                        getString(R.string.snack_error),
+                                        getString(ui.resId),
+                                        getString(R.string.snack_button_ok)
+                                    )
+                                }
                             }
 
                             else -> Unit
                         }
                     }
                 }
-                // observa operações (salvar, excluir, saldo)
+
+                // 2) Observa resultado das operações (é AQUI que navega/mostra toast)
                 launch {
                     viewModel.opState.collect { ui ->
                         when (ui) {
-                            is UiState.Loading -> binding.progressDadosObra.visibility =
-                                View.VISIBLE
+                            is UiState.Loading -> binding.progressDadosObra.visibility = View.VISIBLE
 
                             is UiState.Success -> {
                                 binding.progressDadosObra.visibility = View.GONE
-                                Toast.makeText(
-                                    requireContext(),
-                                    getString(R.string.obra_data_toast_updated),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                findNavController().navigateUp()
+                                if (isDeleting) {
+                                    // Exclusão concluída → vai para Work e limpa flag
+                                    isDeleting = false
+                                    findNavController().navigate(
+                                        DadosObraFragmentDirections.actionDadosObraToWork()
+                                    )
+                                } else {
+                                    // Salvar/atualizar saldo
+                                    Toast.makeText(
+                                        requireContext(),
+                                        getString(R.string.obra_data_toast_updated),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    findNavController().navigateUp()
+                                }
                                 viewModel.resetOpState()
                             }
 
@@ -200,6 +217,8 @@ class DadosObraFragment : Fragment() {
                                     getString(ui.resId),
                                     getString(R.string.snack_button_ok)
                                 )
+                                // Em caso de erro, garanta que a flag volte
+                                isDeleting = false
                                 viewModel.resetOpState()
                             }
 
