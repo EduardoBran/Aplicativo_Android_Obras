@@ -70,6 +70,7 @@ class HomeFragment : Fragment() {
                     confirmLogout()
                     true
                 }
+
                 else -> false
             }
         }
@@ -94,7 +95,7 @@ class HomeFragment : Fragment() {
      * Configura os cliques nos botões de cada seção,
      * passando o mesmo obraId para as navegações.
      */
-    private fun setupSectionClicks() = with(binding){
+    private fun setupSectionClicks() = with(binding) {
         val obraId = args.obraId
 
         btnEmployees.setOnClickListener {
@@ -149,17 +150,20 @@ class HomeFragment : Fragment() {
                                 binding.progressHome.isVisible = true
                                 binding.homeScroll.isGone = true
                             }
+
                             is UiState.Success -> {
                                 // quando chegar o dado, esconde o ProgressBar e mostra o conteúdo
                                 binding.progressHome.isGone = true
                                 binding.homeScroll.isVisible = true
 
                                 // atualiza título da Toolbar com nomeCliente
-                                binding.toolbarHome.title = state.data.nomeCliente
+                                binding.toolbarHome.title =
+                                    getString(R.string.home_toolbar_title, state.data.nomeCliente)
                             }
+
                             is UiState.ErrorRes -> {
                                 // em erro, também esconde o loader e exibe o conteúdo (ou placeholder)
-                                binding.progressHome.isGone  = true
+                                binding.progressHome.isGone = true
                                 binding.homeScroll.isVisible = true
 
                                 // exibe snackbar de erro
@@ -170,6 +174,7 @@ class HomeFragment : Fragment() {
                                     getString(R.string.snack_button_ok)
                                 )
                             }
+
                             else -> Unit
                         }
                     }

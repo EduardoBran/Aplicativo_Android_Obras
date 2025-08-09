@@ -87,6 +87,7 @@
     <string name="work_error_date_order">Data de término deve ser igual ou posterior à data de início.</string>
 
     <!-- HomeFragment -->
+    <string name="home_toolbar_title">Obra: %1$s</string>
     <string name="home_logout">Sair</string>
     <string name="home_toast_logout">Usuário deslogado.</string>
     <string name="home_btn_funcionarios">Funcionários</string>
