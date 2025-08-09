@@ -97,6 +97,8 @@
     <string name="home_fotos_not_impl">Funcionalidade ainda não implementada.</string>
     <string name="home_error_missing_obra">Obra não encontrada.</string>
     <string name="home_error_load">Não foi possível carregar os dados da obra. Tente novamente.</string>
+    <string name="home_logout_confirm_msg">Deseja sair da conta?</string>
+    <string name="home_logout_confirm_action">Sair</string>
 
     <!-- FuncionarioFragment -->
     <string name="func_title">Funcionários</string>

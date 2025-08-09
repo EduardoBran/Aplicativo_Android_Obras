@@ -63,16 +63,31 @@ class HomeFragment : Fragment() {
      * Atributo `app:menu="@menu/menu_home_logout"` deve estar definido em fragment_home.xml.
      */
     private fun setupToolbarMenu() {
+        // 1) Clique no item de menu (fallback)
         binding.toolbarHome.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_logout -> {
-                    // Dispara logout no ViewModel
-                    viewModel.logout()
+                    confirmLogout()
                     true
                 }
                 else -> false
             }
         }
+
+        // 2) Clique no actionView (layout customizado com ícone + texto)
+        val logoutItem = binding.toolbarHome.menu.findItem(R.id.action_logout)
+        logoutItem.actionView?.setOnClickListener {
+            confirmLogout()
+        }
+    }
+
+    private fun confirmLogout() {
+        showSnackbarFragment(
+            Constants.SnackType.WARNING.name,
+            getString(R.string.snack_warning),
+            getString(R.string.home_logout_confirm_msg),     // "Deseja sair da conta?"
+            getString(R.string.home_logout_confirm_action)   // "Sair"
+        ) { viewModel.logout() }
     }
 
     /**

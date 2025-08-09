@@ -5,8 +5,8 @@
     <!-- Logout -->
     <item
         android:id="@+id/action_logout"
-        android:icon="@drawable/ic_logout"
         android:title="@string/home_logout"
+        app:actionLayout="@layout/action_logout"
         app:showAsAction="always" />
 
 </menu>
