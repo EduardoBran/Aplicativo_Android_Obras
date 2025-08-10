@@ -1,7 +1,10 @@
 package com.luizeduardobrandao.obra.ui.notas
 
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -10,6 +13,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Nota
 import com.luizeduardobrandao.obra.data.model.UiState
@@ -32,6 +37,18 @@ class ResumoNotasFragment : Fragment() {
     /* Adapter sem ações – só exibição */
     private val adapter by lazy { NotaAdapter(showActions = false) }
 
+    // Estado das abas (preservado em rotação/processo)
+    private var isTotalsExpanded = false
+    private var isTiposExpanded  = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState?.let {
+            isTotalsExpanded = it.getBoolean(KEY_TOT_EXPANDED, false)
+            isTiposExpanded  = it.getBoolean(KEY_TIPOS_EXPANDED, false)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -43,6 +60,7 @@ class ResumoNotasFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         with(binding) {
             progressNotasList.isVisible = true
             rvNotasResumo.isVisible = false
@@ -50,9 +68,26 @@ class ResumoNotasFragment : Fragment() {
 
             toolbarResumoNotas.setNavigationOnClickListener { findNavController().navigateUp() }
             rvNotasResumo.adapter = adapter
+
+            // Liga as abas expansíveis
+            setupExpandable(
+                containerRoot = llTotaisContainer,
+                header = headerAbaTotais,
+                content = contentAbaTotais,
+                arrow = ivArrowTotais,
+                startExpanded = isTotalsExpanded
+            ) { expanded -> isTotalsExpanded = expanded }
+
+            setupExpandable(
+                containerRoot = llTotaisContainer,
+                header = headerAbaTipos,
+                content = contentAbaTipos,
+                arrow = ivArrowTipos,
+                startExpanded = isTiposExpanded
+            ) { expanded -> isTiposExpanded = expanded }
         }
 
-        // 🔽 sem isso o estado fica eternamente em Loading
+        // Sem isso o estado fica eternamente em Loading
         viewModel.loadNotas()
 
         observeState()
@@ -142,7 +177,48 @@ class ResumoNotasFragment : Fragment() {
         rvNotasResumo.isVisible     = !show
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_TOT_EXPANDED, isTotalsExpanded)
+        outState.putBoolean(KEY_TIPOS_EXPANDED, isTiposExpanded)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView(); _binding = null
+    }
+
+    /*───────────────────────── Helpers ─────────────────────────*/
+    private fun setupExpandable(
+        containerRoot: ViewGroup,
+        header: View,
+        content: View,
+        arrow: ImageView,
+        startExpanded: Boolean,
+        onStateChange: (Boolean) -> Unit
+    ) {
+        fun applyState(expanded: Boolean, animate: Boolean) {
+            if (animate) {
+                TransitionManager.beginDelayedTransition(
+                    containerRoot,
+                    AutoTransition().apply { duration = 180 }
+                )
+            }
+            content.isVisible = expanded
+            arrow.animate().rotation(if (expanded) 180f else 0f).setDuration(180).start()
+            onStateChange(expanded)
+        }
+
+        // Estado inicial (sem animação para evitar "piscada" na abertura)
+        content.post { applyState(startExpanded, animate = false) }
+
+        header.setOnClickListener {
+            val willExpand = !content.isVisible
+            applyState(willExpand, animate = true)
+        }
+    }
+
+    companion object {
+        private const val KEY_TOT_EXPANDED   = "isTotalsExpanded"
+        private const val KEY_TIPOS_EXPANDED = "isTiposExpanded"
     }
 }

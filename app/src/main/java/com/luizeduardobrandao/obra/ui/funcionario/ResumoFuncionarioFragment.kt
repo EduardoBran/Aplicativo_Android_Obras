@@ -1,7 +1,11 @@
 package com.luizeduardobrandao.obra.ui.funcionario
 
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -9,6 +13,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Funcionario
 import com.luizeduardobrandao.obra.data.model.UiState
@@ -30,11 +36,18 @@ class ResumoFuncionarioFragment : Fragment() {
 
     private val adapter by lazy { FuncionarioAdapter(showActions = false) }
 
+    // Estado de expansão da aba
+    private var isResumoFuncsExpanded = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        isResumoFuncsExpanded = savedInstanceState?.getBoolean(KEY_RESUMO_FUNCS_EXPANDED) ?: false
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
         _binding = FragmentResumoFuncionarioBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -42,13 +55,21 @@ class ResumoFuncionarioFragment : Fragment() {
     /* ───────────────────────── lifecycle ───────────────────────── */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        _binding = FragmentResumoFuncionarioBinding.bind(view)
 
         binding.toolbarResumoFuncionario.setNavigationOnClickListener {
             findNavController().navigateUp()
         }
 
         binding.rvFuncionarios.adapter = adapter
+
+        // Conecta a aba (card no rodapé)
+        setupExpandable(
+            containerRoot = binding.cardAbaResumoFuncs,
+            header = binding.headerAbaResumoFuncs,
+            content = binding.contentAbaResumoFuncs,
+            arrow = binding.ivArrowResumoFuncs,
+            startExpanded = isResumoFuncsExpanded
+        ) { expanded -> isResumoFuncsExpanded = expanded }
 
         observeViewModel()
 
@@ -62,9 +83,9 @@ class ResumoFuncionarioFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { ui ->
                     when (ui) {
-                        is UiState.Loading   -> showLoading()
-                        is UiState.Success   -> renderList(ui.data)
-                        is UiState.ErrorRes  -> showError(ui.resId)
+                        is UiState.Loading  -> showLoading()
+                        is UiState.Success  -> renderList(ui.data)
+                        is UiState.ErrorRes -> showError(ui.resId)
                         else -> Unit
                     }
                 }
@@ -75,28 +96,50 @@ class ResumoFuncionarioFragment : Fragment() {
     /* ───────────────────────── UI helpers ──────────────────────── */
     private fun showLoading() = with(binding) {
         progressFuncList.visibility = View.VISIBLE
-        rvFuncionarios .visibility  = View.GONE
-        llTotalGeral    .visibility = View.GONE
-        tvEmptySum      .visibility = View.GONE
+        rvFuncionarios.visibility   = View.GONE
+        cardAbaResumoFuncs.visibility = View.GONE
+        tvEmptySum.visibility       = View.GONE
     }
 
     private fun renderList(list: List<Funcionario>) = with(binding) {
         progressFuncList.visibility = View.GONE
 
         if (list.isEmpty()) {
-            tvEmptySum.visibility      = View.VISIBLE
-            rvFuncionarios.visibility  = View.GONE
-            llTotalGeral.visibility    = View.GONE
-        } else {
-            tvEmptySum.visibility      = View.GONE
-            rvFuncionarios.visibility  = View.VISIBLE
-            llTotalGeral.visibility    = View.VISIBLE
-
-            adapter.submitList(list)
-
-            val total = list.sumOf { it.totalGasto }
-            tvTotalGeral.text = getString(R.string.money_mask, total)
+            tvEmptySum.visibility         = View.VISIBLE
+            rvFuncionarios.visibility     = View.GONE
+            cardAbaResumoFuncs.visibility = View.GONE
+            return@with
         }
+
+        tvEmptySum.visibility         = View.GONE
+        rvFuncionarios.visibility     = View.VISIBLE
+        cardAbaResumoFuncs.visibility = View.VISIBLE
+
+        // Preenche a lista principal (fora da aba)
+        adapter.submitList(list)
+
+        // ====== Preenche o conteúdo da ABA (Nome + Total) ======
+        containerResumoFuncionarios.removeAllViews()
+
+        var totalGeral = 0.0
+        list.forEach { f ->
+            totalGeral += f.totalGasto
+
+            // Reuso do layout simples para uma linha de texto (se preferir crio TextView programático)
+            val tv = layoutInflater.inflate(
+                R.layout.item_tipo_valor, containerResumoFuncionarios, false
+            ) as android.widget.TextView
+
+            // Texto no padrão: "Nome do Funcionário — R$ 1.234,56"
+            tv.text = getString(R.string.money_mask, f.totalGasto).let { valorFmt ->
+                "${f.nome} — $valorFmt"
+            }
+
+            containerResumoFuncionarios.addView(tv)
+        }
+
+        // Total geral dentro da aba
+        tvResumoTotalGeralFuncs.text = getString(R.string.money_mask, totalGeral)
     }
 
     private fun showError(resId: Int) {
@@ -109,8 +152,46 @@ class ResumoFuncionarioFragment : Fragment() {
         )
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_RESUMO_FUNCS_EXPANDED, isResumoFuncsExpanded)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    /*───────────────────────── Helper: Aba expansível ─────────────────────────*/
+    private fun setupExpandable(
+        containerRoot: ViewGroup,
+        header: View,
+        content: View,
+        arrow: ImageView,
+        startExpanded: Boolean,
+        onStateChange: (Boolean) -> Unit
+    ) {
+        fun applyState(expanded: Boolean, animate: Boolean) {
+            if (animate) {
+                TransitionManager.beginDelayedTransition(
+                    containerRoot,
+                    AutoTransition().apply { duration = 180 }
+                )
+            }
+            content.isVisible = expanded
+            arrow.animate().rotation(if (expanded) 180f else 0f).setDuration(180).start()
+            onStateChange(expanded)
+        }
+
+        // Estado inicial sem animação
+        content.post { applyState(startExpanded, animate = false) }
+
+        header.setOnClickListener {
+            applyState(!content.isVisible, animate = true)
+        }
+    }
+
+    companion object {
+        private const val KEY_RESUMO_FUNCS_EXPANDED = "key_resumo_funcs_expanded"
     }
 }

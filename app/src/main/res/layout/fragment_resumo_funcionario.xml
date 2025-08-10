@@ -5,84 +5,168 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Toolbar com seta de voltar -->
+    <!-- Toolbar -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbarResumoFuncionario"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         android:theme="@style/ThemeOverlay.ObrasApp.Toolbar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_back"
-        app:navigationIconTint="@android:color/white"
         app:title="@string/func_sum_title"
         app:titleCentered="true" />
 
+    <!-- Loading -->
     <ProgressBar
         android:id="@+id/progressFuncList"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/llTotalGeral"
+        app:layout_constraintBottom_toTopOf="@id/cardAbaResumoFuncs"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbarResumoFuncionario" />
 
+    <!-- Empty -->
     <TextView
         android:id="@+id/tvEmptySum"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/func_no_items"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/toolbarResumoFuncionario"
-        app:layout_constraintBottom_toTopOf="@id/llTotalGeral"
+        app:layout_constraintBottom_toTopOf="@id/cardAbaResumoFuncs"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@id/toolbarResumoFuncionario" />
 
-    <!-- Lista de funcionários -->
+    <!-- Lista de funcionários (fora da aba) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvFuncionarios"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@+id/llTotalGeral"
+        app:layout_constraintBottom_toTopOf="@+id/cardAbaResumoFuncs"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbarResumoFuncionario"
         tools:listitem="@layout/item_funcionario" />
 
-    <!-- Footer com Total Geral -->
-    <LinearLayout
-        android:id="@+id/llTotalGeral"
+    <!-- ======= ABA: Resumo de gastos por funcionário (NOME + TOTAL) ======= -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardAbaResumoFuncs"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:background="?attr/colorPrimaryContainer"
-        android:orientation="horizontal"
-        android:padding="16dp"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <TextView
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/total_geral"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textStyle="bold" />
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tvTotalGeral"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="end"
-            android:text="@string/func_sum_total"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textStyle="bold" />
-    </LinearLayout>
+            <!-- Cabeçalho (único clicável) -->
+            <LinearLayout
+                android:id="@+id/headerAbaResumoFuncs"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:accessibilityHeading="true"
+                    android:text="@string/func_sum_header_gastos"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                <ImageView
+                    android:id="@+id/ivArrowResumoFuncs"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="@string/expandir"
+                    android:importantForAccessibility="no"
+                    android:rotation="0"
+                    android:src="@drawable/ic_expand_more" />
+            </LinearLayout>
+
+            <!-- Conteúdo expansível (ROLÁVEL) -->
+            <LinearLayout
+                android:id="@+id/contentAbaResumoFuncs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp"
+                android:visibility="gone">
+
+                <!-- Limitador de altura + rolagem interna -->
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/nsResumoFuncs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fadeScrollbars="false"
+                    android:fillViewport="false"
+                    android:maxHeight="320dp"
+                    android:overScrollMode="ifContentScrolls"
+                    android:scrollbarStyle="outsideOverlay"
+                    android:scrollbars="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Container onde o Fragment vai adicionar (Nome + Total) dinamicamente -->
+                        <LinearLayout
+                            android:id="@+id/containerResumoFuncionarios"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+
+                        <!-- Separador -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="12dp" />
+
+                        <!-- Linha: Total Geral (dentro da aba, após todos os funcionários) -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/colorPrimaryContainer"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="10dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/total_geral"
+                                android:textAppearance="?attr/textAppearanceBodyLarge"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvResumoTotalGeralFuncs"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/func_sum_total"
+                                android:textAppearance="?attr/textAppearanceBodyLarge"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.core.widget.NestedScrollView>
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

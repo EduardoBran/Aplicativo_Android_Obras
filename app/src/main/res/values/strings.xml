@@ -182,6 +182,7 @@
     <string name="func_sum_title">Resumo de Funcionários</string>
     <string name="total_geral">Total geral:</string>
     <string name="func_sum_total">R$ %1$s</string>
+    <string name="func_sum_header_gastos">Gastos por funcionário</string>
 
     <!-- NotasFragment -->
     <string name="nota_title">Notas de Materiais</string>
@@ -242,6 +243,9 @@
     <string name="nota_sum_total_paid">Total pago:</string>
     <string name="nota_sum_type_due">Totais por tipo (a receber)</string>
     <string name="nota_sum_type_paid">Totais por tipo (pago)</string>
+    <string name="total_geral_title_totais">Totais</string>
+    <string name="total_geral_title_tipos">Totais por tipo</string>
+    <string name="expandir">Expandir</string>
 
 
     <!-- CronogramaFragment -->
