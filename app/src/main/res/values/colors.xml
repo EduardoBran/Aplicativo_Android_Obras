@@ -52,4 +52,9 @@
     <color name="totalOverall_bg">#ECE6F0</color>    <!-- roxo claro -->
     <color name="totalOverall_text">#4A4458</color>  <!-- título -->
     <color name="totalOverall_value">#2D2A35</color> <!-- valor -->
+
+    <!-- Progresso (laranja) – mesmo padrão dos totais -->
+    <color name="totalProgress_bg">#FFF3E0</color>     <!-- fundo bem claro -->
+    <color name="totalProgress_text">#E65100</color>   <!-- texto/título -->
+    <color name="totalProgress_value">#FB8C00</color>  <!-- opcional p/ valores -->
 </resources>

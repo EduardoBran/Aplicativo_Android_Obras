@@ -17,8 +17,9 @@
         app:title="@string/resumo_title"
         app:titleCentered="true" />
 
-    <!-- ScrollView -->
+    <!-- Scroll -->
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollResumo"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
@@ -33,7 +34,7 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- ProgressBar -->
+            <!-- Progress -->
             <ProgressBar
                 android:id="@+id/progressResumo"
                 style="?android:attr/progressBarStyleLarge"
@@ -51,188 +52,637 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <!-- Card Funcionários -->
-                <androidx.cardview.widget.CardView
+                <!-- ============ ABA: Funcionários ============ -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardAbaFuncionarios"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="8dp"
+                    android:layout_marginBottom="12dp"
+                    app:cardCornerRadius="12dp"
                     app:cardElevation="4dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
+                        android:orientation="vertical">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/resumo_func_header"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvFuncCount"
-                            style="@style/TextAppearance.Material3.BodyMedium"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="—" />
-
-                        <TextView
-                            android:id="@+id/tvFuncDias"
-                            style="@style/TextAppearance.Material3.BodyMedium"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="—" />
-
-                        <TextView
-                            android:id="@+id/tvFuncTotal"
-                            style="@style/TextAppearance.Material3.TitleMedium"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="—"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="12dp" />
-
-                <!-- Card Materiais -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="4dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/resumo_mat_header"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvMatCount"
-                            style="@style/TextAppearance.Material3.BodyMedium"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="—" />
-
-                        <TextView
-                            android:id="@+id/tvMatTotal"
-                            style="@style/TextAppearance.Material3.TitleMedium"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="—"
-                            android:textStyle="bold" />
-
+                        <!-- Cabeçalho (clicável) -->
                         <LinearLayout
-                            android:id="@+id/containerTiposMat"
+                            android:id="@+id/headerAbaFuncionarios"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackground"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="12dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:accessibilityHeading="true"
+                                android:text="@string/resumo_func_header"
+                                android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                            <ImageView
+                                android:id="@+id/ivArrowFuncionarios"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:contentDescription="@string/expandir"
+                                android:importantForAccessibility="no"
+                                android:rotation="0"
+                                android:src="@drawable/ic_expand_more" />
+                        </LinearLayout>
+
+                        <!-- Conteúdo da aba -->
+                        <LinearLayout
+                            android:id="@+id/contentAbaFuncionarios"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:orientation="vertical" />
+                            android:orientation="vertical"
+                            android:padding="16dp"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:id="@+id/tvFuncCount"
+                                style="@style/TextAppearance.Material3.BodyMedium"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvFuncTotal"
+                                style="@style/TextAppearance.Material3.TitleMedium"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="—"
+                                android:textStyle="bold" />
+                        </LinearLayout>
                     </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                </com.google.android.material.card.MaterialCardView>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="12dp" />
-
-                <!-- ───── Card Saldo Inicial ───── -->
-                <androidx.cardview.widget.CardView
+                <!-- ============ ABA: Notas ============ -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardAbaNotas"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="8dp"
+                    android:layout_marginBottom="12dp"
+                    app:cardCornerRadius="12dp"
                     app:cardElevation="4dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
+                        android:orientation="vertical">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/resumo_initial_balance_header"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            android:textStyle="bold" />
+                        <!-- Cabeçalho (clicável) -->
+                        <LinearLayout
+                            android:id="@+id/headerAbaNotas"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackground"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="12dp">
 
-                        <TextView
-                            android:id="@+id/tvSaldoInicialResumo"
-                            style="@style/TextAppearance.Material3.TitleMedium"
-                            android:layout_width="wrap_content"
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:accessibilityHeading="true"
+                                android:text="@string/nota_sum_title_resumo"
+                                android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                            <ImageView
+                                android:id="@+id/ivArrowNotas"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:contentDescription="@string/expandir"
+                                android:importantForAccessibility="no"
+                                android:rotation="0"
+                                android:src="@drawable/ic_expand_more" />
+                        </LinearLayout>
+
+                        <!-- Conteúdo da aba -->
+                        <LinearLayout
+                            android:id="@+id/contentAbaNotas"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="—"
-                            android:textStyle="bold" />
+                            android:orientation="vertical"
+                            android:padding="16dp"
+                            android:visibility="gone">
+
+                            <!-- A Receber -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/totalDue_bg"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/nota_due_title"
+                                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                                    android:textColor="@color/totalDue_text"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvNotasDueCount"
+                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="—"
+                                    android:textColor="@color/totalDue_text" />
+
+                                <TextView
+                                    android:id="@+id/tvNotasDueTotal"
+                                    style="@style/TextAppearance.Material3.TitleMedium"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="—"
+                                    android:textColor="@color/totalDue_value"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="12dp" />
+
+                            <!-- Pago -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/totalPaid_bg"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/nota_paid_title"
+                                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                                    android:textColor="@color/totalPaid_text"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvNotasPaidCount"
+                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="—"
+                                    android:textColor="@color/totalPaid_text" />
+
+                                <TextView
+                                    android:id="@+id/tvNotasPaidTotal"
+                                    style="@style/TextAppearance.Material3.TitleMedium"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="—"
+                                    android:textColor="@color/totalPaid_value"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="12dp" />
+
+                            <!-- Total Geral de Notas -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/totalOverall_bg"
+                                android:orientation="horizontal"
+                                android:paddingHorizontal="12dp"
+                                android:paddingVertical="10dp">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/total_geral"
+                                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                                    android:textColor="@color/totalOverall_text"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvNotasTotalGeral"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="—"
+                                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                                    android:textColor="@color/totalOverall_value"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                        </LinearLayout>
                     </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                </com.google.android.material.card.MaterialCardView>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="12dp" />
-
-                <!-- ───── Card Saldo Ajustado + Restante ───── -->
-                <androidx.cardview.widget.CardView
+                <!-- ============ ABA: Cronograma ============ -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardAbaCronograma"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="8dp"
+                    android:layout_marginBottom="12dp"
+                    app:cardCornerRadius="12dp"
                     app:cardElevation="4dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
+                        android:orientation="vertical">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/resumo_adjusted_balance_header"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            android:textStyle="bold" />
+                        <!-- Cabeçalho (clicável) -->
+                        <LinearLayout
+                            android:id="@+id/headerAbaCronograma"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackground"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="12dp">
 
-                        <TextView
-                            android:id="@+id/tvSaldoAjustadoResumo"
-                            style="@style/TextAppearance.Material3.TitleMedium"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="—"
-                            android:textStyle="bold" />
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:accessibilityHeading="true"
+                                android:text="@string/cronograma_title"
+                                android:textAppearance="?attr/textAppearanceTitleMedium" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="@string/resumo_saldo_remaining_header"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            android:textStyle="bold" />
+                            <ImageView
+                                android:id="@+id/ivArrowCronograma"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:contentDescription="@string/expandir"
+                                android:importantForAccessibility="no"
+                                android:rotation="0"
+                                android:src="@drawable/ic_expand_more" />
+                        </LinearLayout>
 
-                        <TextView
-                            android:id="@+id/tvSaldoRestanteResumo"
-                            style="@style/TextAppearance.Material3.TitleLarge"
-                            android:layout_width="wrap_content"
+                        <!-- Conteúdo (3 blocos: Pendente / Andamento / Concluído) -->
+                        <LinearLayout
+                            android:id="@+id/contentAbaCronograma"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="—"
-                            android:textStyle="bold" />
+                            android:orientation="vertical"
+                            android:padding="16dp"
+                            android:visibility="gone">
+
+                            <!-- Pendente (vermelho) -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/totalDue_bg"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/cron_tab_pending"
+                                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                                    android:textColor="@color/totalDue_text"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvCronPendentes"
+                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="—"
+                                    android:textColor="@color/totalDue_text" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="12dp" />
+
+                            <!-- Andamento (laranja) -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/totalProgress_bg"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/cron_tab_progress"
+                                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                                    android:textColor="@color/totalProgress_text"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvCronAndamento"
+                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="—"
+                                    android:textColor="@color/totalProgress_text" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="12dp" />
+
+                            <!-- Concluído (verde) -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/totalPaid_bg"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/cron_tab_done"
+                                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                                    android:textColor="@color/totalPaid_text"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvCronConcluidos"
+                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="—"
+                                    android:textColor="@color/totalPaid_text" />
+                            </LinearLayout>
+                        </LinearLayout>
                     </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- ============ ABA: Materiais ============ -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardAbaMateriais"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Cabeçalho (clicável) -->
+                        <LinearLayout
+                            android:id="@+id/headerAbaMateriais"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackground"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="12dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:accessibilityHeading="true"
+                                android:text="@string/material_title"
+                                android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                            <ImageView
+                                android:id="@+id/ivArrowMateriais"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:contentDescription="@string/expandir"
+                                android:importantForAccessibility="no"
+                                android:rotation="0"
+                                android:src="@drawable/ic_expand_more" />
+                        </LinearLayout>
+
+                        <!-- Conteúdo (Ativo / Inativo) -->
+                        <LinearLayout
+                            android:id="@+id/contentAbaMateriais"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp"
+                            android:visibility="gone">
+
+                            <!-- Ativo (verde) -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/totalPaid_bg"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/material_status_active"
+                                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                                    android:textColor="@color/totalPaid_text"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvMateriaisAtivos"
+                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="—"
+                                    android:textColor="@color/totalPaid_text" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="12dp" />
+
+                            <!-- Inativo (laranja) -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/totalProgress_bg"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/material_status_inactive"
+                                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                                    android:textColor="@color/totalProgress_text"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvMateriaisInativos"
+                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="—"
+                                    android:textColor="@color/totalProgress_text" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- ============ ABA: Saldo (Inicial + Ajustado + Restante) ============ -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardAbaSaldo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Cabeçalho (clicável) -->
+                        <LinearLayout
+                            android:id="@+id/headerAbaSaldo"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackground"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="12dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:accessibilityHeading="true"
+                                android:text="@string/resumo_balance_header"
+                                android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                            <ImageView
+                                android:id="@+id/ivArrowSaldo"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:contentDescription="@string/expandir"
+                                android:importantForAccessibility="no"
+                                android:rotation="0"
+                                android:src="@drawable/ic_expand_more" />
+                        </LinearLayout>
+
+                        <!-- Conteúdo -->
+                        <LinearLayout
+                            android:id="@+id/contentAbaSaldo"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp"
+                            android:visibility="gone">
+
+                            <!-- Saldo Inicial -->
+                            <androidx.cardview.widget.CardView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="12dp"
+                                app:cardCornerRadius="8dp"
+                                app:cardElevation="4dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="16dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/resumo_initial_balance_header"
+                                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        android:id="@+id/tvSaldoInicialResumo"
+                                        style="@style/TextAppearance.Material3.TitleMedium"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="4dp"
+                                        android:text="—"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                            </androidx.cardview.widget.CardView>
+
+                            <!-- Saldo Ajustado + Restante -->
+                            <androidx.cardview.widget.CardView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:cardCornerRadius="8dp"
+                                app:cardElevation="4dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="16dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/resumo_adjusted_balance_header"
+                                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        android:id="@+id/tvSaldoAjustadoResumo"
+                                        style="@style/TextAppearance.Material3.TitleMedium"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="4dp"
+                                        android:text="—"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="12dp"
+                                        android:text="@string/resumo_saldo_remaining_header"
+                                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        android:id="@+id/tvSaldoRestanteResumo"
+                                        style="@style/TextAppearance.Material3.TitleLarge"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="4dp"
+                                        android:text="—"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                            </androidx.cardview.widget.CardView>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

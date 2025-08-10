@@ -389,9 +389,55 @@
     <!-- Cabeçalho do card de Saldo Restante -->
     <string name="resumo_saldo_remaining_header">Saldo Restante</string>
     <!-- Funcionários -->
-    <string name="resumo_func_header">Total Gasto com Funcionários</string>
+    <string name="resumo_func_header">Funcionários</string>
     <string name="resumo_obra_not_found">Obra não encontrada.</string>
     <string name="resumo_generic_error">Erro ao gerar o resumo.</string>
+    <string name="nota_sum_title_resumo">Notas</string>
+    <string name="cronograma_title">Cronograma</string>
+    <string name="resumo_balance_header">Financeiro</string>
+    <string name="resumo_func_count_mask">Quantidade: %1$s</string>
+    <string name="resumo_func_total_mask">Total gasto: %1$s</string>
+
+    <!-- Seções de Notas -->
+    <string name="nota_due_title">A Receber</string>
+    <string name="nota_paid_title">Pago</string>
+
+    <!-- Contadores genéricos de "materiais" -->
+    <plurals name="resumo_materiais_qtd">
+        <item quantity="one">%d material</item>
+        <item quantity="other">%d materiais</item>
+    </plurals>
+
+    <!-- Cronograma: mensagens -->
+    <string name="cron_none_pending">Nenhum cronograma cadastrado como "Pendente".</string>
+    <string name="cron_none_progress">Nenhum cronograma cadastrado como "Andamento".</string>
+    <string name="cron_none_done">Nenhum cronograma cadastrado como "Concluído".</string>
+
+    <plurals name="cron_pending_count">
+        <item quantity="one">1 cronograma pendente.</item>
+        <item quantity="other">%d cronogramas pendentes.</item>
+    </plurals>
+    <plurals name="cron_progress_count">
+        <item quantity="one">1 cronograma em andamento.</item>
+        <item quantity="other">%d cronogramas em andamento.</item>
+    </plurals>
+    <plurals name="cron_done_count">
+        <item quantity="one">1 cronograma concluído.</item>
+        <item quantity="other">%d cronogramas concluídos.</item>
+    </plurals>
+
+    <!-- Materiais: mensagens -->
+    <string name="material_none_active">Sem materiais cadastrados como "Ativo".</string>
+    <string name="material_none_inactive">Sem materiais cadastrados como "Inativo".</string>
+
+    <plurals name="material_active_count">
+        <item quantity="one">1 tipo de material sendo usado.</item>
+        <item quantity="other">%d tipos de materiais sendo usados.</item>
+    </plurals>
+    <plurals name="material_inactive_count">
+        <item quantity="one">1 tipo de material inativo.</item>
+        <item quantity="other">%d tipos de materiais inativos.</item>
+    </plurals>
 
     <!-- Plural de quantidade de funcionários -->
     <plurals name="resumo_func_qtd">
