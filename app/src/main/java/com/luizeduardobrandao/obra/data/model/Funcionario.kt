@@ -33,9 +33,9 @@ data class Funcionario(
      */
     val totalGasto: Double
         get() = when (formaPagamento.lowercase()) {
-            "diária" -> salario * diasTrabalhados
-            "semanal" -> (salario / 7.0) * diasTrabalhados
-            "mensal" -> (salario / 30.0) * diasTrabalhados
+            "diária"  -> salario * diasTrabalhados             // dias
+            "semanal" -> salario * diasTrabalhados             // semanas
+            "mensal"  -> salario * diasTrabalhados             // meses
             else -> 0.0
         }
 }

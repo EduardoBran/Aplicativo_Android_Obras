@@ -64,7 +64,12 @@ class FuncionarioRegisterFragment : Fragment() {
         getAllFuncaoCheckboxes().forEach { cb ->
             cb.setOnCheckedChangeListener { _, _ -> validateForm() }
         }
-        binding.rgPagamento.setOnCheckedChangeListener { _, _ -> validateForm() }
+        binding.rgPagamento.setOnCheckedChangeListener { _, _ ->
+            updateDiasLabel()
+            validateForm()
+        }
+
+        updateDiasLabel()
 
         observeSaveState()
 
@@ -98,6 +103,7 @@ class FuncionarioRegisterFragment : Fragment() {
                             // Forma de pagamento e status continuam com RadioButton
                             selectSingleChoice(binding.rgPagamento, func.formaPagamento)
                             selectSingleChoice(binding.rgStatus, func.status)
+                            updateDiasLabel()
                         }
                         validateForm()
                     }
@@ -161,6 +167,7 @@ class FuncionarioRegisterFragment : Fragment() {
                             getString(R.string.snack_button_ok)
                         )
                     }
+
                     else -> Unit
                 }
             }
@@ -229,6 +236,18 @@ class FuncionarioRegisterFragment : Fragment() {
     private fun getAllFuncaoCheckboxes(): List<MaterialCheckBox> =
         (0 until binding.rgFuncao.childCount).mapNotNull { binding.rgFuncao.getChildAt(it) as? MaterialCheckBox } +
                 (0 until binding.rgFuncao2.childCount).mapNotNull { binding.rgFuncao2.getChildAt(it) as? MaterialCheckBox }
+
+
+    // Altera rótulo de "Dias trabalhados" conforme "Forma de Pagamento" escolhida
+    private fun updateDiasLabel() = with(binding) {
+        val res = when {
+            rbDiaria.isChecked  -> R.string.func_reg_days_hint
+            rbSemanal.isChecked -> R.string.func_reg_weeks_hint
+            rbMensal.isChecked  -> R.string.func_reg_months_hint
+            else                -> R.string.func_reg_days_hint   // default
+        }
+        tvLabelDias.setText(res)
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

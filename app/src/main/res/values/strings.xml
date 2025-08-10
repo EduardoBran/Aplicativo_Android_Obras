@@ -122,8 +122,24 @@
     <string name="func_dias_trabalhados_singular">%1$d dia trabalhado</string>
     <!-- Plural -->
     <string name="func_dias_trabalhados_plural">%1$d dias trabalhados</string>
+
     <string name="func_label_funcao">Função:</string>
     <string name="func_label_funcoes">Funções:</string>
+
+    <plurals name="func_period_days">
+        <item quantity="one">%d dia trabalhado</item>
+        <item quantity="other">%d dias trabalhados</item>
+    </plurals>
+
+    <plurals name="func_period_weeks">
+        <item quantity="one">%d semana trabalhada</item>
+        <item quantity="other">%d semanas trabalhadas</item>
+    </plurals>
+
+    <plurals name="func_period_months">
+        <item quantity="one">%d mês trabalhado</item>
+        <item quantity="other">%d meses trabalhados</item>
+    </plurals>
 
     <!-- FuncionarioRegisterFragment -->
     <string name="func_reg_title">Registro de Funcionários</string>
@@ -131,6 +147,11 @@
     <string name="func_reg_salary_hint">Salário</string>
     <string name="func_reg_pix_hint">Pix (opcional)</string>
     <string name="func_reg_days_hint">Dias Trabalhados</string>
+    <string name="func_reg_weeks_hint">Semanas Trabalhadas</string>
+    <string name="func_reg_months_hint">Meses Trabalhados</string>
+    <string name="func_reg_salary_options1">Diária</string>
+    <string name="func_reg_salary_options2">Semanal</string>
+    <string name="func_reg_salary_options3">Mensal</string>
     <string name="func_reg_role">Função</string>
     <string name="func_reg_payment">Forma de Pagamento</string>
     <string name="func_reg_status">Status</string>

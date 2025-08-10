@@ -172,21 +172,21 @@
                     android:id="@+id/rbDiaria"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Diária" />
+                    android:text="@string/func_reg_salary_options1" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbSemanal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="Semanal" />
+                    android:text="@string/func_reg_salary_options2" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbMensal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="Mensal" />
+                    android:text="@string/func_reg_salary_options3" />
             </RadioGroup>
 
             <TextView
@@ -220,6 +220,7 @@
 
             <!-- Dias trabalhados -->
             <TextView
+                android:id="@+id/tvLabelDias"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"

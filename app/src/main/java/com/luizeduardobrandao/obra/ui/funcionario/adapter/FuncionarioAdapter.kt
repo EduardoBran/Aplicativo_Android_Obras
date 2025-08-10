@@ -97,12 +97,19 @@ class FuncionarioAdapter(
                 item.formaPagamento.lowercase()
             )
 
-            // ②.1 Dias trabalhados → singular para 0 ou 1, plural para >1
-            val diasStrRes = if (item.diasTrabalhados <= 1)
-                R.string.func_dias_trabalhados_singular
-            else
-                R.string.func_dias_trabalhados_plural
-            tvDiasTrabalhados.text = root.resources.getString(diasStrRes, item.diasTrabalhados)
+            // ②.1 Período trabalhado depende da forma de pagamento (diária/semanal/mensal)
+            val diaria = root.context.getString(R.string.func_reg_salary_options1)
+            val semanal = root.context.getString(R.string.func_reg_salary_options2)
+            val mensal = root.context.getString(R.string.func_reg_salary_options3)
+
+            val qtd = item.diasTrabalhados
+            val pluralRes = when (item.formaPagamento) {
+                diaria  -> R.plurals.func_period_days
+                semanal -> R.plurals.func_period_weeks
+                mensal  -> R.plurals.func_period_months
+                else    -> R.plurals.func_period_days        // fallback
+            }
+            tvDiasTrabalhados.text = root.resources.getQuantityString(pluralRes, qtd, qtd)
 
             // ③ Ações
             if (showActions) {
