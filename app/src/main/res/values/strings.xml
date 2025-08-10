@@ -13,6 +13,7 @@
     <string name="generic_continue">Continuar</string>
     <string name="generic_new">Nova</string>
     <string name="generic_loading">Carregando…</string>
+    <string name="generic_copy">Copiar</string>
     <string name="error_no_internet">Você está sem conexão à internet.</string>
 
     <!-- SnackbarFragment -->
@@ -169,6 +170,8 @@
     <string name="func_reg_error_salario">Informe um salário válido</string>
     <string name="func_reg_error_role">Selecione ao menos uma função</string>
     <string name="func_reg_error_pagamento">Selecione a forma de pagamento</string>
+    <string name="func_toast_pix_copy">Pix copiado.</string>
+    <string name="func_toast_pix_copy_empty">Sem pix adicionado.</string>
 
     <!-- DetalheFuncionarioFragment -->
     <string name="func_detail_title">Funcionário %1$s</string>

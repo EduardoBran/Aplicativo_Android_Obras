@@ -202,10 +202,14 @@
 
             <!-- Pix -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPix"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp">
+                android:layout_marginTop="16dp"
+                app:endIconMode="custom"
+                app:endIconDrawable="@drawable/ic_copy"
+                app:endIconContentDescription="@string/generic_copy">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPix"

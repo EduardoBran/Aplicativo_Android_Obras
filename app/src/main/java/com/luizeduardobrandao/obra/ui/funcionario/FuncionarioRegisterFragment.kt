@@ -25,6 +25,9 @@ import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import android.content.Context
+import android.content.ClipData
+import android.content.ClipboardManager
 
 @AndroidEntryPoint
 class FuncionarioRegisterFragment : Fragment() {
@@ -76,6 +79,28 @@ class FuncionarioRegisterFragment : Fragment() {
         binding.btnSaveFuncionario.setOnClickListener { onSave() }
 
         validateForm()
+
+        // copiar pix
+        binding.tilPix.setEndIconOnClickListener {
+            val text = binding.etPix.text?.toString().orEmpty()
+            if (text.isNotBlank()) {
+                val cm =
+                    requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("PIX", text))
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.func_toast_pix_copy),
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                // opcional: feedback quando vazio
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.func_toast_pix_copy_empty),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
     private fun prefillFields() {
@@ -241,10 +266,10 @@ class FuncionarioRegisterFragment : Fragment() {
     // Altera rótulo de "Dias trabalhados" conforme "Forma de Pagamento" escolhida
     private fun updateDiasLabel() = with(binding) {
         val res = when {
-            rbDiaria.isChecked  -> R.string.func_reg_days_hint
+            rbDiaria.isChecked -> R.string.func_reg_days_hint
             rbSemanal.isChecked -> R.string.func_reg_weeks_hint
-            rbMensal.isChecked  -> R.string.func_reg_months_hint
-            else                -> R.string.func_reg_days_hint   // default
+            rbMensal.isChecked -> R.string.func_reg_months_hint
+            else -> R.string.func_reg_days_hint   // default
         }
         tvLabelDias.setText(res)
     }

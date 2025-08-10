@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -96,19 +97,39 @@
                 android:textAppearance="?attr/textAppearanceBodyLarge" />
 
             <!-- Pix (se houver) -->
+            <!-- Pix (se houver) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Pix"
                 android:textAppearance="?attr/textAppearanceBodyMedium" />
 
-            <TextView
-                android:id="@+id/tvDetailPix"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:text="—"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvDetailPix"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="—"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <ImageButton
+                    android:id="@+id/btnCopyPix"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/generic_copy"
+                    android:src="@drawable/ic_copy"
+                    android:visibility="gone"
+                    app:tint="@color/black"
+                    tools:visibility="visible" />
+            </LinearLayout>
 
             <!-- Dias Trabalhados -->
             <TextView

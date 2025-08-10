@@ -16,6 +16,11 @@ import com.luizeduardobrandao.obra.data.model.Funcionario
 import com.luizeduardobrandao.obra.databinding.FragmentDetalheFuncionarioBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import androidx.core.view.isVisible
+import android.widget.Toast
 
 @AndroidEntryPoint
 class DetalheFuncionarioFragment : Fragment() {
@@ -72,7 +77,23 @@ class DetalheFuncionarioFragment : Fragment() {
         tvDetailPagamento.text = f.formaPagamento
 
         // 5) Pix — só exibimos valor se não for nulo/não em branco
-        tvDetailPix.text = if (f.pix.isNullOrBlank()) "—" else f.pix
+        val hasPix = !f.pix.isNullOrBlank()
+        tvDetailPix.text = if (hasPix) f.pix else "—"
+        btnCopyPix.isVisible = hasPix
+
+        btnCopyPix.setOnClickListener {
+            val text = tvDetailPix.text?.toString().orEmpty()
+            if (text.isNotBlank()) {
+                val cm =
+                    requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("PIX", text))
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.func_toast_pix_copy),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
 
         // 6) Dias e status
         tvDetailDias.text = f.diasTrabalhados.toString()
