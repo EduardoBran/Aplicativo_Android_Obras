@@ -14,75 +14,66 @@
         android:layout_height="wrap_content"
         android:padding="12dp">
 
-        <!-- Título -->
+        <!-- Nome -->
         <TextView
-            android:id="@+id/tvTituloEtapa"
+            android:id="@+id/tvNomeMaterial"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tvStatusMaterial"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="Titulo Cronograma" />
+            tools:text="Cimento CP-II 50kg" />
+
+        <!-- Status (Ativo/Inativo) -->
+        <TextView
+            android:id="@+id/tvStatusMaterial"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/success"
+            app:layout_constraintBaseline_toBaselineOf="@id/tvNomeMaterial"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Ativo" />
 
         <!-- Descrição resumida -->
         <TextView
-            android:id="@+id/tvDescEtapa"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvTituloEtapa"
-            tools:text="Parede Sala" />
-
-        <!-- Funcionários -->
-        <TextView
-            android:id="@+id/tvFuncsEtapa"
+            android:id="@+id/tvDescMaterial"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:textColor="?attr/colorOnSurfaceVariant"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvDescEtapa"
-            tools:text="Paulo, José" />
+            app:layout_constraintTop_toBottomOf="@id/tvNomeMaterial"
+            tools:text="Saco de 50 kg, marca X" />
 
-        <!-- Datas -->
+        <!-- Quantidade (com prefixo em negrito via adapter, se quiser) -->
         <TextView
-            android:id="@+id/tvDatasEtapa"
+            android:id="@+id/tvQtdMaterial"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textStyle="italic"
-            app:layout_constraintEnd_toStartOf="@id/tvStatusEtapa"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvFuncsEtapa"
-            tools:text="01/08 → 10/08" />
-
-        <!-- Status -->
-        <TextView
-            android:id="@+id/tvStatusEtapa"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pendente"
-            android:textColor="@color/md_theme_light_error"
-            app:layout_constraintBaseline_toBaselineOf="@id/tvTituloEtapa"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/tvDescMaterial"
+            tools:text="Quantidade: 12" />
 
         <!-- Divider -->
         <View
+            android:id="@+id/dividerActions"
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_marginTop="8dp"
             android:background="@color/md_theme_light_outline"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvDatasEtapa" />
+            app:layout_constraintTop_toBottomOf="@id/tvQtdMaterial" />
 
-        <!-- Ícones de ação -->
+        <!-- Ações -->
         <LinearLayout
+            android:id="@+id/layoutActions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -91,10 +82,10 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvDatasEtapa">
+            app:layout_constraintTop_toBottomOf="@id/dividerActions">
 
             <ImageButton
-                android:id="@+id/btnEditEtapa"
+                android:id="@+id/btnEditMaterial"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -103,7 +94,7 @@
                 app:tint="@color/md_theme_light_tertiary" />
 
             <ImageButton
-                android:id="@+id/btnDetailEtapa"
+                android:id="@+id/btnDetailMaterial"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_marginStart="16dp"
@@ -113,7 +104,7 @@
                 app:tint="@color/warning" />
 
             <ImageButton
-                android:id="@+id/btnDeleteEtapa"
+                android:id="@+id/btnDeleteMaterial"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_marginStart="16dp"

@@ -147,7 +147,40 @@
                     app:layout_constraintTop_toTopOf="@id/icSchedule" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Item 4  (Dados da Obra) -->
+            <!-- Item 4  (Materiais) -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/btnMaterials"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_item_click"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:id="@+id/icMaterials"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="16dp"
+                    android:src="@drawable/ic_build"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:text="@string/home_btn_materiais"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    app:layout_constraintBottom_toBottomOf="@id/icMaterials"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/icMaterials"
+                    app:layout_constraintTop_toTopOf="@id/icMaterials" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Item 5  (Dados da Obra) -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/btnProjectData"
                 android:layout_width="match_parent"
@@ -163,7 +196,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_marginStart="16dp"
-                    android:src="@drawable/ic_build"
+                    android:src="@drawable/ic_store"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -180,7 +213,7 @@
                     app:layout_constraintTop_toTopOf="@id/icBuild" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Item 5  (Resumo) -->
+            <!-- Item 6  (Resumo) -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/btnSummary"
                 android:layout_width="match_parent"

@@ -102,6 +102,7 @@
     <string name="home_error_load">Não foi possível carregar os dados da obra. Tente novamente.</string>
     <string name="home_logout_confirm_msg">Deseja sair da conta?</string>
     <string name="home_logout_confirm_action">Sair</string>
+    <string name="home_btn_materiais">Materiais</string>
 
     <!-- FuncionarioFragment -->
     <string name="func_title">Funcionários</string>
@@ -292,6 +293,44 @@
     <string name="etapa_detail_title">Etapa %1$s</string>
     <string name="cron_reg_desc_hint">Descrição</string>
     <string name="cron_reg_func_hint">Funcionário(s)</string>
+
+    <!-- fragment_material -->
+    <string name="material_title">Material da Obra</string>
+    <string name="material_reg_button_save">Adicionar Material</string>
+    <string name="material_reg_button_edit">Atualizar Material</string>
+
+    <!-- fragment_material_list -->
+    <string name="material_list_title">Materiais</string>
+    <string name="material_load_error">Erro ao carregar materiais</string>
+    <string name="material_empty_list">Nenhum material cadastrado.</string>
+
+    <!-- fragment_material_register -->
+    <string name="material_register_title">Novo Material</string>
+    <string name="material_edit_title">Editar Material</string>
+    <string name="material_label_name">Nome</string>
+    <string name="material_label_description">Descrição</string>
+    <string name="material_label_quantity">Quantidade</string>
+    <string name="material_hint_name">Informe o nome do material</string>
+    <string name="material_hint_description">Descrição (opcional)</string>
+    <string name="material_hint_quantity">Informe a quantidade</string>
+    <string name="material_save_error">Erro ao salvar material</string>
+    <string name="material_update_error">Erro ao atualizar material</string>
+    <string name="material_save_success">Material salvo com sucesso.</string>
+    <string name="material_update_success">Material atualizado com sucesso.</string>
+    <string name="generic_minus">Menos</string>
+    <string name="generic_plus">Mais</string>
+    <string name="material_status_active">Ativo</string>
+    <string name="material_status_inactive">Inativo</string>
+
+    <!-- fragment_detalhe_material -->
+    <string name="material_detail_title">Detalhes do Material</string>
+    <string name="material_delete_confirm">Deseja realmente excluir este material?</string>
+    <string name="material_delete_error">Erro ao excluir material</string>
+    <string name="material_delete_success">Material excluído com sucesso</string>
+    <string name="material_reg_name_hint">Nome</string>
+    <string name="material_reg_desc_hint">Descrição</string>
+    <string name="material_reg_quantity_label">Quantidade</string>
+    <string name="material_reg_status">Status</string>
 
     <!-- DadosObraFragment -->
     <string name="obra_data_title">Dados da obra de %1$s</string>

@@ -98,31 +98,49 @@ class HomeFragment : Fragment() {
     private fun setupSectionClicks() = with(binding) {
         val obraId = args.obraId
 
+        // Funcionários
         btnEmployees.setOnClickListener {
             findNavController().navigate(
                 HomeFragmentDirections.actionHomeToFuncionario(obraId)
             )
         }
+
+        // Notas
         btnNotes.setOnClickListener {
             findNavController().navigate(
                 HomeFragmentDirections.actionHomeToNotas(obraId)
             )
         }
+
+        // Cronograma
         btnSchedule.setOnClickListener {
             findNavController().navigate(
                 HomeFragmentDirections.actionHomeToCronograma(obraId)
             )
         }
+
+        // Materiais
+        btnMaterials.setOnClickListener {
+            findNavController().navigate(
+                HomeFragmentDirections.actionHomeToMaterial(obraId)
+            )
+        }
+
+        // Dados da Obra
         btnProjectData.setOnClickListener {
             findNavController().navigate(
                 HomeFragmentDirections.actionHomeToDadosObra(obraId)
             )
         }
+
+        // Resumo
         btnSummary.setOnClickListener {
             findNavController().navigate(
                 HomeFragmentDirections.actionHomeToResumo(obraId)
             )
         }
+
+        // Fotos
         btnPhotos.setOnClickListener {
             Toast.makeText(
                 requireContext(),

@@ -239,7 +239,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="menos"
+                    android:contentDescription="@string/generic_minus"
                     android:src="@drawable/ic_minus" />
 
                 <TextView
@@ -256,7 +256,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="mais"
+                    android:contentDescription="@string/generic_plus"
                     android:src="@drawable/ic_add" />
             </LinearLayout>
 

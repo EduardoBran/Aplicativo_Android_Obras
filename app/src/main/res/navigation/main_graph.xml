@@ -104,6 +104,10 @@
             app:destination="@id/cronogramaFragment" />
 
         <action
+            android:id="@+id/action_home_to_material"
+            app:destination="@id/materialFragment" />
+
+        <action
             android:id="@+id/action_home_to_dadosObra"
             app:destination="@id/dadosObraFragment" />
 
@@ -316,6 +320,56 @@
     </fragment>
 
 
+    <!-- ────────────────────────────  ►  MATERIAIS  ◄  ───────────────────── -->
+    <fragment
+        android:id="@+id/materialFragment"
+        android:name="com.luizeduardobrandao.obra.ui.material.MaterialFragment"
+        android:label="@string/material_list_title"
+        tools:layout="@layout/fragment_material">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_material_to_register"
+            app:destination="@id/materialRegisterFragment" />
+
+        <action
+            android:id="@+id/action_material_to_detail"
+            app:destination="@id/detalheMaterialFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/materialRegisterFragment"
+        android:name="com.luizeduardobrandao.obra.ui.material.MaterialRegisterFragment"
+        android:label="@string/material_register_title"
+        tools:layout="@layout/fragment_material_register">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+        <argument
+            android:name="materialId"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/detalheMaterialFragment"
+        android:name="com.luizeduardobrandao.obra.ui.material.DetalheMaterialFragment"
+        android:label="@string/material_detail_title"
+        tools:layout="@layout/fragment_detalhe_material">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+        <argument
+            android:name="materialId"
+            app:argType="string" />
+    </fragment>
+
+
     <!-- ────────────────────────────  ►  DADOS DA OBRA  ◄  ─────────────────── -->
     <fragment
         android:id="@+id/dadosObraFragment"
@@ -330,7 +384,7 @@
         <!-- volta para Home após salvar -->
         <action
             android:id="@+id/action_dadosObra_to_home"
-            app:destination="@id/homeFragment"/>
+            app:destination="@id/homeFragment" />
 
         <!-- volta para Work após exclusão -->
         <action
