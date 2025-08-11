@@ -48,7 +48,7 @@ class NotasFragment : Fragment(), NotaActions {
         /* Toolbar */
         toolbarNotas.setNavigationOnClickListener { findNavController().navigateUp() }
 
-// Pega o botão customizado do actionLayout
+        // Pega o botão customizado do actionLayout
         val menuItem = toolbarNotas.menu.findItem(R.id.action_nota_menu)
         val anchor = menuItem.actionView?.findViewById<View>(R.id.btnSummaryMenu)
 

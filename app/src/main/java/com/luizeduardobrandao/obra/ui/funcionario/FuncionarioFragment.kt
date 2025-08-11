@@ -40,7 +40,7 @@ class FuncionarioFragment : Fragment() {
         // Mantemos apenas o listener direto da Toolbar
         binding.toolbarFuncionario.setNavigationOnClickListener { findNavController().navigateUp() }
 
-// anchor = o ImageButton do actionView
+        // anchor = o ImageButton do actionView
         val menuItem = binding.toolbarFuncionario.menu.findItem(R.id.action_func_menu)
         val anchor = menuItem.actionView?.findViewById<View>(R.id.btnSummaryMenu)
 

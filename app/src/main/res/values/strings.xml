@@ -329,6 +329,7 @@
     <string name="generic_plus">Mais</string>
     <string name="material_status_active">Ativo</string>
     <string name="material_status_inactive">Inativo</string>
+    <string name="material_duplicate_name">Já existe um material com esse nome.</string>
 
     <!-- fragment_detalhe_material -->
     <string name="material_detail_title">Detalhes do Material</string>

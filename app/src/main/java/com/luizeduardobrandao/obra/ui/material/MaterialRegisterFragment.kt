@@ -34,7 +34,7 @@ class MaterialRegisterFragment : Fragment() {
     private val viewModel: MaterialViewModel by viewModels()
 
     private val isEdit get() = args.materialId != null
-    private var quantidade = 0
+    private var quantidade = 1
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -59,6 +59,22 @@ class MaterialRegisterFragment : Fragment() {
                 if (isEdit) R.string.material_reg_button_edit else R.string.material_reg_button_save
             )
             btnSaveMaterial.isEnabled = false
+
+            // Habilita salvar quando a lista carregar (e o form estiver ok)
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    viewModel.state.collect { s ->
+                        if (s is UiState.Success) {
+                            btnSaveMaterial.isEnabled = validateForm()
+                        }
+                    }
+                }
+            }
+
+            if (!isEdit) {
+                quantidade = 1
+                tvQuantidade.text = quantidade.toString()
+            }
 
             // Quantidade – / +
             btnPlusQtd.setOnClickListener { updateQuantidade(+1) }
@@ -136,6 +152,17 @@ class MaterialRegisterFragment : Fragment() {
             return
         }
 
+        val nome = binding.etNomeMaterial.text.toString().trim()
+        if (viewModel.isDuplicateName(nome, args.materialId)) {
+            showSnackbarFragment(
+                Constants.SnackType.ERROR.name,
+                getString(R.string.snack_error),
+                getString(R.string.material_duplicate_name),
+                getString(R.string.snack_button_ok)
+            )
+            return
+        }
+
         val status = getCheckedStatus()
         val material = Material(
             id = args.materialId ?: "",
@@ -169,7 +196,7 @@ class MaterialRegisterFragment : Fragment() {
 
     /*──────────────────── Helpers ────────────────────*/
     private fun updateQuantidade(delta: Int) {
-        quantidade = (quantidade + delta).coerceAtLeast(0)
+        quantidade = (quantidade + delta).coerceAtLeast(1)
         binding.tvQuantidade.text = quantidade.toString()
     }
 

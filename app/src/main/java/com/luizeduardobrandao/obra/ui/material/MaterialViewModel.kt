@@ -46,8 +46,25 @@ class MaterialViewModel @Inject constructor(
     private val _opState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val opState: StateFlow<UiState<Unit>> = _opState.asStateFlow()
 
+    private val latestMateriais = MutableStateFlow<List<Material>>(emptyList())
+
     // Garante apenas um listener ativo
     private var loadJob: Job? = null
+
+    init {
+        loadMateriais()   // garante que latestMateriais será populado em qualquer tela
+    }
+
+    // helper para checar duplicidade (ignora o próprio id em edição)
+    fun isDuplicateName(name: String, excludeId: String? = null): Boolean {
+        val n = name.trim()
+        return latestMateriais.value.any {
+            it.nome.equals(
+                n,
+                ignoreCase = true
+            ) && it.id != excludeId
+        }
+    }
 
 
     /** Inicia (ou reinicia) o listener em /obras/{uid}/{obraId}/materiais */
@@ -56,7 +73,10 @@ class MaterialViewModel @Inject constructor(
         loadJob = viewModelScope.launch(io) {
             repo.observeMateriais(obraId)
                 .catch { _state.value = UiState.ErrorRes(R.string.material_load_error) }
-                .onEach { list -> _state.value = UiState.Success(list) }
+                .onEach { list ->
+                    latestMateriais.value = list
+                    _state.value = UiState.Success(list)
+                }
                 .collect()
         }
     }
