@@ -50,6 +50,10 @@ class DadosObraFragment : Fragment() {
 
     private var isDeleting = false
 
+    // flags para evitar "flash" de erros
+    private var dataLoaded = false
+    private var watchersSet = false
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -67,18 +71,8 @@ class DadosObraFragment : Fragment() {
         setupListeners()
         observeViewModel()
 
-        // ⬇ valida tudo assim que a tela aparecer
-        validateForm()
-
-        // ⬇ revalida toda vez que o usuário muda qualquer um desses campos
-        listOf(
-            binding.etNomeCliente,
-            binding.etEnderecoObra,
-            binding.etDataInicioObra,
-            binding.etDataFimObra
-        ).forEach { edit ->
-            edit.doAfterTextChanged { validateForm() }
-        }
+        // NÃO valide nem instale watchers agora; espere os dados chegarem
+        binding.btnSalvarObra.isEnabled = false
     }
 
     override fun onDestroyView() {
@@ -102,8 +96,8 @@ class DadosObraFragment : Fragment() {
             .apply {
                 addOnPositiveButtonClickListener { millis ->
                     val chosen = formatter.format(Date(millis))
-                    onResult(chosen)        // preenche o EditText
-                    validateForm()          // <-- força nova validação
+                    onResult(chosen)
+                    validateForm() // só fará algo quando dataLoaded = true
                 }
             }
             .show(childFragmentManager, "DATE_PICKER")
@@ -136,7 +130,6 @@ class DadosObraFragment : Fragment() {
             }
         }
 
-
         btnExcluirObra.setOnClickListener {
             showSnackbarFragment(
                 Constants.SnackType.WARNING.name,
@@ -144,7 +137,7 @@ class DadosObraFragment : Fragment() {
                 getString(R.string.obra_data_snack_delete_msg),
                 getString(R.string.obra_data_button_delete)
             ) {
-                isDeleting = true                 // ⬅️ marque que iniciou exclusão
+                isDeleting = true
                 viewModel.excluirObra()
             }
         }
@@ -154,20 +147,32 @@ class DadosObraFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
 
-                // 1) Observa dados da obra (apenas UI, sem navegação!)
+                // 1) Dados da obra
                 launch {
                     viewModel.obraState.collect { ui ->
                         when (ui) {
-                            is UiState.Loading -> binding.progressDadosObra.visibility = View.VISIBLE
+                            is UiState.Loading -> {
+                                binding.progressDadosObra.visibility = View.VISIBLE
+                                binding.scrollDadosObra.visibility = View.GONE
+                                dataLoaded = false
+                            }
 
                             is UiState.Success -> {
+                                populateFields(ui.data)
+
+                                // troca visibilidades
                                 binding.progressDadosObra.visibility = View.GONE
-                                populateFields(ui.data)   // só atualiza campos
+                                binding.scrollDadosObra.visibility = View.VISIBLE
+
+                                // marca carregado e só então instala watchers e valida
+                                dataLoaded = true
+                                setupTextWatchersOnce()
+                                validateForm()
                             }
 
                             is UiState.ErrorRes -> {
                                 binding.progressDadosObra.visibility = View.GONE
-                                // Se estiver deletando, ignore este erro transitório
+                                binding.scrollDadosObra.visibility = View.VISIBLE
                                 if (!isDeleting) {
                                     showSnackbarFragment(
                                         Constants.SnackType.ERROR.name,
@@ -183,22 +188,21 @@ class DadosObraFragment : Fragment() {
                     }
                 }
 
-                // 2) Observa resultado das operações (é AQUI que navega/mostra toast)
+                // 2) Resultado das operações
                 launch {
                     viewModel.opState.collect { ui ->
                         when (ui) {
-                            is UiState.Loading -> binding.progressDadosObra.visibility = View.VISIBLE
+                            is UiState.Loading -> binding.progressDadosObra.visibility =
+                                View.VISIBLE
 
                             is UiState.Success -> {
                                 binding.progressDadosObra.visibility = View.GONE
                                 if (isDeleting) {
-                                    // Exclusão concluída → vai para Work e limpa flag
                                     isDeleting = false
                                     findNavController().navigate(
                                         DadosObraFragmentDirections.actionDadosObraToWork()
                                     )
                                 } else {
-                                    // Salvar/atualizar saldo
                                     Toast.makeText(
                                         requireContext(),
                                         getString(R.string.obra_data_toast_updated),
@@ -217,7 +221,6 @@ class DadosObraFragment : Fragment() {
                                     getString(ui.resId),
                                     getString(R.string.snack_button_ok)
                                 )
-                                // Em caso de erro, garanta que a flag volte
                                 isDeleting = false
                                 viewModel.resetOpState()
                             }
@@ -227,6 +230,19 @@ class DadosObraFragment : Fragment() {
                     }
                 }
             }
+        }
+    }
+
+    private fun setupTextWatchersOnce() {
+        if (watchersSet) return
+        watchersSet = true
+        listOf(
+            binding.etNomeCliente,
+            binding.etEnderecoObra,
+            binding.etDataInicioObra,
+            binding.etDataFimObra
+        ).forEach { edit ->
+            edit.doAfterTextChanged { if (dataLoaded) validateForm() }
         }
     }
 
@@ -241,18 +257,18 @@ class DadosObraFragment : Fragment() {
         etDataFimObra.setText(obra.dataFim)
     }
 
-    /**
-     * Faz todas as validações e, no final,
-     * habilita ou desabilita o botão “Salvar”.
-     */
+    /** Valida só depois de dataLoaded=true para evitar flash de erros */
     private fun validateForm(): Boolean {
-        var isValid = true
+        if (!dataLoaded) {
+            binding.btnSalvarObra.isEnabled = false
+            // limpa erros visuais enquanto carrega
+            clearErrors()
+            return false
+        }
 
+        var isValid = true
         binding.apply {
-            tilNomeCliente.error = null
-            tilEnderecoObra.error = null
-            tilDataInicioObra.error = null
-            tilDataFimObra.error = null
+            clearErrors()
 
             if (etNomeCliente.text.isNullOrBlank() ||
                 etNomeCliente.text!!.trim().length < Constants.Validation.MIN_NAME
@@ -260,26 +276,28 @@ class DadosObraFragment : Fragment() {
                 tilNomeCliente.error = getString(R.string.dados_obra_name_error)
                 isValid = false
             }
-
             if (etEnderecoObra.text.isNullOrBlank()) {
                 tilEnderecoObra.error = getString(R.string.dados_obra_address_error)
                 isValid = false
             }
-
             if (etDataInicioObra.text.isNullOrBlank()) {
                 tilDataInicioObra.error = getString(R.string.dados_obra_date_start_error)
                 isValid = false
             }
-
             if (etDataFimObra.text.isNullOrBlank()) {
                 tilDataFimObra.error = getString(R.string.dados_obra_date_end_error)
                 isValid = false
             }
 
-            // ⬇ aqui você liga/desliga de verdade o botão
             btnSalvarObra.isEnabled = isValid
         }
-
         return isValid
+    }
+
+    private fun clearErrors() = with(binding) {
+        tilNomeCliente.error = null
+        tilEnderecoObra.error = null
+        tilDataInicioObra.error = null
+        tilDataFimObra.error = null
     }
 }
