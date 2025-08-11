@@ -2,6 +2,7 @@ package com.luizeduardobrandao.obra.ui.funcionario
 
 import android.os.Bundle
 import android.view.*
+import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -37,16 +38,36 @@ class FuncionarioFragment : Fragment() {
 
         // Toolbar navegação
         // Mantemos apenas o listener direto da Toolbar
-        binding.toolbarFuncionario.apply {
-            setNavigationOnClickListener { findNavController().navigateUp() }
-            setOnMenuItemClickListener { item ->
-                if (item.itemId == R.id.action_func_to_resumo) {
-                    findNavController().navigate(
-                        FuncionarioFragmentDirections.actionFuncToResumo(args.obraId)
-                    )
-                    true
-                } else false
+        binding.toolbarFuncionario.setNavigationOnClickListener { findNavController().navigateUp() }
+
+// anchor = o ImageButton do actionView
+        val menuItem = binding.toolbarFuncionario.menu.findItem(R.id.action_func_menu)
+        val anchor = menuItem.actionView?.findViewById<View>(R.id.btnSummaryMenu)
+
+        anchor?.setOnClickListener {
+            val themed = ContextThemeWrapper(requireContext(), R.style.PopupMenu_WhiteBg_BlackText)
+            val popup = PopupMenu(themed, anchor, Gravity.END).apply {
+                // ⚠️ Use o menu SEM actionLayout
+                menuInflater.inflate(R.menu.menu_funcionario_popup, menu)
+                setOnMenuItemClickListener { item ->
+                    when (item.itemId) {
+                        R.id.action_func_to_resumo -> {
+                            // posta a navegação p/ evitar conflito com o fechamento do popup
+                            anchor.post {
+                                if (isAdded) {
+                                    findNavController().navigate(
+                                        FuncionarioFragmentDirections.actionFuncToResumo(args.obraId)
+                                    )
+                                }
+                            }
+                            true
+                        }
+
+                        else -> false
+                    }
+                }
             }
+            popup.show()
         }
 
 

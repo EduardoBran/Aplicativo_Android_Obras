@@ -14,6 +14,7 @@
         android:theme="@style/ThemeOverlay.ObrasApp.Toolbar"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_back"
+        app:navigationIconTint="@color/white"
         app:title="@string/nota_reg_title"
         app:titleCentered="true" />
 
@@ -140,11 +141,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textColor="@color/md_theme_light_error"
                 android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="@color/md_theme_light_error"
                 android:visibility="gone"
                 tools:text="@string/nota_reg_error_tipo"
-                tools:visibility="visible"/>
+                tools:visibility="visible" />
 
             <!-- Data -->
             <com.google.android.material.textfield.TextInputLayout

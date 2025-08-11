@@ -14,6 +14,7 @@
         android:theme="@style/ThemeOverlay.ObrasApp.Toolbar"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_back"
+        app:navigationIconTint="@color/white"
         app:titleCentered="true" />
 
     <!-- ─────────  Conteúdo rolável  ───────── -->

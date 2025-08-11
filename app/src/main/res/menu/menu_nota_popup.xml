@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Resumo de notas -->
+    <item
+        android:id="@+id/action_notas_to_resumo"
+        android:icon="@drawable/ic_summary"
+        android:title="@string/nota_menu_summary" />
+</menu>

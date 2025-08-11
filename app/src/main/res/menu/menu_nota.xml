@@ -3,10 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- Resumo de notas -->
+    <!-- Botão customizado de menu -->
     <item
-        android:id="@+id/action_notas_to_resumo"
-        android:icon="@drawable/ic_summary"
+        android:id="@+id/action_nota_menu"
         android:title="@string/nota_menu_summary"
-        app:showAsAction="never" />
+        app:actionLayout="@layout/action_menu_summary_button"
+        app:showAsAction="always" />
 
 </menu>

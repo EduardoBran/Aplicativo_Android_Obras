@@ -12,10 +12,11 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         android:theme="@style/ThemeOverlay.ObrasApp.Toolbar"
-        app:popupTheme="@style/PopupMenu.WhiteBg_BlackText"
         app:layout_constraintTop_toTopOf="parent"
         app:menu="@menu/menu_funcionario"
         app:navigationIcon="@drawable/ic_back"
+        app:navigationIconTint="@color/white"
+        app:popupTheme="@style/PopupMenu.WhiteBg_BlackText"
         app:title="@string/func_title"
         app:titleCentered="true" />
 

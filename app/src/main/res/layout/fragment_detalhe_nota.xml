@@ -17,6 +17,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_back"
+        app:navigationIconTint="@color/white"
         app:title="Nota"
         app:titleCentered="true"
         app:titleTextColor="?attr/colorOnPrimary" />

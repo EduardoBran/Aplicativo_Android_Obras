@@ -17,6 +17,9 @@ import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.ui.notas.adapter.NotaPagerAdapter
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.appcompat.widget.PopupMenu
+import android.view.Gravity
+import android.view.ContextThemeWrapper
 
 @AndroidEntryPoint
 class NotasFragment : Fragment(), NotaActions {
@@ -44,13 +47,34 @@ class NotasFragment : Fragment(), NotaActions {
 
         /* Toolbar */
         toolbarNotas.setNavigationOnClickListener { findNavController().navigateUp() }
-        toolbarNotas.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.action_notas_to_resumo) {
-                findNavController().navigate(
-                    NotasFragmentDirections.actionNotasToResumo(args.obraId)
-                )
-                true
-            } else false
+
+// Pega o botão customizado do actionLayout
+        val menuItem = toolbarNotas.menu.findItem(R.id.action_nota_menu)
+        val anchor = menuItem.actionView?.findViewById<View>(R.id.btnSummaryMenu)
+
+        anchor?.setOnClickListener {
+            val themedCtx =
+                ContextThemeWrapper(requireContext(), R.style.PopupMenu_WhiteBg_BlackText)
+            val popup = PopupMenu(themedCtx, anchor, Gravity.END).apply {
+                menuInflater.inflate(R.menu.menu_nota_popup, menu)
+                setOnMenuItemClickListener { item ->
+                    when (item.itemId) {
+                        R.id.action_notas_to_resumo -> {
+                            anchor.post {
+                                if (isAdded) {
+                                    findNavController().navigate(
+                                        NotasFragmentDirections.actionNotasToResumo(args.obraId)
+                                    )
+                                }
+                            }
+                            true
+                        }
+
+                        else -> false
+                    }
+                }
+            }
+            popup.show()
         }
 
         /* Tabs & Pager */
@@ -59,7 +83,7 @@ class NotasFragment : Fragment(), NotaActions {
 
         TabLayoutMediator(tabNotas, pagerNotas) { tab, pos ->
             tab.text = if (pos == 0) getString(R.string.nota_tab_due)
-            else                     getString(R.string.nota_tab_paid)
+            else getString(R.string.nota_tab_paid)
         }.attach()
 
         // FAB — criar nota
@@ -70,7 +94,9 @@ class NotasFragment : Fragment(), NotaActions {
         }
 
         // FAB visível somente na aba 0 (A Pagar)
-        fun updateFabVisibility() { fabNewNota.isVisible = pagerNotas.currentItem == 0 }
+        fun updateFabVisibility() {
+            fabNewNota.isVisible = pagerNotas.currentItem == 0
+        }
         updateFabVisibility()
 
         pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
