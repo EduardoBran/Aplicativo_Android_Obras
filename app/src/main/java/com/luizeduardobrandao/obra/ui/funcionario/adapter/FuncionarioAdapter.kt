@@ -98,18 +98,25 @@ class FuncionarioAdapter(
             )
 
             // ②.1 Período trabalhado depende da forma de pagamento (diária/semanal/mensal)
-            val diaria = root.context.getString(R.string.func_reg_salary_options1)
-            val semanal = root.context.getString(R.string.func_reg_salary_options2)
-            val mensal = root.context.getString(R.string.func_reg_salary_options3)
+            // ②.1 Período trabalhado depende da forma de pagamento (diária/semanal/mensal/tarefeiro)
+            val diaria    = root.context.getString(R.string.func_reg_salary_options1)
+            val semanal   = root.context.getString(R.string.func_reg_salary_options2)
+            val mensal    = root.context.getString(R.string.func_reg_salary_options3)
+            val tarefeiro = root.context.getString(R.string.func_reg_salary_options4)
 
             val qtd = item.diasTrabalhados
-            val pluralRes = when (item.formaPagamento) {
-                diaria  -> R.plurals.func_period_days
-                semanal -> R.plurals.func_period_weeks
-                mensal  -> R.plurals.func_period_months
-                else    -> R.plurals.func_period_days        // fallback
+            if (item.formaPagamento.equals(tarefeiro, ignoreCase = true)) {
+                // Texto fixo para tarefeiro (sem unidade/quantidade)
+                tvDiasTrabalhados.text = root.context.getString(R.string.func_reg_salary_options4)
+            } else {
+                val pluralRes = when (item.formaPagamento) {
+                    diaria  -> R.plurals.func_period_days
+                    semanal -> R.plurals.func_period_weeks
+                    mensal  -> R.plurals.func_period_months
+                    else    -> R.plurals.func_period_days
+                }
+                tvDiasTrabalhados.text = root.resources.getQuantityString(pluralRes, qtd, qtd)
             }
-            tvDiasTrabalhados.text = root.resources.getQuantityString(pluralRes, qtd, qtd)
 
             // ③ Ações
             if (showActions) {

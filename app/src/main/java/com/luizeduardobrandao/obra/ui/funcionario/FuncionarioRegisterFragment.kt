@@ -67,9 +67,17 @@ class FuncionarioRegisterFragment : Fragment() {
         getAllFuncaoCheckboxes().forEach { cb ->
             cb.setOnCheckedChangeListener { _, _ -> validateForm() }
         }
-        binding.rgPagamento.setOnCheckedChangeListener { _, _ ->
-            updateDiasLabel()
-            validateForm()
+        getAllPagamentoRadios().forEach { rb ->
+            rb.setOnCheckedChangeListener { button, isChecked ->
+                if (isChecked) {
+                    // exclusividade manual
+                    getAllPagamentoRadios().forEach { other ->
+                        if (other != button && other.isChecked) other.isChecked = false
+                    }
+                    updateDiasLabel()
+                    validateForm()
+                }
+            }
         }
 
         updateDiasLabel()
@@ -126,7 +134,7 @@ class FuncionarioRegisterFragment : Fragment() {
                             }
 
                             // Forma de pagamento e status continuam com RadioButton
-                            selectSingleChoice(binding.rgPagamento, func.formaPagamento)
+                            selectPagamentoByText(func.formaPagamento)
                             selectSingleChoice(binding.rgStatus, func.status)
                             updateDiasLabel()
                         }
@@ -168,7 +176,7 @@ class FuncionarioRegisterFragment : Fragment() {
         tvFuncaoError.visibility = if (!funcaoOk) View.VISIBLE else View.GONE
 
         // Uma forma de pagamento selecionada
-        val pagtoOk = rgPagamento.checkedRadioButtonId != -1
+        val pagtoOk = getAllPagamentoRadios().any { it.isChecked }
         tvPagamentoError.text = if (!pagtoOk) getString(R.string.func_reg_error_pagamento) else null
         tvPagamentoError.visibility = if (!pagtoOk) View.VISIBLE else View.GONE
 
@@ -222,7 +230,7 @@ class FuncionarioRegisterFragment : Fragment() {
             nome = binding.etNomeFunc.text.toString().trim(),
             funcao = getCheckedFuncaoTexts().joinToString(" / "),
             salario = binding.etSalario.text.toString().replace(',', '.').toDouble(),
-            formaPagamento = getCheckedRadioText(binding.rgPagamento),
+            formaPagamento = getCheckedRadioTextPagamento(),
             pix = binding.etPix.text.toString().trim(),
             diasTrabalhados = diasTrabalhados,
             status = getCheckedRadioText(binding.rgStatus).lowercase()
@@ -266,13 +274,33 @@ class FuncionarioRegisterFragment : Fragment() {
     // Altera rótulo de "Dias trabalhados" conforme "Forma de Pagamento" escolhida
     private fun updateDiasLabel() = with(binding) {
         val res = when {
-            rbDiaria.isChecked -> R.string.func_reg_days_hint
-            rbSemanal.isChecked -> R.string.func_reg_weeks_hint
-            rbMensal.isChecked -> R.string.func_reg_months_hint
-            else -> R.string.func_reg_days_hint   // default
+            rbDiaria.isChecked     -> R.string.func_reg_days_hint
+            rbSemanal.isChecked    -> R.string.func_reg_weeks_hint
+            rbMensal.isChecked     -> R.string.func_reg_months_hint
+            rbTarefeiro.isChecked  -> R.string.func_reg_task_fixed_hint // <-- novo texto
+            else                   -> R.string.func_reg_days_hint
         }
         tvLabelDias.setText(res)
     }
+
+    private fun getCheckedRadioTextPagamento(): String {
+        return getAllPagamentoRadios().firstOrNull { it.isChecked }?.text?.toString().orEmpty()
+    }
+
+    private fun selectPagamentoByText(text: String) {
+        val target = getAllPagamentoRadios().firstOrNull {
+            it.text.toString().equals(text, ignoreCase = true)
+        }
+        target?.isChecked = true
+    }
+
+
+    private fun getAllPagamentoRadios() = listOf(
+        binding.rbDiaria,
+        binding.rbSemanal,
+        binding.rbMensal,
+        binding.rbTarefeiro
+    )
 
     override fun onDestroyView() {
         super.onDestroyView()

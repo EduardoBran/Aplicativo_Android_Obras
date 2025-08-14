@@ -36,6 +36,7 @@ data class Funcionario(
             "diária"  -> salario * diasTrabalhados             // dias
             "semanal" -> salario * diasTrabalhados             // semanas
             "mensal"  -> salario * diasTrabalhados             // meses
+            "tarefeiro"  -> salario                            // <-- valor fixo por tarefa
             else -> 0.0
         }
 }

@@ -157,6 +157,7 @@
     <string name="func_reg_salary_options1">Diária</string>
     <string name="func_reg_salary_options2">Semanal</string>
     <string name="func_reg_salary_options3">Mensal</string>
+    <string name="func_reg_salary_options4">Tarefeiro</string>
     <string name="func_reg_role">Função</string>
     <string name="func_reg_payment">Forma de Pagamento</string>
     <string name="func_reg_status">Status</string>
@@ -175,6 +176,8 @@
     <string name="func_reg_error_pagamento">Selecione a forma de pagamento</string>
     <string name="func_toast_pix_copy">Pix copiado.</string>
     <string name="func_toast_pix_copy_empty">Sem pix adicionado.</string>
+    <!-- Rótulo quando for tarefeiro -->
+    <string name="func_reg_task_fixed_hint">Dias Trabalhados (pagamento fixo)</string>
 
     <!-- DetalheFuncionarioFragment -->
     <string name="func_detail_title">Funcionário %1$s</string>
