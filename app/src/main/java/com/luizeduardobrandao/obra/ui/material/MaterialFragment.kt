@@ -111,18 +111,21 @@ class MaterialFragment : Fragment(), MaterialActions {
 
     override fun onDelete(material: Material) {
         showSnackbarFragment(
-            Constants.SnackType.WARNING.name,
-            getString(R.string.snack_warning),
-            getString(R.string.material_delete_confirm),
-            getString(R.string.snack_button_yes)
-        ) {
-            viewModel.deleteMaterial(material.id)
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.material_delete_success),
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+            type = Constants.SnackType.WARNING.name,
+            title = getString(R.string.snack_warning),
+            msg = getString(R.string.material_delete_confirm),
+            btnText = getString(R.string.snack_button_yes),          // SIM
+            onAction = {
+                viewModel.deleteMaterial(material.id)
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.material_delete_success),
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+            btnNegativeText = getString(R.string.snack_button_no),   // NÃO
+            onNegative = { /* nada: fecha o SnackbarFragment */ }
+        )
     }
 
     override fun onDestroyView() {

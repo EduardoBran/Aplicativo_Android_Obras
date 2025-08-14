@@ -22,20 +22,19 @@ fun Fragment.showSnackbarFragment(
     title: String,
     msg: String,
     btnText: String? = null,
-    onAction: (() -> Unit)? = null
+    onAction: (() -> Unit)? = null,
+    // NOVOS opcionais:
+    btnNegativeText: String? = null,
+    onNegative: (() -> Unit)? = null
 ) {
     val tag = SnackbarFragment.TAG
-    // 1) captura o FragmentManager do seu Fragment HOSPEDEIRO
     val fm = parentFragmentManager
-
-    // 2) evita empilhar mais de um com o mesmo tag
     if (fm.findFragmentByTag(tag) != null) return
 
-    // 3) cria e configura
-    val sheet = SnackbarFragment.newInstance(type, title, msg, btnText)
+    val sheet = SnackbarFragment.newInstance(type, title, msg, btnText, btnNegativeText)
     sheet.actionCallback = onAction
+    sheet.secondaryActionCallback = onNegative // NOVO
 
-    // 4) exibe **no** fm da Activity, não no do SnackbarFragment
     sheet.show(fm, tag)
 }
 

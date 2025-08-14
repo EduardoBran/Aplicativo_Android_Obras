@@ -171,20 +171,28 @@ class FuncionarioListFragment : Fragment() {
         )
     }
 
-    private fun deleteFuncionario(func: Funcionario){
+    private fun deleteFuncionario(func: Funcionario) {
         showSnackbarFragment(
-            type = Constants.SnackType.WARNING.name,
+            type  = Constants.SnackType.WARNING.name,
             title = getString(R.string.snack_attention),
-            msg = getString(R.string.func_snack_delete_msg, func.nome),
-            btnText = getString(R.string.snack_button_yes)
-        ) {
-            // só aqui, quando o usuário clicar em “Sim”, executamos
-            viewModel.deleteFuncionario(func.id)
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.func_toast_removed, func.nome),
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+            msg   = getString(R.string.func_snack_delete_msg, func.nome),
+
+            // Botão positivo (SIM)
+            btnText = getString(R.string.snack_button_yes),
+            onAction = {
+                viewModel.deleteFuncionario(func.id)
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.func_toast_removed, func.nome),
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+
+            // Botão negativo (NÃO)
+            btnNegativeText = getString(R.string.snack_button_no),
+            onNegative = {
+                // Nenhuma ação extra — o SnackbarFragment já fecha ao clicar
+            }
+        )
     }
 }

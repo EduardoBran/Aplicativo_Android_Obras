@@ -132,14 +132,17 @@ class DadosObraFragment : Fragment() {
 
         btnExcluirObra.setOnClickListener {
             showSnackbarFragment(
-                Constants.SnackType.WARNING.name,
-                getString(R.string.snack_warning),
-                getString(R.string.obra_data_snack_delete_msg),
-                getString(R.string.obra_data_button_delete)
-            ) {
-                isDeleting = true
-                viewModel.excluirObra()
-            }
+                type = Constants.SnackType.WARNING.name,
+                title = getString(R.string.snack_warning),
+                msg = getString(R.string.obra_data_snack_delete_msg),
+                btnText = getString(R.string.snack_button_yes),          // SIM
+                onAction = {
+                    isDeleting = true
+                    viewModel.excluirObra()
+                },
+                btnNegativeText = getString(R.string.snack_button_no),   // NÃO
+                onNegative = { /* nada: apenas fecha o SnackbarFragment */ }
+            )
         }
     }
 

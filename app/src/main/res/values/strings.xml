@@ -17,6 +17,7 @@
     <string name="error_no_internet">Você está sem conexão à internet.</string>
     <string name="menu_title">Menu</string>
 
+
     <!-- SnackbarFragment -->
     <string name="snack_attention">Atenção</string>
     <string name="snack_error">Erro</string>
@@ -25,6 +26,7 @@
     <string name="snack_title">Aviso</string>
     <string name="snack_button_ok">OK</string>
     <string name="snack_button_yes">SIM</string>
+    <string name="snack_button_no">NAO</string>
 
     <!-- LoginFragment -->
     <string name="login_title">Entrar</string>

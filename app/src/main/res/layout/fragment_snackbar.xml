@@ -22,6 +22,7 @@
             android:id="@+id/cardSnackbar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:background="@android:color/white"
             app:cardCornerRadius="12dp"
             app:cardUseCompatPadding="true"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -35,14 +36,35 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <TextView
-                    android:id="@+id/tvSnackTitle"
+                <!-- Linha com ícone + título -->
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                    android:textStyle="bold"
-                    tools:text="Título" />
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/imgSnackIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginStart="8dp"
+                        android:contentDescription="@string/app_name"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        tools:src="@drawable/ic_check" />
+
+                    <TextView
+                        android:id="@+id/tvSnackTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                        android:textStyle="bold"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        tools:text="Título" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <TextView
                     android:id="@+id/tvSnackMessage"
@@ -50,17 +72,46 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:gravity="center"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp"
                     tools:text="Mensagem" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSnackAction"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/rowButtons"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
                     android:layout_marginTop="12dp"
-                    tools:text="Nome Botão" />
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <!-- Botão positivo (SIM) -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSnackAction"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:backgroundTint="@color/btn_bg_success"
+                        app:cornerRadius="4dp"
+
+                        tools:text="SIM" />
+
+                    <!-- Espaço -->
+                    <Space
+                        android:id="@+id/spaceBetween"
+                        android:layout_width="16dp"
+                        android:layout_height="1dp"
+                        android:visibility="gone" />
+
+                    <!-- Botão negativo (NÃO) -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSnackNegative"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:backgroundTint="@color/btn_bg_error"
+                        app:cornerRadius="4dp"
+
+                        android:visibility="gone"
+                        tools:text="NÃO" />
+                </LinearLayout>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>

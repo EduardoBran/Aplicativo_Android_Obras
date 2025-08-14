@@ -84,11 +84,14 @@ class HomeFragment : Fragment() {
 
     private fun confirmLogout() {
         showSnackbarFragment(
-            Constants.SnackType.WARNING.name,
-            getString(R.string.snack_warning),
-            getString(R.string.home_logout_confirm_msg),     // "Deseja sair da conta?"
-            getString(R.string.home_logout_confirm_action)   // "Sair"
-        ) { viewModel.logout() }
+            type = Constants.SnackType.WARNING.name,
+            title = getString(R.string.snack_warning),
+            msg = getString(R.string.home_logout_confirm_msg),
+            btnText = getString(R.string.snack_button_yes),     // "SIM"
+            onAction = { viewModel.logout() },                  // executa logout
+            btnNegativeText = getString(R.string.snack_button_no), // "NÃO"
+            onNegative = { /* opcional: nada; o sheet já é fechado */ }
+        )
     }
 
     /**

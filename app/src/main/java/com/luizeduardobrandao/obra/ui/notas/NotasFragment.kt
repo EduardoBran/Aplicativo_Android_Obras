@@ -129,15 +129,20 @@ class NotasFragment : Fragment(), NotaActions {
 
     override fun onDelete(nota: Nota) {
         showSnackbarFragment(
-            Constants.SnackType.WARNING.name,
-            getString(R.string.snack_attention),
-            getString(R.string.nota_snack_delete_msg),
-            getString(R.string.snack_button_yes)
-        ) {
-            viewModel.deleteNota(nota)
-            Toast.makeText(
-                requireContext(), R.string.nota_toast_removed, Toast.LENGTH_SHORT
-            ).show()
-        }
+            type = Constants.SnackType.WARNING.name,
+            title = getString(R.string.snack_attention),
+            msg = getString(R.string.nota_snack_delete_msg),
+            btnText = getString(R.string.snack_button_yes),          // SIM
+            onAction = {
+                viewModel.deleteNota(nota)
+                Toast.makeText(
+                    requireContext(),
+                    R.string.nota_toast_removed,
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+            btnNegativeText = getString(R.string.snack_button_no),   // NÃO
+            onNegative = { /* nada: só fecha o SnackbarFragment */ }
+        )
     }
 }

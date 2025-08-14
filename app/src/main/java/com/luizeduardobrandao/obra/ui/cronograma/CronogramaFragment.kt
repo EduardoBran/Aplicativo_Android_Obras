@@ -122,18 +122,21 @@ class CronogramaFragment : Fragment(), EtapaActions {
 
     override fun onDelete(etapa: Etapa) {
         showSnackbarFragment(
-            Constants.SnackType.WARNING.name,
-            getString(R.string.snack_warning),
-            getString(R.string.cron_snack_delete_msg),
-            getString(R.string.snack_button_yes)
-        ) {                               // onAction →
-            viewModel.deleteEtapa(etapa)
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.cron_toast_removed),
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+            type = Constants.SnackType.WARNING.name,
+            title = getString(R.string.snack_warning),
+            msg = getString(R.string.cron_snack_delete_msg),
+            btnText = getString(R.string.snack_button_yes),       // SIM
+            onAction = {
+                viewModel.deleteEtapa(etapa)
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.cron_toast_removed),
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+            btnNegativeText = getString(R.string.snack_button_no), // NÃO
+            onNegative = { /* nada: apenas fecha o snackbar */ }
+        )
     }
 
     override fun onDestroyView() {

@@ -57,4 +57,45 @@
     <color name="totalProgress_bg">#FFF3E0</color>     <!-- fundo bem claro -->
     <color name="totalProgress_text">#E65100</color>   <!-- texto/título -->
     <color name="totalProgress_value">#FB8C00</color>  <!-- opcional p/ valores -->
+
+
+    <color name="snack_white">#FFFFFFFF</color>
+
+    <!-- textos -->
+    <color name="snack_title_black">#111111</color>
+    <color name="snack_text_black">#222222</color>
+
+    <!-- Fundo do CARD por tipo -->
+    <color name="snack_bg_success">#B9E4C5</color>  <!-- verde claro -->
+    <color name="snack_bg_warning">#FFF1E6</color>  <!-- amarelo claro -->
+    <color name="snack_bg_error">#FFCDD2</color>    <!-- vermelho claro -->
+
+    <!-- Botões: texto escuro (bem legível) -->
+    <color name="btn_text_success">#1B5E20</color>  <!-- verde bem escuro -->
+    <color name="btn_text_warning">#8A3D00</color>  <!-- laranja escuro -->
+    <color name="btn_text_error">#B71C1C</color>    <!-- vermelho escuro -->
+
+    <!-- Botões: fundos claros e opacos -->
+    <color name="btn_bg_success">#E8F5E9</color>    <!-- verde muito claro -->
+    <color name="btn_bg_warning">#FFF3E0</color>    <!-- laranja muito claro -->
+    <color name="btn_bg_error">#FFEBEE</color>      <!-- vermelho muito claro -->
+
+    <color name="btn_bg_warning_yes">#FFD8C2</color>        <!-- SIM: âmbar claro -->
+    <color name="btn_bg_warning_no">#FFF6F0</color>         <!-- NÃO: quase branco “quente” -->
+
+    <!-- Texto preto/cinza escuro -->
+    <color name="snack_btn_text_dark">#1B1B1B</color>
+
+    <!-- Fundos claros e opacos para cada tipo -->
+    <color name="snack_btn_bg_success">#C8E6C9</color> <!-- verde claro -->
+    <color name="snack_btn_bg_warning">#FFE0B2</color> <!-- laranja claro -->
+    <color name="snack_btn_bg_error">#FFCDD2</color>   <!-- vermelho claro -->
+
+    <!-- Botão SIM (positivo) -->
+    <color name="btn_bg_warning_yes2">#D9F2E6</color>    <!-- laranja quente, mais vibrante -->
+    <color name="btn_text_warning_yes">#1B1B1B</color>  <!-- texto branco para contraste -->
+
+    <!-- Botão NÃO (negativo) -->
+    <color name="btn_bg_warning_no2">#FAD9D9</color>     <!-- marrom escuro, sólido -->
+    <color name="btn_text_warning_no">#1B1B1B</color>   <!-- texto branco para contraste -->
 </resources>
