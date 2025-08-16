@@ -2,6 +2,7 @@ package com.luizeduardobrandao.obra.data.repository.impl
 
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.getValue
+import com.luizeduardobrandao.obra.data.model.Aporte
 import com.luizeduardobrandao.obra.data.model.Obra
 import com.luizeduardobrandao.obra.data.repository.AuthRepository
 import com.luizeduardobrandao.obra.data.repository.ObraRepository
@@ -32,6 +33,9 @@ class ObraRepositoryImpl @Inject constructor(
             authRepo.currentUid
                 ?: error("Usuário não autenticado ao tentar acessar ObraRepository")
         )
+
+    private fun aportesRef(obraId: String): DatabaseReference =
+        userRef().child(obraId).child("aportes")
 
     override fun observeObras(): Flow<List<Obra>> = callbackFlow {
         val listener = userRef().addValueEventListener(
@@ -111,6 +115,53 @@ class ObraRepositoryImpl @Inject constructor(
             userRef()
                 .child(obraId)
                 .updateChildren(campos)   // ← não apaga subnós
+                .await()
+            Unit
+        }
+    }
+
+    override fun observeAportes(obraId: String): Flow<List<Aporte>> = callbackFlow {
+        val ref = aportesRef(obraId)
+        val listener = ref.addValueEventListener(
+            valueEventListener { snap ->
+                val list = snap.children
+                    .mapNotNull { it.getValue<Aporte>() }
+                    // Se a data estiver em ISO (yyyy-MM-dd), ordenar por data desc é útil:
+                    .sortedByDescending { it.data }
+                trySend(list).isSuccess
+            }
+        )
+        awaitClose { ref.removeEventListener(listener) }
+    }
+
+    override suspend fun addAporte(obraId: String, aporte: Aporte): Result<String> = withContext(io) {
+        runCatching {
+            val key = aportesRef(obraId).push().key
+                ?: error("Não foi possível gerar key para novo aporte")
+            aportesRef(obraId)
+                .child(key)
+                .setValue(aporte.copy(aporteId = key))
+                .await()
+            key
+        }
+    }
+
+    override suspend fun updateAporte(obraId: String, aporte: Aporte): Result<Unit> = withContext(io) {
+        runCatching {
+            require(aporte.aporteId.isNotBlank()) { "aporteId obrigatório para update" }
+            aportesRef(obraId)
+                .child(aporte.aporteId)
+                .setValue(aporte)
+                .await()
+            Unit
+        }
+    }
+
+    override suspend fun deleteAporte(obraId: String, aporteId: String): Result<Unit> = withContext(io) {
+        runCatching {
+            aportesRef(obraId)
+                .child(aporteId)
+                .removeValue()
                 .await()
             Unit
         }

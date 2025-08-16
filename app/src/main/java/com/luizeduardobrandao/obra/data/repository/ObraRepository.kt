@@ -1,5 +1,6 @@
 package com.luizeduardobrandao.obra.data.repository
 
+import com.luizeduardobrandao.obra.data.model.Aporte
 import com.luizeduardobrandao.obra.data.model.Obra
 import kotlinx.coroutines.flow.Flow
 
@@ -34,4 +35,16 @@ interface ObraRepository {
 
     /** Atualiza apenas campos específicos da obra (merge no nó). */
     suspend fun updateObraCampos(obraId: String, campos: Map<String, Any?>): Result<Unit>
+
+    /** Fluxo em tempo real dos aportes de uma obra. */
+    fun observeAportes(obraId: String): Flow<List<Aporte>>
+
+    /** Adiciona um aporte e retorna a key gerada. */
+    suspend fun addAporte(obraId: String, aporte: Aporte): Result<String>
+
+    /** Atualiza um aporte existente (precisa ter aporteId). */
+    suspend fun updateAporte(obraId: String, aporte: Aporte): Result<Unit>
+
+    /** Remove um aporte pelo id. */
+    suspend fun deleteAporte(obraId: String, aporteId: String): Result<Unit>
 }

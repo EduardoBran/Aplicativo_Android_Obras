@@ -24,6 +24,8 @@ import com.luizeduardobrandao.obra.ui.notas.adapter.NotaAdapter
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 @AndroidEntryPoint
 class ResumoNotasFragment : Fragment() {
@@ -139,9 +141,9 @@ class ResumoNotasFragment : Fragment() {
         val totalPago   = list.filter { it.status == "Pago" }.sumOf { it.valor }
         val totalGeral  = totalAPagar + totalPago
 
-        tvResumoTotalAPagar.text = getString(R.string.money_mask, totalAPagar)
-        tvResumoTotalPago  .text = getString(R.string.money_mask, totalPago)
-        tvResumoTotalGeral .text = getString(R.string.money_mask, totalGeral)
+        tvResumoTotalAPagar.text = formatMoneyBR(totalAPagar)
+        tvResumoTotalPago  .text = formatMoneyBR(totalPago)
+        tvResumoTotalGeral .text = formatMoneyBR(totalGeral)
 
         // ---- Totais por tipo: (A Pagar) ----
         containerTiposValoresAPagar.removeAllViews()
@@ -149,12 +151,25 @@ class ResumoNotasFragment : Fragment() {
         list.filter { it.status == "A Pagar" }.forEach { n ->
             n.tipos.forEach { t -> porTipoAPagar[t] = (porTipoAPagar[t] ?: 0.0) + n.valor }
         }
-        porTipoAPagar.forEach { (tipo, v) ->
-            val tv = layoutInflater.inflate(
-                R.layout.item_tipo_valor, containerTiposValoresAPagar, false
-            ) as android.widget.TextView
-            tv.text = getString(R.string.tipo_valor_mask, tipo, v)
-            containerTiposValoresAPagar.addView(tv)
+        // Se o TOTAL A RECEBER for zero, mostra a mensagem e esconde a lista
+        if (totalAPagar == 0.0) {
+            binding.tvTiposAPagarEmpty.isVisible = true
+            binding.containerTiposValoresAPagar.isVisible = false
+        } else {
+            binding.tvTiposAPagarEmpty.isVisible = false
+            binding.containerTiposValoresAPagar.isVisible = true
+
+            porTipoAPagar.forEach { (tipo, v) ->
+                val tv = layoutInflater.inflate(
+                    R.layout.item_tipo_valor, containerTiposValoresAPagar, false
+                ) as android.widget.TextView
+                tv.text = getString(
+                    R.string.tipo_valor_mask_money,
+                    tipo,
+                    formatMoneyBR(v)
+                )
+                containerTiposValoresAPagar.addView(tv)
+            }
         }
 
         // ---- Totais por tipo: (Pago) ----
@@ -163,12 +178,20 @@ class ResumoNotasFragment : Fragment() {
         list.filter { it.status == "Pago" }.forEach { n ->
             n.tipos.forEach { t -> porTipoPago[t] = (porTipoPago[t] ?: 0.0) + n.valor }
         }
-        porTipoPago.forEach { (tipo, v) ->
-            val tv = layoutInflater.inflate(
-                R.layout.item_tipo_valor, containerTiposValoresPago, false
-            ) as android.widget.TextView
-            tv.text = getString(R.string.tipo_valor_mask, tipo, v)
-            containerTiposValoresPago.addView(tv)
+        if (totalPago == 0.0) {   // ✅ checa totalPago, não totalAPagar
+            tvTiposPagoEmpty.isVisible = true
+            containerTiposValoresPago.isVisible = false
+        } else {
+            tvTiposPagoEmpty.isVisible = false
+            containerTiposValoresPago.isVisible = true
+
+            porTipoPago.forEach { (tipo, v) ->
+                val tv = layoutInflater.inflate(
+                    R.layout.item_tipo_valor, containerTiposValoresPago, false
+                ) as android.widget.TextView
+                tv.text = getString(R.string.tipo_valor_mask_money, tipo, formatMoneyBR(v))
+                containerTiposValoresPago.addView(tv)
+            }
         }
     }
 
@@ -216,6 +239,9 @@ class ResumoNotasFragment : Fragment() {
             applyState(willExpand, animate = true)
         }
     }
+
+    private fun formatMoneyBR(value: Double): String =
+        NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(value)
 
     companion object {
         private const val KEY_TOT_EXPANDED   = "isTotalsExpanded"

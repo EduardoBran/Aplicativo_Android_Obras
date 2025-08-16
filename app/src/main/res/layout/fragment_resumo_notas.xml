@@ -326,6 +326,17 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="8dp"
                                     android:orientation="vertical" />
+
+                                <!-- ✅ mensagem quando total a receber = 0 -->
+                                <TextView
+                                    android:id="@+id/tvTiposAPagarEmpty"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:text="@string/nota_sum_all_paid_msg"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                                    android:visibility="gone" />
                             </LinearLayout>
 
                             <!-- Espaço -->
@@ -356,6 +367,17 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="8dp"
                                     android:orientation="vertical" />
+
+                                <!-- ✅ mensagem quando total a receber = 0 (conforme sua regra) -->
+                                <TextView
+                                    android:id="@+id/tvTiposPagoEmpty"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:text="@string/nota_sum_none_paid_msg"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                                    android:visibility="gone" />
                             </LinearLayout>
 
                         </LinearLayout>

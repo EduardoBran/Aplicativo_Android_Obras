@@ -130,31 +130,143 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Campo saldoAjustado (entrada) -->
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.ObrasApp.TextInputLayout"
+            <!-- Saldo com aporte (mostra só se houver aporte) -->
+            <LinearLayout
+                android:id="@+id/llSaldoComAportes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvSaldoAporteLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/obra_data_balance_with_aportes_label"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvSaldoComAportesValor"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text="—"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- ───── APORTES: ação + card (NOVO) ───── -->
+
+            <!-- Botão para abrir o card de novo aporte -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAdicionarAporte"
+                style="@style/Widget.ObrasApp.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:hint="@string/obra_data_balance_adjust_hint">
+                android:text="@string/aporte_button_add" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etSaldoAjustado"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"
-                    android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Botão gravar saldoAjustado -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAtualizarSaldo"
-                style="@style/Widget.ObrasApp.OutlinedButton"
+            <!-- Card de cadastro de aporte (inicia oculto) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardNovoAporte"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="@string/obra_button_update_balance" />
+                android:visibility="gone"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Valor do aporte (obrigatório) -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilAporteValor"
+                        style="@style/Widget.ObrasApp.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/aporte_value_hint">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAporteValor"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="numberDecimal"
+                            android:minHeight="60dp"
+                            android:paddingVertical="16dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Data do aporte (obrigatória) -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilAporteData"
+                        style="@style/Widget.ObrasApp.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:hint="@string/aporte_date_hint">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAporteData"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:drawableStart="@drawable/ic_schedule"
+                            android:drawablePadding="12dp"
+                            android:focusable="false"
+                            android:minHeight="60dp"
+                            android:paddingVertical="16dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Descrição (opcional) -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilAporteDescricao"
+                        style="@style/Widget.ObrasApp.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:hint="@string/aporte_desc_hint">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAporteDescricao"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="60dp"
+                            android:paddingVertical="16dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Ações do card -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="end"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCancelarAporte"
+                            style="@style/Widget.ObrasApp.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/generic_cancel" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSalvarAporte"
+                            style="@style/Widget.ObrasApp.Button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:enabled="false"
+                            android:text="@string/generic_save" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <!-- ───── FIM APORTES ───── -->
 
             <!-- Data Início -->
             <com.google.android.material.textfield.TextInputLayout

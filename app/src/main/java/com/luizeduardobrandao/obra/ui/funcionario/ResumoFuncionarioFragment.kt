@@ -24,6 +24,8 @@ import com.luizeduardobrandao.obra.ui.funcionario.adapter.FuncionarioAdapter
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 @AndroidEntryPoint
 class ResumoFuncionarioFragment : Fragment() {
@@ -83,8 +85,8 @@ class ResumoFuncionarioFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { ui ->
                     when (ui) {
-                        is UiState.Loading  -> showLoading()
-                        is UiState.Success  -> renderList(ui.data)
+                        is UiState.Loading -> showLoading()
+                        is UiState.Success -> renderList(ui.data)
                         is UiState.ErrorRes -> showError(ui.resId)
                         else -> Unit
                     }
@@ -96,23 +98,23 @@ class ResumoFuncionarioFragment : Fragment() {
     /* ───────────────────────── UI helpers ──────────────────────── */
     private fun showLoading() = with(binding) {
         progressFuncList.visibility = View.VISIBLE
-        rvFuncionarios.visibility   = View.GONE
+        rvFuncionarios.visibility = View.GONE
         cardAbaResumoFuncs.visibility = View.GONE
-        tvEmptySum.visibility       = View.GONE
+        tvEmptySum.visibility = View.GONE
     }
 
     private fun renderList(list: List<Funcionario>) = with(binding) {
         progressFuncList.visibility = View.GONE
 
         if (list.isEmpty()) {
-            tvEmptySum.visibility         = View.VISIBLE
-            rvFuncionarios.visibility     = View.GONE
+            tvEmptySum.visibility = View.VISIBLE
+            rvFuncionarios.visibility = View.GONE
             cardAbaResumoFuncs.visibility = View.GONE
             return@with
         }
 
-        tvEmptySum.visibility         = View.GONE
-        rvFuncionarios.visibility     = View.VISIBLE
+        tvEmptySum.visibility = View.GONE
+        rvFuncionarios.visibility = View.VISIBLE
         cardAbaResumoFuncs.visibility = View.VISIBLE
 
         // Preenche a lista principal (fora da aba)
@@ -131,15 +133,18 @@ class ResumoFuncionarioFragment : Fragment() {
             ) as android.widget.TextView
 
             // Texto no padrão: "Nome do Funcionário — R$ 1.234,56"
-            tv.text = getString(R.string.money_mask, f.totalGasto).let { valorFmt ->
-                "${f.nome} — $valorFmt"
-            }
+            val valorFmt = formatMoneyBR(f.totalGasto)
+            tv.text = requireContext().getString(
+                R.string.resumo_funcionario_item,
+                f.nome,
+                valorFmt
+            )
 
             containerResumoFuncionarios.addView(tv)
         }
 
         // Total geral dentro da aba
-        tvResumoTotalGeralFuncs.text = getString(R.string.money_mask, totalGeral)
+        tvResumoTotalGeralFuncs.text = formatMoneyBR(totalGeral)
     }
 
     private fun showError(resId: Int) {
@@ -190,6 +195,9 @@ class ResumoFuncionarioFragment : Fragment() {
             applyState(!content.isVisible, animate = true)
         }
     }
+
+    private fun formatMoneyBR(value: Double): String =
+        NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(value)
 
     companion object {
         private const val KEY_RESUMO_FUNCS_EXPANDED = "key_resumo_funcs_expanded"

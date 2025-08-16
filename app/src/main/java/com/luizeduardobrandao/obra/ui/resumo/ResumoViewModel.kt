@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Funcionario
 import com.luizeduardobrandao.obra.data.model.Nota
+import com.luizeduardobrandao.obra.data.model.Aporte
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.data.repository.FuncionarioRepository
 import com.luizeduardobrandao.obra.data.repository.NotaRepository
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,8 +39,10 @@ class ResumoViewModel @Inject constructor(
     private val obraId: String =
         savedStateHandle["obraId"] ?: error("SafeArgs deve conter obraId em ResumoFragment")
 
+    private val _deleteAporteState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
+    val deleteAporteState: StateFlow<UiState<Unit>> = _deleteAporteState.asStateFlow()
 
-    // Encapsula todos os totais e saldos para exibição.
+    // ★ Atualizamos a estrutura para carregar também os aportes
     data class ResumoData(
         val countFuncionarios: Int,
         val totalDias: Int,
@@ -47,42 +51,51 @@ class ResumoViewModel @Inject constructor(
         val totalMateriais: Double,
         val totalPorTipo: Map<String, Double>,
         val saldoInicial: Double,
-        val saldoAjustado: Double,
         val gastoTotal: Double,
-        val saldoRestante: Double
+        val totalAportes: Double,          // ★ NOVO
+        val aportes: List<Aporte>,         // ★ NOVO (para listar no “Financeiro”)
+        val saldoRestante: Double          // ★ recalculado com totalAportes
     )
 
-    // Estado exposto na UI (Idle/Loading/Success<ResumoData>/ErrorRes).
     private val _state = MutableStateFlow<UiState<ResumoData>>(UiState.Loading)
     val state: StateFlow<UiState<ResumoData>> = _state.asStateFlow()
-
 
     init {
         // Flows independentes
         val obraFlow = repoObra.observeObras()
             .map { list -> list.firstOrNull { it.obraId == obraId } }
+
         val funFlow = repoFun.observeFuncionarios(obraId)
         val notaFlow = repoNota.observeNotas(obraId)
 
-        combine(obraFlow, funFlow, notaFlow) { obra, funs, notas ->
+        // ★ NOVO: fluxos de aportes da obra
+        val aporteFlow = repoObra.observeAportes(obraId)
 
-            if (obra == null) throw IllegalStateException("Obra não encontrada.")
+        // ★ Incluímos aporteFlow no combine
+        combine(obraFlow, funFlow, notaFlow, aporteFlow) { obra, funs, notas, aportes ->
+
+            requireNotNull(obra) { "Obra não encontrada." }
 
             // 1) Funcionários
             val totalDias = funs.sumOf { it.diasTrabalhados }
-            val totalMao = funs.sumOf(Funcionario::totalGasto)
+            val totalMao  = funs.sumOf(Funcionario::totalGasto)
 
             // 2) Notas / Materiais
             val totalNotas = notas.sumOf(Nota::valor)
-            val porTipo = mutableMapOf<String, Double>()
-
-            notas.forEach { nota ->
-                nota.tipos.forEach { tipo ->
-                    porTipo[tipo] = (porTipo[tipo] ?: 0.0) + nota.valor
+            val porTipo = buildMap<String, Double> {
+                notas.forEach { n ->
+                    n.tipos.forEach { t ->
+                        this[t] = (this[t] ?: 0.0) + n.valor
+                    }
                 }
             }
 
-            // 3) Saldos
+            // 3) Aportes
+            val totalAportes = aportes.sumOf { it.valor }
+
+            // 4) Saldos (recalcula com aportes)
+            val saldoRestante = obra.saldoInicial + totalAportes - obra.gastoTotal
+
             ResumoData(
                 countFuncionarios = funs.size,
                 totalDias = totalDias,
@@ -91,9 +104,10 @@ class ResumoViewModel @Inject constructor(
                 totalMateriais = totalNotas,
                 totalPorTipo = porTipo,
                 saldoInicial = obra.saldoInicial,
-                saldoAjustado = obra.saldoAjustado,
                 gastoTotal = obra.gastoTotal,
-                saldoRestante = obra.saldoRestante
+                totalAportes = totalAportes,   // ★
+                aportes = aportes,             // ★
+                saldoRestante = saldoRestante  // ★
             )
         }
             .map<ResumoData, UiState<ResumoData>> { UiState.Success(it) }
@@ -101,5 +115,20 @@ class ResumoViewModel @Inject constructor(
             .onEach { _state.value = it }
             .flowOn(io)
             .launchIn(viewModelScope)
+    }
+
+    fun deleteAporte(aporteId: String) {
+        viewModelScope.launch(io) {
+            _deleteAporteState.value = UiState.Loading
+            _deleteAporteState.value = repoObra.deleteAporte(obraId, aporteId)
+                .fold(
+                    onSuccess = { UiState.Success(Unit) },
+                    onFailure = { UiState.ErrorRes(R.string.resumo_generic_error) }
+                )
+        }
+    }
+
+    fun resetDeleteAporteState() {
+        _deleteAporteState.value = UiState.Idle
     }
 }

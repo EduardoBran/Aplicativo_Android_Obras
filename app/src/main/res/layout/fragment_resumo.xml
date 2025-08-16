@@ -633,7 +633,105 @@
                                 </LinearLayout>
                             </androidx.cardview.widget.CardView>
 
-                            <!-- Saldo Ajustado + Restante -->
+                            <!-- ========= SUB-ABA: Aporte (EXPANSÍVEL dentro de Financeiro) ========= -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/cardSubAbaAportes"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="12dp"
+                                app:cardCornerRadius="8dp"
+                                app:cardElevation="4dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical">
+
+                                    <!-- Cabeçalho (clicável) da sub-aba Aporte -->
+                                    <LinearLayout
+                                        android:id="@+id/headerAbaAportes"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="56dp"
+                                        android:clickable="true"
+                                        android:focusable="true"
+                                        android:foreground="?attr/selectableItemBackground"
+                                        android:gravity="center_vertical"
+                                        android:orientation="horizontal"
+                                        android:paddingStart="16dp"
+                                        android:paddingEnd="12dp">
+
+                                        <TextView
+                                            android:layout_width="0dp"
+                                            android:layout_height="wrap_content"
+                                            android:layout_weight="1"
+                                            android:accessibilityHeading="true"
+                                            android:text="@string/resumo_aportes_header"
+                                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                                        <ImageView
+                                            android:id="@+id/ivArrowAportes"
+                                            android:layout_width="24dp"
+                                            android:layout_height="24dp"
+                                            android:contentDescription="@string/expandir"
+                                            android:importantForAccessibility="no"
+                                            android:rotation="0"
+                                            android:src="@drawable/ic_expand_more" />
+                                    </LinearLayout>
+
+                                    <!-- CONTEÚDO EXPANSÍVEL da sub-aba Aporte -->
+                                    <LinearLayout
+                                        android:id="@+id/contentAbaAportes"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical"
+                                        android:padding="16dp"
+                                        android:visibility="gone">
+
+                                        <!-- Mantém o CARD já existente da lista de aportes, INTACTO -->
+                                        <androidx.cardview.widget.CardView
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            app:cardCornerRadius="8dp"
+                                            app:cardElevation="4dp">
+
+                                            <LinearLayout
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:orientation="vertical"
+                                                android:padding="16dp">
+
+                                                <TextView
+                                                    android:id="@+id/tvAportesHeader"
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:text="@string/resumo_aportes_header"
+                                                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                                                    android:textStyle="bold" />
+
+                                                <!-- Mensagem quando não há aportes -->
+                                                <TextView
+                                                    android:id="@+id/tvAportesEmpty"
+                                                    android:layout_width="match_parent"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_marginTop="8dp"
+                                                    android:text="@string/resumo_aportes_empty"
+                                                    android:visibility="gone" />
+
+                                                <!-- Lista -->
+                                                <androidx.recyclerview.widget.RecyclerView
+                                                    android:id="@+id/rvAportes"
+                                                    android:layout_width="match_parent"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_marginTop="8dp"
+                                                    android:nestedScrollingEnabled="false"
+                                                    android:overScrollMode="never" />
+                                            </LinearLayout>
+                                        </androidx.cardview.widget.CardView>
+                                    </LinearLayout>
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- Saldo Ajustado + Restante (mantidos IDs existentes) -->
                             <androidx.cardview.widget.CardView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -647,6 +745,7 @@
                                     android:padding="16dp">
 
                                     <TextView
+                                        android:id="@+id/tvSaldoAjustadoLabel"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/resumo_adjusted_balance_header"

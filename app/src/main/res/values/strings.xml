@@ -189,6 +189,7 @@
     <string name="total_geral">Total geral:</string>
     <string name="func_sum_total">R$ %1$s</string>
     <string name="func_sum_header_gastos">Gastos por funcionário</string>
+    <string name="resumo_funcionario_item">%1$s — %2$s</string>
 
     <!-- NotasFragment -->
     <string name="nota_title">Notas de Materiais</string>
@@ -252,6 +253,12 @@
     <string name="total_geral_title_totais">Totais</string>
     <string name="total_geral_title_tipos">Totais por tipo</string>
     <string name="expandir">Expandir</string>
+    <!-- Mensagens das seções "Totais por tipo" -->
+    <string name="nota_sum_all_paid_msg">Todas as notas pagas.</string>
+    <string name="nota_sum_none_paid_msg">Nenhuma nota paga.</string>
+
+    <!-- Linha "Tipo — R$ 1.234,56" recebendo o valor já formatado -->
+    <string name="tipo_valor_mask_money">%1$s — %2$s</string>
 
 
     <!-- CronogramaFragment -->
@@ -364,6 +371,7 @@
     <string name="resumo_button_update_balance">Atualizar Saldo</string>
     <string name="obra_data_balance_initial_label">Saldo Inicial</string>
     <string name="obra_data_balance_updated_hint">Informe o novo saldo</string>
+    <string name="obra_data_balance_with_aportes_label">Saldo total com aporte</string>
 
     <string name="obra_data_balance_adjust_hint">Valor de ajuste (positivo ou negativo)</string>
     <string name="obra_button_update_balance">Atualizar Saldo</string>
@@ -390,9 +398,10 @@
     <string name="resumo_balance_initial">Saldo Inicial: R$ %1$s</string>
     <string name="resumo_balance_remaining">Saldo Restante: R$ %1$s</string>
     <string name="resumo_initial_balance_header">Saldo Inicial</string>
-    <!-- Cabeçalho do card de Saldo Atualizado -->
+    <!-- Cabeçalho do card de Aporte -->
     <string name="resumo_saldo_updated_header">Saldo Atualizado</string>
-    <string name="resumo_adjusted_balance_header">Saldo Ajustado</string>
+    <string name="resumo_adjusted_balance_header">Saldo total com aporte</string>
+    <string name="resumo_adjusted_balance_header_plural">Saldo total com aportes</string>
     <!-- Cabeçalho do card de Saldo Restante -->
     <string name="resumo_saldo_remaining_header">Saldo Restante</string>
     <!-- Funcionários -->
@@ -476,5 +485,42 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="home_photos_unavailable">Implementação ainda em construção.</string>
+
+    <string name="aporte_load_error">Falha ao carregar os aportes.</string>
+    <string name="aporte_create_error">Falha ao adicionar o aporte.</string>
+    <string name="aporte_update_error">Falha ao atualizar o aporte.</string>
+    <string name="aporte_delete_error">Falha ao excluir o aporte.</string>
+
+    <string name="aporte_button_add">Adicionar Aporte</string>
+    <string name="aporte_value_hint">Valor do aporte</string>
+    <string name="aporte_date_hint">Data do aporte</string>
+    <string name="aporte_desc_hint">Descrição (opcional)</string>
+    <string name="aporte_value_error">Informe um valor maior que zero.</string>
+    <string name="aporte_date_error">Selecione a data do aporte.</string>
+    <string name="resumo_aportes_header">Aporte</string>
+
+    <plurals name="resumo_aportes_header_plural">
+        <item quantity="one">Aporte</item>
+        <item quantity="other">Aportes</item>
+    </plurals>
+
+    <plurals name="resumo_adjusted_balance_header_plural">
+        <item quantity="one">Saldo com Aporte</item>
+        <item quantity="other">Saldo com Aportes</item>
+    </plurals>
+
+    <plurals name="title_aportes_header_plural">
+        <item quantity="one">Saldo Total com Aporte</item>
+        <item quantity="other">Saldo Total com Aportes</item>
+    </plurals>
+
+    <string name="resumo_aportes_empty">Nenhum aporte cadastrado.</string>
+    <string name="delete_aporte">Deletar aporte</string>
+    <string name="resumo_aporte_delete_confirm">Você quer deletar este aporte?</string>
+    <string name="resumo_aporte_deleted_ok">OK</string>
+    <string name="aporte_deleted_toast">Aporte excluído.</string>
+    <string name="aporte_toast_added">Aporte adicionado!</string>
+
+
 
 </resources>

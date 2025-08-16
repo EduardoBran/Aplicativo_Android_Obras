@@ -14,8 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.transition.AutoTransition
-import androidx.transition.TransitionManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Nota
 import com.luizeduardobrandao.obra.data.model.UiState
@@ -26,9 +25,12 @@ import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.ui.material.MaterialViewModel
 import com.luizeduardobrandao.obra.ui.material.adapter.MaterialPagerAdapter
 import com.luizeduardobrandao.obra.ui.notas.NotasViewModel
+import com.luizeduardobrandao.obra.ui.resumo.adapter.AporteAdapter
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 @AndroidEntryPoint
 class ResumoFragment : Fragment() {
@@ -44,12 +46,20 @@ class ResumoFragment : Fragment() {
     private val cronogramaViewModel: CronogramaViewModel by viewModels()
     private val materialViewModel: MaterialViewModel by viewModels()
 
+    // Adapter de aportes
+    private lateinit var aporteAdapter: AporteAdapter
+
+    // Controle do toast ao adicionar aporte
+    private var lastAporteCount = 0
+    private var aportesInitialized = false
+
     // Estado das abas
     private var isFunExpanded = false
     private var isNotasExpanded = false
     private var isCronExpanded = false
     private var isMatExpanded = false
     private var isSaldoExpanded = false
+    private var isAportesExpanded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +69,7 @@ class ResumoFragment : Fragment() {
             isCronExpanded = it.getBoolean(KEY_CRON_EXP, false)
             isMatExpanded = it.getBoolean(KEY_MAT_EXP, false)
             isSaldoExpanded = it.getBoolean(KEY_SALDO_EXP, false)
+            isAportesExpanded = it.getBoolean(KEY_APORTES_EXP, false)
         }
     }
 
@@ -113,13 +124,39 @@ class ResumoFragment : Fragment() {
             ivArrowSaldo,
             isSaldoExpanded
         ) { isSaldoExpanded = it }
+        // ✅ Nova sub-aba: Aportes (dentro de Financeiro)
+        setupExpandable(
+            containerResumo,
+            headerAbaAportes,
+            contentAbaAportes,
+            ivArrowAportes,
+            isAportesExpanded
+        ) { isAportesExpanded = it }
 
-        observeResumo()      // funcionários + saldos
-        observeNotas()       // notas por status
-        observeCronograma()  // etapas por status
-        observeMateriais()   // materiais por status
+        // RecyclerView de Aportes
+        aporteAdapter = AporteAdapter { aporte ->
+            // Confirmação antes de excluir
+            showSnackbarFragment(
+                type = Constants.SnackType.WARNING.name,
+                title = getString(R.string.snack_warning),
+                msg = getString(R.string.resumo_aporte_delete_confirm),
+                btnText = getString(R.string.snack_button_yes),
+                onAction = { viewModel.deleteAporte(aporte.aporteId) },
+                btnNegativeText = getString(R.string.snack_button_no),
+                onNegative = { /* no-op */ }
+            )
+        }
+        rvAportes.layoutManager = LinearLayoutManager(requireContext())
+        rvAportes.adapter = aporteAdapter
 
-        // Dispara os carregamentos
+        observeResumo()                // funcionários + financeiros (inclui aportes)
+        observeNotas()                 // notas por status
+        observeCronograma()            // etapas por status
+        observeMateriais()             // materiais por status
+        observeDeleteAporteState()     // feedback da exclusão de aporte
+
+
+        // Dispara os carregamentos existentes
         notasViewModel.loadNotas()
         cronogramaViewModel.loadEtapas()
         materialViewModel.loadMateriais()
@@ -150,16 +187,49 @@ class ResumoFragment : Fragment() {
                             )
                             tvFuncCount.text = getString(R.string.resumo_func_count_mask, funcQtd)
 
-                            val totalFunStr = getString(R.string.money_mask, res.totalMaoDeObra)
-                            tvFuncTotal.text = getString(R.string.resumo_func_total_mask, totalFunStr)
+                            val totalFunStr = formatMoneyBR(res.totalMaoDeObra)
+                            tvFuncTotal.text =
+                                getString(R.string.resumo_func_total_mask, totalFunStr)
 
-                            // Saldos
-                            tvSaldoInicialResumo.text =
-                                getString(R.string.money_mask, res.saldoInicial)
-                            tvSaldoAjustadoResumo.text =
-                                getString(R.string.money_mask, res.saldoAjustado)
-                            tvSaldoRestanteResumo.text =
-                                getString(R.string.money_mask, res.saldoRestante)
+                            // Financeiro
+                            tvSaldoInicialResumo.text = formatMoneyBR(res.saldoInicial)
+
+                            // Saldo com aportes
+                            if (res.aportes.isEmpty()) {
+                                tvSaldoAjustadoResumo.text = "-"
+                            } else {
+                                val saldoComAportes = res.saldoInicial + res.totalAportes
+                                tvSaldoAjustadoResumo.text = formatMoneyBR(saldoComAportes)
+                            }
+
+
+                            // Lista de aportes
+                            val ordenados = res.aportes.sortedByDescending { it.data } // data ISO
+                            aporteAdapter.submitList(ordenados)
+                            tvAportesEmpty.isVisible = ordenados.isEmpty()
+                            // Títulos com plural
+                            binding.tvAportesHeader.text = resources.getQuantityString(
+                                R.plurals.resumo_aportes_header_plural,
+                                ordenados.size
+                            )
+                            binding.tvSaldoAjustadoLabel.text = resources.getQuantityString(
+                                R.plurals.resumo_adjusted_balance_header_plural,
+                                res.aportes.size
+                            )
+
+                            tvSaldoRestanteResumo.text = formatMoneyBR(res.saldoRestante)
+
+
+                            // TOAST quando um novo aporte é adicionado (evita disparar no 1º load)
+                            if (aportesInitialized && ordenados.size > lastAporteCount) {
+                                android.widget.Toast.makeText(
+                                    requireContext(),
+                                    getString(R.string.aporte_toast_added),
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            lastAporteCount = ordenados.size
+                            aportesInitialized = true
                         }
 
                         is UiState.ErrorRes -> {
@@ -179,6 +249,44 @@ class ResumoFragment : Fragment() {
         }
     }
 
+    private fun observeDeleteAporteState() = with(binding) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.deleteAporteState.collect { ui ->
+                    when (ui) {
+                        is UiState.Loading -> {
+                            // Feedback simples de loading
+                            progressResumo.isVisible = true
+                        }
+
+                        is UiState.Success -> {
+                            progressResumo.isVisible = false
+                            android.widget.Toast.makeText(
+                                requireContext(),
+                                getString(R.string.aporte_deleted_toast),
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                            viewModel.resetDeleteAporteState()
+                        }
+
+                        is UiState.ErrorRes -> {
+                            progressResumo.isVisible = false
+                            showSnackbarFragment(
+                                Constants.SnackType.ERROR.name,
+                                getString(R.string.snack_error),
+                                getString(ui.resId),
+                                getString(R.string.snack_button_ok)
+                            )
+                            viewModel.resetDeleteAporteState()
+                        }
+
+                        else -> Unit
+                    }
+                }
+            }
+        }
+    }
+
     private fun observeNotas() = with(binding) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -189,10 +297,8 @@ class ResumoFragment : Fragment() {
 
                             // "Em aberto": A Receber OR A Pagar
                             val dueList = list.filter {
-                                it.status.equals(
-                                    "A Receber",
-                                    true
-                                ) || it.status.equals("A Pagar", true)
+                                it.status.equals("A Receber", true) ||
+                                        it.status.equals("A Pagar", true)
                             }
                             val paidList = list.filter { it.status.equals("Pago", true) }
 
@@ -214,9 +320,9 @@ class ResumoFragment : Fragment() {
                                 paidCount
                             )
 
-                            tvNotasDueTotal.text = getString(R.string.money_mask, dueTotal)
-                            tvNotasPaidTotal.text = getString(R.string.money_mask, paidTotal)
-                            tvNotasTotalGeral.text = getString(R.string.money_mask, totalGeral)
+                            tvNotasDueTotal.text = formatMoneyBR(dueTotal)
+                            tvNotasPaidTotal.text = formatMoneyBR(paidTotal)
+                            tvNotasTotalGeral.text = formatMoneyBR(totalGeral)
                         }
 
                         is UiState.ErrorRes -> {
@@ -297,16 +403,10 @@ class ResumoFragment : Fragment() {
                         is UiState.Success -> {
                             val list = ui.data
                             val ativos = list.count {
-                                it.status.equals(
-                                    MaterialPagerAdapter.STATUS_ATIVO,
-                                    true
-                                )
+                                it.status.equals(MaterialPagerAdapter.STATUS_ATIVO, true)
                             }
                             val inativos = list.count {
-                                it.status.equals(
-                                    MaterialPagerAdapter.STATUS_INATIVO,
-                                    true
-                                )
+                                it.status.equals(MaterialPagerAdapter.STATUS_INATIVO, true)
                             }
 
                             tvMateriaisAtivos.text = if (ativos == 0)
@@ -355,9 +455,9 @@ class ResumoFragment : Fragment() {
     ) {
         fun applyState(expanded: Boolean, animate: Boolean) {
             if (animate) {
-                TransitionManager.beginDelayedTransition(
+                androidx.transition.TransitionManager.beginDelayedTransition(
                     containerRoot,
-                    AutoTransition().apply { duration = 180 }
+                    androidx.transition.AutoTransition().apply { duration = 180 }
                 )
             }
             content.isVisible = expanded
@@ -368,6 +468,9 @@ class ResumoFragment : Fragment() {
         header.setOnClickListener { applyState(!content.isVisible, animate = true) }
     }
 
+    private fun formatMoneyBR(value: Double): String =
+        NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(value)
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(KEY_FUN_EXP, isFunExpanded)
@@ -375,6 +478,7 @@ class ResumoFragment : Fragment() {
         outState.putBoolean(KEY_CRON_EXP, isCronExpanded)
         outState.putBoolean(KEY_MAT_EXP, isMatExpanded)
         outState.putBoolean(KEY_SALDO_EXP, isSaldoExpanded)
+        outState.putBoolean(KEY_APORTES_EXP, isAportesExpanded)
     }
 
     override fun onDestroyView() {
@@ -388,5 +492,6 @@ class ResumoFragment : Fragment() {
         private const val KEY_CRON_EXP = "cron_expanded"
         private const val KEY_MAT_EXP = "mat_expanded"
         private const val KEY_SALDO_EXP = "saldo_expanded"
+        private const val KEY_APORTES_EXP = "aportes_expanded"
     }
 }

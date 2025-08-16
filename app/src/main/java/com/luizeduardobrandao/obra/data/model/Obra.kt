@@ -24,21 +24,35 @@ import kotlinx.parcelize.Parcelize // Anotação que gera automaticamente a impl
  * ```
  */
 
-@Parcelize                // Gera código para serializar/deserializar em Parcel
-@Keep                     // Evita remoção por otimização de build
-@IgnoreExtraProperties    // Faz o Firebase descartar campos não mapeados neste model
+//@Parcelize                // Gera código para serializar/deserializar em Parcel
+//@Keep                     // Evita remoção por otimização de build
+//@IgnoreExtraProperties    // Faz o Firebase descartar campos não mapeados neste model
+//data class Obra(
+//    val obraId: String = "",
+//    val nomeCliente: String = "",
+//    val endereco: String = "",
+//    val descricao: String = "",
+//    val saldoInicial: Double = 0.0,     // imutável
+//    val saldoAjustado: Double = 0.0,    // mutável via botão
+//    val gastoTotal: Double = 0.0,       // calculado pelos repositórios
+//    val dataInicio: String = "",
+//    val dataFim: String = ""
+//) : Parcelable {
+//    /** Quanto ainda resta considerando aportes/débitos posteriores. */
+//    val saldoRestante: Double
+//        get() = saldoInicial + saldoAjustado - gastoTotal
+//}
+
+@Parcelize
+@Keep
+@IgnoreExtraProperties
 data class Obra(
     val obraId: String = "",
     val nomeCliente: String = "",
     val endereco: String = "",
     val descricao: String = "",
-    val saldoInicial: Double = 0.0,     // imutável
-    val saldoAjustado: Double = 0.0,    // mutável via botão
-    val gastoTotal: Double = 0.0,       // calculado pelos repositórios
-    val dataInicio: String = "",
-    val dataFim: String = ""
-) : Parcelable {
-    /** Quanto ainda resta considerando aportes/débitos posteriores. */
-    val saldoRestante: Double
-        get() = saldoInicial + saldoAjustado - gastoTotal
-}
+    val saldoInicial: Double = 0.0,   // definido no cadastro (imutável)
+    val gastoTotal: Double = 0.0,     // somatório de gastos (repositórios de gastos/notas/funcionários)
+    val dataInicio: String = "",      // dd/MM/yyyy (você já usa BR para exibição)
+    val dataFim: String = ""          // dd/MM/yyyy
+) : Parcelable

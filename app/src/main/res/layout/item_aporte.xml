@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootAporteItem"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:paddingVertical="8dp">
+
+    <!-- Linha principal: Valor (esquerda) | Data (meio) | Excluir (direita) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tvAporteValor"
+            style="@style/TextAppearance.Material3.TitleSmall"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="R$ 0,00"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvAporteData"
+            style="@style/TextAppearance.Material3.BodySmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="01/01/2025"
+            android:layout_marginEnd="8dp" />
+
+        <ImageButton
+            android:id="@+id/btnDeleteAporte"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/delete_aporte"
+            android:src="@drawable/ic_delete"
+            app:tint="?attr/colorError" />
+    </LinearLayout>
+
+    <!-- Linha secundária: Descrição (ou "-") -->
+    <TextView
+        android:id="@+id/tvAporteDescricao"
+        style="@style/TextAppearance.Material3.BodySmall"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:layout_marginTop="2dp"
+        android:text="-"
+        android:maxLines="2" />
+</LinearLayout>
