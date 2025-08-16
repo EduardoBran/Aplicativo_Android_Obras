@@ -64,11 +64,10 @@ class CronogramaFragment : Fragment(), EtapaActions {
                 }
             }.attach()
 
-            // controla visibilidade do FAB: só na aba “Pendente” (index 0)
-            fun updateFab(pos: Int) {
-                fabNewEtapa.visibility = if (pos == 0) View.VISIBLE else View.GONE
+            // controla visibilidade do FAB (exibe nas 3 abas)
+            fun updateFab(@Suppress("UNUSED_PARAMETER") pos: Int) {
+                fabNewEtapa.visibility = View.VISIBLE
             }
-            updateFab(0)
             pagerCronograma.registerOnPageChangeCallback(
                 object : ViewPager2.OnPageChangeCallback() {
                     override fun onPageSelected(position: Int) {

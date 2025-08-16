@@ -93,9 +93,9 @@ class NotasFragment : Fragment(), NotaActions {
             )
         }
 
-        // FAB visível somente na aba 0 (A Pagar)
+        // FAB visível em todas as abas
         fun updateFabVisibility() {
-            fabNewNota.isVisible = pagerNotas.currentItem == 0
+            fabNewNota.isVisible = true
         }
         updateFabVisibility()
 

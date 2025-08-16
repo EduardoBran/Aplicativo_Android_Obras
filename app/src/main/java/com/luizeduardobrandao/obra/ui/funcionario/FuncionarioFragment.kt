@@ -79,8 +79,7 @@ class FuncionarioFragment : Fragment() {
             else getString(R.string.func_tab_inactive)
         }.attach()
 
-        binding.fabNewFuncionario.visibility =
-            if (binding.pagerFuncionario.currentItem == 0) View.VISIBLE else View.GONE
+        binding.fabNewFuncionario.visibility = View.VISIBLE
 
 
         // FAB: visível apenas na aba 'Ativos' (pos 0)
@@ -92,8 +91,7 @@ class FuncionarioFragment : Fragment() {
         binding.pagerFuncionario.registerOnPageChangeCallback(object
             : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
-                binding.fabNewFuncionario.visibility =
-                    if (position == 0) View.VISIBLE else View.GONE
+                binding.fabNewFuncionario.visibility = View.VISIBLE
             }
         })
 

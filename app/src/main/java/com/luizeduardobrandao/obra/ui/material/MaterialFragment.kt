@@ -60,13 +60,12 @@ class MaterialFragment : Fragment(), MaterialActions {
             }
         }.attach()
 
-        // FAB só visível na aba “Ativo” (index 0)
-        fun updateFab(pos: Int) {
-            fabNewMaterial.visibility = if (pos == 0) View.VISIBLE else View.GONE
-        }
-        updateFab(0)
+        // FAB sempre visível em todas as abas
+        fabNewMaterial.visibility = View.VISIBLE
         pagerMaterial.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) = updateFab(position)
+            override fun onPageSelected(position: Int) {
+                fabNewMaterial.visibility = View.VISIBLE
+            }
         })
 
         // Clique do FAB → tela de cadastro
