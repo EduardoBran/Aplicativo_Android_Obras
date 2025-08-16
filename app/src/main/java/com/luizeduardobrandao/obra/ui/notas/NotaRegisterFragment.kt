@@ -104,7 +104,7 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
             .filter { it.isChecked }
             .forEach { tipos.add(it.text.toString()) }
 
-        if (nome.isBlank() || loja.isBlank() || data.isBlank() || tipos.isEmpty() || valor <= 0.0) {
+        if (nome.isBlank() || data.isBlank() || tipos.isEmpty() || valor <= 0.0) {
             showSnackbarFragment(
                 Constants.SnackType.ERROR.name,
                 getString(R.string.snack_error),
@@ -214,8 +214,8 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
 
         // Loja
         val loja = etLoja.text?.toString()?.trim().orEmpty()
-        val lojaOk = loja.isNotEmpty()
-        tilLoja.error = if (!lojaOk) getString(R.string.nota_reg_error_loja) else null
+        // Não exibe erro para loja vazia
+        tilLoja.error = null
 
         // Data (formato dd/MM/yyyy)
         val data = etDataNota.text?.toString().orEmpty()
@@ -236,7 +236,7 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
         tvTipoError.text = if (!algumTipo) getString(R.string.nota_reg_error_tipo) else null
         tvTipoError.visibility = if (!algumTipo) View.VISIBLE else View.GONE
 
-        val ok = nomeOk && lojaOk && dataOk && valorOk && algumTipo
+        val ok = nomeOk && dataOk && valorOk && algumTipo
         btnSaveNota.isEnabled = ok
         ok
     }

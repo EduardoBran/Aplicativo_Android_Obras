@@ -26,6 +26,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.StyleSpan
+import android.graphics.Typeface
 
 @AndroidEntryPoint
 class ResumoNotasFragment : Fragment() {
@@ -163,11 +167,21 @@ class ResumoNotasFragment : Fragment() {
                 val tv = layoutInflater.inflate(
                     R.layout.item_tipo_valor, containerTiposValoresAPagar, false
                 ) as android.widget.TextView
-                tv.text = getString(
-                    R.string.tipo_valor_mask_money,
-                    tipo,
-                    formatMoneyBR(v)
-                )
+
+                // Exemplo: "Elétrica: R$ 900,00"
+                val label = "$tipo: ${formatMoneyBR(v)}"
+
+                val styled = android.text.SpannableStringBuilder(label).apply {
+                    setSpan(
+                        android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                        0,
+                        tipo.length, // só o nome do tipo em negrito
+                        android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+
+                tv.text = styled
+                tv.textSize = 16f   // 16sp
                 containerTiposValoresAPagar.addView(tv)
             }
         }
@@ -189,7 +203,21 @@ class ResumoNotasFragment : Fragment() {
                 val tv = layoutInflater.inflate(
                     R.layout.item_tipo_valor, containerTiposValoresPago, false
                 ) as android.widget.TextView
-                tv.text = getString(R.string.tipo_valor_mask_money, tipo, formatMoneyBR(v))
+
+                // Ex.: "Elétrica: R$ 100,00"
+                val label = "$tipo: ${formatMoneyBR(v)}"
+
+                val styled = SpannableStringBuilder(label).apply {
+                    setSpan(
+                        StyleSpan(Typeface.BOLD),
+                        0,
+                        tipo.length, // deixa só o nome do tipo em negrito
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+
+                tv.text = styled
+                tv.textSize = 16f   // 16sp
                 containerTiposValoresPago.addView(tv)
             }
         }

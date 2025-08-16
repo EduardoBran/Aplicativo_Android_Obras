@@ -42,8 +42,11 @@ class NotaAdapter(
 
             tvNomeMaterial.text = nota.nomeMaterial
 
+            // Se não houver loja, exibe "-"
+            val lojaText = nota.loja.ifBlank { "-" }
+
             tvLoja.text = HtmlCompat.fromHtml(
-                tvLoja.context.getString(R.string.label_loja, nota.loja),
+                tvLoja.context.getString(R.string.label_loja, lojaText),
                 HtmlCompat.FROM_HTML_MODE_LEGACY
             )
 

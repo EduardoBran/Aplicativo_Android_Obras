@@ -69,7 +69,7 @@ class DetalheNotaFragment : Fragment() {
                         tvDetDescricao.text = nota.descricao
                             ?.ifBlank { "—" }
                             ?: "—"
-                        tvDetLoja.text = nota.loja
+                        tvDetLoja.text = nota.loja.ifBlank { "—" }
                         tvDetTipos.text = nota.tipos.joinToString(", ")
                         tvDetData.text = nota.data
                         tvDetStatus.text = getString(

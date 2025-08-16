@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="4dp"
-    android:layout_marginVertical="6dp"
+    android:layout_marginVertical="8dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="4dp">
 
@@ -19,38 +19,48 @@
             android:id="@+id/tvNomeFunc"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
+            android:textColor="@color/text_primary_recycler"
+            android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@id/tvSalario"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="Nome do Funcionario"/>
+            tools:text="Eduardo" />
 
         <!-- Salário + forma  -->
         <TextView
             android:id="@+id/tvSalario"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="@color/text_primary_recycler"
+            android:textSize="18sp"
+            android:textStyle="bold"
             app:layout_constraintBaseline_toBaselineOf="@id/tvNomeFunc"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:text="R$ 0,00 (diária)" />
+            tools:text="R$ 1.000,00 (diária)" />
 
         <!-- Função -->
         <TextView
             android:id="@+id/tvFuncao"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text_secondary_recycler"
+            android:textSize="18sp"
             app:layout_constraintEnd_toStartOf="@id/tvStatus"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvNomeFunc" />
+            app:layout_constraintTop_toBottomOf="@id/tvNomeFunc"
+            tools:text="Função: Pedreiro" />
 
         <!-- Status -->
         <TextView
             android:id="@+id/tvStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:textColor="@color/success"
+            android:textSize="18sp"
+            android:textStyle="bold"
             app:layout_constraintBaseline_toBaselineOf="@id/tvFuncao"
             app:layout_constraintEnd_toEndOf="parent"
             tools:text="Ativo" />
@@ -61,11 +71,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="13sp"
-            app:layout_constraintTop_toBottomOf="@id/tvFuncao"
-            app:layout_constraintStart_toStartOf="parent"
+            android:textColor="@color/text_secondary_recycler"
+            android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvFuncao"
             tools:text="12 dias trabalhados" />
 
         <!-- Divider -->
@@ -73,8 +83,8 @@
             android:id="@+id/dividerActions"
             android:layout_width="0dp"
             android:layout_height="1dp"
-            android:layout_marginTop="8dp"
-            android:background="@color/md_theme_light_outline"
+            android:layout_marginTop="18dp"
+            android:background="?attr/colorOutline"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvDiasTrabalhados" />
@@ -94,30 +104,30 @@
 
             <ImageButton
                 android:id="@+id/btnEdit"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="48dp"
+                android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/generic_update"
                 android:src="@drawable/ic_edit"
-                app:tint="@color/md_theme_light_tertiary" />
+                app:tint="@color/icon_edit_recycler" />
 
             <ImageButton
                 android:id="@+id/btnDetail"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="48dp"
+                android:layout_height="40dp"
                 android:layout_marginStart="16dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_info"
-                app:tint="@color/warning" />
+                app:tint="@color/icon_info_recycler" />
 
             <ImageButton
                 android:id="@+id/btnDelete"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="48dp"
+                android:layout_height="40dp"
                 android:layout_marginStart="16dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_delete"
-                app:tint="@color/md_theme_light_error" />
+                app:tint="@color/icon_delete_recycler" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

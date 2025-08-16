@@ -146,6 +146,11 @@
         <item quantity="other">%d meses trabalhados</item>
     </plurals>
 
+    <plurals name="func_period_days_tarefeiro">
+        <item quantity="one">%d dia (tarefeiro)</item>
+        <item quantity="other">%d dias (tarefeiro)</item>
+    </plurals>
+
     <!-- FuncionarioRegisterFragment -->
     <string name="func_reg_title">Registro de Funcionários</string>
     <string name="func_reg_name_hint">Nome do Funcionário</string>
@@ -230,7 +235,8 @@
     <string name="nota_reg_material_hint">Nome do Material</string>
     <string name="nota_reg_desc_hint">Descrição (opcional)</string>
     <string name="nota_reg_desc">Descrição</string>
-    <string name="nota_reg_store_hint">Loja</string>
+    <string name="nota_reg_store_hint">Loja (opcional)</string>
+    <string name="nota_reg_store_detail">Loja</string>
     <string name="nota_reg_date_hint">Data</string>
     <string name="nota_reg_value_hint">Valor</string>
     <string name="nota_reg_type">Tipo</string>
@@ -259,6 +265,8 @@
     <string name="nota_sum_total_paid">Total pago:</string>
     <string name="nota_sum_type_due">Totais por tipo (a receber)</string>
     <string name="nota_sum_type_paid">Totais por tipo (pago)</string>
+    <string name="nota_a_receber">A Receber</string>
+    <string name="nota_pago">Pago</string>
     <string name="total_geral_title_totais">Totais</string>
     <string name="total_geral_title_tipos">Totais por tipo</string>
     <string name="expandir">Expandir</string>

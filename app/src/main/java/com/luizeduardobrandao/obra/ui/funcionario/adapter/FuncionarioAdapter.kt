@@ -97,7 +97,6 @@ class FuncionarioAdapter(
                 item.formaPagamento.lowercase()
             )
 
-            // ②.1 Período trabalhado depende da forma de pagamento (diária/semanal/mensal)
             // ②.1 Período trabalhado depende da forma de pagamento (diária/semanal/mensal/tarefeiro)
             val diaria    = root.context.getString(R.string.func_reg_salary_options1)
             val semanal   = root.context.getString(R.string.func_reg_salary_options2)
@@ -106,8 +105,12 @@ class FuncionarioAdapter(
 
             val qtd = item.diasTrabalhados
             if (item.formaPagamento.equals(tarefeiro, ignoreCase = true)) {
-                // Texto fixo para tarefeiro (sem unidade/quantidade)
-                tvDiasTrabalhados.text = root.context.getString(R.string.func_reg_salary_options4)
+                // Usa plural específico para tarefeiro
+                tvDiasTrabalhados.text = root.resources.getQuantityString(
+                    R.plurals.func_period_days_tarefeiro,
+                    qtd,
+                    qtd
+                )
             } else {
                 val pluralRes = when (item.formaPagamento) {
                     diaria  -> R.plurals.func_period_days

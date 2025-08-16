@@ -101,4 +101,12 @@
 
     <!-- Toolbar HomeFragment -->
     <color name="toolbar_action_logout">#CCFFFFFF</color>
+
+    <!-- Items Recycler -->
+    <color name="text_primary_recycler">#212121</color>   <!-- Preto quase puro (Nome + Salário) -->
+    <color name="text_secondary_recycler">#616161</color> <!-- Cinza escuro (Função, descrição) -->
+    <color name="icon_edit_recycler">#1976D2</color>   <!-- Azul médio (material design) -->
+    <color name="icon_info_recycler">#FB8C00</color>   <!-- Cinza discreto -->
+    <color name="icon_delete_recycler">#C62828</color> <!-- Vermelho de perigo -->
+
 </resources>

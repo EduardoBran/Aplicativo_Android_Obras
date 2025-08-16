@@ -26,6 +26,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.StyleSpan
+import android.graphics.Typeface
 
 @AndroidEntryPoint
 class ResumoFuncionarioFragment : Fragment() {
@@ -132,21 +136,25 @@ class ResumoFuncionarioFragment : Fragment() {
                 R.layout.item_tipo_valor, containerResumoFuncionarios, false
             ) as android.widget.TextView
 
-            // Texto no padrão: "Nome do Funcionário — R$ 1.234,56"
+            // Texto no padrão: "Nome - Valor"
             val valorFmt = formatMoneyBR(f.totalGasto)
             val textoLinha = if ((f.adicional ?: 0.0) > 0.0) {
-                // "[nome] - [total] (Adicional: [valor total de adicional])"
-                "${f.nome} - $valorFmt (${getString(R.string.func_detail_additional)} ${
-                    formatMoneyBR(
-                        f.adicional ?: 0.0
-                    )
-                })"
+                "${f.nome}: $valorFmt (Adicional: ${formatMoneyBR(f.adicional ?: 0.0)})"
             } else {
-                // "[nome] - [total]"
-                "${f.nome} - $valorFmt"
+                "${f.nome}: $valorFmt"
             }
 
-            tv.text = textoLinha
+            // Aplica negrito no nome
+            val spannable = SpannableStringBuilder(textoLinha)
+            spannable.setSpan(
+                StyleSpan(Typeface.BOLD),
+                0,
+                f.nome.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+            tv.text = spannable
+            tv.textSize = 18f   // aumenta o tamanho da fonte (em sp)
 
             containerResumoFuncionarios.addView(tv)
         }

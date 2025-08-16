@@ -90,7 +90,8 @@
                     android:layout_weight="1"
                     android:accessibilityHeading="true"
                     android:text="@string/func_sum_header_gastos"
-                    android:textAppearance="?attr/textAppearanceTitleMedium" />
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textSize="20sp" />
 
                 <ImageView
                     android:id="@+id/ivArrowResumoFuncs"
@@ -109,7 +110,8 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="12dp"
-                android:visibility="gone">
+                android:visibility="gone"
+                tools:visibility="visible">
 
                 <!-- Limitador de altura + rolagem interna -->
                 <androidx.core.widget.NestedScrollView
@@ -155,6 +157,7 @@
                                 android:layout_weight="1"
                                 android:text="@string/total_geral"
                                 android:textAppearance="?attr/textAppearanceBodyLarge"
+                                android:textSize="20sp"
                                 android:textStyle="bold" />
 
                             <TextView
@@ -163,6 +166,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/func_sum_total"
                                 android:textAppearance="?attr/textAppearanceBodyLarge"
+                                android:textSize="20sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
                     </LinearLayout>

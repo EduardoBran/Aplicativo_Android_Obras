@@ -39,7 +39,7 @@
             android:layout_height="32dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/delete_aporte"
-            android:src="@drawable/ic_delete"
+            android:src="@drawable/ic_delete2"
             app:tint="?attr/colorError" />
     </LinearLayout>
 

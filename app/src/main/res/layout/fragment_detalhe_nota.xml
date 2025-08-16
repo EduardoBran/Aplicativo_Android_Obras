@@ -78,7 +78,7 @@
                 style="@style/TextAppearance.Material3.TitleMedium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/nota_reg_store_hint"
+                android:text="@string/nota_reg_store_detail"
                 android:textColor="?attr/colorOnSurface" />
 
             <TextView

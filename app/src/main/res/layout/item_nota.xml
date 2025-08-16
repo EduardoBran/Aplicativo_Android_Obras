@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="4dp"
-    android:layout_marginVertical="6dp"
+    android:layout_marginVertical="8dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="4dp">
 
@@ -19,7 +19,8 @@
             android:id="@+id/tvNomeMaterial"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
+            android:textColor="@color/text_primary_recycler"
+            android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@id/tvValor"
             app:layout_constraintStart_toStartOf="parent"
@@ -31,16 +32,21 @@
             android:id="@+id/tvValor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="@color/text_primary_recycler"
+            android:textSize="18sp"
+            android:textStyle="bold"
             app:layout_constraintBaseline_toBaselineOf="@id/tvNomeMaterial"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:text="R$ 0,00" />
+            tools:text="R$ 100,00" />
 
         <!-- Nome da loja -->
         <TextView
             android:id="@+id/tvLoja"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text_secondary_recycler"
+            android:textSize="18sp"
             app:layout_constraintEnd_toStartOf="@id/tvStatus"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvNomeMaterial"
@@ -51,6 +57,9 @@
             android:id="@+id/tvStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18sp"
+            android:textStyle="bold"
             android:textColor="@color/md_theme_light_error"
             app:layout_constraintBaseline_toBaselineOf="@id/tvLoja"
             app:layout_constraintEnd_toEndOf="parent"
@@ -61,7 +70,9 @@
             android:id="@+id/tvTipos"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/text_secondary_recycler"
+            android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/tvData"
             app:layout_constraintTop_toBottomOf="@id/tvLoja"
@@ -72,7 +83,10 @@
             android:id="@+id/tvData"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/text_secondary_recycler"
+            android:textSize="18sp"
+            android:textStyle="italic|bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBaseline_toBaselineOf="@id/tvTipos"
             tools:text="12/08/2025" />
@@ -90,8 +104,8 @@
             android:id="@+id/dividerActions"
             android:layout_width="0dp"
             android:layout_height="1dp"
-            android:layout_marginTop="8dp"
-            android:background="@color/md_theme_light_outline"
+            android:layout_marginTop="18dp"
+            android:background="?attr/colorOutline"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/barrierBottomHeader" />
@@ -111,32 +125,32 @@
 
             <ImageButton
                 android:id="@+id/btnEditNota"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="48dp"
+                android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/generic_update"
                 android:src="@drawable/ic_edit"
-                app:tint="@color/md_theme_light_tertiary" />
+                app:tint="@color/icon_edit_recycler" />
 
             <ImageButton
                 android:id="@+id/btnDetailNota"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="48dp"
+                android:layout_height="40dp"
                 android:layout_marginStart="16dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/detail"
                 android:src="@drawable/ic_info"
-                app:tint="@color/warning" />
+                app:tint="@color/icon_info_recycler" />
 
             <ImageButton
                 android:id="@+id/btnDeleteNota"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="48dp"
+                android:layout_height="40dp"
                 android:layout_marginStart="16dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/generic_delete"
                 android:src="@drawable/ic_delete"
-                app:tint="@color/md_theme_light_error" />
+                app:tint="@color/icon_delete_recycler" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

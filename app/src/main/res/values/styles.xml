@@ -65,11 +65,28 @@
     </style>
 
 
-    <!-- Tabs -->
+    <!-- Tabs (Padrão) -->
     <style name="Widget.ObrasApp.TabLayout" parent="Widget.Material3.TabLayout">
         <item name="tabIndicatorColor">@color/md_theme_light_primary</item>
         <item name="tabTextColor">@color/md_theme_light_onSurfaceVariant</item>
         <item name="tabSelectedTextColor">@color/md_theme_light_primary</item>
+        <item name="tabTextAppearance">@style/TextAppearance.ObrasApp.Tab</item>
+    </style>
+
+    <style name="TextAppearance.ObrasApp.Tab" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <!-- Estilo alternativo com texto menor -->
+    <style name="Widget.ObrasApp.TabLayout.Min" parent="Widget.Material3.TabLayout">
+        <item name="tabIndicatorColor">@color/md_theme_light_primary</item>
+        <item name="tabTextColor">@color/md_theme_light_onSurfaceVariant</item>
+        <item name="tabSelectedTextColor">@color/md_theme_light_primary</item>
+        <item name="tabTextAppearance">@style/TextAppearance.ObrasApp.Tab.Min</item>
+    </style>
+
+    <style name="TextAppearance.ObrasApp.Tab.Min" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">16sp</item>
     </style>
 
 </resources>
