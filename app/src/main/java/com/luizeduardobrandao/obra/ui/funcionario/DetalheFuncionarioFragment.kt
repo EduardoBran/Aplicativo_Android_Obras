@@ -21,6 +21,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import androidx.core.view.isVisible
 import android.widget.Toast
+import java.text.NumberFormat
+import java.util.Locale
 
 @AndroidEntryPoint
 class DetalheFuncionarioFragment : Fragment() {
@@ -71,7 +73,7 @@ class DetalheFuncionarioFragment : Fragment() {
         tvDetailFuncao.text = f.funcao
 
         // 3) Salário formatado
-        tvDetailSalario.text = getString(R.string.money_mask, f.salario)
+        tvDetailSalario.text = formatMoneyBR(f.salario)
 
         // 4) Forma de pagamento
         tvDetailPagamento.text = f.formaPagamento
@@ -101,14 +103,17 @@ class DetalheFuncionarioFragment : Fragment() {
 
         // 7) Adicional (opcional)
         if (f.adicional != null && f.adicional >= 0.0) {
-            tvDetailAdicional.text = getString(R.string.money_mask, f.adicional)
+            tvDetailAdicional.text = formatMoneyBR(f.adicional)
         } else {
             tvDetailAdicional.text = getString(R.string.func_detail_additional_none2)
         }
 
         // 8) Total gasto
-        tvDetailTotalGasto.text = getString(R.string.money_mask, f.totalGasto)
+        tvDetailTotalGasto.text = formatMoneyBR(f.totalGasto)
     }
+
+    private fun formatMoneyBR(value: Double): String =
+        NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(value)
 
     override fun onDestroyView() {
         super.onDestroyView()

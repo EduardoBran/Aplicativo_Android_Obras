@@ -18,6 +18,8 @@ import com.luizeduardobrandao.obra.ui.notas.adapter.NotaPagerAdapter
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 @AndroidEntryPoint
 class DetalheNotaFragment : Fragment() {
@@ -67,24 +69,24 @@ class DetalheNotaFragment : Fragment() {
                         tvDetDescricao.text = nota.descricao
                             ?.ifBlank { "—" }
                             ?: "—"
-                        tvDetLoja.text   = nota.loja
-                        tvDetTipos.text  = nota.tipos.joinToString(", ")
-                        tvDetData.text   = nota.data
+                        tvDetLoja.text = nota.loja
+                        tvDetTipos.text = nota.tipos.joinToString(", ")
+                        tvDetData.text = nota.data
                         tvDetStatus.text = getString(
                             if (nota.status == NotaPagerAdapter.STATUS_A_PAGAR)
                                 R.string.nota_status_purchased
                             else
                                 R.string.nota_status_paid_client
                         )
-                        tvDetValor.text  = getString(
-                            R.string.money_mask,
-                            nota.valor
-                        )
+                        tvDetValor.text = formatMoneyBR(nota.valor)
                     }
                 }
             }
         }
     }
+
+    private fun formatMoneyBR(value: Double): String =
+        NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(value)
 
     override fun onDestroyView() {
         super.onDestroyView()

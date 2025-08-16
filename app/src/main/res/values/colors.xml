@@ -98,4 +98,7 @@
     <!-- Botão NÃO (negativo) -->
     <color name="btn_bg_warning_no2">#FAD9D9</color>     <!-- marrom escuro, sólido -->
     <color name="btn_text_warning_no">#1B1B1B</color>   <!-- texto branco para contraste -->
+
+    <!-- Toolbar HomeFragment -->
+    <color name="toolbar_action_logout">#CCFFFFFF</color>
 </resources>

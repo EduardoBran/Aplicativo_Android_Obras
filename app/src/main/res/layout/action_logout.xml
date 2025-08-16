@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/logoutActionRoot"
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
@@ -15,7 +16,8 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:contentDescription="@string/home_logout"
-        android:src="@drawable/ic_logout" />
+        android:src="@drawable/ic_logout"
+        app:tint="@color/toolbar_action_logout" />
 
     <TextView
         android:id="@+id/tvLogout"
@@ -25,7 +27,7 @@
         android:paddingEnd="8dp"
         android:text="@string/home_logout"
         android:textAppearance="?attr/textAppearanceLabelLarge"
-        android:textColor="@color/black"
+        android:textColor="@color/toolbar_action_logout"
         android:textSize="16sp"
         android:textStyle="bold" />
 </LinearLayout>
