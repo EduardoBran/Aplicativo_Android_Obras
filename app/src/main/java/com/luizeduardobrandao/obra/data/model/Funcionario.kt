@@ -24,6 +24,7 @@ data class Funcionario(
     val pix: String? = null,
     val diasTrabalhados: Int = 0,
     val status: String = "Ativo",
+    val adicional: Double? = null,
 ) : Parcelable {
 
     /**
@@ -32,13 +33,17 @@ data class Funcionario(
      * e o número de dias trabalhados.
      */
     val totalGasto: Double
-        get() = when (formaPagamento.lowercase()) {
-            "diária"  -> salario * diasTrabalhados             // dias
-            "semanal" -> salario * diasTrabalhados             // semanas
-            "mensal"  -> salario * diasTrabalhados             // meses
-            "tarefeiro"  -> salario                            // <-- valor fixo por tarefa
-            else -> 0.0
+        get() {
+            val base = when (formaPagamento.lowercase()) {
+                "diária"    -> salario * diasTrabalhados
+                "semanal"   -> salario * diasTrabalhados
+                "mensal"    -> salario * diasTrabalhados
+                "tarefeiro" -> salario
+                else        -> 0.0
+            }
+            return base + (adicional ?: 0.0)
         }
+
 }
 
 /*

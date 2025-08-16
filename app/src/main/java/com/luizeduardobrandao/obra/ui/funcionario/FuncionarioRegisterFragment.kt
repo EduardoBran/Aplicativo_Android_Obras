@@ -41,6 +41,8 @@ class FuncionarioRegisterFragment : Fragment() {
     private val isEdit get() = args.funcionarioId != null
     private var diasTrabalhados = 0
 
+    private var previousAdicional: Double? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -55,6 +57,9 @@ class FuncionarioRegisterFragment : Fragment() {
         binding.toolbarFuncReg.setNavigationOnClickListener { findNavController().navigateUp() }
 
         if (isEdit) prefillFields()
+        if (!isEdit) {
+            binding.tvAdicionalTotalInfo.visibility = View.GONE
+        }
 
         binding.btnPlus.setOnClickListener { updateDias(+1) }
         binding.btnMinus.setOnClickListener { updateDias(-1) }
@@ -123,6 +128,19 @@ class FuncionarioRegisterFragment : Fragment() {
                             etPix.setText(func.pix)
                             tvDias.text = func.diasTrabalhados.toString()
                             diasTrabalhados = func.diasTrabalhados
+                            previousAdicional = func.adicional
+                            etAdicional.setText("") // campo vazio ao editar
+
+                            val tot = (previousAdicional ?: 0.0)
+                            if (tot > 0.0) {
+                                val totFmt = getString(R.string.money_mask, tot)
+                                tvAdicionalTotalInfo.visibility = View.VISIBLE
+                                tvAdicionalTotalInfo.text =
+                                    getString(R.string.func_reg_additional_total, totFmt)
+                            } else {
+                                tvAdicionalTotalInfo.visibility = View.GONE
+                            }
+
                             btnSaveFuncionario.setText(R.string.generic_update)
 
                             // Marca múltiplas funções
@@ -180,7 +198,14 @@ class FuncionarioRegisterFragment : Fragment() {
         tvPagamentoError.text = if (!pagtoOk) getString(R.string.func_reg_error_pagamento) else null
         tvPagamentoError.visibility = if (!pagtoOk) View.VISIBLE else View.GONE
 
-        val formOk = nomeOk && salarioOk && funcaoOk && pagtoOk
+        // Adicional (opcional, mas se informado não pode ser negativo)
+        val adicionalTxt = etAdicional.text?.toString()?.trim().orEmpty()
+        val adicionalVal = adicionalTxt.replace(',', '.').toDoubleOrNull()
+        val adicionalOk = adicionalVal == null || adicionalVal >= 0.0
+        tilAdicional.error = if (!adicionalOk)
+            getString(R.string.func_reg_error_additional_negative) else null
+
+        val formOk = nomeOk && salarioOk && funcaoOk && pagtoOk && adicionalOk
         btnSaveFuncionario.isEnabled = formOk
         formOk
     }
@@ -225,6 +250,15 @@ class FuncionarioRegisterFragment : Fragment() {
 
         binding.root.hideKeyboard()
 
+        val adicionalInput = binding.etAdicional.text?.toString()?.trim().orEmpty()
+        val adicionalParsed = adicionalInput.replace(',', '.').toDoubleOrNull()
+
+        val adicionalFinal = if (isEdit) {
+            (previousAdicional ?: 0.0) + (adicionalParsed ?: 0.0)  // se vazio, soma 0 → mantém
+        } else {
+            adicionalParsed // no cadastro inicial, usa o que foi informado (ou null)
+        }
+
         val funcionario = Funcionario(
             id = args.funcionarioId ?: "",
             nome = binding.etNomeFunc.text.toString().trim(),
@@ -233,7 +267,8 @@ class FuncionarioRegisterFragment : Fragment() {
             formaPagamento = getCheckedRadioTextPagamento(),
             pix = binding.etPix.text.toString().trim(),
             diasTrabalhados = diasTrabalhados,
-            status = getCheckedRadioText(binding.rgStatus).lowercase()
+            status = getCheckedRadioText(binding.rgStatus).lowercase(),
+            adicional = adicionalFinal
         )
 
         binding.btnSaveFuncionario.isEnabled = false

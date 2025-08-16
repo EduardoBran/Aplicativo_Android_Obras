@@ -134,11 +134,19 @@ class ResumoFuncionarioFragment : Fragment() {
 
             // Texto no padrão: "Nome do Funcionário — R$ 1.234,56"
             val valorFmt = formatMoneyBR(f.totalGasto)
-            tv.text = requireContext().getString(
-                R.string.resumo_funcionario_item,
-                f.nome,
-                valorFmt
-            )
+            val textoLinha = if ((f.adicional ?: 0.0) > 0.0) {
+                // "[nome] - [total] (Adicional: [valor total de adicional])"
+                "${f.nome} - $valorFmt (${getString(R.string.func_detail_additional)} ${
+                    formatMoneyBR(
+                        f.adicional ?: 0.0
+                    )
+                })"
+            } else {
+                // "[nome] - [total]"
+                "${f.nome} - $valorFmt"
+            }
+
+            tv.text = textoLinha
 
             containerResumoFuncionarios.addView(tv)
         }

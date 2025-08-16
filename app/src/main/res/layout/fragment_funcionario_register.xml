@@ -315,6 +315,38 @@
                     android:text="Inativo" />
             </RadioGroup>
 
+            <!-- Adicional (opcional) -->
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilAdicional"
+                style="@style/Widget.ObrasApp.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etAdicional"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_money"
+                    android:drawablePadding="12dp"
+                    android:hint="@string/func_reg_additional_hint"
+                    android:inputType="numberDecimal"
+                    android:minHeight="60dp"
+                    android:paddingVertical="16dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:id="@+id/tvAdicionalTotalInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone"
+                tools:text="Adicional acumulado: R$ 250,00"
+                tools:visibility="visible" />
+
             <!-- Botão -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSaveFuncionario"

@@ -178,11 +178,20 @@
     <string name="func_toast_pix_copy_empty">Sem pix adicionado.</string>
     <!-- Rótulo quando for tarefeiro -->
     <string name="func_reg_task_fixed_hint">Dias Trabalhados (pagamento fixo)</string>
+    <!-- Cadastro de Funcionário – Adicional -->
+    <string name="func_reg_additional">Adicional</string>
+    <string name="func_reg_additional_hint">Valor adicional (opcional)</string>
+    <string name="func_reg_error_additional_negative">O adicional não pode ser negativo</string>
+    <string name="func_reg_additional_total">Adicional acumulado: %1$s</string>
 
     <!-- DetalheFuncionarioFragment -->
     <string name="func_detail_title">Funcionário %1$s</string>
     <string name="func_detail_total">Total Gasto: R$ %1$s</string>
     <string name="money_mask">R$ %1$.2f</string>
+    <string name="func_detail_additional">Adicional:</string>
+    <string name="func_detail_additional_none">Nenhum adicional informado</string>
+    <string name="func_detail_additional_none2">-</string>
+
 
     <!-- ResumoFuncionarioFragment -->
     <string name="func_sum_title">Resumo de Funcionários</string>

@@ -99,7 +99,14 @@ class DetalheFuncionarioFragment : Fragment() {
         tvDetailDias.text = f.diasTrabalhados.toString()
         tvDetailStatus.text = f.status.replaceFirstChar { it.titlecase() }
 
-        // 7) Total gasto
+        // 7) Adicional (opcional)
+        if (f.adicional != null && f.adicional >= 0.0) {
+            tvDetailAdicional.text = getString(R.string.money_mask, f.adicional)
+        } else {
+            tvDetailAdicional.text = getString(R.string.func_detail_additional_none2)
+        }
+
+        // 8) Total gasto
         tvDetailTotalGasto.text = getString(R.string.money_mask, f.totalGasto)
     }
 

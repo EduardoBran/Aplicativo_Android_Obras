@@ -162,6 +162,21 @@
                 android:text="—"
                 android:textAppearance="?attr/textAppearanceBodyLarge" />
 
+            <!-- Adicional -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/func_detail_additional"
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+            <TextView
+                android:id="@+id/tvDetailAdicional"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="—"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+
             <!-- Total Gasto com Funcionário -->
             <TextView
                 android:layout_width="wrap_content"
