@@ -196,6 +196,8 @@
     <string name="func_detail_additional">Adicional:</string>
     <string name="func_detail_additional_none">Nenhum adicional informado</string>
     <string name="func_detail_additional_none2">-</string>
+    <string name="func_reg_pix_detail">Pix</string>
+    <string name="func_total_gasto">Total Gasto com o Funcionário</string>
 
 
     <!-- ResumoFuncionarioFragment -->

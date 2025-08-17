@@ -41,73 +41,86 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nome"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:text="@string/register_name_hint"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/tvDetailNome"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:layout_marginBottom="16dp"
-                android:text="—"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="Eduardo" />
 
             <!-- Função -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Função"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:text="@string/func_reg_role"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/tvDetailFuncao"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:layout_marginBottom="16dp"
-                android:text="—"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="Outro" />
 
             <!-- Salário -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Salário"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:text="@string/func_reg_salary_hint"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/tvDetailSalario"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:layout_marginBottom="16dp"
-                android:text="—"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="R$ 100,00" />
 
             <!-- Forma de Pagamento -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Forma de Pagamento"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:text="@string/func_reg_payment"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/tvDetailPagamento"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:layout_marginBottom="16dp"
-                android:text="—"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="Diária" />
 
-            <!-- Pix (se houver) -->
             <!-- Pix (se houver) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pix"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:text="@string/func_reg_pix_detail"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textColor="?attr/colorOnSurface" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:layout_marginBottom="16dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
@@ -117,8 +130,9 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="—"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    tools:text="—" />
 
                 <ImageButton
                     android:id="@+id/btnCopyPix"
@@ -128,7 +142,7 @@
                     android:contentDescription="@string/generic_copy"
                     android:src="@drawable/ic_copy"
                     android:visibility="gone"
-                    app:tint="@color/black"
+                    app:tint="@color/totalOverall_value"
                     tools:visibility="visible" />
             </LinearLayout>
 
@@ -136,61 +150,73 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Dias Trabalhados"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:text="@string/func_reg_days_hint"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/tvDetailDias"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:layout_marginBottom="16dp"
-                android:text="—"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="—" />
 
             <!-- Status -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Status"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:text="@string/func_reg_status"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/tvDetailStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:layout_marginBottom="16dp"
-                android:text="—"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="—" />
 
             <!-- Adicional -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/func_detail_additional"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/tvDetailAdicional"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:layout_marginBottom="16dp"
-                android:text="—"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="—" />
 
             <!-- Total Gasto com Funcionário -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Total Gasto com Funcionário"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:text="@string/func_total_gasto"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/tvDetailTotalGasto"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:layout_marginBottom="16dp"
-                android:text="—"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="—" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
