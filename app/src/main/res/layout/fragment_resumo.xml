@@ -86,7 +86,7 @@
                                 android:layout_weight="1"
                                 android:accessibilityHeading="true"
                                 android:text="@string/resumo_func_header"
-                                android:textAppearance="?attr/textAppearanceTitleMedium" />
+                                android:textAppearance="?attr/textAppearanceTitleLarge" />
 
                             <ImageView
                                 android:id="@+id/ivArrowFuncionarios"
@@ -160,7 +160,7 @@
                                 android:layout_weight="1"
                                 android:accessibilityHeading="true"
                                 android:text="@string/nota_sum_title_resumo"
-                                android:textAppearance="?attr/textAppearanceTitleMedium" />
+                                android:textAppearance="?attr/textAppearanceTitleLarge" />
 
                             <ImageView
                                 android:id="@+id/ivArrowNotas"
@@ -325,7 +325,7 @@
                                 android:layout_weight="1"
                                 android:accessibilityHeading="true"
                                 android:text="@string/cronograma_title"
-                                android:textAppearance="?attr/textAppearanceTitleMedium" />
+                                android:textAppearance="?attr/textAppearanceTitleLarge" />
 
                             <ImageView
                                 android:id="@+id/ivArrowCronograma"
@@ -468,7 +468,7 @@
                                 android:layout_weight="1"
                                 android:accessibilityHeading="true"
                                 android:text="@string/material_title"
-                                android:textAppearance="?attr/textAppearanceTitleMedium" />
+                                android:textAppearance="?attr/textAppearanceTitleLarge" />
 
                             <ImageView
                                 android:id="@+id/ivArrowMateriais"
@@ -580,7 +580,7 @@
                                 android:layout_weight="1"
                                 android:accessibilityHeading="true"
                                 android:text="@string/resumo_balance_header"
-                                android:textAppearance="?attr/textAppearanceTitleMedium" />
+                                android:textAppearance="?attr/textAppearanceTitleLarge" />
 
                             <ImageView
                                 android:id="@+id/ivArrowSaldo"
@@ -599,7 +599,8 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:padding="16dp"
-                            android:visibility="gone">
+                            android:visibility="gone"
+                            tools:visibility="gone">
 
                             <!-- Saldo Inicial -->
                             <androidx.cardview.widget.CardView
@@ -684,8 +685,9 @@
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:orientation="vertical"
-                                        android:padding="16dp"
-                                        android:visibility="gone">
+                                        android:padding="12dp"
+                                        android:visibility="gone"
+                                        tools:visibility="gone">
 
                                         <!-- Mantém o CARD já existente da lista de aportes, INTACTO -->
                                         <androidx.cardview.widget.CardView
@@ -698,7 +700,7 @@
                                                 android:layout_width="match_parent"
                                                 android:layout_height="wrap_content"
                                                 android:orientation="vertical"
-                                                android:padding="16dp">
+                                                android:padding="10dp">
 
                                                 <TextView
                                                     android:id="@+id/tvAportesHeader"
