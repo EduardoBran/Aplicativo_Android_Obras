@@ -50,6 +50,7 @@ data class Obra(
     val obraId: String = "",
     val nomeCliente: String = "",
     val endereco: String = "",
+    val contato: String = "",
     val descricao: String = "",
     val saldoInicial: Double = 0.0,   // definido no cadastro (imutável)
     val gastoTotal: Double = 0.0,     // somatório de gastos (repositórios de gastos/notas/funcionários)

@@ -85,6 +85,26 @@
                     android:paddingVertical="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Contato -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilContatoObra"
+                style="@style/Widget.ObrasApp.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etContatoObra"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_contact"
+                    android:drawablePadding="12dp"
+                    android:hint="@string/obra_data_contact_hint"
+                    android:inputType="textEmailAddress|phone"
+                    android:minHeight="60dp"
+                    android:paddingVertical="16dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Descrição -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilDescricao"

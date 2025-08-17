@@ -47,11 +47,13 @@ class WorkFragment : Fragment() {
 
     /** obra selecionada no dropdown */
     private var selectedObra: Obra? = null
+
     // guarda a lista ordenada para mapear posição -> Obra
     private var obrasOrdenadas: List<Obra> = emptyList()
 
     // Formato dd/MM/yyyy sem leniência
-    private val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false }
+    private val sdf =
+        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false }
 
     // Conexão a Internet
     private var netCallback: ConnectivityManager.NetworkCallback? = null
@@ -151,7 +153,7 @@ class WorkFragment : Fragment() {
         etDataFim.attachDatePicker()
 
         // TextWatchers em todos os campos do card
-        listOf(etCliente, etEndereco, etDescricao, etSaldo, etDataInicio, etDataFim)
+        listOf(etCliente, etEndereco, etContato, etDescricao, etSaldo, etDataInicio, etDataFim)
             .forEach { it.doAfterTextChanged { validateCard() } }
     }
 
@@ -175,6 +177,7 @@ class WorkFragment : Fragment() {
                                     getString(R.string.snack_button_ok)
                                 )
                             }
+
                             else -> Unit
                         }
                     }
@@ -188,6 +191,7 @@ class WorkFragment : Fragment() {
                                 binding.progressCard.isVisible = true
                                 binding.btnSaveWork.isEnabled = false
                             }
+
                             is UiState.Success -> {
                                 binding.progressCard.isGone = true
                                 toggleNewWorkCard(false)
@@ -198,6 +202,7 @@ class WorkFragment : Fragment() {
                                 ).show()
                                 viewModel.resetCreateState()
                             }
+
                             is UiState.ErrorRes -> {
                                 binding.progressCard.isGone = true
                                 showSnackbarFragment(
@@ -208,6 +213,7 @@ class WorkFragment : Fragment() {
                                 )
                                 viewModel.resetCreateState()
                             }
+
                             else -> Unit
                         }
                     }
@@ -283,6 +289,10 @@ class WorkFragment : Fragment() {
         val endereco = etEndereco.text?.toString().orEmpty()
         hasError = etEndereco.validate(endereco.isBlank(), R.string.work_error_endereco) || hasError
 
+        // contato
+        val contato = etContato.text?.toString().orEmpty()
+        hasError = etContato.validate(contato.isBlank(), R.string.work_error_contato) || hasError
+
         // descrição
         val descricao = etDescricao.text?.toString().orEmpty()
         hasError = etDescricao.validate(descricao.isBlank(), R.string.work_error_desc) || hasError
@@ -297,7 +307,8 @@ class WorkFragment : Fragment() {
         // datas (presença)
         val dataInicio = etDataInicio.text?.toString().orEmpty()
         val dataFim = etDataFim.text?.toString().orEmpty()
-        val faltouInicio = etDataInicio.validate(dataInicio.isBlank(), R.string.work_error_data_inicio)
+        val faltouInicio =
+            etDataInicio.validate(dataInicio.isBlank(), R.string.work_error_data_inicio)
         val faltouFim = etDataFim.validate(dataFim.isBlank(), R.string.work_error_data_fim)
         hasError = faltouInicio || faltouFim || hasError
 
@@ -320,6 +331,7 @@ class WorkFragment : Fragment() {
         val obra = Obra(
             nomeCliente = etCliente.text!!.trim().toString(),
             endereco = etEndereco.text!!.trim().toString(),
+            contato = etContato.text!!.trim().toString(),
             descricao = etDescricao.text!!.trim().toString(),
             saldoInicial = etSaldo.text!!.toString().toDouble(),
             dataInicio = etDataInicio.text!!.toString(),

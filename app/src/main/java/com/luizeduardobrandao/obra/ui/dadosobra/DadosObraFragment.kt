@@ -117,6 +117,7 @@ class DadosObraFragment : Fragment() {
             viewModel.salvarObra(
                 nome = etNomeCliente.text.toString(),
                 endereco = etEnderecoObra.text.toString(),
+                contato = etContatoObra.text.toString(),
                 descricao = etDescricaoObra.text.toString(),
                 dataInicio = etDataInicioObra.text.toString(),
                 dataFim = etDataFimObra.text.toString()
@@ -430,6 +431,7 @@ class DadosObraFragment : Fragment() {
         listOf(
             binding.etNomeCliente,
             binding.etEnderecoObra,
+            binding.etContatoObra,
             binding.etDataInicioObra,
             binding.etDataFimObra
         ).forEach { edit ->
@@ -441,6 +443,7 @@ class DadosObraFragment : Fragment() {
         toolbarDadosObra.title = getString(R.string.obra_data_title, obra.nomeCliente)
         etNomeCliente.setText(obra.nomeCliente)
         etEnderecoObra.setText(obra.endereco)
+        etContatoObra.setText(obra.contato)
         etDescricaoObra.setText(obra.descricao)
         tvSaldoInicialValor.text = formatMoneyBR(obra.saldoInicial)
         etDataInicioObra.setText(obra.dataInicio)
@@ -469,6 +472,10 @@ class DadosObraFragment : Fragment() {
             }
             if (etEnderecoObra.text.isNullOrBlank()) {
                 tilEnderecoObra.error = getString(R.string.dados_obra_address_error)
+                isValid = false
+            }
+            if (etContatoObra.text.isNullOrBlank()) {
+                tilContatoObra.error = getString(R.string.work_error_contato)
                 isValid = false
             }
             if (etDataInicioObra.text.isNullOrBlank()) {

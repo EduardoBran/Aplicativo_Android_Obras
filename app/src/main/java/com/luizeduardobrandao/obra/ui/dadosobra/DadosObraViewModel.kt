@@ -86,6 +86,7 @@ class DadosObraViewModel @Inject constructor(
     fun salvarObra(
         nome: String,
         endereco: String,
+        contato: String,
         descricao: String,
         dataInicio: String,
         dataFim: String
@@ -96,6 +97,7 @@ class DadosObraViewModel @Inject constructor(
             val campos = mapOf(
                 "nomeCliente" to nome.trim(),
                 "endereco"    to endereco.trim(),
+                "contato"     to contato.trim(),
                 "descricao"   to descricao.trim(),
                 "dataInicio"  to dataInicio,
                 "dataFim"     to dataFim

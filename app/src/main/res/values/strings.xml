@@ -90,6 +90,8 @@
         Falha ao salvar a obra. Tente novamente mais tarde.
     </string>
     <string name="work_error_date_order">Data de término deve ser igual ou posterior à data de início.</string>
+    <string name="work_error_contato">Informe um telefone ou e-mail.</string>
+    <string name="obra_data_contact_hint">Contato</string>
 
     <!-- HomeFragment -->
     <string name="home_toolbar_title">Obra: %1$s</string>

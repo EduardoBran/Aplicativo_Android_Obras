@@ -114,11 +114,11 @@
                         android:id="@+id/autoObras"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:dropDownVerticalOffset="0dp"
+                        android:ellipsize="end"
                         android:inputType="none"
                         android:maxLines="1"
-                        android:singleLine="true"
-                        android:ellipsize="end"
-                        android:dropDownVerticalOffset="0dp" />
+                        android:singleLine="true" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Botões Nova Obra / Continuar -->
@@ -161,7 +161,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@id/gCenter"
-                tools:visibility="gone">
+                tools:visibility="visible">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -204,6 +204,27 @@
                             android:hint="@string/obra_data_address_hint"
                             android:minHeight="60dp"
                             android:paddingVertical="16dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Contato (telefone ou e-mail) -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilContato"
+                        style="@style/Widget.ObrasApp.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etContato"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:drawableStart="@drawable/ic_contact"
+                            android:drawablePadding="12dp"
+                            android:hint="@string/obra_data_contact_hint"
+                            android:inputType="textEmailAddress|phone"
+                            android:minHeight="60dp"
+                            android:paddingVertical="16dp" />
+
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- Descrição -->
