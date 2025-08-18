@@ -95,9 +95,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="18dp"
                 android:text="@string/nota_reg_type"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:textAppearance="?attr/textAppearanceHeadline6" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -109,31 +109,43 @@
                     android:id="@+id/cbPintura"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pintura" />
+                    android:text="@string/nota_pintura"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
 
                 <CheckBox
                     android:id="@+id/cbPedreiro"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pedreiro" />
+                    android:text="@string/nota_pedreiro"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
 
                 <CheckBox
                     android:id="@+id/cbHidraulica"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hidráulica" />
+                    android:text="@string/nota_hidraulica"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
 
                 <CheckBox
                     android:id="@+id/cbEletrica"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Elétrica" />
+                    android:text="@string/nota_eletrica"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <CheckBox
+                    android:id="@+id/cbLimpeza"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nota_limpeza"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"/>
 
                 <CheckBox
                     android:id="@+id/cbOutros"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Outros" />
+                    android:text="@string/nota_outro"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
             </LinearLayout>
 
             <TextView
@@ -141,7 +153,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="@color/md_theme_light_error"
                 android:visibility="gone"
                 tools:text="@string/nota_reg_error_tipo"
@@ -153,7 +165,7 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp">
+                android:layout_marginTop="20dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDataNota"
@@ -171,9 +183,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="18dp"
                 android:text="@string/nota_reg_status"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:textAppearance="?attr/textAppearanceHeadline6" />
 
             <RadioGroup
                 android:id="@+id/rgStatusNota"
@@ -188,6 +200,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
+                    android:textSize="16sp"
                     android:text="@string/nota_tab_due" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
@@ -195,6 +208,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
+                    android:textSize="16sp"
                     android:text="@string/nota_tab_paid" />
             </RadioGroup>
 
@@ -224,7 +238,9 @@
                 style="@style/Widget.ObrasApp.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:layout_marginTop="24dp"
+                android:textSize="18sp"
                 android:text="@string/nota_reg_button_save" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

@@ -191,6 +191,14 @@
     <string name="func_reg_error_additional_negative">O adicional não pode ser negativo</string>
     <string name="func_reg_additional_total">Adicional acumulado: %1$s</string>
 
+    <string name="func_pintor">Pintor</string>
+    <string name="func_pedreiro">Pedreiro</string>
+    <string name="func_eletricista">Eletricista</string>
+    <string name="func_encanador">Encanador</string>
+    <string name="func_ajudante">Ajudante</string>
+    <string name="func_outro">Outro</string>
+    <string name="dias_trabalhados_qtd">0</string>
+
     <!-- DetalheFuncionarioFragment -->
     <string name="func_detail_title">Funcionário %1$s</string>
     <string name="func_detail_total">Total Gasto: R$ %1$s</string>
@@ -254,6 +262,13 @@
     <string name="nota_reg_error_data">Selecione a data</string>
     <string name="nota_reg_error_valor">Informe um valor maior que zero</string>
     <string name="nota_reg_error_tipo">Selecione ao menos um tipo</string>
+
+    <string name="nota_pintura">Pintura</string>
+    <string name="nota_pedreiro">Pedreiro</string>
+    <string name="nota_hidraulica">Hidráulica</string>
+    <string name="nota_eletrica">Elétrica</string>
+    <string name="nota_limpeza">Limpeza</string>
+    <string name="nota_outro">Outro</string>
 
     <!-- DetalheNotaFragment -->
     <string name="nota_detail_title">Nota %1$s</string>
@@ -363,6 +378,7 @@
     <string name="material_status_active">Ativo</string>
     <string name="material_status_inactive">Inativo</string>
     <string name="material_duplicate_name">Já existe um material com esse nome.</string>
+    <string name="material_name_hint">Nome do material</string>
 
     <!-- fragment_detalhe_material -->
     <string name="material_detail_title">Detalhes do Material</string>

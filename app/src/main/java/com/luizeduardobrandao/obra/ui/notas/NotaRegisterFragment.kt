@@ -61,7 +61,7 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
             etNomeMaterial.doAfterTextChanged { validateForm() }
             etLoja.doAfterTextChanged { validateForm() }
             etValorNota.doAfterTextChanged { validateForm() }
-            listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbOutros).forEach { cb ->
+            listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbLimpeza, cbOutros).forEach { cb ->
                 cb.setOnCheckedChangeListener { _, _ -> validateForm() }
             }
 
@@ -100,7 +100,7 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
         else                         NotaPagerAdapter.STATUS_PAGO
 
         val tipos = mutableListOf<String>()
-        listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbOutros)
+        listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbLimpeza, cbOutros)
             .filter { it.isChecked }
             .forEach { tipos.add(it.text.toString()) }
 
@@ -172,7 +172,7 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
         etDataNota.setText(n.data)
         etValorNota.setText(n.valor.toString())
 
-        listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbOutros).forEach {
+        listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbLimpeza, cbOutros).forEach {
             it.isChecked = n.tipos.contains(it.text.toString())
         }
         if (n.status == NotaPagerAdapter.STATUS_A_PAGAR) rbStatusPagar.isChecked = true
@@ -231,7 +231,7 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
         tilValorNota.error = if (!valorOk) getString(R.string.nota_reg_error_valor) else null
 
         // Tipos (ao menos um marcado)
-        val algumTipo = listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbOutros)
+        val algumTipo = listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbLimpeza, cbOutros)
             .any { it.isChecked }
         tvTipoError.text = if (!algumTipo) getString(R.string.nota_reg_error_tipo) else null
         tvTipoError.visibility = if (!algumTipo) View.VISIBLE else View.GONE

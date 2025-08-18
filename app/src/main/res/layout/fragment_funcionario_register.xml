@@ -58,9 +58,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="18dp"
                 android:text="@string/func_reg_role"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:textAppearance="?attr/textAppearanceHeadline6" />
 
             <!-- Linha 1 de funções -->
             <RadioGroup
@@ -75,21 +75,24 @@
                     android:id="@+id/rbPintor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pintor" />
+                    android:text="@string/func_pintor"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/rbPedreiro"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
-                    android:text="Pedreiro" />
+                    android:text="@string/func_pedreiro"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/rbEletricista"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
-                    android:text="Eletricista" />
+                    android:text="@string/func_eletricista"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
             </RadioGroup>
 
             <!-- Linha 2 de funções -->
@@ -105,21 +108,24 @@
                     android:id="@+id/rbEncanador"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Encanador" />
+                    android:text="@string/func_encanador"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/rbAjudante"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="Ajudante" />
+                    android:layout_marginStart="10dp"
+                    android:text="@string/func_ajudante"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/rbOutro"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="Outro" />
+                    android:layout_marginStart="10dp"
+                    android:text="@string/func_outro"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
             </RadioGroup>
 
             <TextView
@@ -127,7 +133,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="@color/md_theme_light_error"
                 android:visibility="gone"
                 tools:text="@string/func_reg_error_role"
@@ -139,7 +145,7 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp">
+                android:layout_marginTop="18dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etSalario"
@@ -157,9 +163,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="18dp"
                 android:text="@string/func_reg_payment"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:textAppearance="?attr/textAppearanceHeadline6" />
 
             <RadioGroup
                 android:id="@+id/rgPagamento"
@@ -178,15 +184,18 @@
                         android:id="@+id/rbDiaria"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/func_reg_salary_options1" />
+                        android:text="@string/func_reg_salary_options1"
+                        android:textAppearance="?attr/textAppearanceBodyLarge" />
 
                     <com.google.android.material.radiobutton.MaterialRadioButton
                         android:id="@+id/rbSemanal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
-                        android:text="@string/func_reg_salary_options2" />
-                </LinearLayout> <!-- Linha 2: Mensal | Tarefeiro -->
+                        android:text="@string/func_reg_salary_options2"
+                        android:textAppearance="?attr/textAppearanceBodyLarge" />
+                </LinearLayout>
+                <!-- Linha 2: Mensal | Tarefeiro -->
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -198,14 +207,16 @@
                         android:id="@+id/rbMensal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/func_reg_salary_options3" />
+                        android:text="@string/func_reg_salary_options3"
+                        android:textAppearance="?attr/textAppearanceBodyLarge" />
 
                     <com.google.android.material.radiobutton.MaterialRadioButton
                         android:id="@+id/rbTarefeiro"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
-                        android:text="@string/func_reg_salary_options4" />
+                        android:text="@string/func_reg_salary_options4"
+                        android:textAppearance="?attr/textAppearanceBodyLarge" />
                 </LinearLayout>
             </RadioGroup>
 
@@ -214,7 +225,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="@color/md_theme_light_error"
                 android:visibility="gone"
                 tools:text="@string/func_reg_error_pagamento"
@@ -226,7 +237,7 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="18dp"
                 app:endIconContentDescription="@string/generic_copy"
                 app:endIconDrawable="@drawable/ic_copy"
                 app:endIconMode="custom">
@@ -247,9 +258,9 @@
                 android:id="@+id/tvLabelDias"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="20dp"
                 android:text="@string/func_reg_days_hint"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:textAppearance="?attr/textAppearanceHeadline6" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -272,7 +283,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:paddingVertical="8dp"
-                    android:text="0"
+                    android:text="@string/dias_trabalhados_qtd"
                     android:textSize="18sp" />
 
                 <ImageButton
@@ -288,9 +299,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="18dp"
                 android:text="@string/func_reg_status"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:textAppearance="?attr/textAppearanceHeadline6" />
 
             <RadioGroup
                 android:id="@+id/rgStatus"
@@ -305,14 +316,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
-                    android:text="Ativo" />
+                    android:text="@string/material_status_active"
+                    android:textSize="16sp" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbStatusInativo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="Inativo" />
+                    android:text="@string/material_status_inactive"
+                    android:textSize="16sp" />
             </RadioGroup>
 
             <!-- Adicional (opcional) -->
@@ -322,7 +335,7 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="10dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etAdicional"
@@ -341,7 +354,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:visibility="gone"
                 tools:text="Adicional acumulado: R$ 250,00"
@@ -354,7 +367,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="@string/func_reg_button_save" />
+                android:layout_marginBottom="8dp"
+                android:text="@string/func_reg_button_save"
+                android:textSize="18sp" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
