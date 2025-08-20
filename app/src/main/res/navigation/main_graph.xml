@@ -140,6 +140,11 @@
             android:name="obraId"
             app:argType="string" />
 
+        <argument
+            android:name="startTab"
+            app:argType="integer"
+            android:defaultValue="0" />
+
         <action
             android:id="@+id/action_func_to_register"
             app:destination="@id/funcionarioRegisterFragment" />
@@ -425,15 +430,25 @@
             android:name="obraId"
             app:argType="string" />
 
-        <!-- Funcionários (sem startTab) -->
+        <!-- Funcionários para ResumoFuncionarios -->
         <action
             android:id="@+id/action_resumo_to_funcionario"
             app:destination="@id/resumoFuncionarioFragment" />
+
+        <!-- Funcionários (0=Ativo, 1=Inativo -->
+        <action
+            android:id="@+id/action_resumo_to_funcionarioTabs"
+            app:destination="@id/funcionarioFragment" />
 
         <!-- Notas (0=Em aberto, 1=Pagas) -->
         <action
             android:id="@+id/action_resumo_to_notas"
             app:destination="@id/notasFragment" />
+
+        <!-- Notas para ResumoNotas -->
+        <action
+            android:id="@+id/action_resumo_to_resumoNotas"
+            app:destination="@id/resumoNotasFragment" />
 
         <!-- Cronograma (0=Pendentes, 1=Em andamento, 2=Concluídos) -->
         <action

@@ -560,4 +560,33 @@
 
     <string name="abrir">Abrir</string>
 
+    <!-- Funcionários - blocos tipo Notas -->
+    <string name="func_active_title">Ativo</string>
+    <string name="func_inactive_title">Inativo</string>
+    <plurals name="func_total_label">
+        <item quantity="one">Total de funcionário: %1$d</item>
+        <item quantity="other">Total de funcionários: %1$d</item>
+    </plurals>
+
+    <!-- Apenas "1 funcionário / 2 funcionários" -->
+    <plurals name="func_count_plural">
+        <item quantity="one">%d funcionário</item>
+        <item quantity="other">%d funcionários</item>
+    </plurals>
+
+    <!-- Funcionários: mensagens quando zerado -->
+    <string name="func_none_active">Nenhum funcionário ativo.</string>
+    <string name="func_none_inactive">Nenhum funcionário inativo.</string>
+
+    <!-- Plural de notas -->
+    <plurals name="resumo_notas_qtd">
+        <item quantity="one">%d nota</item>
+        <item quantity="other">%d notas</item>
+    </plurals>
+
+    <!-- Mensagens quando não há notas -->
+    <string name="nota_none">Nenhuma nota cadastrada.</string>
+
+    <string name="nota_total_geral">Total geral: %1$s</string>
+
 </resources>

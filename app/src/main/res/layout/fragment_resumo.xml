@@ -43,7 +43,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:visibility="visible" />
+                android:visibility="visible"
+                tools:visibility="gone" />
 
             <!-- Conteúdo -->
             <LinearLayout
@@ -107,15 +108,160 @@
                             android:orientation="vertical"
                             android:padding="16dp"
                             android:visibility="gone"
-                            tools:visibility="gone">
+                            tools:visibility="visible">
 
-                            <!-- Quantidade de funcionários -->
-                            <TextView
-                                android:id="@+id/tvFuncCount"
-                                android:layout_width="wrap_content"
+                            <!-- Ativo (verde) -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textSize="18sp"
-                                tools:text="Quantidade: 20 funcionários" />
+                                android:background="@color/totalPaid_bg"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/func_active_title"
+                                    android:textColor="@color/totalPaid_text"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
+
+                                <!-- Quantidade + Abrir -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <TextView
+                                        android:id="@+id/tvFuncAtivosCount"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:textColor="@color/totalPaid_text"
+                                        android:textSize="18sp"
+                                        tools:text="Quantidade: 6" />
+
+                                    <!-- Link Abrir (vai para a aba Ativo no FuncionarioFragment) -->
+                                    <LinearLayout
+                                        android:id="@+id/btnAbrirFuncAtivos"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:clickable="true"
+                                        android:focusable="true"
+                                        android:foreground="?attr/selectableItemBackground"
+                                        android:gravity="center_vertical"
+                                        android:orientation="horizontal">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/abrir"
+                                            android:textColor="@color/link_text"
+                                            android:textSize="18sp"
+                                            android:textStyle="italic|bold" />
+
+                                        <ImageView
+                                            android:layout_width="20dp"
+                                            android:layout_height="20dp"
+                                            android:layout_marginStart="2dp"
+                                            android:contentDescription="@string/abrir"
+                                            android:src="@drawable/ic_forward"
+                                            app:tint="@color/link_text" />
+                                    </LinearLayout>
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="12dp" />
+
+                            <!-- Inativo (vermelho) -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/totalDue_bg"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/func_inactive_title"
+                                    android:textColor="@color/totalDue_text"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
+
+                                <!-- Quantidade + Abrir -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <TextView
+                                        android:id="@+id/tvFuncInativosCount"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:textColor="@color/totalDue_text"
+                                        android:textSize="18sp"
+                                        tools:text="Quantidade: 2" />
+
+                                    <!-- Link Abrir (vai para a aba Inativo no FuncionarioFragment) -->
+                                    <LinearLayout
+                                        android:id="@+id/btnAbrirFuncInativos"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:clickable="true"
+                                        android:focusable="true"
+                                        android:foreground="?attr/selectableItemBackground"
+                                        android:gravity="center_vertical"
+                                        android:orientation="horizontal">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/abrir"
+                                            android:textColor="@color/link_text"
+                                            android:textSize="18sp"
+                                            android:textStyle="italic|bold" />
+
+                                        <ImageView
+                                            android:layout_width="20dp"
+                                            android:layout_height="20dp"
+                                            android:layout_marginStart="2dp"
+                                            android:contentDescription="@string/abrir"
+                                            android:src="@drawable/ic_forward"
+                                            app:tint="@color/link_text" />
+                                    </LinearLayout>
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="12dp" />
+
+                            <!-- Total geral de funcionários (sem link) -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/totalOverall_bg"
+                                android:orientation="horizontal"
+                                android:paddingHorizontal="12dp"
+                                android:paddingVertical="10dp">
+
+                                <TextView
+                                    android:id="@+id/tvFuncTotalGeral"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/totalOverall_text"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold"
+                                    tools:text="Total de funcionários: 8" />
+                            </LinearLayout>
 
                             <!-- Total gasto (já com label no código) + link Abrir -->
                             <LinearLayout
@@ -222,7 +368,7 @@
                             android:orientation="vertical"
                             android:padding="16dp"
                             android:visibility="gone"
-                            tools:visibility="gone">
+                            tools:visibility="visible">
 
                             <!-- A Receber -->
                             <LinearLayout
@@ -240,16 +386,7 @@
                                     android:textSize="20sp"
                                     android:textStyle="bold" />
 
-                                <TextView
-                                    android:id="@+id/tvNotasDueCount"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:textColor="@color/totalDue_text"
-                                    android:textSize="16sp"
-                                    tools:text="2 materiais" />
-
-                                <!-- Valor + link Abrir -->
+                                <!-- Linha: quantidade OU "Nenhuma nota cadastrada." + Abrir -->
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
@@ -257,18 +394,17 @@
                                     android:gravity="center_vertical"
                                     android:orientation="horizontal">
 
-                                    <!-- Valor -->
+                                    <!-- Esquerda: quantidade/mensagem -->
                                     <TextView
-                                        android:id="@+id/tvNotasDueTotal"
+                                        android:id="@+id/tvNotasDueCount"
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
                                         android:layout_weight="1"
-                                        android:textColor="@color/totalDue_value"
-                                        android:textSize="18sp"
-                                        android:textStyle="bold"
-                                        tools:text="R$ 250,00" />
+                                        android:textColor="@color/totalDue_text"
+                                        android:textSize="16sp"
+                                        tools:text="2 notas" />
 
-                                    <!-- Link Abrir -->
+                                    <!-- Direita: link Abrir -->
                                     <LinearLayout
                                         android:id="@+id/btnAbrirNotasDue"
                                         android:layout_width="wrap_content"
@@ -298,6 +434,17 @@
                                             app:tint="@color/link_text" />
                                     </LinearLayout>
                                 </LinearLayout>
+
+                                <!-- Valor (some quando não houver notas) -->
+                                <TextView
+                                    android:id="@+id/tvNotasDueTotal"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:textColor="@color/totalDue_value"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold"
+                                    tools:text="R$ 250,00" />
                             </LinearLayout>
 
                             <View
@@ -321,17 +468,7 @@
                                     android:textSize="20sp"
                                     android:textStyle="bold" />
 
-                                <!-- Quantidade -->
-                                <TextView
-                                    android:id="@+id/tvNotasPaidCount"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:textColor="@color/totalPaid_text"
-                                    android:textSize="16sp"
-                                    tools:text="5 notas" />
-
-                                <!-- Valor + link Abrir -->
+                                <!-- Linha: quantidade OU "Nenhuma nota cadastrada." + Abrir -->
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
@@ -339,18 +476,17 @@
                                     android:gravity="center_vertical"
                                     android:orientation="horizontal">
 
-                                    <!-- Valor -->
+                                    <!-- Esquerda: quantidade/mensagem -->
                                     <TextView
-                                        android:id="@+id/tvNotasPaidTotal"
+                                        android:id="@+id/tvNotasPaidCount"
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
                                         android:layout_weight="1"
-                                        android:textColor="@color/totalPaid_value"
-                                        android:textSize="18sp"
-                                        android:textStyle="bold"
-                                        tools:text="R$ 175,00" />
+                                        android:textColor="@color/totalPaid_text"
+                                        android:textSize="16sp"
+                                        tools:text="5 notas" />
 
-                                    <!-- Link Abrir -->
+                                    <!-- Direita: link Abrir -->
                                     <LinearLayout
                                         android:id="@+id/btnAbrirNotasPaid"
                                         android:layout_width="wrap_content"
@@ -380,6 +516,17 @@
                                             app:tint="@color/link_text" />
                                     </LinearLayout>
                                 </LinearLayout>
+
+                                <!-- Valor (some quando não houver notas) -->
+                                <TextView
+                                    android:id="@+id/tvNotasPaidTotal"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:textColor="@color/totalPaid_value"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold"
+                                    tools:text="R$ 175,00" />
                             </LinearLayout>
 
                             <View
@@ -393,25 +540,47 @@
                                 android:background="@color/totalOverall_bg"
                                 android:orientation="horizontal"
                                 android:paddingHorizontal="12dp"
-                                android:paddingVertical="10dp">
+                                android:paddingVertical="10dp"
+                                android:gravity="center_vertical">
 
+                                <!-- Texto único: "Total geral: R$ XXX" -->
                                 <TextView
+                                    android:id="@+id/tvNotasTotalGeral"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
-                                    android:text="@string/total_geral"
-                                    android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalOverall_text"
-                                    android:textStyle="bold" />
+                                    android:textSize="20sp"
+                                    android:textStyle="bold"
+                                    tools:text="Total geral: R$ 500,00" />
 
-                                <TextView
-                                    android:id="@+id/tvNotasTotalGeral"
+                                <!-- Link Abrir + ícone (vai para ResumoNotasFragment) -->
+                                <LinearLayout
+                                    android:id="@+id/btnAbrirNotasGeral"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                                    android:textColor="@color/totalOverall_value"
-                                    android:textStyle="bold"
-                                    tools:text="—" />
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:foreground="?attr/selectableItemBackground"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/abrir"
+                                        android:textColor="@color/link_text"
+                                        android:textSize="18sp"
+                                        android:textStyle="italic|bold" />
+
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_marginStart="2dp"
+                                        android:contentDescription="@string/abrir"
+                                        android:src="@drawable/ic_forward"
+                                        app:tint="@color/link_text" />
+                                </LinearLayout>
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
@@ -931,7 +1100,7 @@
                             android:orientation="vertical"
                             android:padding="16dp"
                             android:visibility="gone"
-                            tools:visibility="visible">
+                            tools:visibility="gone">
 
                             <!-- Saldo Inicial -->
                             <androidx.cardview.widget.CardView

@@ -54,7 +54,9 @@ class ResumoViewModel @Inject constructor(
         val gastoTotal: Double,
         val totalAportes: Double,          // ★ NOVO
         val aportes: List<Aporte>,         // ★ NOVO (para listar no “Financeiro”)
-        val saldoRestante: Double          // ★ recalculado com totalAportes
+        val saldoRestante: Double,         // ★ recalculado com totalAportes
+        val countFuncAtivos: Int,
+        val countFuncInativos: Int
     )
 
     private val _state = MutableStateFlow<UiState<ResumoData>>(UiState.Loading)
@@ -79,6 +81,10 @@ class ResumoViewModel @Inject constructor(
             // 1) Funcionários
             val totalDias = funs.sumOf { it.diasTrabalhados }
             val totalMao  = funs.sumOf(Funcionario::totalGasto)
+
+            // 👇 NOVOS: contadores por status
+            val ativos   = funs.count { it.status.equals("ativo", ignoreCase = true) }
+            val inativos = funs.count { it.status.equals("inativo", ignoreCase = true) }
 
             // 2) Notas / Materiais
             val totalNotas = notas.sumOf(Nota::valor)
@@ -105,9 +111,11 @@ class ResumoViewModel @Inject constructor(
                 totalPorTipo = porTipo,
                 saldoInicial = obra.saldoInicial,
                 gastoTotal = obra.gastoTotal,
-                totalAportes = totalAportes,   // ★
-                aportes = aportes,             // ★
-                saldoRestante = saldoRestante  // ★
+                totalAportes = totalAportes,
+                aportes = aportes,
+                saldoRestante = saldoRestante,
+                countFuncAtivos = ativos,
+                countFuncInativos = inativos
             )
         }
             .map<ResumoData, UiState<ResumoData>> { UiState.Success(it) }

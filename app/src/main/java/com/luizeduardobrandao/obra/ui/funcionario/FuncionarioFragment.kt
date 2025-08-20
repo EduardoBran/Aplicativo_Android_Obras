@@ -79,6 +79,10 @@ class FuncionarioFragment : Fragment() {
             else getString(R.string.func_tab_inactive)
         }.attach()
 
+        binding.pagerFuncionario.post {
+            binding.pagerFuncionario.currentItem = args.startTab.coerceIn(0, 1)
+        }
+
         binding.fabNewFuncionario.visibility = View.VISIBLE
 
 

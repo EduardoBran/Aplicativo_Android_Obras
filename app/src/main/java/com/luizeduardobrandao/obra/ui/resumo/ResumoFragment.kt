@@ -139,6 +139,25 @@ class ResumoFragment : Fragment() {
                 ResumoFragmentDirections.actionResumoToFuncionario(args.obraId)
             )
         }
+        // 👉 "Abrir" da faixa VERDE (Ativo) → FuncionarioFragment na aba 0
+        btnAbrirFuncAtivos.setOnClickListener {
+            findNavController().navigate(
+                ResumoFragmentDirections.actionResumoToFuncionarioTabs(
+                    args.obraId, /* startTab = */
+                    0
+                )
+            )
+        }
+
+        // 👉 "Abrir" da faixa VERMELHA (Inativo) → FuncionarioFragment na aba 1
+        btnAbrirFuncInativos.setOnClickListener {
+            findNavController().navigate(
+                ResumoFragmentDirections.actionResumoToFuncionarioTabs(
+                    args.obraId, /* startTab = */
+                    1
+                )
+            )
+        }
         // ── Notas → abas corretas (0 = A Receber, 1 = Pago)
         btnAbrirNotasDue.setOnClickListener {
             findNavController().navigate(
@@ -148,6 +167,12 @@ class ResumoFragment : Fragment() {
         btnAbrirNotasPaid.setOnClickListener {
             findNavController().navigate(
                 ResumoFragmentDirections.actionResumoToNotas(args.obraId, 1)
+            )
+        }
+        // ── Notas → ResumoNotasFragment
+        btnAbrirNotasGeral.setOnClickListener {
+            findNavController().navigate(
+                ResumoFragmentDirections.actionResumoToResumoNotas(args.obraId)
             )
         }
         // ── Cronograma → abas corretas (0 = Pendente, 1 = Andamento, 2 = Concluído)
@@ -225,12 +250,29 @@ class ResumoFragment : Fragment() {
                             val res = ui.data
 
                             // Funcionários
-                            val funcQtd = resources.getQuantityString(
-                                R.plurals.resumo_func_qtd,
+                            tvFuncAtivosCount.text =
+                                if (res.countFuncAtivos == 0)
+                                    getString(R.string.func_none_active)
+                                else
+                                    resources.getQuantityString(
+                                        R.plurals.func_count_plural,
+                                        res.countFuncAtivos,
+                                        res.countFuncAtivos
+                                    )
+                            tvFuncInativosCount.text =
+                                if (res.countFuncInativos == 0)
+                                    getString(R.string.func_none_inactive)
+                                else
+                                    resources.getQuantityString(
+                                        R.plurals.func_count_plural,
+                                        res.countFuncInativos,
+                                        res.countFuncInativos
+                                    )
+                            tvFuncTotalGeral.text = resources.getQuantityString(
+                                R.plurals.func_total_label,
                                 res.countFuncionarios,
                                 res.countFuncionarios
                             )
-                            tvFuncCount.text = getString(R.string.resumo_func_count_mask, funcQtd)
 
                             val totalFunStr = formatMoneyBR(res.totalMaoDeObra)
                             tvFuncTotal.text =
@@ -354,20 +396,41 @@ class ResumoFragment : Fragment() {
                             val paidTotal = paidList.sumOf { it.valor }
                             val totalGeral = dueTotal + paidTotal
 
-                            tvNotasDueCount.text = resources.getQuantityString(
-                                R.plurals.resumo_materiais_qtd,
-                                dueCount,
-                                dueCount
-                            )
-                            tvNotasPaidCount.text = resources.getQuantityString(
-                                R.plurals.resumo_materiais_qtd,
-                                paidCount,
-                                paidCount
-                            )
+                            tvNotasDueCount.text =
+                                if (dueCount == 0)
+                                    getString(R.string.nota_none)
+                                else
+                                    resources.getQuantityString(
+                                        R.plurals.resumo_notas_qtd, // ✅ agora usa o plural de notas
+                                        dueCount,
+                                        dueCount
+                                    )
+                            tvNotasPaidCount.text =
+                                if (paidCount == 0)
+                                    getString(R.string.nota_none)
+                                else
+                                    resources.getQuantityString(
+                                        R.plurals.resumo_notas_qtd,
+                                        paidCount,
+                                        paidCount
+                                    )
 
-                            tvNotasDueTotal.text = formatMoneyBR(dueTotal)
-                            tvNotasPaidTotal.text = formatMoneyBR(paidTotal)
-                            tvNotasTotalGeral.text = formatMoneyBR(totalGeral)
+                            tvNotasDueTotal.isVisible = dueCount > 0
+                            if (dueCount > 0) {
+                                tvNotasDueTotal.text = formatMoneyBR(dueTotal)
+                            } else {
+                                tvNotasDueTotal.text = "" // evita sobra
+                            }
+                            tvNotasPaidTotal.isVisible = paidCount > 0
+                            if (paidCount > 0) {
+                                tvNotasPaidTotal.text = formatMoneyBR(paidTotal)
+                            } else {
+                                tvNotasPaidTotal.text = ""
+                            }
+
+                            val valorTotal = formatMoneyBR(totalGeral)
+                            tvNotasTotalGeral.text =
+                                getString(R.string.nota_total_geral, valorTotal)
                         }
 
                         is UiState.ErrorRes -> {
