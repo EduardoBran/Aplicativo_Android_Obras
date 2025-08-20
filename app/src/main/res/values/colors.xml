@@ -109,4 +109,6 @@
     <color name="icon_info_recycler">#FB8C00</color>   <!-- Cinza discreto -->
     <color name="icon_delete_recycler">#C62828</color> <!-- Vermelho de perigo -->
 
+    <color name="link_text">#2962FF</color>
+
 </resources>

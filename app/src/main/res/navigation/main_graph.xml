@@ -209,6 +209,12 @@
             android:name="obraId"
             app:argType="string" />
 
+        <!-- Novo: índice da aba (0=Em aberto, 1=Pagas) -->
+        <argument
+            android:name="startTab"
+            android:defaultValue="0"
+            app:argType="integer" />
+
         <action
             android:id="@+id/action_notas_to_register"
             app:destination="@id/notaRegisterFragment" />
@@ -278,6 +284,12 @@
             android:name="obraId"
             app:argType="string" />
 
+        <!-- Novo: índice da aba (0=Pendentes, 1=Em andamento, 2=Concluídos) -->
+        <argument
+            android:name="startTab"
+            android:defaultValue="0"
+            app:argType="integer" />
+
         <action
             android:id="@+id/action_cronograma_to_register"
             app:destination="@id/cronogramaRegisterFragment" />
@@ -330,6 +342,12 @@
         <argument
             android:name="obraId"
             app:argType="string" />
+
+        <!-- Novo: índice da aba (0=Ativo, 1=Inativo) -->
+        <argument
+            android:name="startTab"
+            android:defaultValue="0"
+            app:argType="integer" />
 
         <action
             android:id="@+id/action_material_to_register"
@@ -406,6 +424,26 @@
         <argument
             android:name="obraId"
             app:argType="string" />
+
+        <!-- Funcionários (sem startTab) -->
+        <action
+            android:id="@+id/action_resumo_to_funcionario"
+            app:destination="@id/resumoFuncionarioFragment" />
+
+        <!-- Notas (0=Em aberto, 1=Pagas) -->
+        <action
+            android:id="@+id/action_resumo_to_notas"
+            app:destination="@id/notasFragment" />
+
+        <!-- Cronograma (0=Pendentes, 1=Em andamento, 2=Concluídos) -->
+        <action
+            android:id="@+id/action_resumo_to_cronograma"
+            app:destination="@id/cronogramaFragment" />
+
+        <!-- Materiais (0=Ativo, 1=Inativo) -->
+        <action
+            android:id="@+id/action_resumo_to_material"
+            app:destination="@id/materialFragment" />
 
     </fragment>
 </navigation>

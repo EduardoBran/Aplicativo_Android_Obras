@@ -60,6 +60,11 @@ class MaterialFragment : Fragment(), MaterialActions {
             }
         }.attach()
 
+        pagerMaterial.post {
+            val target = args.startTab.coerceIn(0, 1)
+            pagerMaterial.currentItem = target
+        }
+
         // FAB sempre visível em todas as abas
         fabNewMaterial.visibility = View.VISIBLE
         pagerMaterial.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {

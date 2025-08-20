@@ -11,6 +11,7 @@ import com.luizeduardobrandao.obra.databinding.ItemAporteBinding
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
+import android.view.View
 
 class AporteAdapter(
     private val onDeleteClick: (Aporte) -> Unit
@@ -37,7 +38,7 @@ class AporteAdapter(
         private val inFmt = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
         private val outFmt = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
-        fun bind(item: Aporte) = with(bind) {
+        fun bind(item: Aporte, showDivider: Boolean) = with(bind) {
             tvAporteValor.text = currency.format(item.valor)
 
             // Tenta converter ISO -> dd/MM/yyyy; se falhar, exibe como veio
@@ -55,6 +56,9 @@ class AporteAdapter(
             btnDeleteAporte.setOnClickListener {
                 onDeleteClick(item)
             }
+
+            // 👇 controla o divisor do item
+            dividerAporte.visibility = if (showDivider) View.VISIBLE else View.GONE
         }
     }
 
@@ -65,6 +69,9 @@ class AporteAdapter(
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        holder.bind(getItem(position))
+        // Esconde o divisor no último item
+        val isLast = position == itemCount - 1
+        val showDivider = itemCount > 1 && !isLast
+        holder.bind(getItem(position), showDivider)
     }
 }

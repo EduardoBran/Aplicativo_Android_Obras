@@ -107,24 +107,64 @@
                             android:orientation="vertical"
                             android:padding="16dp"
                             android:visibility="gone"
-                            tools:visibility="visible">
+                            tools:visibility="gone">
 
+                            <!-- Quantidade de funcionários -->
                             <TextView
                                 android:id="@+id/tvFuncCount"
-                                style="@style/TextAppearance.Material3.BodyMedium"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="—"
-                                android:textStyle="bold" />
+                                android:textSize="18sp"
+                                tools:text="Quantidade: 20 funcionários" />
 
-                            <TextView
-                                android:id="@+id/tvFuncTotal"
-                                style="@style/TextAppearance.Material3.TitleMedium"
-                                android:layout_width="wrap_content"
+                            <!-- Total gasto (já com label no código) + link Abrir -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="16dp"
-                                android:text="—"
-                                android:textStyle="bold" />
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <!-- Total gasto -->
+                                <TextView
+                                    android:id="@+id/tvFuncTotal"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold"
+                                    tools:text="Total gasto: R$ 24.200,00" />
+
+                                <!-- Link Abrir com ícone -->
+                                <LinearLayout
+                                    android:id="@+id/btnAbrirFuncionarios"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:foreground="?attr/selectableItemBackground"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <TextView
+                                        android:id="@+id/tvAbrirFuncionarios"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/abrir"
+                                        android:textColor="@color/link_text"
+                                        android:textSize="18sp"
+                                        android:textStyle="italic|bold" />
+
+                                    <ImageView
+                                        android:id="@+id/ivAbrirFuncionarios"
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_marginStart="2dp"
+                                        android:contentDescription="@string/abrir"
+                                        android:src="@drawable/ic_forward"
+                                        app:tint="@color/link_text" />
+                                </LinearLayout>
+                            </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -181,7 +221,8 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:padding="16dp"
-                            android:visibility="gone">
+                            android:visibility="gone"
+                            tools:visibility="gone">
 
                             <!-- A Receber -->
                             <LinearLayout
@@ -195,28 +236,68 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:text="@string/nota_due_title"
-                                    android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalDue_text"
+                                    android:textSize="20sp"
                                     android:textStyle="bold" />
 
                                 <TextView
                                     android:id="@+id/tvNotasDueCount"
-                                    style="@style/TextAppearance.Material3.BodyMedium"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="—"
-                                    android:textColor="@color/totalDue_text" />
+                                    android:layout_marginTop="8dp"
+                                    android:textColor="@color/totalDue_text"
+                                    android:textSize="16sp"
+                                    tools:text="2 materiais" />
 
-                                <TextView
-                                    android:id="@+id/tvNotasDueTotal"
-                                    style="@style/TextAppearance.Material3.TitleMedium"
-                                    android:layout_width="wrap_content"
+                                <!-- Valor + link Abrir -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="—"
-                                    android:textColor="@color/totalDue_value"
-                                    android:textStyle="bold" />
+                                    android:layout_marginTop="8dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <!-- Valor -->
+                                    <TextView
+                                        android:id="@+id/tvNotasDueTotal"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:textColor="@color/totalDue_value"
+                                        android:textSize="18sp"
+                                        android:textStyle="bold"
+                                        tools:text="R$ 250,00" />
+
+                                    <!-- Link Abrir -->
+                                    <LinearLayout
+                                        android:id="@+id/btnAbrirNotasDue"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:clickable="true"
+                                        android:focusable="true"
+                                        android:foreground="?attr/selectableItemBackground"
+                                        android:gravity="center_vertical"
+                                        android:orientation="horizontal">
+
+                                        <TextView
+                                            android:id="@+id/tvAbrirNotasDue"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/abrir"
+                                            android:textColor="@color/link_text"
+                                            android:textSize="18sp"
+                                            android:textStyle="italic|bold" />
+
+                                        <ImageView
+                                            android:id="@+id/ivAbrirNotasDue"
+                                            android:layout_width="20dp"
+                                            android:layout_height="20dp"
+                                            android:layout_marginStart="2dp"
+                                            android:contentDescription="@string/abrir"
+                                            android:src="@drawable/ic_forward"
+                                            app:tint="@color/link_text" />
+                                    </LinearLayout>
+                                </LinearLayout>
                             </LinearLayout>
 
                             <View
@@ -231,32 +312,74 @@
                                 android:orientation="vertical"
                                 android:padding="12dp">
 
+                                <!-- Título -->
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:text="@string/nota_paid_title"
-                                    android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalPaid_text"
+                                    android:textSize="20sp"
                                     android:textStyle="bold" />
 
+                                <!-- Quantidade -->
                                 <TextView
                                     android:id="@+id/tvNotasPaidCount"
-                                    style="@style/TextAppearance.Material3.BodyMedium"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="—"
-                                    android:textColor="@color/totalPaid_text" />
+                                    android:layout_marginTop="8dp"
+                                    android:textColor="@color/totalPaid_text"
+                                    android:textSize="16sp"
+                                    tools:text="5 notas" />
 
-                                <TextView
-                                    android:id="@+id/tvNotasPaidTotal"
-                                    style="@style/TextAppearance.Material3.TitleMedium"
-                                    android:layout_width="wrap_content"
+                                <!-- Valor + link Abrir -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="—"
-                                    android:textColor="@color/totalPaid_value"
-                                    android:textStyle="bold" />
+                                    android:layout_marginTop="8dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <!-- Valor -->
+                                    <TextView
+                                        android:id="@+id/tvNotasPaidTotal"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:textColor="@color/totalPaid_value"
+                                        android:textSize="18sp"
+                                        android:textStyle="bold"
+                                        tools:text="R$ 175,00" />
+
+                                    <!-- Link Abrir -->
+                                    <LinearLayout
+                                        android:id="@+id/btnAbrirNotasPaid"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:clickable="true"
+                                        android:focusable="true"
+                                        android:foreground="?attr/selectableItemBackground"
+                                        android:gravity="center_vertical"
+                                        android:orientation="horizontal">
+
+                                        <TextView
+                                            android:id="@+id/tvAbrirNotasPaid"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/abrir"
+                                            android:textColor="@color/link_text"
+                                            android:textSize="18sp"
+                                            android:textStyle="italic|bold" />
+
+                                        <ImageView
+                                            android:id="@+id/ivAbrirNotasPaid"
+                                            android:layout_width="20dp"
+                                            android:layout_height="20dp"
+                                            android:layout_marginStart="2dp"
+                                            android:contentDescription="@string/abrir"
+                                            android:src="@drawable/ic_forward"
+                                            app:tint="@color/link_text" />
+                                    </LinearLayout>
+                                </LinearLayout>
                             </LinearLayout>
 
                             <View
@@ -285,10 +408,10 @@
                                     android:id="@+id/tvNotasTotalGeral"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="—"
                                     android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalOverall_value"
-                                    android:textStyle="bold" />
+                                    android:textStyle="bold"
+                                    tools:text="—" />
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
@@ -346,7 +469,8 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:padding="16dp"
-                            android:visibility="gone">
+                            android:visibility="gone"
+                            tools:visibility="gone">
 
                             <!-- Pendente (vermelho) -->
                             <LinearLayout
@@ -360,18 +484,58 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:text="@string/cron_tab_pending"
-                                    android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalDue_text"
+                                    android:textSize="20sp"
                                     android:textStyle="bold" />
 
-                                <TextView
-                                    android:id="@+id/tvCronPendentes"
-                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                <!-- Linha: texto da situação (esq) + Abrir (dir) -->
+                                <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="—"
-                                    android:textColor="@color/totalDue_text" />
+                                    android:layout_marginTop="8dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <!-- Texto dinâmico: "X pendentes" OU "Nenhum cronograma cadastrado como pendente" -->
+                                    <TextView
+                                        android:id="@+id/tvCronPendentes"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:textColor="@color/totalDue_text"
+                                        android:textSize="18sp"
+                                        tools:text="3 cronogramas pendentes" />
+
+                                    <!-- Link Abrir -->
+                                    <LinearLayout
+                                        android:id="@+id/btnAbrirCronPendentes"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:clickable="true"
+                                        android:focusable="true"
+                                        android:foreground="?attr/selectableItemBackground"
+                                        android:gravity="center_vertical"
+                                        android:orientation="horizontal">
+
+                                        <TextView
+                                            android:id="@+id/tvAbrirCronPendentes"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/abrir"
+                                            android:textColor="@color/link_text"
+                                            android:textSize="18sp"
+                                            android:textStyle="italic|bold" />
+
+                                        <ImageView
+                                            android:id="@+id/ivAbrirCronPendentes"
+                                            android:layout_width="20dp"
+                                            android:layout_height="20dp"
+                                            android:layout_marginStart="2dp"
+                                            android:contentDescription="@string/abrir"
+                                            android:src="@drawable/ic_forward"
+                                            app:tint="@color/link_text" />
+                                    </LinearLayout>
+                                </LinearLayout>
                             </LinearLayout>
 
                             <View
@@ -386,22 +550,63 @@
                                 android:orientation="vertical"
                                 android:padding="12dp">
 
+                                <!-- Título -->
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:text="@string/cron_tab_progress"
-                                    android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalProgress_text"
+                                    android:textSize="20sp"
                                     android:textStyle="bold" />
 
-                                <TextView
-                                    android:id="@+id/tvCronAndamento"
-                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                <!-- Linha: texto da situação (esq) + Abrir (dir) -->
+                                <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="—"
-                                    android:textColor="@color/totalProgress_text" />
+                                    android:layout_marginTop="8dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <!-- Texto dinâmico -->
+                                    <TextView
+                                        android:id="@+id/tvCronAndamento"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:textColor="@color/totalProgress_text"
+                                        android:textSize="18sp"
+                                        tools:text="2 cronogramas em andamento" />
+
+                                    <!-- Link Abrir -->
+                                    <LinearLayout
+                                        android:id="@+id/btnAbrirCronAndamento"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:clickable="true"
+                                        android:focusable="true"
+                                        android:foreground="?attr/selectableItemBackground"
+                                        android:gravity="center_vertical"
+                                        android:orientation="horizontal">
+
+                                        <TextView
+                                            android:id="@+id/tvAbrirCronAndamento"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/abrir"
+                                            android:textColor="@color/link_text"
+                                            android:textSize="18sp"
+                                            android:textStyle="italic|bold" />
+
+                                        <ImageView
+                                            android:id="@+id/ivAbrirCronAndamento"
+                                            android:layout_width="20dp"
+                                            android:layout_height="20dp"
+                                            android:layout_marginStart="2dp"
+                                            android:contentDescription="@string/abrir"
+                                            android:src="@drawable/ic_forward"
+                                            app:tint="@color/link_text" />
+                                    </LinearLayout>
+                                </LinearLayout>
                             </LinearLayout>
 
                             <View
@@ -416,22 +621,63 @@
                                 android:orientation="vertical"
                                 android:padding="12dp">
 
+                                <!-- Título -->
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:text="@string/cron_tab_done"
-                                    android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalPaid_text"
+                                    android:textSize="20sp"
                                     android:textStyle="bold" />
 
-                                <TextView
-                                    android:id="@+id/tvCronConcluidos"
-                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                <!-- Linha: texto da situação (esq) + Abrir (dir) -->
+                                <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="—"
-                                    android:textColor="@color/totalPaid_text" />
+                                    android:layout_marginTop="8dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <!-- Texto dinâmico -->
+                                    <TextView
+                                        android:id="@+id/tvCronConcluidos"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:textColor="@color/totalPaid_text"
+                                        android:textSize="18sp"
+                                        tools:text="15 cronogramas concluídos" />
+
+                                    <!-- Link Abrir -->
+                                    <LinearLayout
+                                        android:id="@+id/btnAbrirCronConcluidos"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:clickable="true"
+                                        android:focusable="true"
+                                        android:foreground="?attr/selectableItemBackground"
+                                        android:gravity="center_vertical"
+                                        android:orientation="horizontal">
+
+                                        <TextView
+                                            android:id="@+id/tvAbrirCronConcluidos"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/abrir"
+                                            android:textColor="@color/link_text"
+                                            android:textSize="18sp"
+                                            android:textStyle="italic|bold" />
+
+                                        <ImageView
+                                            android:id="@+id/ivAbrirCronConcluidos"
+                                            android:layout_width="20dp"
+                                            android:layout_height="20dp"
+                                            android:layout_marginStart="2dp"
+                                            android:contentDescription="@string/abrir"
+                                            android:src="@drawable/ic_forward"
+                                            app:tint="@color/link_text" />
+                                    </LinearLayout>
+                                </LinearLayout>
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
@@ -489,7 +735,8 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:padding="16dp"
-                            android:visibility="gone">
+                            android:visibility="gone"
+                            tools:visibility="gone">
 
                             <!-- Ativo (verde) -->
                             <LinearLayout
@@ -499,22 +746,63 @@
                                 android:orientation="vertical"
                                 android:padding="12dp">
 
+                                <!-- Título -->
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:text="@string/material_status_active"
-                                    android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalPaid_text"
+                                    android:textSize="20sp"
                                     android:textStyle="bold" />
 
-                                <TextView
-                                    android:id="@+id/tvMateriaisAtivos"
-                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                <!-- Linha: texto da situação (esq) + Abrir (dir) -->
+                                <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="—"
-                                    android:textColor="@color/totalPaid_text" />
+                                    android:layout_marginTop="8dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <!-- Texto dinâmico (mantido) -->
+                                    <TextView
+                                        android:id="@+id/tvMateriaisAtivos"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:textColor="@color/totalPaid_text"
+                                        android:textSize="18sp"
+                                        tools:text="11 tipos de material sendo usados" />
+
+                                    <!-- Link Abrir -->
+                                    <LinearLayout
+                                        android:id="@+id/btnAbrirMateriaisAtivos"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:clickable="true"
+                                        android:focusable="true"
+                                        android:foreground="?attr/selectableItemBackground"
+                                        android:gravity="center_vertical"
+                                        android:orientation="horizontal">
+
+                                        <TextView
+                                            android:id="@+id/tvAbrirMateriaisAtivos"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/abrir"
+                                            android:textColor="@color/link_text"
+                                            android:textSize="18sp"
+                                            android:textStyle="italic|bold" />
+
+                                        <ImageView
+                                            android:id="@+id/ivAbrirMateriaisAtivos"
+                                            android:layout_width="20dp"
+                                            android:layout_height="20dp"
+                                            android:layout_marginStart="4dp"
+                                            android:contentDescription="@string/abrir"
+                                            android:src="@drawable/ic_forward"
+                                            app:tint="@color/link_text" />
+                                    </LinearLayout>
+                                </LinearLayout>
                             </LinearLayout>
 
                             <View
@@ -529,22 +817,63 @@
                                 android:orientation="vertical"
                                 android:padding="12dp">
 
+                                <!-- Título -->
                                 <TextView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:text="@string/material_status_inactive"
-                                    android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalProgress_text"
+                                    android:textSize="20sp"
                                     android:textStyle="bold" />
 
-                                <TextView
-                                    android:id="@+id/tvMateriaisInativos"
-                                    style="@style/TextAppearance.Material3.BodyMedium"
+                                <!-- Linha: texto da situação (esq) + Abrir (dir) -->
+                                <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="—"
-                                    android:textColor="@color/totalProgress_text" />
+                                    android:layout_marginTop="8dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <!-- Texto dinâmico (mantido) -->
+                                    <TextView
+                                        android:id="@+id/tvMateriaisInativos"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:textColor="@color/totalProgress_text"
+                                        android:textSize="18sp"
+                                        tools:text="Nenhum material inativo cadastrado" />
+
+                                    <!-- Link Abrir -->
+                                    <LinearLayout
+                                        android:id="@+id/btnAbrirMateriaisInativos"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:clickable="true"
+                                        android:focusable="true"
+                                        android:foreground="?attr/selectableItemBackground"
+                                        android:gravity="center_vertical"
+                                        android:orientation="horizontal">
+
+                                        <TextView
+                                            android:id="@+id/tvAbrirMateriaisInativos"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/abrir"
+                                            android:textColor="@color/link_text"
+                                            android:textSize="18sp"
+                                            android:textStyle="italic|bold" />
+
+                                        <ImageView
+                                            android:id="@+id/ivAbrirMateriaisInativos"
+                                            android:layout_width="20dp"
+                                            android:layout_height="20dp"
+                                            android:layout_marginStart="4dp"
+                                            android:contentDescription="@string/abrir"
+                                            android:src="@drawable/ic_forward"
+                                            app:tint="@color/link_text" />
+                                    </LinearLayout>
+                                </LinearLayout>
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
@@ -602,7 +931,7 @@
                             android:orientation="vertical"
                             android:padding="16dp"
                             android:visibility="gone"
-                            tools:visibility="gone">
+                            tools:visibility="visible">
 
                             <!-- Saldo Inicial -->
                             <androidx.cardview.widget.CardView
@@ -622,17 +951,17 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/resumo_initial_balance_header"
-                                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                                        android:textSize="20sp"
                                         android:textStyle="bold" />
 
                                     <TextView
                                         android:id="@+id/tvSaldoInicialResumo"
-                                        style="@style/TextAppearance.Material3.TitleMedium"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="4dp"
-                                        android:text="—"
-                                        android:textStyle="bold" />
+                                        android:textSize="18sp"
+                                        android:textStyle="bold|italic"
+                                        tools:text="R$ 10.000,00" />
                                 </LinearLayout>
                             </androidx.cardview.widget.CardView>
 
@@ -710,7 +1039,8 @@
                                                     android:layout_height="wrap_content"
                                                     android:text="@string/resumo_aportes_header"
                                                     android:textAppearance="?attr/textAppearanceBodyLarge"
-                                                    android:textStyle="bold" />
+                                                    android:textStyle="bold"
+                                                    android:visibility="gone" />
 
                                                 <!-- Mensagem quando não há aportes -->
                                                 <TextView
@@ -735,7 +1065,7 @@
                                 </LinearLayout>
                             </com.google.android.material.card.MaterialCardView>
 
-                            <!-- Saldo Ajustado + Restante (mantidos IDs existentes) -->
+                            <!-- Saldo Ajustado + Restante -->
                             <androidx.cardview.widget.CardView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -753,34 +1083,34 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/resumo_adjusted_balance_header"
-                                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                                        android:textSize="20sp"
                                         android:textStyle="bold" />
 
                                     <TextView
                                         android:id="@+id/tvSaldoAjustadoResumo"
-                                        style="@style/TextAppearance.Material3.TitleMedium"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="4dp"
-                                        android:text="—"
-                                        android:textStyle="bold" />
+                                        android:textSize="18sp"
+                                        android:textStyle="bold"
+                                        tools:text="R$ 11.000,00" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginTop="12dp"
+                                        android:layout_marginTop="16dp"
                                         android:text="@string/resumo_saldo_remaining_header"
-                                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                                        android:textSize="20sp"
                                         android:textStyle="bold" />
 
                                     <TextView
                                         android:id="@+id/tvSaldoRestanteResumo"
-                                        style="@style/TextAppearance.Material3.TitleLarge"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="4dp"
-                                        android:text="—"
-                                        android:textStyle="bold" />
+                                        android:textSize="26sp"
+                                        android:textStyle="bold|italic"
+                                        tools:text="R$ 6.775,00" />
                                 </LinearLayout>
                             </androidx.cardview.widget.CardView>
                         </LinearLayout>

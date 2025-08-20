@@ -55,4 +55,11 @@
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
         tools:text="-" />
+
+    <View
+        android:id="@+id/dividerAporte"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="14dp"
+        android:background="?attr/colorOutline" />
 </LinearLayout>

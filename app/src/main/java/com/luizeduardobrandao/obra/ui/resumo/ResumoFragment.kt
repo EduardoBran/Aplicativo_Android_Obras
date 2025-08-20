@@ -133,6 +133,51 @@ class ResumoFragment : Fragment() {
             isAportesExpanded
         ) { isAportesExpanded = it }
 
+        // ── Funcionários → ResumoFuncionarioFragment
+        btnAbrirFuncionarios.setOnClickListener {
+            findNavController().navigate(
+                ResumoFragmentDirections.actionResumoToFuncionario(args.obraId)
+            )
+        }
+        // ── Notas → abas corretas (0 = A Receber, 1 = Pago)
+        btnAbrirNotasDue.setOnClickListener {
+            findNavController().navigate(
+                ResumoFragmentDirections.actionResumoToNotas(args.obraId, 0)
+            )
+        }
+        btnAbrirNotasPaid.setOnClickListener {
+            findNavController().navigate(
+                ResumoFragmentDirections.actionResumoToNotas(args.obraId, 1)
+            )
+        }
+        // ── Cronograma → abas corretas (0 = Pendente, 1 = Andamento, 2 = Concluído)
+        btnAbrirCronPendentes.setOnClickListener {
+            findNavController().navigate(
+                ResumoFragmentDirections.actionResumoToCronograma(args.obraId, 0)
+            )
+        }
+        btnAbrirCronAndamento.setOnClickListener {
+            findNavController().navigate(
+                ResumoFragmentDirections.actionResumoToCronograma(args.obraId, 1)
+            )
+        }
+        btnAbrirCronConcluidos.setOnClickListener {
+            findNavController().navigate(
+                ResumoFragmentDirections.actionResumoToCronograma(args.obraId, 2)
+            )
+        }
+        // ── Materiais → abas corretas (0 = Ativo, 1 = Inativo)
+        btnAbrirMateriaisAtivos.setOnClickListener {
+            findNavController().navigate(
+                ResumoFragmentDirections.actionResumoToMaterial(args.obraId, 0)
+            )
+        }
+        btnAbrirMateriaisInativos.setOnClickListener {
+            findNavController().navigate(
+                ResumoFragmentDirections.actionResumoToMaterial(args.obraId, 1)
+            )
+        }
+
         // RecyclerView de Aportes
         aporteAdapter = AporteAdapter { aporte ->
             // Confirmação antes de excluir

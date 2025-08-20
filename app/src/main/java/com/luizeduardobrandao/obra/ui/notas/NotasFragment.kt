@@ -86,6 +86,11 @@ class NotasFragment : Fragment(), NotaActions {
             else getString(R.string.nota_tab_paid)
         }.attach()
 
+        pagerNotas.post {
+            val target = args.startTab.coerceIn(0, 1)
+            pagerNotas.currentItem = target
+        }
+
         // FAB — criar nota
         fabNewNota.setOnClickListener {
             findNavController().navigate(

@@ -64,6 +64,11 @@ class CronogramaFragment : Fragment(), EtapaActions {
                 }
             }.attach()
 
+            pagerCronograma.post {
+                val target = args.startTab.coerceIn(0, 2)
+                pagerCronograma.currentItem = target
+            }
+
             // controla visibilidade do FAB (exibe nas 3 abas)
             fun updateFab(@Suppress("UNUSED_PARAMETER") pos: Int) {
                 fabNewEtapa.visibility = View.VISIBLE

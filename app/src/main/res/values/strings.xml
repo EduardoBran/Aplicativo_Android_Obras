@@ -462,9 +462,9 @@
     </plurals>
 
     <!-- Cronograma: mensagens -->
-    <string name="cron_none_pending">Nenhum cronograma cadastrado como "Pendente".</string>
-    <string name="cron_none_progress">Nenhum cronograma cadastrado como "Andamento".</string>
-    <string name="cron_none_done">Nenhum cronograma cadastrado como "Concluído".</string>
+    <string name="cron_none_pending">Nenhum cronograma cadastrado.</string>
+    <string name="cron_none_progress">Nenhum cronograma cadastrado.</string>
+    <string name="cron_none_done">Nenhum cronograma cadastrado.</string>
 
     <plurals name="cron_pending_count">
         <item quantity="one">1 cronograma pendente.</item>
@@ -480,8 +480,8 @@
     </plurals>
 
     <!-- Materiais: mensagens -->
-    <string name="material_none_active">Sem materiais cadastrados como "Ativo".</string>
-    <string name="material_none_inactive">Sem materiais cadastrados como "Inativo".</string>
+    <string name="material_none_active">Nenhum material ativo cadastrado.</string>
+    <string name="material_none_inactive">Nenhum material inativo cadastrado.</string>
 
     <plurals name="material_active_count">
         <item quantity="one">1 tipo de material sendo usado.</item>
@@ -557,5 +557,7 @@
     <string name="resumo_aporte_deleted_ok">OK</string>
     <string name="aporte_deleted_toast">Aporte excluído.</string>
     <string name="aporte_toast_added">Aporte adicionado!</string>
+
+    <string name="abrir">Abrir</string>
 
 </resources>
