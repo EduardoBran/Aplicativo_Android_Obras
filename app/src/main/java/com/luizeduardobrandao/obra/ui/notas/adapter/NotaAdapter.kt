@@ -15,6 +15,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Nota
 import com.luizeduardobrandao.obra.databinding.ItemNotaBinding
+import java.util.Locale
+import com.luizeduardobrandao.obra.utils.Constants
 
 /**
  * Adapter de Notas – usado nas listas das abas “A Pagar” e “Pago”.
@@ -50,7 +52,13 @@ class NotaAdapter(
                 HtmlCompat.FROM_HTML_MODE_LEGACY
             )
 
-            tvValor.text = root.context.getString(R.string.money_mask, nota.valor)
+            val formatoBR = java.text.NumberFormat.getCurrencyInstance(
+                Locale(
+                    Constants.Format.CURRENCY_LOCALE,
+                    Constants.Format.CURRENCY_COUNTRY
+                )
+            )
+            tvValor.text = formatoBR.format(nota.valor)
 
             // 👉 novos "Tipos", entre loja e divisor
             val tipos = nota.tipos
@@ -87,7 +95,7 @@ class NotaAdapter(
             // Label mostrado (UI) mapeado a partir do valor persistido
             tvStatus.text = ctx.getString(
                 if (isComprado) R.string.nota_status_purchased
-                else            R.string.nota_status_paid_client
+                else R.string.nota_status_paid_client
             )
 
             // Cores (mantém sua lógica)

@@ -151,10 +151,11 @@
                     android:id="@+id/etSalario"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:digits="0123456789.,"
                     android:drawableStart="@drawable/ic_money"
                     android:drawablePadding="12dp"
                     android:hint="@string/func_reg_salary_hint"
-                    android:inputType="numberDecimal"
+                    android:inputType="numberDecimal|number"
                     android:minHeight="60dp"
                     android:paddingVertical="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -329,7 +330,6 @@
             </RadioGroup>
 
             <!-- Adicional (opcional) -->
-
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilAdicional"
                 style="@style/Widget.ObrasApp.TextInputLayout"
@@ -341,10 +341,11 @@
                     android:id="@+id/etAdicional"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:digits="0123456789.,"
                     android:drawableStart="@drawable/ic_money"
                     android:drawablePadding="12dp"
                     android:hint="@string/func_reg_additional_hint"
-                    android:inputType="numberDecimal"
+                    android:inputType="numberDecimal|number"
                     android:minHeight="60dp"
                     android:paddingVertical="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
