@@ -57,6 +57,13 @@ class ImageViewerFragment : Fragment() {
             toolbarImageViewer.setNavigationOnClickListener { findNavController().navigateUp() }
             toolbarImageViewer.menu.clear()
             toolbarImageViewer.inflateMenu(R.menu.menu_image_viewer)
+            toolbarImageViewer.menu.findItem(R.id.action_image_save)
+                .icon?.mutate()?.setTint(
+                    androidx.core.content.ContextCompat.getColor(
+                        requireContext(),
+                        android.R.color.white
+                    )
+                )
             toolbarImageViewer.setOnMenuItemClickListener { item ->
                 if (item.itemId == R.id.action_image_save) {
                     askToSaveImage()
@@ -176,6 +183,7 @@ class ImageViewerFragment : Fragment() {
                 @Suppress("DEPRECATION")
                 Bitmap.CompressFormat.WEBP
             }
+
             else -> Bitmap.CompressFormat.JPEG
         }
         val ok = bitmap.compress(format, 95, baos)
@@ -194,7 +202,11 @@ class ImageViewerFragment : Fragment() {
         val msg = if (success) R.string.image_save_success_toast
         else R.string.image_save_error_toast
 
-        android.widget.Toast.makeText(requireContext(), getString(msg), android.widget.Toast.LENGTH_SHORT).show()
+        android.widget.Toast.makeText(
+            requireContext(),
+            getString(msg),
+            android.widget.Toast.LENGTH_SHORT
+        ).show()
     }
 
     /** Deduz o MIME pelo sufixo da URL (fallback para JPEG). */
