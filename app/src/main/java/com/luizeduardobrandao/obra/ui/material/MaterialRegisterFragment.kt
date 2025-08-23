@@ -39,6 +39,10 @@ class MaterialRegisterFragment : Fragment() {
 
     private var materialOriginal: Material? = null
 
+    // Controle de loading/navegação
+    private var isSaving = false
+    private var shouldCloseAfterSave = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -87,7 +91,7 @@ class MaterialRegisterFragment : Fragment() {
             etNomeMaterial.doAfterTextChanged { validateForm() }
 
             // Observa opState e, se edição, faz prefill
-            observeOpState()
+            collectOperationState()
             if (isEdit) prefillFields()
 
             // Clique salvar
@@ -147,9 +151,11 @@ class MaterialRegisterFragment : Fragment() {
             getString(R.string.material_hint_name)
         else null
 
-        // Habilita botão
-        btnSaveMaterial.isEnabled = nomeOk
-        nomeOk
+        // Habilita botão (exceto durante salvamento/fechamento)
+        if (!isSaving && !shouldCloseAfterSave) {
+            btnSaveMaterial.isEnabled = nomeOk
+        }
+        return nomeOk
     }
 
     /*──────────────────── Salvar ────────────────────*/
@@ -178,32 +184,19 @@ class MaterialRegisterFragment : Fragment() {
         val status = getCheckedStatus()
         val material = Material(
             id = args.materialId ?: "",
-            nome = binding.etNomeMaterial.text.toString().trim(),
+            nome = nome,
             descricao = binding.etDescMaterial.text?.toString()?.trim().orEmpty().ifBlank { null },
             quantidade = quantidade,
             status = status
         )
 
-        // UI feedback de ação
-        binding.btnSaveMaterial.isEnabled = false
-        binding.materialRegScroll.visibility = View.INVISIBLE
-        requireView().hideKeyboard()
+        // Ativa o fluxo de loading como Nota/Cronograma/Funcionário
+        shouldCloseAfterSave = true
+        isSaving = true
+        progress(true)
 
-        if (isEdit) {
-            viewModel.updateMaterial(material)
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.material_update_success),
-                Toast.LENGTH_SHORT
-            ).show()
-        } else {
-            viewModel.addMaterial(material)
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.material_save_success),
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+        // Dispara operação; Toast + navegação ficam no collectOperationState()
+        if (isEdit) viewModel.updateMaterial(material) else viewModel.addMaterial(material)
     }
 
     /*──────────────────── Helpers ────────────────────*/
@@ -218,24 +211,53 @@ class MaterialRegisterFragment : Fragment() {
         return rb?.text?.toString() ?: getString(R.string.material_status_active)
     }
 
-    private fun observeOpState() {
+    private fun collectOperationState() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.opState.collect { state ->
-                when (state) {
-                    is UiState.Loading -> binding.btnSaveMaterial.isEnabled = false
-                    is UiState.Success -> findNavController().navigateUp()
-                    is UiState.ErrorRes -> {
-                        binding.btnSaveMaterial.isEnabled = true
-                        binding.materialRegScroll.visibility = View.VISIBLE
-                        showSnackbarFragment(
-                            Constants.SnackType.ERROR.name,
-                            getString(R.string.snack_error),
-                            getString(state.resId),
-                            getString(R.string.snack_button_ok)
-                        )
-                    }
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.opState.collect { state ->
+                    when (state) {
+                        is UiState.Loading -> {
+                            // Só mostra spinner quando a ação partiu do botão (isSaving)
+                            if (isSaving) progress(true)
+                        }
 
-                    else -> Unit
+                        is UiState.Success -> {
+                            isSaving = false
+                            if (shouldCloseAfterSave) {
+                                val msgRes = if (isEdit)
+                                    R.string.material_update_success
+                                else
+                                    R.string.material_save_success
+                                Toast.makeText(requireContext(), msgRes, Toast.LENGTH_SHORT).show()
+
+                                // navega no próximo frame pra garantir que o spinner apareça
+                                binding.root.post {
+                                    findNavController().navigateUp()
+                                    shouldCloseAfterSave = false
+                                }
+                            } else {
+                                // operações que não fecham a tela
+                                progress(false)
+                                binding.btnSaveMaterial.isEnabled = true
+                            }
+                        }
+
+                        is UiState.ErrorRes -> {
+                            // erro: some loading e reabilita UI
+                            progress(false)
+                            isSaving = false
+                            shouldCloseAfterSave = false
+                            binding.btnSaveMaterial.isEnabled = true
+                            showSnackbarFragment(
+                                Constants.SnackType.ERROR.name,
+                                getString(R.string.snack_error),
+                                getString(state.resId),
+                                getString(R.string.snack_button_ok)
+                            )
+                        }
+
+                        else -> Unit
+                    }
                 }
             }
         }
@@ -283,6 +305,33 @@ class MaterialRegisterFragment : Fragment() {
                 descAtual != descOrig ||
                 !statusAtual.equals(orig.status, ignoreCase = true) ||
                 qtdAtual != orig.quantidade
+    }
+
+    private fun progress(show: Boolean) = with(binding) {
+        val saving = show && isSaving
+        materialRegScroll.isEnabled = !saving
+        btnSaveMaterial.isEnabled = if (saving) false else !shouldCloseAfterSave
+
+        // Mostra o indicador logo abaixo do botão
+        progressSaveMaterial.visibility = if (saving) View.VISIBLE else View.GONE
+
+        if (saving) {
+            // 1) Limpa foco para evitar auto-scroll do sistema
+            requireActivity().currentFocus?.clearFocus()
+            root.clearFocus()
+
+            // 2) Segura o foco no container não editável
+            materialRegScroll.isFocusableInTouchMode = true
+            materialRegScroll.requestFocus()
+
+            // 3) Fecha o teclado
+            root.hideKeyboard()
+
+            // 4) Rola até o spinner para garantir visibilidade
+            progressSaveMaterial.post {
+                materialRegScroll.smoothScrollTo(0, progressSaveMaterial.bottom)
+            }
+        }
     }
 
     /*──────────────────── Lifecycle ────────────────────*/

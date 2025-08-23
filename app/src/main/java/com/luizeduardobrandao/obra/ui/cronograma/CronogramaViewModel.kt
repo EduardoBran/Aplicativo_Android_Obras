@@ -38,6 +38,9 @@ class CronogramaViewModel @Inject constructor(
     private val _state = MutableStateFlow<UiState<List<Etapa>>>(UiState.Loading)
     val state: StateFlow<UiState<List<Etapa>>> = _state.asStateFlow()
 
+    private val _opState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
+    val opState: StateFlow<UiState<Unit>> = _opState.asStateFlow()
+
     // 3) Job cancelável para não acumular listeners
     private var loadJob: Job? = null
 
@@ -71,8 +74,14 @@ class CronogramaViewModel @Inject constructor(
      * Adiciona uma nova [Etapa] e, ao concluir, recarrega a lista.
      */
     fun addEtapa(etapa: Etapa) = viewModelScope.launch(io) {
-        repo.addEtapa(obraId, etapa)
-        loadEtapas() // re-inicia listener para refletir inclusão
+        _opState.value = UiState.Loading
+        try {
+            repo.addEtapa(obraId, etapa)
+            _opState.value = UiState.Success(Unit)
+            loadEtapas()
+        } catch (_: Throwable) {
+            _opState.value = UiState.ErrorRes(R.string.etapa_save_error)
+        }
     }
 
     /**
@@ -80,15 +89,27 @@ class CronogramaViewModel @Inject constructor(
      */
     /** Atualiza uma etapa e, ao concluir, recarrega a lista. */
     fun updateEtapa(etapaAtualizada: Etapa) = viewModelScope.launch(io) {
-        repo.updateEtapa(obraId, etapaAtualizada)
-        loadEtapas()          // se preferir, pode remover: o listener refletirá a mudança
+        _opState.value = UiState.Loading
+        try {
+            repo.updateEtapa(obraId, etapaAtualizada)
+            _opState.value = UiState.Success(Unit)
+            loadEtapas()
+        } catch (_: Throwable) {
+            _opState.value = UiState.ErrorRes(R.string.etapa_update_error)
+        }
     }
 
     /**
      * Remove uma etapa e, ao concluir, recarrega a lista.
      */
     fun deleteEtapa(etapa: Etapa) = viewModelScope.launch(io) {
-        repo.deleteEtapa(obraId, etapa.id)
-        loadEtapas() // re-inicia listener para refletir exclusão
+        _opState.value = UiState.Loading
+        try {
+            repo.deleteEtapa(obraId, etapa.id)
+            _opState.value = UiState.Success(Unit)
+            loadEtapas()
+        } catch (_: Throwable) {
+            _opState.value = UiState.ErrorRes(R.string.etapa_delete_error)
+        }
     }
 }

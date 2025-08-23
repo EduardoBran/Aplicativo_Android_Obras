@@ -4,8 +4,10 @@ import android.app.DatePickerDialog
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.*
+import android.view.View
 import android.widget.Toast
+import androidx.activity.addCallback
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -25,8 +27,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.util.*
-import androidx.activity.addCallback
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 @AndroidEntryPoint
 class CronogramaRegisterFragment : Fragment() {
@@ -37,7 +40,7 @@ class CronogramaRegisterFragment : Fragment() {
     private val args: CronogramaRegisterFragmentArgs by navArgs()
     private val viewModel: CronogramaViewModel by viewModels()
 
-    /* Se etapaId == null ⇒ inclusão */
+    // Inclusão quando etapaId == null
     private val isEdit get() = args.etapaId != null
     private var etapaOriginal: Etapa? = null
 
@@ -45,8 +48,13 @@ class CronogramaRegisterFragment : Fragment() {
         isLenient = false
     }
 
+    // Controle de loading/navegação (mesmo padrão de Nota/Funcionário)
+    private var isSaving = false
+    private var shouldCloseAfterSave = false
+
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: android.view.LayoutInflater,
+        container: android.view.ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCronogramaRegisterBinding.inflate(inflater, container, false)
@@ -72,18 +80,22 @@ class CronogramaRegisterFragment : Fragment() {
             btnSaveEtapa.text = getString(
                 if (isEdit) R.string.generic_update else R.string.generic_save
             )
-            btnSaveEtapa.isEnabled = false // começa desabilitado
+            btnSaveEtapa.isEnabled = false
             btnSaveEtapa.setOnClickListener { onSaveClicked() }
 
-            // Habilitar/desabilitar botão conforme preenchimento
+            // Validação dinâmica
             setupValidation()
+
+            // Coleta estado de operação (loading/sucesso/erro)
+            collectOperationState()
         }
-        // Intercepta o botão físico/gesto de voltar
+
+        // Back físico/gesto
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
             handleBackPress()
         }
 
-        // Se for edição, garanta que os dados estejam carregados e preencha
+        // Edição: observar a lista para preencher a etapa
         if (isEdit) {
             viewModel.loadEtapas()
             observeEtapa()
@@ -105,6 +117,55 @@ class CronogramaRegisterFragment : Fragment() {
         }
     }
 
+    /*──────────── Coleta opState para mostrar progress/navegar ───────────*/
+    private fun collectOperationState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.opState.collect { ui ->
+                    when (ui) {
+                        is UiState.Loading -> {
+                            if (isSaving) progress(true)
+                        }
+
+                        is UiState.Success -> {
+                            isSaving = false
+                            if (shouldCloseAfterSave) {
+                                val msgRes = if (isEdit)
+                                    R.string.etapa_update_success
+                                else
+                                    R.string.etapa_add_success
+                                Toast.makeText(requireContext(), msgRes, Toast.LENGTH_SHORT).show()
+
+                                binding.root.post {
+                                    findNavController().navigateUp()
+                                    shouldCloseAfterSave = false
+                                }
+                            } else {
+                                progress(false)
+                                binding.btnSaveEtapa.isEnabled = true
+                            }
+                        }
+
+                        is UiState.ErrorRes -> {
+                            progress(false)
+                            isSaving = false
+                            shouldCloseAfterSave = false
+                            binding.btnSaveEtapa.isEnabled = true
+                            showSnackbarFragment(
+                                Constants.SnackType.ERROR.name,
+                                getString(R.string.snack_error),
+                                getString(ui.resId),
+                                getString(R.string.snack_button_ok)
+                            )
+                        }
+
+                        else -> Unit
+                    }
+                }
+            }
+        }
+    }
+
     /*──────────── Preenche os campos em modo edição ───────────*/
     private fun fillFields(e: Etapa) = with(binding) {
         etTituloEtapa.setText(e.titulo)
@@ -117,7 +178,6 @@ class CronogramaRegisterFragment : Fragment() {
             CronogramaPagerAdapter.STATUS_ANDAMENTO -> rbStatAnd.isChecked = true
             else -> rbStatConcl.isChecked = true
         }
-        // Atualiza estado do botão após preencher
         validateForm()
     }
 
@@ -135,9 +195,7 @@ class CronogramaRegisterFragment : Fragment() {
             showError(R.string.etapa_error_dates)
             return
         }
-
         if (!isDateOrderValid(dataIni, dataFim)) {
-            // garante que o erro esteja visível
             binding.tilDataFimEtapa.error = getString(R.string.etapa_error_date_order)
             return
         }
@@ -158,18 +216,12 @@ class CronogramaRegisterFragment : Fragment() {
             status = status
         )
 
-        binding.btnSaveEtapa.isEnabled = false
-        binding.btnSaveEtapa.text = getString(R.string.generic_saving)
-        requireView().hideKeyboard()
+        // Fluxo de loading como Nota/Funcionário
+        shouldCloseAfterSave = true
+        isSaving = true
+        progress(true)
 
         if (isEdit) viewModel.updateEtapa(etapa) else viewModel.addEtapa(etapa)
-
-        Toast.makeText(
-            requireContext(),
-            getString(if (isEdit) R.string.etapa_update_success else R.string.etapa_add_success),
-            Toast.LENGTH_SHORT
-        ).show()
-        findNavController().navigateUp()
     }
 
     private fun showError(@androidx.annotation.StringRes res: Int) {
@@ -198,21 +250,17 @@ class CronogramaRegisterFragment : Fragment() {
 
         rgStatusEtapa.setOnCheckedChangeListener { _, _ -> validateForm() }
 
-        // Valida imediatamente (útil em modo edição)
         validateForm()
     }
 
     private fun validateForm() = with(binding) {
-        // 1) Título (obrigatório)
         val titulo = etTituloEtapa.text?.toString()?.trim().orEmpty()
         val tituloOk = titulo.isNotEmpty()
         tilTituloEtapa.error =
             if (!tituloOk) getString(R.string.etapa_error_title_required) else null
 
-        // 2) Datas (obrigatórias)
         val iniStr = etDataInicioEtapa.text?.toString().orEmpty()
         val fimStr = etDataFimEtapa.text?.toString().orEmpty()
-
         val iniOk = iniStr.isNotBlank()
         val fimOk = fimStr.isNotBlank()
 
@@ -221,15 +269,15 @@ class CronogramaRegisterFragment : Fragment() {
         tilDataFimEtapa.error =
             if (!fimOk) getString(R.string.etapa_error_date_end_required) else null
 
-        // 3) Ordem das datas (somente quando ambas preenchidas): fim >= início
         val ordemOk = if (iniOk && fimOk) isDateOrderValid(iniStr, fimStr) else false
         if (iniOk && fimOk && !ordemOk) {
-            // mostra erro de ordem no campo de término (vermelho)
             tilDataFimEtapa.error = getString(R.string.etapa_error_date_order)
         }
 
-        // 4) Habilita o botão
-        btnSaveEtapa.isEnabled = tituloOk && iniOk && fimOk && ordemOk
+        val enabled = tituloOk && iniOk && fimOk && ordemOk
+        if (!isSaving && !shouldCloseAfterSave) {
+            btnSaveEtapa.isEnabled = enabled
+        }
     }
 
     /*──────────── Date picker util ───────────*/
@@ -238,17 +286,10 @@ class CronogramaRegisterFragment : Fragment() {
         DatePickerDialog(
             requireContext(),
             { _, year, month, day ->
-                (target as? android.widget.EditText)
-                    ?.setText(
-                        String.format(
-                            Locale.getDefault(),
-                            "%02d/%02d/%04d",
-                            day,
-                            month + 1,
-                            year
-                        )
-                    )
-                validateForm() // revalida após escolher a data
+                (target as? android.widget.EditText)?.setText(
+                    String.format(Locale.getDefault(), "%02d/%02d/%04d", day, month + 1, year)
+                )
+                validateForm()
             },
             cal.get(Calendar.YEAR),
             cal.get(Calendar.MONTH),
@@ -262,7 +303,6 @@ class CronogramaRegisterFragment : Fragment() {
         null
     }
 
-    /** true se as duas datas existem e dataFim >= dataInicio; false caso contrário */
     private fun isDateOrderValid(dataInicio: String?, dataFim: String?): Boolean {
         val ini = parseDateOrNull(dataInicio) ?: return false
         val fim = parseDateOrNull(dataFim) ?: return false
@@ -277,9 +317,9 @@ class CronogramaRegisterFragment : Fragment() {
                 type = Constants.SnackType.WARNING.name,
                 title = getString(R.string.snack_attention),
                 msg = getString(R.string.unsaved_confirm_msg),
-                btnText = getString(R.string.snack_button_yes), // SIM
+                btnText = getString(R.string.snack_button_yes),
                 onAction = { findNavController().navigateUp() },
-                btnNegativeText = getString(R.string.snack_button_no), // NÃO
+                btnNegativeText = getString(R.string.snack_button_no),
                 onNegative = { /* permanece nesta tela */ }
             )
         } else {
@@ -287,7 +327,6 @@ class CronogramaRegisterFragment : Fragment() {
         }
     }
 
-    /** Verifica se existem alterações não salvas no formulário. */
     private fun hasUnsavedChanges(): Boolean = with(binding) {
         val titulo = etTituloEtapa.text?.toString()?.trim().orEmpty()
         val desc = etDescEtapa.text?.toString()?.trim().orEmpty()
@@ -302,7 +341,6 @@ class CronogramaRegisterFragment : Fragment() {
         }
 
         if (!isEdit) {
-            // Inclusão: compara com “vazio” e status default (PENDENTE)
             val statusDefault = CronogramaPagerAdapter.STATUS_PENDENTE
             return@with titulo.isNotEmpty() ||
                     desc.isNotEmpty() ||
@@ -312,7 +350,6 @@ class CronogramaRegisterFragment : Fragment() {
                     statusAtual != statusDefault
         }
 
-        // Edição: compara com a etapa original
         val orig = etapaOriginal ?: return@with false
         return@with titulo != orig.titulo ||
                 desc != orig.descricao ||
@@ -320,6 +357,26 @@ class CronogramaRegisterFragment : Fragment() {
                 ini != orig.dataInicio ||
                 fim != orig.dataFim ||
                 statusAtual != orig.status
+    }
+
+    /*──────────── Progress control (spinner + UX) ───────────*/
+    private fun progress(show: Boolean) = with(binding) {
+        val saving = show && isSaving
+        cronRegScroll.isEnabled = !saving
+        btnSaveEtapa.isEnabled = if (saving) false else !shouldCloseAfterSave
+
+        progressSaveEtapa.isVisible = saving
+
+        if (saving) {
+            requireActivity().currentFocus?.clearFocus()
+            root.clearFocus()
+            cronRegScroll.isFocusableInTouchMode = true
+            cronRegScroll.requestFocus()
+            root.hideKeyboard()
+            progressSaveEtapa.post {
+                cronRegScroll.smoothScrollTo(0, progressSaveEtapa.bottom)
+            }
+        }
     }
 
     override fun onDestroyView() {

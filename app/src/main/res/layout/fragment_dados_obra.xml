@@ -353,6 +353,18 @@
                     android:layout_weight="1"
                     android:text="@string/obra_data_button_delete" />
             </LinearLayout>
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/progressSaveObra"
+                style="?attr/linearProgressIndicatorStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:indeterminate="true"
+                android:visibility="gone"
+                app:indeterminateAnimationType="disjoint"
+                app:trackCornerRadius="8dp"
+                tools:visibility="visible" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

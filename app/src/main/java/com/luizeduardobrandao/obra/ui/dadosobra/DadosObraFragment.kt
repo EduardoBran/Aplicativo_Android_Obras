@@ -31,6 +31,7 @@ import android.widget.DatePicker
 import java.text.NumberFormat
 import java.util.Calendar
 import androidx.activity.addCallback
+import androidx.core.view.isGone
 
 @AndroidEntryPoint
 class DadosObraFragment : Fragment() {
@@ -55,6 +56,8 @@ class DadosObraFragment : Fragment() {
     private var aporteDateIso: String? = null
 
     private var currentObra: Obra? = null
+
+    private var isSavingObra = false   // true enquanto salva OU exclui a obra
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -115,6 +118,13 @@ class DadosObraFragment : Fragment() {
         btnSalvarObra.setOnClickListener {
             if (!validateForm()) return@setOnClickListener
             it.hideKeyboard()
+
+            // ⬇️ INÍCIO DO LOADING TIPO “NOTA/FUNC/CRON/MAT”
+            isDeleting = false
+            isSavingObra = true
+            progressBottom(true)
+            // ⬆️
+
             viewModel.salvarObra(
                 nome = etNomeCliente.text.toString(),
                 endereco = etEnderecoObra.text.toString(),
@@ -130,22 +140,27 @@ class DadosObraFragment : Fragment() {
                 type = Constants.SnackType.WARNING.name,
                 title = getString(R.string.snack_warning),
                 msg = getString(R.string.obra_data_snack_delete_msg),
-                btnText = getString(R.string.snack_button_yes),          // SIM
+                btnText = getString(R.string.snack_button_yes),
                 onAction = {
+                    // ⬇️ INÍCIO DO LOADING AO EXCLUIR
                     isDeleting = true
+                    isSavingObra = true
+                    progressBottom(true)
+                    // ⬆️
                     viewModel.excluirObra()
                 },
-                btnNegativeText = getString(R.string.snack_button_no),   // NÃO
-                onNegative = { /* fecha */ }
+                btnNegativeText = getString(R.string.snack_button_no),
+                onNegative = { /* nada */ }
             )
         }
     }
+
 
     /* ───────────────── Listeners (Aporte) ───────────────── */
     private fun setupListenersAporteCard() = with(binding) {
         // Abre/fecha o card de aporte
         btnAdicionarAporte.setOnClickListener {
-            if (cardNovoAporte.visibility == View.GONE) {
+            if (cardNovoAporte.isGone) {
                 showAporteCard()
             } else {
                 hideAporteCard(clear = true)
@@ -293,18 +308,26 @@ class DadosObraFragment : Fragment() {
                 launch {
                     viewModel.opState.collect { ui ->
                         when (ui) {
-                            is UiState.Loading -> binding.progressDadosObra.visibility =
-                                View.VISIBLE
+                            is UiState.Loading -> {
+                                // somente mostra o progress “embaixo do botão” quando a ação partiu do botão
+                                if (isSavingObra) {
+                                    progressBottom(true)
+                                } else {
+                                    // fallback (quase não usado aqui): mantém o spinner grande
+                                    binding.progressDadosObra.visibility = View.VISIBLE
+                                }
+                            }
 
                             is UiState.Success -> {
-                                binding.progressDadosObra.visibility = View.GONE
+                                progressBottom(false)
+                                isSavingObra = false
+
                                 if (isDeleting) {
                                     isDeleting = false
                                     findNavController().navigate(
                                         DadosObraFragmentDirections.actionDadosObraToWork()
                                     )
                                 } else {
-                                    // sucesso ao salvar/atualizar a OBRA
                                     Toast.makeText(
                                         requireContext(),
                                         getString(R.string.obra_data_toast_updated),
@@ -316,7 +339,9 @@ class DadosObraFragment : Fragment() {
                             }
 
                             is UiState.ErrorRes -> {
-                                binding.progressDadosObra.visibility = View.GONE
+                                progressBottom(false)
+                                isSavingObra = false
+
                                 val msgRes = if (isDeleting)
                                     R.string.dados_obra_delete_error
                                 else
@@ -555,7 +580,7 @@ class DadosObraFragment : Fragment() {
         // Aporte parcialmente preenchido conta como alteração pendente
         val aporteValorTxt = etAporteValor.text?.toString()?.trim().orEmpty()
         val aporteDescTxt = etAporteDescricao.text?.toString()?.trim().orEmpty()
-        val aportePendente = cardNovoAporte.visibility == View.VISIBLE &&
+        val aportePendente = cardNovoAporte.isGone &&
                 (aporteValorTxt.isNotEmpty() || !aporteDateIso.isNullOrBlank() || aporteDescTxt.isNotEmpty())
 
         val obraOrig = currentObra
@@ -579,6 +604,35 @@ class DadosObraFragment : Fragment() {
                 (dataIniAtual != obraOrig.dataInicio) ||
                 (dataFimAtual != obraOrig.dataFim) ||
                 aportePendente
+    }
+
+    private fun progressBottom(show: Boolean) = with(binding) {
+        // trava scroll e botões somente durante a operação de salvar/excluir
+        val saving = show && isSavingObra
+
+        scrollDadosObra.isEnabled = !saving
+        btnSalvarObra.isEnabled = !saving
+        btnExcluirObra.isEnabled = !saving
+
+        progressSaveObra.visibility = if (saving) View.VISIBLE else View.GONE
+
+        if (saving) {
+            // 1) limpar focos para evitar auto-scroll do sistema
+            requireActivity().currentFocus?.clearFocus()
+            root.clearFocus()
+
+            // 2) segurar o foco no container não-editável
+            scrollDadosObra.isFocusableInTouchMode = true
+            scrollDadosObra.requestFocus()
+
+            // 3) fechar teclado
+            root.hideKeyboard()
+
+            // 4) rolar até o indicador para garantir visibilidade
+            progressSaveObra.post {
+                scrollDadosObra.smoothScrollTo(0, progressSaveObra.bottom)
+            }
+        }
     }
 
     override fun onDestroyView() {

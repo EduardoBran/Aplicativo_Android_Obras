@@ -6,9 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -30,6 +28,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.text.NumberFormat
 import java.util.Date
 import java.util.Locale
 import android.net.ConnectivityManager
@@ -297,11 +296,11 @@ class WorkFragment : Fragment() {
         val descricao = etDescricao.text?.toString().orEmpty()
         hasError = etDescricao.validate(descricao.isBlank(), R.string.work_error_desc) || hasError
 
-        // saldo
-        val saldo = etSaldo.text?.toString()?.toDoubleOrNull()
+        // saldo (aceita "20.500" como 20500.00 e "20.500,75" como 20500.75)
+        val saldo = parseLocalizedNumberOrNull(etSaldo.text?.toString())
         hasError = etSaldo.validate(
             saldo == null || saldo < Constants.Validation.MIN_SALDO,
-            R.string.work_error_saldo
+            R.string.work_error_saldo_format
         ) || hasError
 
         // datas (presença)
@@ -333,7 +332,7 @@ class WorkFragment : Fragment() {
             endereco = etEndereco.text!!.trim().toString(),
             contato = etContato.text!!.trim().toString(),
             descricao = etDescricao.text!!.trim().toString(),
-            saldoInicial = etSaldo.text!!.toString().toDouble(),
+            saldoInicial = parseLocalizedNumberOrNull(etSaldo.text!!.toString()) ?: 0.0,
             dataInicio = etDataInicio.text!!.toString(),
             dataFim = etDataFim.text!!.toString()
         )
@@ -351,5 +350,41 @@ class WorkFragment : Fragment() {
         val ini = parseDateOrNull(dataInicio) ?: return false
         val fim = parseDateOrNull(dataFim) ?: return false
         return !fim.before(ini)
+    }
+
+    /** Valida e converte número em pt-BR ou en-US.
+     * Aceita:
+     *  - pt-BR: 20.500,00 | 20500,75 | 20500
+     *  - en-US: 20,500.00 | 20500.75 | 20500
+     * Rejeita formatos mistos (ex.: "20,500,00").
+     */
+    private fun parseLocalizedNumberOrNull(raw: String?): Double? {
+        if (raw.isNullOrBlank()) return null
+        val s = raw.trim()
+
+        // pt-BR: grupos de milhar com ponto e decimal com vírgula
+        val ptBrRegex = Regex("""^\d{1,3}(\.\d{3})*(,\d{1,2})?$|^\d+(,\d{1,2})?$""")
+        // en-US: grupos de milhar com vírgula e decimal com ponto
+        val enUsRegex = Regex("""^\d{1,3}(,\d{3})*(\.\d{1,2})?$|^\d+(\.\d{1,2})?$""")
+
+        return when {
+            ptBrRegex.matches(s) -> {
+                try {
+                    NumberFormat.getNumberInstance(Locale("pt", "BR")).parse(s)?.toDouble()
+                } catch (_: ParseException) {
+                    null
+                }
+            }
+
+            enUsRegex.matches(s) -> {
+                try {
+                    NumberFormat.getNumberInstance(Locale.US).parse(s)?.toDouble()
+                } catch (_: ParseException) {
+                    null
+                }
+            }
+
+            else -> null // formato inválido (ex.: "20,500,00")
+        }
     }
 }

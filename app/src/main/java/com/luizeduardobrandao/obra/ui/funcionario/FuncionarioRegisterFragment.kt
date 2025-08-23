@@ -30,6 +30,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import androidx.activity.addCallback
 import java.util.Locale
+import java.text.NumberFormat
+import androidx.core.view.isVisible
 
 @AndroidEntryPoint
 class FuncionarioRegisterFragment : Fragment() {
@@ -46,6 +48,13 @@ class FuncionarioRegisterFragment : Fragment() {
     private var previousAdicional: Double? = null
 
     private var funcionarioOriginal: Funcionario? = null
+
+    // Flags de controle de loading
+    // controla exclusivamente o loading do botão (salvar/alterar)
+    private var isSaving = false
+
+    // Fecha a tela apenas quando o sucesso vier de um salvamento (criar/atualizar)
+    private var shouldCloseAfterSave = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -134,7 +143,12 @@ class FuncionarioRegisterFragment : Fragment() {
                         funcionarioOriginal = func
                         binding.apply {
                             etNomeFunc.setText(func.nome)
-                            etSalario.setText(func.salario.toString())
+                            val nf = NumberFormat.getNumberInstance(Locale("pt", "BR")).apply {
+                                minimumFractionDigits = 2
+                                maximumFractionDigits = 2
+                                isGroupingUsed = false // evita "1.234,56" no campo de edição
+                            }
+                            etSalario.setText(nf.format(func.salario))
                             etPix.setText(func.pix)
                             tvDias.text = func.diasTrabalhados.toString()
                             diasTrabalhados = func.diasTrabalhados
@@ -224,9 +238,41 @@ class FuncionarioRegisterFragment : Fragment() {
         lifecycleScope.launch {
             viewModel.opState.collect { state ->
                 when (state) {
-                    is UiState.Loading -> binding.btnSaveFuncionario.isEnabled = false
-                    is UiState.Success -> findNavController().navigateUp()
+                    is UiState.Loading -> {
+                        // Só mostra o loading do botão quando estiver salvando
+                        if (isSaving) progress(true)
+                    }
+
+                    is UiState.Success -> {
+                        isSaving = false
+
+                        if (shouldCloseAfterSave) {
+                            // Toast conforme operação
+                            val msgRes = if (isEdit) R.string.func_updated else R.string.func_added
+                            Toast.makeText(
+                                requireContext(),
+                                getString(msgRes, binding.etNomeFunc.text.toString().trim()),
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                            // fecha teclado e navega (post para garantir desenhar spinner)
+                            binding.root.hideKeyboard()
+                            binding.root.post {
+                                findNavController().navigateUp()
+                                shouldCloseAfterSave = false
+                            }
+                        } else {
+                            // operações que NÃO fecham a tela (se houverem no futuro)
+                            progress(false)
+                            binding.btnSaveFuncionario.isEnabled = true
+                        }
+                    }
+
                     is UiState.ErrorRes -> {
+                        // erro em qualquer operação: some loading do botão e reabilita
+                        progress(false)
+                        isSaving = false
+                        shouldCloseAfterSave = false
                         binding.btnSaveFuncionario.isEnabled = true
                         showSnackbarFragment(
                             Constants.SnackType.ERROR.name,
@@ -260,13 +306,18 @@ class FuncionarioRegisterFragment : Fragment() {
 
         binding.root.hideKeyboard()
 
+        // ligar controle de loading como em NotaRegisterFragment
+        shouldCloseAfterSave = true
+        isSaving = true
+        progress(true)
+
         val adicionalInput = binding.etAdicional.text?.toString()?.trim().orEmpty()
         val adicionalParsed = adicionalInput.replace(',', '.').toDoubleOrNull()
 
         val adicionalFinal = if (isEdit) {
-            (previousAdicional ?: 0.0) + (adicionalParsed ?: 0.0)  // se vazio, soma 0 → mantém
+            (previousAdicional ?: 0.0) + (adicionalParsed ?: 0.0)
         } else {
-            adicionalParsed // no cadastro inicial, usa o que foi informado (ou null)
+            adicionalParsed
         }
 
         val funcionario = Funcionario(
@@ -281,23 +332,11 @@ class FuncionarioRegisterFragment : Fragment() {
             adicional = adicionalFinal
         )
 
-        binding.btnSaveFuncionario.isEnabled = false
-        binding.funcRegScroll.visibility = View.INVISIBLE
-
+        // NÃO faz Toast aqui; mostramos no sucesso (como nas Notas)
         if (isEdit) {
             viewModel.updateFuncionario(funcionario)
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.func_updated, funcionario.nome),
-                Toast.LENGTH_SHORT
-            ).show()
         } else {
             viewModel.addFuncionario(funcionario)
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.func_added, funcionario.nome),
-                Toast.LENGTH_SHORT
-            ).show()
         }
     }
 
@@ -346,6 +385,34 @@ class FuncionarioRegisterFragment : Fragment() {
         binding.rbMensal,
         binding.rbTarefeiro
     )
+
+    private fun progress(show: Boolean) = with(binding) {
+        // o scroll e o botão só travam quando estamos salvando
+        val saving = show && isSaving
+        funcRegScroll.isEnabled = !saving
+        btnSaveFuncionario.isEnabled = !saving
+
+        // o indicador abaixo do botão aparece só durante salvamento
+        progressSaveFuncionario.isVisible = saving
+
+        if (saving) {
+            // 1) Limpa o foco de qualquer campo para evitar auto-scroll do sistema
+            requireActivity().currentFocus?.clearFocus()
+            root.clearFocus()
+
+            // 2) Foca o container não-editável para “segurar” o foco
+            funcRegScroll.isFocusableInTouchMode = true
+            funcRegScroll.requestFocus()
+
+            // 3) Agora sim, fecha o teclado
+            root.hideKeyboard()
+
+            // 4) Garante visibilidade do spinner: rola até ele
+            progressSaveFuncionario.post {
+                funcRegScroll.smoothScrollTo(0, progressSaveFuncionario.bottom)
+            }
+        }
+    }
 
     // ---------------- Verificação de Edição -----------------
 

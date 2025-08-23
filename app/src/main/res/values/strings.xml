@@ -93,6 +93,7 @@
     <string name="work_error_date_order">Data de término deve ser igual ou posterior à data de início.</string>
     <string name="work_error_contato">Informe um telefone ou e-mail.</string>
     <string name="obra_data_contact_hint">Contato</string>
+    <string name="work_error_saldo_format">Formato inválido. Use 20.500,00</string>
 
     <!-- HomeFragment -->
     <string name="home_toolbar_title">Obra: %1$s</string>
@@ -366,6 +367,9 @@
     <string name="etapa_error_title_required">Informe o título da etapa</string>
     <string name="etapa_error_date_start_required">Selecione a data de início</string>
     <string name="etapa_error_date_end_required">Selecione a data de término</string>
+    <string name="etapa_save_error">Erro ao salvar o cronograma.</string>
+    <string name="etapa_update_error">Erro ao atualizar o cronograma.</string>
+    <string name="etapa_delete_error">Erro ao deletar o cronograma.</string>
 
 
     <!-- Erros de validação -->
