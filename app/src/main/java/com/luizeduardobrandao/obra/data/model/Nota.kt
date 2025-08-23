@@ -21,5 +21,7 @@ data class Nota(
     val tipos: List<String> = emptyList(),  // Pintura, Elétrica, …
     val data: String = "",
     val status: String = "A Pagar",
-    val valor: Double = 0.0
+    val valor: Double = 0.0,
+    val fotoUrl: String? = null,   // URL pública no Storage (download)
+    val fotoPath: String? = null   // Caminho interno usado no Storage (para exclusão/atualização)
 ) : Parcelable

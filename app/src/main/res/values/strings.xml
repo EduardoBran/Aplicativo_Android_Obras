@@ -16,6 +16,7 @@
     <string name="generic_copy">Copiar</string>
     <string name="error_no_internet">Você está sem conexão à internet.</string>
     <string name="menu_title">Menu</string>
+    <string name="unsaved_confirm_msg">Nenhuma alteração será salva. Quer mesmo retornar?</string>
 
 
     <!-- SnackbarFragment -->
@@ -26,7 +27,7 @@
     <string name="snack_title">Aviso</string>
     <string name="snack_button_ok">OK</string>
     <string name="snack_button_yes">SIM</string>
-    <string name="snack_button_no">NAO</string>
+    <string name="snack_button_no">NÃO</string>
 
     <!-- LoginFragment -->
     <string name="login_title">Entrar</string>
@@ -270,8 +271,38 @@
     <string name="nota_limpeza">Limpeza</string>
     <string name="nota_outro">Outro</string>
 
+    <string name="nota_photo_section_title">Foto da nota</string>
+    <string name="nota_btn_pick_image">Enviar</string>
+    <string name="nota_btn_take_photo">Tirar foto</string>
+    <string name="nota_btn_pick_image_replace">Editar</string>
+    <string name="nota_btn_take_photo_replace">Nova foto</string>
+
+    <string name="nota_photo_preview_content_desc">Pré-visualização da foto da nota.</string>
+    <string name="nota_photo_delete_content_desc">Excluir foto</string>
+    <string name="nota_photo_none_selected">Nenhuma foto selecionada</string>
+
+    <string name="nota_photo_confirm_title">Salvar foto?</string>
+    <string name="nota_photo_confirm_msg">Deseja salvar esta foto na nota?</string>
+
+    <string name="nota_photo_delete_confirm_title">Excluir foto?</string>
+    <string name="nota_photo_delete_confirm_msg">A foto atual será removida da nota. Deseja continuar?</string>
+
+    <string name="nota_photo_added_toast">Foto adicionada à nota.</string>
+    <string name="nota_photo_replaced_toast">Foto substituída.</string>
+    <string name="nota_photo_removed_toast">Foto removida.</string>
+
+    <string name="nota_photo_error_pick">Não foi possível carregar a imagem.</string>
+    <string name="nota_photo_error_camera">Não foi possível capturar a foto.</string>
+    <string name="nota_photo_error_permission_camera">Permissão da câmera negada.</string>
+    <string name="nota_photo_error_permission_storage">Permissão de armazenamento negada.</string>
+
     <!-- DetalheNotaFragment -->
     <string name="nota_detail_title">Nota %1$s</string>
+
+    <string name="nota_view_image">Visualizar imagem</string>
+    <string name="nota_view_image_content_desc">Abrir imagem da nota</string>
+    <string name="nota_view_image_error_open">Não foi possível abrir a imagem.</string>
+    <string name="nota_view_image_no_photo">Sem imagem anexada.</string>
 
     <!-- ResumoNotasFragment -->
     <string name="nota_sum_title">Resumo das Notas</string>
@@ -588,5 +619,17 @@
     <string name="nota_none">Nenhuma nota cadastrada.</string>
 
     <string name="nota_total_geral">Total geral: %1$s</string>
+
+
+    <!-- ImageViewerFragment -->
+    <string name="image_viewer_title">Visualizar imagem</string>
+    <string name="image_viewer_content_desc">Foto da nota</string>
+    <string name="image_viewer_error_loading">Não foi possível carregar a imagem.</string>
+    <string name="image_viewer_menu_save">Salvar</string>
+
+    <string name="image_save_confirm_title">Salvar imagem?</string>
+    <string name="image_save_confirm_msg">Deseja salvar esta foto na galeria do dispositivo?</string>
+    <string name="image_save_success_toast">Imagem salva na galeria.</string>
+    <string name="image_save_error_toast">Falha ao salvar a imagem.</string>
 
 </resources>

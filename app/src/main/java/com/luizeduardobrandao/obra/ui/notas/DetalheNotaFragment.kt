@@ -78,6 +78,26 @@ class DetalheNotaFragment : Fragment() {
                             else
                                 R.string.nota_status_paid_client
                         )
+
+                        // ─────────── Foto: mostrar/ocultar e navegar para o viewer ───────────
+                        val hasPhoto = !nota.fotoUrl.isNullOrBlank()
+                        if (hasPhoto) {
+                            rowViewImage.visibility = View.VISIBLE
+                            tvNoImage.visibility = View.GONE
+
+                            rowViewImage.setOnClickListener {
+                                val action =
+                                    DetalheNotaFragmentDirections.actionDetalheNotaToImageViewer(
+                                        nota.fotoUrl!!
+                                    )
+                                findNavController().navigate(action)
+                            }
+                        } else {
+                            rowViewImage.visibility = View.GONE
+                            tvNoImage.visibility = View.VISIBLE
+                            rowViewImage.setOnClickListener(null)
+                        }
+
                         tvDetValor.text = formatMoneyBR(nota.valor)
                     }
                 }

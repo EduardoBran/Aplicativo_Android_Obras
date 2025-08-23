@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Autoriza o FileProvider a expor arquivos que o app cria em
+         getExternalFilesDir(...). Como o FileUtils usa DIRECTORY_PICTURES,
+         o path abaixo cobre esse diretório.  -->
+    <external-files-path
+        name="external_pictures"
+        path="Pictures/" />
+
+    <!-- (Opcional) se preferir permitir todo o external-files do app:
+    <external-files-path
+        name="external_files_all"
+        path="." /> -->
+</paths>

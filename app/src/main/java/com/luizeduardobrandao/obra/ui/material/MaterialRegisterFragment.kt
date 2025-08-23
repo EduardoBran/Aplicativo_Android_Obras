@@ -23,6 +23,7 @@ import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import androidx.activity.addCallback
 
 @AndroidEntryPoint
 class MaterialRegisterFragment : Fragment() {
@@ -35,6 +36,8 @@ class MaterialRegisterFragment : Fragment() {
 
     private val isEdit get() = args.materialId != null
     private var quantidade = 1
+
+    private var materialOriginal: Material? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,7 +52,7 @@ class MaterialRegisterFragment : Fragment() {
 
         with(binding) {
             // Toolbar
-            toolbarMaterialReg.setNavigationOnClickListener { findNavController().navigateUp() }
+            toolbarMaterialReg.setNavigationOnClickListener { handleBackPress() }
             toolbarMaterialReg.title = getString(
                 if (isEdit) R.string.material_edit_title else R.string.material_register_title
             )
@@ -92,6 +95,11 @@ class MaterialRegisterFragment : Fragment() {
 
             // valida inicial
             validateForm()
+
+            // Interceptar o botão físico/gesto de voltar
+            requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+                handleBackPress()
+            }
         }
     }
 
@@ -102,13 +110,17 @@ class MaterialRegisterFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.observeMaterial(materialId).collect { mat ->
                     mat ?: return@collect
+                    materialOriginal = mat
                     binding.apply {
                         etNomeMaterial.setText(mat.nome)
                         etDescMaterial.setText(mat.descricao.orEmpty())
                         quantidade = mat.quantidade.coerceAtLeast(0)
                         tvQuantidade.text = quantidade.toString()
 
-                        if (mat.status.equals(getString(R.string.material_status_active), ignoreCase = true)
+                        if (mat.status.equals(
+                                getString(R.string.material_status_active),
+                                ignoreCase = true
+                            )
                             || mat.status.equals("Ativo", ignoreCase = true)
                         ) {
                             rbStatusAtivoMat.isChecked = true
@@ -222,10 +234,55 @@ class MaterialRegisterFragment : Fragment() {
                             getString(R.string.snack_button_ok)
                         )
                     }
+
                     else -> Unit
                 }
             }
         }
+    }
+
+    // ---------------- Verificação de Edição -----------------
+
+    private fun handleBackPress() {
+        if (hasUnsavedChanges()) {
+            showSnackbarFragment(
+                type = Constants.SnackType.WARNING.name,
+                title = getString(R.string.snack_attention),
+                msg = getString(R.string.unsaved_confirm_msg),
+                btnText = getString(R.string.snack_button_yes), // SIM
+                onAction = { findNavController().navigateUp() },
+                btnNegativeText = getString(R.string.snack_button_no), // NÃO
+                onNegative = { /* permanece nesta tela */ }
+            )
+        } else {
+            findNavController().navigateUp()
+        }
+    }
+
+    /** Verifica se existem alterações não salvas no formulário. */
+    private fun hasUnsavedChanges(): Boolean = with(binding) {
+        val nomeAtual = etNomeMaterial.text?.toString()?.trim().orEmpty()
+        val descAtual = etDescMaterial.text?.toString()?.trim().orEmpty()
+        val statusAtual = getCheckedStatus()
+        val qtdAtual = quantidade
+
+        if (!isEdit) {
+            // Cadastro novo: compara com estado "vazio"/padrão (qtd = 1, status = Ativo)
+            val statusPadrao = getString(R.string.material_status_active)
+            return@with nomeAtual.isNotEmpty() ||
+                    descAtual.isNotEmpty() ||
+                    qtdAtual != 1 ||
+                    !statusAtual.equals(statusPadrao, ignoreCase = true)
+        }
+
+        // Edição: compara com o material original
+        val orig = materialOriginal ?: return@with false
+        val descOrig = orig.descricao?.trim().orEmpty()
+
+        return@with nomeAtual != orig.nome ||
+                descAtual != descOrig ||
+                !statusAtual.equals(orig.status, ignoreCase = true) ||
+                qtdAtual != orig.quantidade
     }
 
     /*──────────────────── Lifecycle ────────────────────*/
@@ -233,5 +290,4 @@ class MaterialRegisterFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-
 }

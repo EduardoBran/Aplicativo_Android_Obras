@@ -28,6 +28,8 @@ import kotlinx.coroutines.launch
 import android.content.Context
 import android.content.ClipData
 import android.content.ClipboardManager
+import androidx.activity.addCallback
+import java.util.Locale
 
 @AndroidEntryPoint
 class FuncionarioRegisterFragment : Fragment() {
@@ -43,6 +45,8 @@ class FuncionarioRegisterFragment : Fragment() {
 
     private var previousAdicional: Double? = null
 
+    private var funcionarioOriginal: Funcionario? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -54,7 +58,7 @@ class FuncionarioRegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.toolbarFuncReg.setNavigationOnClickListener { findNavController().navigateUp() }
+        binding.toolbarFuncReg.setNavigationOnClickListener { handleBackPress() }
 
         if (isEdit) prefillFields()
         if (!isEdit) {
@@ -93,6 +97,11 @@ class FuncionarioRegisterFragment : Fragment() {
 
         validateForm()
 
+        // Interceptar botão físico/gesto de voltar
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            handleBackPress()
+        }
+
         // copiar pix
         binding.tilPix.setEndIconOnClickListener {
             val text = binding.etPix.text?.toString().orEmpty()
@@ -122,6 +131,7 @@ class FuncionarioRegisterFragment : Fragment() {
                 viewModel.observeFuncionario(args.obraId, args.funcionarioId!!)
                     .collect { func ->
                         func ?: return@collect
+                        funcionarioOriginal = func
                         binding.apply {
                             etNomeFunc.setText(func.nome)
                             etSalario.setText(func.salario.toString())
@@ -309,11 +319,11 @@ class FuncionarioRegisterFragment : Fragment() {
     // Altera rótulo de "Dias trabalhados" conforme "Forma de Pagamento" escolhida
     private fun updateDiasLabel() = with(binding) {
         val res = when {
-            rbDiaria.isChecked     -> R.string.func_reg_days_hint
-            rbSemanal.isChecked    -> R.string.func_reg_weeks_hint
-            rbMensal.isChecked     -> R.string.func_reg_months_hint
-            rbTarefeiro.isChecked  -> R.string.func_reg_task_fixed_hint // <-- novo texto
-            else                   -> R.string.func_reg_days_hint
+            rbDiaria.isChecked -> R.string.func_reg_days_hint
+            rbSemanal.isChecked -> R.string.func_reg_weeks_hint
+            rbMensal.isChecked -> R.string.func_reg_months_hint
+            rbTarefeiro.isChecked -> R.string.func_reg_task_fixed_hint // <-- novo texto
+            else -> R.string.func_reg_days_hint
         }
         tvLabelDias.setText(res)
     }
@@ -336,6 +346,80 @@ class FuncionarioRegisterFragment : Fragment() {
         binding.rbMensal,
         binding.rbTarefeiro
     )
+
+    // ---------------- Verificação de Edição -----------------
+
+    private fun handleBackPress() {
+        if (hasUnsavedChanges()) {
+            showSnackbarFragment(
+                type = Constants.SnackType.WARNING.name,
+                title = getString(R.string.snack_attention),
+                msg = getString(R.string.unsaved_confirm_msg),
+                btnText = getString(R.string.snack_button_yes), // SIM
+                onAction = { findNavController().navigateUp() },
+                btnNegativeText = getString(R.string.snack_button_no), // NÃO
+                onNegative = { /* permanece nesta tela */ }
+            )
+        } else {
+            findNavController().navigateUp()
+        }
+    }
+
+    /** Verifica se existem alterações não salvas no formulário. */
+    private fun hasUnsavedChanges(): Boolean = with(binding) {
+        val nomeStr = etNomeFunc.text?.toString()?.trim().orEmpty()
+        val salarioStr = etSalario.text?.toString()?.trim().orEmpty()
+        val salarioNum = salarioStr.replace(',', '.').toDoubleOrNull()
+        val pixStr = etPix.text?.toString()?.trim().orEmpty()
+        val adicionalInput = etAdicional.text?.toString()?.trim().orEmpty()
+
+        val funcoesSel = getCheckedFuncaoTexts()
+            .map { it.trim().lowercase(Locale.getDefault()) }
+            .toSet()
+
+        val formaPagto = getCheckedRadioTextPagamento() // já retorna texto do RB
+        val statusStr = getCheckedRadioText(binding.rgStatus).lowercase(Locale.getDefault())
+
+        val diasAtual = diasTrabalhados
+
+        if (!isEdit) {
+            // Inclusão: qualquer campo preenchido/selecionado conta como alteração
+            val temRadioPagto = getAllPagamentoRadios().any { it.isChecked }
+            return@with nomeStr.isNotEmpty() ||
+                    salarioStr.isNotEmpty() ||
+                    pixStr.isNotEmpty() ||
+                    adicionalInput.isNotEmpty() ||
+                    funcoesSel.isNotEmpty() ||
+                    temRadioPagto ||
+                    statusStr.isNotEmpty() ||
+                    diasAtual != 0
+        }
+
+        // Edição: compara com o original
+        val orig = funcionarioOriginal ?: return@with false
+
+        val salarioMudou = when {
+            salarioNum == null -> true // limpou o campo → alteração
+            else -> salarioNum != orig.salario
+        }
+
+        val funcoesOrig = orig.funcao.split("/")
+            .map { it.trim().lowercase(Locale.getDefault()) }
+            .toSet()
+
+        val formaMudou = !formaPagto.equals(orig.formaPagamento, ignoreCase = true)
+        val statusMudou = !statusStr.equals(orig.status, ignoreCase = true)
+
+        return@with nomeStr != orig.nome ||
+                salarioMudou ||
+                pixStr != (orig.pix ?: "") ||
+                diasAtual != orig.diasTrabalhados ||
+                formaMudou ||
+                statusMudou ||
+                funcoesSel != funcoesOrig ||
+                // Em edição, campo "Adicional" vazio não muda nada; se digitou algo, conta alteração
+                adicionalInput.isNotEmpty()
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

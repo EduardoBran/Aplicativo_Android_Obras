@@ -3,6 +3,9 @@ package com.luizeduardobrandao.obra.data.repository.impl
 import com.luizeduardobrandao.obra.utils.valueEventListener
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.getValue
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageMetadata
+import com.google.firebase.storage.StorageReference
 import com.luizeduardobrandao.obra.data.model.Funcionario
 import com.luizeduardobrandao.obra.data.model.Nota
 import com.luizeduardobrandao.obra.data.repository.AuthRepository
@@ -23,6 +26,7 @@ class NotaRepositoryImpl @Inject constructor(
     private val authRepo: AuthRepository,
     private val obrasRoot: DatabaseReference,
     private val obraRepository: ObraRepository,        // para atualizar gastoTotal
+    private val storage: FirebaseStorage,
     @IoDispatcher private val io: CoroutineDispatcher
 ) : NotaRepository {
 
@@ -91,11 +95,54 @@ class NotaRepositoryImpl @Inject constructor(
             result
         }
 
+    override suspend fun uploadNotaPhoto(
+        obraId: String,
+        notaId: String,
+        bytes: ByteArray,
+        mime: String
+    ): Result<Pair<String, String>> = withContext(io) {
+        runCatching {
+            val uid = authRepo.currentUid ?: error("Usuário não autenticado")
+            val ext = extFromMime(mime)
+            val path = notaPhotoPath(uid, obraId, notaId, ext)
+
+            val ref: StorageReference = storage.reference.child(path)
+            val metadata = StorageMetadata.Builder()
+                .setContentType(mime)
+                .build()
+
+            // Upload dos bytes com metadata
+            ref.putBytes(bytes, metadata).await()
+
+            // URL pública de download
+            val downloadUrl = ref.downloadUrl.await().toString()
+
+            // Retorna (url, path) — path será guardado em fotoPath
+            downloadUrl to path
+        }
+    }
+
+    override suspend fun deleteNotaPhoto(
+        obraId: String,
+        notaId: String,
+        path: String
+    ): Result<Unit> = withContext(io) {
+        runCatching {
+            // Se veio com "/" no início, normaliza
+            val normalized = if (path.startsWith("/")) path.drop(1) else path
+            storage.reference.child(normalized).delete().await()
+            Unit
+        }
+    }
+
+
+    // --------- HELPERS ----------
+
     /**
      * Recalcula o somatório de todos os custos:
      *   • funcionários (totalGasto)
      *   • notas (valor)
-     * e grava no [gastoTotal] da obra.
+     * e grava no "gastoTotal" da obra.
      */
     private suspend fun recalcTotalGasto(obraId: String) {
         // 1) soma funcionários
@@ -113,4 +160,17 @@ class NotaRepositoryImpl @Inject constructor(
         // 3) grava a soma total
         obraRepository.updateGastoTotal(obraId, totalFuncionarios + totalNotas)
     }
+
+    /** Resolve a extensão baseada no MIME. Default: "jpg". */
+    private fun extFromMime(mime: String): String = when (mime.lowercase()) {
+        "image/jpeg", "image/jpg" -> "jpg"
+        "image/png" -> "png"
+        "image/webp" -> "webp"
+        "image/heic", "image/heif" -> "heic"
+        else -> "jpg"
+    }
+
+    /** Caminho lógico da foto no Storage: obras/{uid}/{obraId}/notas/{notaId}/foto.{ext} */
+    private fun notaPhotoPath(uid: String, obraId: String, notaId: String, ext: String): String =
+        "obras/$uid/$obraId/notas/$notaId/foto.$ext"
 }

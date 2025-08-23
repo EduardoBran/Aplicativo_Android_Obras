@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.activity.addCallback
 
 @AndroidEntryPoint
 class CronogramaRegisterFragment : Fragment() {
@@ -57,7 +58,7 @@ class CronogramaRegisterFragment : Fragment() {
 
         with(binding) {
             // Toolbar back & title
-            toolbarEtapaReg.setNavigationOnClickListener { findNavController().navigateUp() }
+            toolbarEtapaReg.setNavigationOnClickListener { handleBackPress() }
             toolbarEtapaReg.title = if (isEdit)
                 getString(R.string.etapa_reg_title_edit)
             else
@@ -76,6 +77,10 @@ class CronogramaRegisterFragment : Fragment() {
 
             // Habilitar/desabilitar botão conforme preenchimento
             setupValidation()
+        }
+        // Intercepta o botão físico/gesto de voltar
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            handleBackPress()
         }
 
         // Se for edição, garanta que os dados estejam carregados e preencha
@@ -262,6 +267,59 @@ class CronogramaRegisterFragment : Fragment() {
         val ini = parseDateOrNull(dataInicio) ?: return false
         val fim = parseDateOrNull(dataFim) ?: return false
         return !fim.before(ini)
+    }
+
+    // ---------------- Verificação de Edição -----------------
+
+    private fun handleBackPress() {
+        if (hasUnsavedChanges()) {
+            showSnackbarFragment(
+                type = Constants.SnackType.WARNING.name,
+                title = getString(R.string.snack_attention),
+                msg = getString(R.string.unsaved_confirm_msg),
+                btnText = getString(R.string.snack_button_yes), // SIM
+                onAction = { findNavController().navigateUp() },
+                btnNegativeText = getString(R.string.snack_button_no), // NÃO
+                onNegative = { /* permanece nesta tela */ }
+            )
+        } else {
+            findNavController().navigateUp()
+        }
+    }
+
+    /** Verifica se existem alterações não salvas no formulário. */
+    private fun hasUnsavedChanges(): Boolean = with(binding) {
+        val titulo = etTituloEtapa.text?.toString()?.trim().orEmpty()
+        val desc = etDescEtapa.text?.toString()?.trim().orEmpty()
+        val func = etFuncEtapa.text?.toString()?.trim().orEmpty()
+        val ini = etDataInicioEtapa.text?.toString()?.trim().orEmpty()
+        val fim = etDataFimEtapa.text?.toString()?.trim().orEmpty()
+
+        val statusAtual = when (rgStatusEtapa.checkedRadioButtonId) {
+            R.id.rbStatAnd -> CronogramaPagerAdapter.STATUS_ANDAMENTO
+            R.id.rbStatConcl -> CronogramaPagerAdapter.STATUS_CONCLUIDO
+            else -> CronogramaPagerAdapter.STATUS_PENDENTE
+        }
+
+        if (!isEdit) {
+            // Inclusão: compara com “vazio” e status default (PENDENTE)
+            val statusDefault = CronogramaPagerAdapter.STATUS_PENDENTE
+            return@with titulo.isNotEmpty() ||
+                    desc.isNotEmpty() ||
+                    func.isNotEmpty() ||
+                    ini.isNotEmpty() ||
+                    fim.isNotEmpty() ||
+                    statusAtual != statusDefault
+        }
+
+        // Edição: compara com a etapa original
+        val orig = etapaOriginal ?: return@with false
+        return@with titulo != orig.titulo ||
+                desc != orig.descricao ||
+                func != orig.funcionarios ||
+                ini != orig.dataInicio ||
+                fim != orig.dataFim ||
+                statusAtual != orig.status
     }
 
     override fun onDestroyView() {

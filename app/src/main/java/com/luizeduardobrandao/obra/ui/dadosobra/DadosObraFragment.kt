@@ -30,6 +30,7 @@ import android.app.DatePickerDialog
 import android.widget.DatePicker
 import java.text.NumberFormat
 import java.util.Calendar
+import androidx.activity.addCallback
 
 @AndroidEntryPoint
 class DadosObraFragment : Fragment() {
@@ -77,16 +78,16 @@ class DadosObraFragment : Fragment() {
         binding.btnSalvarObra.isEnabled = false
         // Botão salvar aporte começa desabilitado
         binding.btnSalvarAporte.isEnabled = false
-    }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+        // Intercepta o botão físico/gesto de voltar
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            handleBackPress()
+        }
     }
 
     /* ───────────────── Toolbar ───────────────── */
     private fun setupToolbar() = binding.toolbarDadosObra.setNavigationOnClickListener {
-        findNavController().navigateUp()
+        handleBackPress()
     }
 
     /* ───────────────── DatePickers (Obra) ───────────────── */
@@ -522,4 +523,66 @@ class DadosObraFragment : Fragment() {
 
     private fun formatMoneyBR(value: Double): String =
         NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(value)
+
+    // ---------------- Verificação de Edição -----------------
+
+    private fun handleBackPress() {
+        if (hasUnsavedChanges()) {
+            showSnackbarFragment(
+                type = Constants.SnackType.WARNING.name,
+                title = getString(R.string.snack_attention),
+                msg = getString(R.string.unsaved_confirm_msg),
+                btnText = getString(R.string.snack_button_yes), // SIM
+                onAction = { findNavController().navigateUp() },
+                btnNegativeText = getString(R.string.snack_button_no), // NÃO
+                onNegative = { /* permanece na tela */ }
+            )
+        } else {
+            findNavController().navigateUp()
+        }
+    }
+
+    /** True se houver alterações não salvas na OBRA ou um aporte parcialmente preenchido. */
+    private fun hasUnsavedChanges(): Boolean = with(binding) {
+        // Campos atuais (OBRA)
+        val nomeAtual = etNomeCliente.text?.toString()?.trim().orEmpty()
+        val endAtual = etEnderecoObra.text?.toString()?.trim().orEmpty()
+        val contatoAtual = etContatoObra.text?.toString()?.trim().orEmpty()
+        val descAtual = etDescricaoObra.text?.toString()?.trim().orEmpty()
+        val dataIniAtual = etDataInicioObra.text?.toString()?.trim().orEmpty()
+        val dataFimAtual = etDataFimObra.text?.toString()?.trim().orEmpty()
+
+        // Aporte parcialmente preenchido conta como alteração pendente
+        val aporteValorTxt = etAporteValor.text?.toString()?.trim().orEmpty()
+        val aporteDescTxt = etAporteDescricao.text?.toString()?.trim().orEmpty()
+        val aportePendente = cardNovoAporte.visibility == View.VISIBLE &&
+                (aporteValorTxt.isNotEmpty() || !aporteDateIso.isNullOrBlank() || aporteDescTxt.isNotEmpty())
+
+        val obraOrig = currentObra
+
+        // Se ainda não temos a obra original (ou for um novo cadastro de obra), compara com "vazio"
+        if (obraOrig == null) {
+            return@with nomeAtual.isNotEmpty() ||
+                    endAtual.isNotEmpty() ||
+                    contatoAtual.isNotEmpty() ||
+                    descAtual.isNotEmpty() ||
+                    dataIniAtual.isNotEmpty() ||
+                    dataFimAtual.isNotEmpty() ||
+                    aportePendente
+        }
+
+        // Comparação com o original
+        return@with (nomeAtual != obraOrig.nomeCliente) ||
+                (endAtual != obraOrig.endereco) ||
+                (contatoAtual != obraOrig.contato) ||
+                (descAtual != (obraOrig.descricao?.trim().orEmpty())) ||
+                (dataIniAtual != obraOrig.dataInicio) ||
+                (dataFimAtual != obraOrig.dataFim) ||
+                aportePendente
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

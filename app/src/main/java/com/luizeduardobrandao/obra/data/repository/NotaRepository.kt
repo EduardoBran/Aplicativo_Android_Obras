@@ -23,4 +23,20 @@ interface NotaRepository {
 
     // Remove nota e estorna valor se necessário.
     suspend fun deleteNota(obraId: String, nota: Nota): Result<Unit>
+
+    // ─────────── Fotos (Storage) ───────────
+    /** Faz upload da foto da nota e retorna (publicUrl, storagePath). */
+    suspend fun uploadNotaPhoto(
+        obraId: String,
+        notaId: String,
+        bytes: ByteArray,
+        mime: String
+    ): Result<Pair<String, String>>
+
+    /** Exclui a foto no Storage a partir do caminho salvo em fotoPath. */
+    suspend fun deleteNotaPhoto(
+        obraId: String,
+        notaId: String,
+        path: String
+    ): Result<Unit>
 }

@@ -3,6 +3,8 @@ package com.luizeduardobrandao.obra.di
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -47,4 +49,20 @@ object FirebaseModule {
     fun provideRootObrasReference(
         database: FirebaseDatabase
     ): DatabaseReference = database.reference.child("obras")
+
+    // ─────────────────────────────────────────────────────────────
+    // Storage (NOVO)
+    // ─────────────────────────────────────────────────────────────
+
+    /** Instância singleton do Firebase Storage. */
+    @Provides
+    @Singleton
+    fun provideFirebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
+
+    /** (Opcional) Referência raiz "obras/" no Storage, útil para organizar uploads. */
+    @Provides
+    @Singleton
+    fun provideRootObrasStorageReference(
+        storage: FirebaseStorage
+    ): StorageReference = storage.reference.child("obras")
 }

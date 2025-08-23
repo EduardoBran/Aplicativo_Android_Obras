@@ -96,4 +96,7 @@ dependencies {
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.56.2")  // Hilt testing
     kspAndroidTest("com.google.dagger:hilt-android-compiler:2.56.2")            // KSP for Hilt in androidTest
     testImplementation(kotlin("test"))
+
+    // Imagens
+    implementation("io.coil-kt:coil:2.6.0")
 }

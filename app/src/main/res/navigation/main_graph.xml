@@ -263,6 +263,10 @@
             android:name="notaId"
             app:argType="string" />
 
+        <action
+            android:id="@+id/action_detalheNota_to_imageViewer"
+            app:destination="@id/imageViewerFragment" />
+
     </fragment>
 
     <fragment
@@ -461,4 +465,16 @@
             app:destination="@id/materialFragment" />
 
     </fragment>
+
+    <fragment
+        android:id="@+id/imageViewerFragment"
+        android:name="com.luizeduardobrandao.obra.ui.notas.ImageViewerFragment"
+        android:label="@string/image_viewer_title"
+        tools:layout="@layout/fragment_image_viewer">
+
+        <argument
+            android:name="fotoUrl"
+            app:argType="string" />
+    </fragment>
+
 </navigation>

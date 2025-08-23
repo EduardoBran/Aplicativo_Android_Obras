@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/imageViewerRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <!-- Toolbar -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarImageViewer"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.ObrasApp.Toolbar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:navigationIcon="@drawable/ic_back"
+        app:navigationIconTint="@color/white"
+        app:title="@string/image_viewer_title"
+        app:titleCentered="true"
+        app:titleTextColor="@color/white" />
+
+    <!-- Área da imagem -->
+    <ImageView
+        android:id="@+id/imgViewer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@string/image_viewer_content_desc"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        app:layout_constraintTop_toBottomOf="@id/toolbarImageViewer"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:src="@drawable/ic_image_placeholder" />
+
+    <!-- Progress enquanto carrega -->
+    <ProgressBar
+        android:id="@+id/progressImage"
+        style="@style/Widget.AppCompat.ProgressBar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        app:layout_constraintTop_toTopOf="@id/imgViewer"
+        app:layout_constraintBottom_toBottomOf="@id/imgViewer"
+        app:layout_constraintStart_toStartOf="@id/imgViewer"
+        app:layout_constraintEnd_toEndOf="@id/imgViewer" />
+
+    <!-- Mensagem de erro simples (fallback) -->
+    <TextView
+        android:id="@+id/tvError"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/image_viewer_error_loading"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="?attr/colorOnSurface"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="@id/imgViewer"
+        app:layout_constraintBottom_toBottomOf="@id/imgViewer"
+        app:layout_constraintStart_toStartOf="@id/imgViewer"
+        app:layout_constraintEnd_toEndOf="@id/imgViewer" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
