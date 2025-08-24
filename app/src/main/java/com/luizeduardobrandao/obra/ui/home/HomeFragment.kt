@@ -145,11 +145,9 @@ class HomeFragment : Fragment() {
 
         // Fotos
         btnPhotos.setOnClickListener {
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.home_photos_unavailable),
-                Toast.LENGTH_SHORT
-            ).show()
+            findNavController().navigate(
+                HomeFragmentDirections.actionHomeToFotos(obraId)
+            )
         }
     }
 

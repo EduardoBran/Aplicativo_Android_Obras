@@ -632,8 +632,58 @@
     <string name="image_viewer_menu_save">Salvar</string>
 
     <string name="image_save_confirm_title">Salvar imagem?</string>
-    <string name="image_save_confirm_msg">Deseja salvar esta foto na galeria do dispositivo?</string>
+    <string name="image_save_confirm_msg">Deseja salvar esta imagem na sua galeria?</string>
     <string name="image_save_success_toast">Imagem salva na galeria.</string>
     <string name="image_save_error_toast">Falha ao salvar a imagem.</string>
+
+
+    <!-- Imagens / Fotos da Obra -->
+    <string name="imagens_title">Imagens</string>
+    <string name="imagens_empty">Nenhuma imagem cadastrada.</string>
+
+    <!-- Filtros -->
+    <string name="imagens_filter_all">Todas</string>
+    <string name="imagens_filter_name">Nome</string>
+    <string name="imagens_filter_pintura">Pintura</string>
+    <string name="imagens_filter_pedreiro">Pedreiro</string>
+    <string name="imagens_filter_ladrilheiro">Ladrilheiro</string>
+    <string name="imagens_filter_hidraulica">Hidráulica</string>
+    <string name="imagens_filter_eletrica">Elétrica</string>
+    <string name="imagens_filter_outro">Outro</string>
+    <string name="imagens_filter_title">Filtrando: %1$s</string>
+
+    <!-- Ações -->
+    <string name="imagens_btn_send">Enviar</string>
+    <string name="imagens_btn_take">Tirar Foto</string>
+    <string name="imagens_card_title">Nova Imagem</string>
+    <string name="imagens_form_name_hint">Nome da imagem</string>
+    <string name="imagens_form_desc_hint">Detalhes (opcional)</string>
+    <string name="imagens_form_date_hint">Data</string>
+    <string name="imagens_form_type_title">Tipo</string>
+    <string name="imagens_save_success">Imagem salva com sucesso.</string>
+    <string name="imagens_save_error">Falha ao salvar a imagem.</string>
+    <string name="imagem_save_confirm">Deseja salvar esta imagem?</string>
+
+    <!-- Detalhe -->
+    <string name="imagem_detail_title">Imagem</string>
+    <string name="imagem_detail_date">Data:</string>
+    <string name="imagem_detail_type">Tipo:</string>
+    <string name="imagem_detail_desc">Descrição:</string>
+    <string name="imagem_detail_desc_empty">-</string>
+    <string name="imagem_menu_save">Salvar</string>
+    <string name="imagem_menu_delete">Excluir</string>
+    <string name="imagem_save_confirm_title">Salvar imagem</string>
+    <string name="imagem_save_confirm_msg">Deseja salvar esta imagem na sua galeria?</string>
+    <string name="imagem_delete_confirm_title">Excluir imagem</string>
+    <string name="imagem_delete_confirm_msg">Deseja excluir esta imagem?</string>
+    <string name="imagem_save_success_toast">Imagem salva na galeria.</string>
+    <string name="imagem_save_error_toast">Não foi possível salvar a imagem.</string>
+    <string name="imagem_delete_success_toast">Imagem excluída.</string>
+    <string name="imagem_error_load">Não foi possível carregar a imagem.</string>
+
+    <string name="imagens_detail_date_fmt">Data: %1$s</string>
+    <string name="imagens_detail_type_fmt">Tipo: %1$s</string>
+    <string name="imagens_delete_confirm_msg">Deseja excluir esta imagem?</string>
+    <string name="imagens_filter_title_fmt">Filtrando: %1$s</string>
 
 </resources>

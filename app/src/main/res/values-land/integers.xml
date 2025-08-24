@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paisagem (landscape): 4 colunas -->
+    <integer name="fotos_grid_span">4</integer>
+</resources>

@@ -6,12 +6,14 @@ import com.luizeduardobrandao.obra.data.repository.FuncionarioRepository
 import com.luizeduardobrandao.obra.data.repository.MaterialRepository
 import com.luizeduardobrandao.obra.data.repository.NotaRepository
 import com.luizeduardobrandao.obra.data.repository.ObraRepository
+import com.luizeduardobrandao.obra.data.repository.ImagemRepository
 import com.luizeduardobrandao.obra.data.repository.impl.AuthRepositoryImpl
 import com.luizeduardobrandao.obra.data.repository.impl.CronogramaRepositoryImpl
 import com.luizeduardobrandao.obra.data.repository.impl.FuncionarioRepositoryImpl
 import com.luizeduardobrandao.obra.data.repository.impl.MaterialRepositoryImpl
 import com.luizeduardobrandao.obra.data.repository.impl.NotaRepositoryImpl
 import com.luizeduardobrandao.obra.data.repository.impl.ObraRepositoryImpl
+import com.luizeduardobrandao.obra.data.repository.impl.ImagemRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -59,4 +61,10 @@ abstract class RepositoryModule {
     abstract fun bindMaterialRepository(
         impl: MaterialRepositoryImpl
     ): MaterialRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindImagemRepository(
+        impl: ImagemRepositoryImpl
+    ): ImagemRepository
 }

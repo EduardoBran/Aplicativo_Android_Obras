@@ -115,6 +115,10 @@
             android:id="@+id/action_home_to_resumo"
             app:destination="@id/resumoFragment" />
 
+        <action
+            android:id="@+id/action_home_to_fotos"
+            app:destination="@id/fotosFragment" />
+
         <!-- logout: volta diretamente ao Login limpando pilha -->
         <action
             android:id="@+id/action_home_logout"
@@ -474,6 +478,37 @@
 
         <argument
             android:name="fotoUrl"
+            app:argType="string" />
+    </fragment>
+
+    <!-- ────────────────────────────  ►  FOTOS LISTA  ◄  ────────────────────── -->
+    <fragment
+        android:id="@+id/fotosFragment"
+        android:name="com.luizeduardobrandao.obra.ui.fotos.FotosFragment"
+        android:label="@string/imagens_title"
+        tools:layout="@layout/fragment_fotos">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_fotos_to_detail"
+            app:destination="@id/fotoDetailFragment" />
+    </fragment>
+
+    <!-- ────────────────────────────  ►  FOTO DETALHE  ◄  ────────────────────── -->
+    <fragment
+        android:id="@+id/fotoDetailFragment"
+        android:name="com.luizeduardobrandao.obra.ui.fotos.FotoDetailFragment"
+        android:label="@string/imagem_detail_title"
+        tools:layout="@layout/fragment_foto_detail">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+        <argument
+            android:name="imagemId"
             app:argType="string" />
     </fragment>
 

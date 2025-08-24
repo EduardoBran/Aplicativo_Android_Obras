@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/filter_all"
+        android:title="@string/imagens_filter_all" />
+    <item
+        android:id="@+id/filter_name"
+        android:title="@string/imagens_filter_name" />
+    <item
+        android:id="@+id/filter_pintura"
+        android:title="@string/imagens_filter_pintura" />
+    <item
+        android:id="@+id/filter_pedreiro"
+        android:title="@string/imagens_filter_pedreiro" />
+    <item
+        android:id="@+id/filter_ladrilheiro"
+        android:title="@string/imagens_filter_ladrilheiro" />
+    <item
+        android:id="@+id/filter_hidraulica"
+        android:title="@string/imagens_filter_hidraulica" />
+    <item
+        android:id="@+id/filter_eletrica"
+        android:title="@string/imagens_filter_eletrica" />
+    <item
+        android:id="@+id/filter_outro"
+        android:title="@string/imagens_filter_outro" />
+</menu>

@@ -49,6 +49,25 @@ object FileUtils {
         )
     }
 
+    fun createTempImageUri2(ctx: Context): Uri {
+        val ts = System.currentTimeMillis()
+        val values = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "IMG_$ts.jpg")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ObraApp")
+        }
+        return ctx.contentResolver.insert(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
+        ) ?: error("Falha ao criar URI de imagem temporária")
+    }
+
+    fun finalizePendingImage(ctx: Context, uri: Uri) {
+        val values = ContentValues().apply {
+            put(MediaStore.Images.Media.IS_PENDING, 0)
+        }
+        ctx.contentResolver.update(uri, values, null, null)
+    }
+
     /**
      * Lê os bytes de uma Uri (imagem selecionada da galeria ou foto capturada).
      */
