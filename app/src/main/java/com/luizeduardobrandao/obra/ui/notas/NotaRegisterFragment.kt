@@ -1,12 +1,10 @@
 package com.luizeduardobrandao.obra.ui.notas
 
 import android.Manifest
-import android.app.DatePickerDialog
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
-import android.widget.DatePicker
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
@@ -33,9 +31,11 @@ import androidx.core.widget.doAfterTextChanged
 import java.util.*
 import java.text.NumberFormat
 import androidx.activity.addCallback
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
 
 @AndroidEntryPoint
-class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
+class NotaRegisterFragment : Fragment() {
 
     private var _binding: FragmentNotaRegisterBinding? = null
     private val binding get() = _binding!!
@@ -45,8 +45,6 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
 
     private var isEdit = false
     private lateinit var notaOriginal: Nota   // usado em edição
-
-    private val calendar = Calendar.getInstance()
 
     // ─────────────── Foto (galeria/câmera) ───────────────
     private var tempCameraUri: Uri? = null
@@ -121,7 +119,21 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
         with(binding) {
             toolbarNotaReg.setNavigationOnClickListener { handleBackPress() }
 
-            etDataNota.setOnClickListener { showDatePicker() }
+            etDataNota.setOnClickListener {
+                if (isEdit) {
+                    // abre já marcado com a data atual do campo (dd/MM/yyyy)
+                    showMaterialDatePickerBrWithInitial(
+                        binding.etDataNota.text?.toString()
+                    ) { chosen ->
+                        applyChosenNotaDate(chosen)
+                    }
+                } else {
+                    // novo cadastro: abre em hoje
+                    showMaterialDatePickerBrToday { chosen ->
+                        applyChosenNotaDate(chosen)
+                    }
+                }
+            }
             btnSaveNota.setOnClickListener { onSaveClick() }
 
             // Form validation
@@ -265,7 +277,8 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
 
                             if (shouldCloseAfterSave) {
                                 val msgRes =
-                                    if (isEdit) R.string.nota_toast_updated else R.string.nota_toast_added
+                                    if (isEdit) R.string.nota_toast_updated
+                                    else R.string.nota_toast_added
                                 Toast.makeText(requireContext(), msgRes, Toast.LENGTH_SHORT).show()
                                 binding.root.hideKeyboard()
 
@@ -304,6 +317,8 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
     }
 
     /* ────────────────────── Utilitários de formulário ────────────────────── */
+
+    // Preenchimento dos campos em modo de edição
     private fun prefillFields(n: Nota) = with(binding) {
         toolbarNotaReg.title = getString(R.string.nota_reg_button_edit)
         btnSaveNota.setText(R.string.generic_update)
@@ -327,33 +342,7 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
         else rbStatusPago.isChecked = true
     }
 
-    private fun showDatePicker() {
-        DatePickerDialog(
-            requireContext(), this,
-            calendar[Calendar.YEAR],
-            calendar[Calendar.MONTH],
-            calendar[Calendar.DAY_OF_MONTH]
-        ).show()
-    }
-
-    override fun onDateSet(dp: DatePicker, y: Int, m: Int, d: Int) {
-        val date = "%02d/%02d/%04d".format(d, m + 1, y)
-        binding.etDataNota.setText(date)
-
-        // aviso se data no passado (informativo)
-        val sel = Calendar.getInstance().apply {
-            set(y, m, d, 0, 0, 0); set(Calendar.MILLISECOND, 0)
-        }
-        val hoje = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-        }
-        binding.tilDataNota.helperText =
-            if (sel.before(hoje)) getString(R.string.nota_past_date_warning) else null
-
-        validateForm()
-    }
-
+    // Validação
     private fun validateForm(): Boolean = with(binding) {
         // Nome do material
         val nome = etNomeMaterial.text?.toString()?.trim().orEmpty()
@@ -392,6 +381,41 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
         ok
     }
 
+    // Exibição do DatePicker
+    private fun applyChosenNotaDate(chosen: String) {
+        // chosen vem em "dd/MM/yyyy"
+        binding.etDataNota.setText(chosen)
+
+        // helper de data no passado (informativo)
+        val parts = chosen.split("/")
+        if (parts.size == 3) {
+            val d = parts[0].toIntOrNull()
+            val m = parts[1].toIntOrNull() // 1..12
+            val y = parts[2].toIntOrNull()
+            if (d != null && m != null && y != null) {
+                val sel = Calendar.getInstance().apply {
+                    set(y, m - 1, d, 0, 0, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                val hoje = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                binding.tilDataNota.helperText =
+                    if (sel.before(hoje)) getString(R.string.nota_past_date_warning) else null
+            } else {
+                binding.tilDataNota.helperText = null
+            }
+        } else {
+            binding.tilDataNota.helperText = null
+        }
+
+        validateForm()
+    }
+
+    // Exibição do progress
     private fun progress(show: Boolean) = with(binding) {
         // o scroll e o botão só travam quando estamos salvando
         val saving = show && isSaving
@@ -555,7 +579,8 @@ class NotaRegisterFragment : Fragment(), DatePickerDialog.OnDateSetListener {
             // Foto local: sem loading de rede
             progressPhotoPreview.isVisible = false
             imgPhotoPreviewLarge.visibility = View.VISIBLE
-            val bmp = BitmapFactory.decodeByteArray(localPreviewBytes, 0, localPreviewBytes!!.size)
+            val bmp =
+                BitmapFactory.decodeByteArray(localPreviewBytes, 0, localPreviewBytes!!.size)
             imgPhotoPreviewLarge.setImageBitmap(bmp)
             return@with
         }

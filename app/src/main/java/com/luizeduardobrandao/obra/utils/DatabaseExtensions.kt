@@ -5,7 +5,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 
 /**
- * Atalho para instanciar um [ValueEventListener] focado apenas no mét0do [onDataChange].
+ * Atalho para instanciar um [ValueEventListener] focado apenas no mét0do "onDataChange".
  *
  * Uso:
  * ```

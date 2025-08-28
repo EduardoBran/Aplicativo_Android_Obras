@@ -1,6 +1,5 @@
 package com.luizeduardobrandao.obra.ui.funcionario
 
-import android.app.DatePickerDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -35,8 +34,9 @@ import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
-import java.util.Calendar
 import java.util.Locale
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
 
 @AndroidEntryPoint
 class FuncionarioRegisterFragment : Fragment() {
@@ -58,7 +58,6 @@ class FuncionarioRegisterFragment : Fragment() {
 
     // Pagamentos
     private lateinit var pagamentoAdapter: PagamentoAdapter
-    private val calendar: Calendar = Calendar.getInstance()
 
     // Cache da lista para update otimista
     private var cachedPagamentos: List<Pagamento> = emptyList()
@@ -232,11 +231,14 @@ class FuncionarioRegisterFragment : Fragment() {
                         funcionarioOriginal = func
                         binding.apply {
                             etNomeFunc.setText(func.nome)
-                            val nf = NumberFormat.getNumberInstance(Locale("pt", "BR")).apply {
-                                minimumFractionDigits = 2
-                                maximumFractionDigits = 2
-                                isGroupingUsed = false
-                            }
+                            val nf =
+                                NumberFormat.getNumberInstance(
+                                    Locale("pt", "BR")
+                                ).apply {
+                                    minimumFractionDigits = 2
+                                    maximumFractionDigits = 2
+                                    isGroupingUsed = false
+                                }
                             etSalario.setText(nf.format(func.salario))
                             etPix.setText(func.pix)
                             tvDias.text = func.diasTrabalhados.toString()
@@ -281,7 +283,8 @@ class FuncionarioRegisterFragment : Fragment() {
             getString(R.string.func_reg_error_nome, Constants.Validation.MIN_NAME)
         else null
 
-        val salario = etSalario.text?.toString()?.replace(',', '.')?.toDoubleOrNull()
+        val salario =
+            etSalario.text?.toString()?.replace(',', '.')?.toDoubleOrNull()
         val salarioOk = salario != null && salario > Constants.Validation.MIN_SALDO
         tilSalario.error = if (!salarioOk) getString(R.string.func_reg_error_salario) else null
 
@@ -435,31 +438,30 @@ class FuncionarioRegisterFragment : Fragment() {
     }
 
     private fun showPagamentoDatePicker(valorPre: Double? = null) {
-        val y = calendar.get(Calendar.YEAR)
-        val m = calendar.get(Calendar.MONTH)
-        val d = calendar.get(Calendar.DAY_OF_MONTH)
-
-        val dp = DatePickerDialog(requireContext(), { _, yy, mm, dd ->
-            val iso = "%04d-%02d-%02d".format(yy, mm + 1, dd)
+        showMaterialDatePickerBrToday { chosen ->
+            // chosen = "dd/MM/yyyy" → ISO "yyyy-MM-dd"
+            val parts = chosen.split("/")
+            val iso = String.format(
+                Locale.ROOT, "%04d-%02d-%02d",
+                parts[2].toInt(), parts[1].toInt(), parts[0].toInt()
+            )
 
             valorPre?.let { v ->
-                // NÃO persiste agora.
-                // Cria um pagamento "temporário" com id fake p/ aparecer na lista
+                // pagamento "temporário" (apenas local/Recycler até salvar de fato)
                 val temp = Pagamento(
                     id = "tmp-${System.currentTimeMillis()}",
                     valor = v,
                     data = iso
                 )
 
-                // Se por acaso o usuário marcou esse mesmo pagamento para excluir antes, desfaça
-                // (caso de reverter uma exclusão, por exemplo)
+                // garante consistência com exclusões pendentes
                 pagamentosExcluidosPendentes.removeAll { it.id == temp.id }
 
-                // Marca como "adição pendente"
+                // marca como adição pendente
                 pagamentosAdicionadosPendentes.add(temp)
                 pagamentosAlterados = true
 
-                // Reflete no RecyclerView
+                // reflete no Recycler
                 cachedPagamentos = cachedPagamentos + temp
                 pagamentoAdapter.submitList(cachedPagamentos) {
                     val n = cachedPagamentos.size
@@ -467,15 +469,11 @@ class FuncionarioRegisterFragment : Fragment() {
                     if (n - 1 >= 0) pagamentoAdapter.notifyItemChanged(n - 1)
                 }
 
-                // Limpa o campo p/ próxima inserção
+                // limpa campo e mostra a aba
                 binding.etPagamento.setText("")
                 binding.cardAbaHistoricoPagto.isVisible = true
             }
-        }, y, m, d)
-
-        dp.setCancelable(false)
-        dp.setCanceledOnTouchOutside(false)
-        dp.show()
+        }
     }
 
     /* ───────────────────────── Edição via modal ───────────────────────── */
@@ -506,29 +504,21 @@ class FuncionarioRegisterFragment : Fragment() {
     }
 
     private fun abrirDatePickerEdicao() {
-        val cal = Calendar.getInstance()
-        // se já houver data, abre nela
-        editDataIso?.let { iso ->
-            val parts = iso.split("-")
-            if (parts.size == 3) {
-                cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
+        val initialBr = binding.etEditData.text?.toString()  // já está em dd/MM/yyyy
+        showMaterialDatePickerBrWithInitial(initialBr) { chosen ->
+            // chosen = "dd/MM/yyyy"
+            binding.etEditData.setText(chosen)
+            editDataIso = run {
+                val p = chosen.split("/")
+                String.format(
+                    Locale.ROOT,
+                    "%04d-%02d-%02d",
+                    p[2].toInt(),
+                    p[1].toInt(),
+                    p[0].toInt()
+                )
             }
         }
-
-        val dp = DatePickerDialog(
-            requireContext(),
-            { _, y, m, d ->
-                val iso = "%04d-%02d-%02d".format(y, m + 1, d)
-                editDataIso = iso
-                binding.etEditData.setText(formatDateBR(iso))
-            },
-            cal.get(Calendar.YEAR),
-            cal.get(Calendar.MONTH),
-            cal.get(Calendar.DAY_OF_MONTH)
-        )
-        dp.setCancelable(false)
-        dp.setCanceledOnTouchOutside(false)
-        dp.show()
     }
 
     private fun onSaveEditPagamento() {

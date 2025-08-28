@@ -23,7 +23,6 @@ import com.luizeduardobrandao.obra.databinding.FragmentWorkBinding
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.utils.Constants
-import com.luizeduardobrandao.obra.utils.attachDatePicker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.ParseException
@@ -35,6 +34,7 @@ import android.net.ConnectivityManager
 import com.luizeduardobrandao.obra.utils.isConnectedToInternet
 import com.luizeduardobrandao.obra.utils.registerConnectivityCallback
 import com.luizeduardobrandao.obra.utils.unregisterConnectivityCallback
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
 
 @AndroidEntryPoint
 class WorkFragment : Fragment() {
@@ -147,9 +147,19 @@ class WorkFragment : Fragment() {
                 .navigate(WorkFragmentDirections.actionWorkToHome(obraId = obra.obraId))
         }
 
-        // Date pickers no card
-        etDataInicio.attachDatePicker()
-        etDataFim.attachDatePicker()
+        // Date pickers usando MaterialDatePicker (sempre iniciando hoje)
+        etDataInicio.setOnClickListener {
+            showMaterialDatePickerBrToday { chosen ->
+                etDataInicio.setText(chosen)
+                validateCard()
+            }
+        }
+        etDataFim.setOnClickListener {
+            showMaterialDatePickerBrToday { chosen ->
+                etDataFim.setText(chosen)
+                validateCard()
+            }
+        }
 
         // TextWatchers em todos os campos do card
         listOf(etCliente, etEndereco, etContato, etDescricao, etSaldo, etDataInicio, etDataFim)
@@ -370,7 +380,9 @@ class WorkFragment : Fragment() {
         return when {
             ptBrRegex.matches(s) -> {
                 try {
-                    NumberFormat.getNumberInstance(Locale("pt", "BR")).parse(s)?.toDouble()
+                    NumberFormat.getNumberInstance(
+                        Locale("pt", "BR")
+                    ).parse(s)?.toDouble()
                 } catch (_: ParseException) {
                     null
                 }

@@ -30,11 +30,11 @@ import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.ui.fotos.adapter.ImagemAdapter
 import com.luizeduardobrandao.obra.utils.Constants
 import com.luizeduardobrandao.obra.utils.FileUtils
-import com.luizeduardobrandao.obra.utils.attachDatePicker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
 
 @AndroidEntryPoint
 class FotosFragment : Fragment() {
@@ -58,7 +58,6 @@ class FotosFragment : Fragment() {
     private var saving = false
 
     private var userEditedName = false
-
 
     // Result APIs
     private val openImagePicker = registerForActivityResult(
@@ -257,7 +256,12 @@ class FotosFragment : Fragment() {
         btnTirarFoto.setOnClickListener { ensureCameraAndStart() }
 
         // Data
-        etDataImagem.attachDatePicker()
+        etDataImagem.setOnClickListener {
+            showMaterialDatePickerBrToday { chosen ->
+                binding.etDataImagem.setText(chosen)
+                validateForm()
+            }
+        }
 
         // Nome revalida
         etNomeImagem.doAfterTextChanged {
@@ -290,7 +294,9 @@ class FotosFragment : Fragment() {
 
         // Pequeno atraso para evitar clique fantasma (ver item 2)
         binding.btnSalvarImagem.isClickable = false
-        binding.btnSalvarImagem.postDelayed({ binding.btnSalvarImagem.isClickable = true }, 350)
+        binding.btnSalvarImagem.postDelayed(
+            { binding.btnSalvarImagem.isClickable = true }, 350
+        )
 
         validateForm()
         binding.fotosScroll.postDelayed({
@@ -341,7 +347,9 @@ class FotosFragment : Fragment() {
     }
 
     private fun todayPtBr(): String {
-        val sdf = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale("pt", "BR"))
+        val sdf = java.text.SimpleDateFormat(
+            "dd/MM/yyyy", java.util.Locale("pt", "BR")
+        )
         return sdf.format(java.util.Date())
     }
 

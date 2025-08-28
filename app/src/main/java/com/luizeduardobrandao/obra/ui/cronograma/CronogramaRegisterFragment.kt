@@ -1,6 +1,5 @@
 package com.luizeduardobrandao.obra.ui.cronograma
 
-import android.app.DatePickerDialog
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -27,9 +26,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
 
 @AndroidEntryPoint
 class CronogramaRegisterFragment : Fragment() {
@@ -73,8 +73,34 @@ class CronogramaRegisterFragment : Fragment() {
                 getString(R.string.etapa_reg_title)
 
             // Date pickers
-            etDataInicioEtapa.setOnClickListener { pickDate(etDataInicioEtapa) }
-            etDataFimEtapa.setOnClickListener { pickDate(etDataFimEtapa) }
+            etDataInicioEtapa.setOnClickListener {
+                if (isEdit) {
+                    showMaterialDatePickerBrWithInitial(
+                        etDataInicioEtapa.text?.toString()
+                    ) { chosen ->
+                        binding.etDataInicioEtapa.setText(chosen)
+                        validateForm()
+                    }
+                } else {
+                    showMaterialDatePickerBrToday { chosen ->
+                        binding.etDataInicioEtapa.setText(chosen)
+                        validateForm()
+                    }
+                }
+            }
+            etDataFimEtapa.setOnClickListener {
+                if (isEdit) {
+                    showMaterialDatePickerBrWithInitial(etDataFimEtapa.text?.toString()) { chosen ->
+                        binding.etDataFimEtapa.setText(chosen)
+                        validateForm()
+                    }
+                } else {
+                    showMaterialDatePickerBrToday { chosen ->
+                        binding.etDataFimEtapa.setText(chosen)
+                        validateForm()
+                    }
+                }
+            }
 
             // Botão Salvar/Atualizar
             btnSaveEtapa.text = getString(
@@ -278,23 +304,6 @@ class CronogramaRegisterFragment : Fragment() {
         if (!isSaving && !shouldCloseAfterSave) {
             btnSaveEtapa.isEnabled = enabled
         }
-    }
-
-    /*──────────── Date picker util ───────────*/
-    private fun pickDate(target: View) {
-        val cal = Calendar.getInstance()
-        DatePickerDialog(
-            requireContext(),
-            { _, year, month, day ->
-                (target as? android.widget.EditText)?.setText(
-                    String.format(Locale.getDefault(), "%02d/%02d/%04d", day, month + 1, year)
-                )
-                validateForm()
-            },
-            cal.get(Calendar.YEAR),
-            cal.get(Calendar.MONTH),
-            cal.get(Calendar.DAY_OF_MONTH)
-        ).show()
     }
 
     private fun parseDateOrNull(s: String?): Date? = try {

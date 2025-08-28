@@ -1,81 +1,92 @@
-@file:Suppress("unused")
-
 package com.luizeduardobrandao.obra.utils
 
-import android.app.DatePickerDialog
-import android.view.View
-import com.google.android.material.textfield.TextInputEditText
-import com.luizeduardobrandao.obra.utils.Constants
+import androidx.fragment.app.Fragment
+import com.google.android.material.datepicker.MaterialDatePicker
+import com.luizeduardobrandao.obra.R
+import java.text.SimpleDateFormat
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
+import java.time.ZoneOffset
+import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
+
+/** Converte "dd/MM/yyyy" para epoch millis em UTC (meia-noite). */
+private fun brDateToUtcMillisOrToday(dateBr: String?): Long {
+    return try {
+        if (!dateBr.isNullOrBlank()) {
+            val (dStr, mStr, yStr) = dateBr.split("/")
+            val d = dStr.toInt()
+            val m = mStr.toInt()
+            val y = yStr.toInt()
+            LocalDate.of(y, m, d)
+                .atStartOfDay(ZoneOffset.UTC)
+                .toInstant()
+                .toEpochMilli()
+        } else {
+            MaterialDatePicker.todayInUtcMilliseconds()
+        }
+    } catch (_: Exception) {
+        MaterialDatePicker.todayInUtcMilliseconds()
+    }
+}
+
+/** Formata millis (UTC) em "dd/MM/yyyy" sem deslocar 1 dia. */
+private fun utcMillisToBrDate(millis: Long): String {
+    val df = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
+    return df.format(Date(millis))
+}
 
 /**
- * Transforma um TextInputEditText em um seletor de data (DatePickerDialog).
- *
- * • Ao clicar ou ganhar foco, abre um DatePickerDialog.
- * • Exibe a data selecionada no formato dd/MM/yyyy (Constants.Format.DATE_PATTERN_BR).
- * • Se [initial] for fornecido no formato ISO (yyyy-MM-dd), posiciona o calendário nessa data.
- *
- * @param initial String opcional no formato ISO_LOCAL_DATE (yyyy-MM-dd).
+ * Abre o MaterialDatePicker já SELECIONANDO a data informada (dd/MM/yyyy).
+ * Retorna a data escolhida (dd/MM/yyyy) no [onResult].
  */
+fun Fragment.showMaterialDatePickerBrWithInitial(
+    initialBrDate: String?,
+    onResult: (String) -> Unit
+) {
+    val picker = MaterialDatePicker.Builder
+        .datePicker()
+        .setTitleText(getString(R.string.date_picker_title))
+        .setSelection(brDateToUtcMillisOrToday(initialBrDate))
+        .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
+        .build()
 
-fun TextInputEditText.attachDatePicker(initial: String? = null) {
+    // Impede fechar por toque fora / botão voltar
+    picker.isCancelable = false
 
-    // Impede edição manual e habilita clique
-    isFocusable = false
-    isClickable = true
-
-    // Locale brasileiro para formatação
-    val locale = Locale(Constants.Format.CURRENCY_LOCALE, Constants.Format.CURRENCY_COUNTRY)
-
-    // Formatter de saída (dd/MM/yyyy)
-    val displayFormatter = DateTimeFormatter.ofPattern(Constants.Format.DATE_PATTERN_BR, locale)
-
-    // Formatter de entrada (ISO)
-    val inputFormatter = DateTimeFormatter.ISO_LOCAL_DATE
-
-    // Data inicial
-    var currentDate: LocalDate = initial
-        ?.let { dateStr ->
-            try {
-                LocalDate.parse(dateStr, inputFormatter)
-            } catch (e: DateTimeParseException) {
-                LocalDate.now()
-            }
-        }
-        ?: LocalDate.now()
-
-    // Exibe data inicial
-    setText(currentDate.format(displayFormatter))
-
-    // Listener para abrir o DatePickerDialog
-    val openPicker = View.OnClickListener {
-        val year = currentDate.year
-        val month = currentDate.monthValue - 1 // DatePickerDialog usa 0-based
-        val day = currentDate.dayOfMonth
-
-        DatePickerDialog(
-            context,
-            { _, selectedYear, selectedMonth, selectedDay ->
-                // Atualiza currentDate e exibe texto formatado
-                currentDate = LocalDate.of(
-                    selectedYear,
-                    selectedMonth + 1,
-                    selectedDay
-                )
-                setText(currentDate.format(displayFormatter))
-            },
-            year,
-            month,
-            day
-        ).show()
+    picker.addOnPositiveButtonClickListener { millis ->
+        onResult(utcMillisToBrDate(millis))
     }
+    picker.addOnNegativeButtonClickListener { /* Cancelar: não faz nada */ }
 
-    // Configurações de clique e foco
-    setOnClickListener(openPicker)
-    setOnFocusChangeListener { _, hasFocus ->
-        if (hasFocus) openPicker.onClick(this)
+    picker.show(childFragmentManager, "DATE_PICKER_BR_INITIAL")
+    // reforço (após show) – em alguns temas:
+    picker.dialog?.setCanceledOnTouchOutside(false)
+}
+
+/**
+ * Abre o MaterialDatePicker já SELECIONANDO a data de HOJE.
+ * Retorna a data escolhida (dd/MM/yyyy) no [onResult].
+ */
+fun Fragment.showMaterialDatePickerBrToday(
+    onResult: (String) -> Unit
+) {
+    val picker = MaterialDatePicker.Builder
+        .datePicker()
+        .setTitleText(getString(R.string.date_picker_title))
+        .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+        .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
+        .build()
+
+    picker.isCancelable = false
+
+    picker.addOnPositiveButtonClickListener { millis ->
+        onResult(utcMillisToBrDate(millis))
     }
+    picker.addOnNegativeButtonClickListener { /* Cancelar: não faz nada */ }
+
+    picker.show(childFragmentManager, "DATE_PICKER_BR_TODAY")
+    picker.dialog?.setCanceledOnTouchOutside(false)
 }
