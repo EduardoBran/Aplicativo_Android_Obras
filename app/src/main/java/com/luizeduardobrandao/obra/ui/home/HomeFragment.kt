@@ -52,12 +52,6 @@ class HomeFragment : Fragment() {
         observeViewModel()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null // evita memory leak
-    }
-
-
     /**
      * Configura o menu de logout na Toolbar.
      * Atributo `app:menu="@menu/menu_home_logout"` deve estar definido em fragment_home.xml.
@@ -87,8 +81,8 @@ class HomeFragment : Fragment() {
             type = Constants.SnackType.WARNING.name,
             title = getString(R.string.snack_warning),
             msg = getString(R.string.home_logout_confirm_msg),
-            btnText = getString(R.string.snack_button_yes),     // "SIM"
-            onAction = { viewModel.logout() },                  // executa logout
+            btnText = getString(R.string.snack_button_yes),        // "SIM"
+            onAction = { viewModel.logout() },                     // Executa Logout
             btnNegativeText = getString(R.string.snack_button_no), // "NÃO"
             onNegative = { /* opcional: nada; o sheet já é fechado */ }
         )
@@ -136,6 +130,13 @@ class HomeFragment : Fragment() {
             )
         }
 
+        // Fotos
+        btnPhotos.setOnClickListener {
+            findNavController().navigate(
+                HomeFragmentDirections.actionHomeToFotos(obraId)
+            )
+        }
+
         // Resumo
         btnSummary.setOnClickListener {
             findNavController().navigate(
@@ -143,10 +144,19 @@ class HomeFragment : Fragment() {
             )
         }
 
-        // Fotos
-        btnPhotos.setOnClickListener {
-            findNavController().navigate(
-                HomeFragmentDirections.actionHomeToFotos(obraId)
+        // Trocar Obra (confirmar antes de voltar para Work)
+        btnChangeWork.setOnClickListener {
+            showSnackbarFragment(
+                type = Constants.SnackType.WARNING.name,
+                title = getString(R.string.snack_warning),
+                msg = getString(R.string.home_change_work_confirm_msg),
+                btnText = getString(R.string.snack_button_yes),                      // "SIM"
+                onAction = {
+                    // Volta para o WorkFragment já existente (sem logout)
+                    findNavController().popBackStack(R.id.workFragment, false)
+                },
+                btnNegativeText = getString(R.string.snack_button_no),               // "NÃO"
+                onNegative = { /* nada: permanece no HomeFragment */ }
             )
         }
     }
@@ -216,5 +226,11 @@ class HomeFragment : Fragment() {
             }
 
         }
+    }
+
+    // Evitar memory leak
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

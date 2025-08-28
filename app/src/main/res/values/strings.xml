@@ -111,6 +111,8 @@
     <string name="home_logout_confirm_msg">Deseja sair da conta?</string>
     <string name="home_logout_confirm_action">Sair</string>
     <string name="home_btn_materiais">Materiais</string>
+    <string name="home_btn_change_work">Selecionar Outra Obra</string>
+    <string name="home_change_work_confirm_msg">Deseja voltar ao menu com a lista de obras?</string>
 
     <!-- FuncionarioFragment -->
     <string name="func_title">Funcionários</string>
