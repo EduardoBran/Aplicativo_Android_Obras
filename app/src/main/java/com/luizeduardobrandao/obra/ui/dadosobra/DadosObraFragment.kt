@@ -13,7 +13,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.google.android.material.datepicker.MaterialDatePicker
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Obra
 import com.luizeduardobrandao.obra.data.model.UiState
@@ -23,15 +22,13 @@ import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
-import android.app.DatePickerDialog
-import android.widget.DatePicker
 import java.text.NumberFormat
 import java.util.Calendar
 import androidx.activity.addCallback
 import androidx.core.view.isGone
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
 
 @AndroidEntryPoint
 class DadosObraFragment : Fragment() {
@@ -42,11 +39,7 @@ class DadosObraFragment : Fragment() {
     private val args: DadosObraFragmentArgs by navArgs()
     private val viewModel: DadosObraViewModel by viewModels()
 
-    private val formatterBr =
-        SimpleDateFormat(Constants.Format.DATE_PATTERN_BR, Locale.getDefault())
-
     private var isDeleting = false
-    private var isAddingAporte = false
 
     // flags para evitar "flash" de erros
     private var dataLoaded = false
@@ -58,6 +51,21 @@ class DadosObraFragment : Fragment() {
     private var currentObra: Obra? = null
 
     private var isSavingObra = false   // true enquanto salva OU exclui a obra
+
+    // Buffer local de aportes ainda NAO persistidos
+    private data class AporteDraft(
+        val valor: Double,
+        val descricao: String,
+        val dataIso: String
+    )
+
+    private val pendingAportes = mutableListOf<AporteDraft>()
+    private var flushingAportes = false
+    private var aporteFlushIndex = 0
+
+    // Snapshot do saldo e label durante flush para evitar "flash" na UI
+    private var saldoTotalSnapshot: String? = null
+    private var aportesLabelSnapshot: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -95,22 +103,32 @@ class DadosObraFragment : Fragment() {
 
     /* ───────────────── DatePickers (Obra) ───────────────── */
     private fun setupObraDatePickers() = with(binding) {
-        etDataInicioObra.setOnClickListener { showDatePicker { etDataInicioObra.setText(it) } }
-        etDataFimObra.setOnClickListener { showDatePicker { etDataFimObra.setText(it) } }
+        etDataInicioObra.setOnClickListener {
+            showMaterialDatePickerBrWithInitial(etDataInicioObra.text?.toString()) { chosen ->
+                etDataInicioObra.setText(chosen)
+                validateForm()
+            }
+        }
+        etDataFimObra.setOnClickListener {
+            showMaterialDatePickerBrWithInitial(etDataFimObra.text?.toString()) { chosen ->
+                etDataFimObra.setText(chosen)
+                validateForm()
+            }
+        }
     }
 
-    private fun showDatePicker(onResult: (String) -> Unit) {
-        MaterialDatePicker.Builder.datePicker()
-            .setTitleText(getString(R.string.date_picker_title))
-            .build()
-            .apply {
-                addOnPositiveButtonClickListener { millis ->
-                    val chosen = formatterBr.format(Date(millis))
-                    onResult(chosen)
-                    validateForm() // só fará algo quando dataLoaded = true
-                }
-            }
-            .show(childFragmentManager, "DATE_PICKER")
+    // Converte "dd/MM/yyyy" para LocalDate com segurança
+    private fun parseBrDateOrNull(s: String?): java.time.LocalDate? {
+        if (s.isNullOrBlank()) return null
+        return try {
+            val (dStr, mStr, yStr) = s.split("/")
+            val d = dStr.toInt()
+            val m = mStr.toInt()
+            val y = yStr.toInt()
+            java.time.LocalDate.of(y, m, d)
+        } catch (_: Exception) {
+            null
+        }
     }
 
     /* ───────────────── Listeners (Obra) ───────────────── */
@@ -123,7 +141,7 @@ class DadosObraFragment : Fragment() {
             isDeleting = false
             isSavingObra = true
             progressBottom(true)
-            // ⬆️
+            btnExcluirObra.isEnabled = false
 
             viewModel.salvarObra(
                 nome = etNomeCliente.text.toString(),
@@ -164,6 +182,7 @@ class DadosObraFragment : Fragment() {
                 showAporteCard()
             } else {
                 hideAporteCard(clear = true)
+                tilAporteData.helperText = null
             }
         }
 
@@ -187,29 +206,72 @@ class DadosObraFragment : Fragment() {
             hideAporteCard(clear = true)
         }
 
-        // Salvar aporte
+        // Salvar aporte temporariamente
         btnSalvarAporte.setOnClickListener {
             if (!validateAporteForm()) return@setOnClickListener
 
-            val valor = etAporteValor.text.toString().replace(',', '.').toDoubleOrNull()
+            val valor =
+                etAporteValor.text.toString().replace(',', '.').toDoubleOrNull()
             val dataIso = aporteDateIso
             val desc = etAporteDescricao.text?.toString()?.trim().orEmpty()
 
             if (valor == null || dataIso.isNullOrBlank()) {
-                // segurança extra
                 validateAporteForm()
                 return@setOnClickListener
             }
 
             it.hideKeyboard()
-            isAddingAporte = true
-            // Chame aqui o método do seu VM (ajuste o nome se necessário)
-            viewModel.addAporte(
+
+            // ✅ Nao persiste ainda: apenas adiciona ao buffer local
+            pendingAportes += AporteDraft(
                 valor = valor,
                 descricao = desc,
                 dataIso = dataIso
             )
+
+            // Atualiza UI (saldo com aportes) imediatamente
+            updateSaldoComAportesUI()
+
+            // Limpa e esconde o card
+            hideAporteCard(clear = true)
+
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.aporte_toast_new_added),
+                Toast.LENGTH_LONG
+            ).show()
         }
+    }
+
+    // Mostre o saldo com aportes somando também os pendentes
+    private fun updateSaldoComAportesUI() {
+        // Durante o flush, nao recalcule: use o snapshot para evitar contagem dupla (flash)
+        if (flushingAportes && saldoTotalSnapshot != null) {
+            binding.llSaldoComAportes.visibility = View.VISIBLE
+            aportesLabelSnapshot?.let { binding.tvSaldoAporteLabel.text = it }
+            saldoTotalSnapshot?.let { binding.tvSaldoComAportesValor.text = it }
+            return
+        }
+        // Usa o estado atual vindo do ViewModel (aportes do banco) + os pendentes locais
+        val saldoInicial = currentObra?.saldoInicial ?: 0.0
+
+        // Tente obter a lista atual carregada
+        val aportesBanco = (viewModel.aportesState.value as? UiState.Success)?.data.orEmpty()
+        val totalAportesBanco = aportesBanco.sumOf { it.valor }
+        val totalAportesPendentes = pendingAportes.sumOf { it.valor }
+        val totalCount = aportesBanco.size + pendingAportes.size
+
+        if (totalCount == 0) {
+            binding.llSaldoComAportes.visibility = View.GONE
+            return
+        }
+
+        binding.llSaldoComAportes.visibility = View.VISIBLE
+        binding.tvSaldoAporteLabel.text = resources.getQuantityString(
+            R.plurals.title_aportes_header_plural, totalCount
+        )
+        binding.tvSaldoComAportesValor.text =
+            formatMoneyBR(saldoInicial + totalAportesBanco + totalAportesPendentes)
     }
 
     private fun showAporteCard() = with(binding) {
@@ -238,34 +300,38 @@ class DadosObraFragment : Fragment() {
     }
 
     private fun showAporteDatePicker() {
-        val c = Calendar.getInstance()
-        DatePickerDialog(
-            requireContext(),
-            { _: DatePicker, y: Int, m: Int, d: Int ->
-                // Mostra no campo em BR (dd/MM/yyyy)
-                val brText = "%02d/%02d/%04d".format(d, m + 1, y)
-                binding.etAporteData.setText(brText)
+        showMaterialDatePickerBrToday { chosen ->
+            binding.etAporteData.setText(chosen)
 
-                // Guarda ISO (yyyy-MM-dd) para salvar
-                aporteDateIso = String.format(Locale.US, "%04d-%02d-%02d", y, m + 1, d)
+            // chosen = "dd/MM/yyyy"
+            val parts = chosen.split("/")
+            // ✅ Use Locale.ROOT para evitar dependência da localidade do dispositivo
+            aporteDateIso = String.format(
+                Locale.ROOT, "%04d-%02d-%02d",
+                parts[2].toInt(), parts[1].toInt(), parts[0].toInt()
+            )
 
-                // Helper de data no passado (informativo), igual ao NotaRegister
-                val sel = Calendar.getInstance().apply {
-                    set(y, m, d, 0, 0, 0); set(Calendar.MILLISECOND, 0)
-                }
-                val hoje = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-                }
-                binding.tilAporteData.helperText =
-                    if (sel.before(hoje)) getString(R.string.nota_past_date_warning) else null
+            // Helper de data no passado (informativo), igual ao NotaRegister
+            val sel = Calendar.getInstance().apply {
+                set(
+                    parts[2].toInt(),
+                    parts[1].toInt() - 1,
+                    parts[0].toInt(),
+                    0,
+                    0,
+                    0
+                )
+                set(Calendar.MILLISECOND, 0)
+            }
+            val hoje = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            }
+            binding.tilAporteData.helperText =
+                if (sel.before(hoje)) getString(R.string.nota_past_date_warning) else null
 
-                validateAporteForm()
-            },
-            c.get(Calendar.YEAR),
-            c.get(Calendar.MONTH),
-            c.get(Calendar.DAY_OF_MONTH)
-        ).show()
+            validateAporteForm()
+        }
     }
 
     /* ───────────────── Observers ───────────────── */
@@ -278,8 +344,11 @@ class DadosObraFragment : Fragment() {
                     viewModel.obraState.collect { ui ->
                         when (ui) {
                             is UiState.Loading -> {
-                                binding.progressDadosObra.visibility = View.VISIBLE
-                                binding.scrollDadosObra.visibility = View.GONE
+                                // Só mostra o loader central se NAO estivermos em operação de salvar/flush
+                                if (!isSavingObra && !flushingAportes) {
+                                    binding.progressDadosObra.visibility = View.VISIBLE
+                                    binding.scrollDadosObra.visibility = View.GONE
+                                }
                                 dataLoaded = false
                             }
 
@@ -291,6 +360,8 @@ class DadosObraFragment : Fragment() {
                                 dataLoaded = true
                                 setupTextWatchersOnce()
                                 validateForm()
+                                // ⬇️ Novo:
+                                updateSaldoComAportesUI()
                             }
 
                             is UiState.ErrorRes -> {
@@ -319,6 +390,7 @@ class DadosObraFragment : Fragment() {
                             }
 
                             is UiState.Success -> {
+                                // Obra salva/atualizada com sucesso
                                 progressBottom(false)
                                 isSavingObra = false
 
@@ -327,15 +399,31 @@ class DadosObraFragment : Fragment() {
                                     findNavController().navigate(
                                         DadosObraFragmentDirections.actionDadosObraToWork()
                                     )
+                                    viewModel.resetOpState()
+                                    return@collect
+                                }
+
+                                // ✅ Se houver aportes pendentes, vamos persistir agora (flush)
+                                if (pendingAportes.isNotEmpty()) {
+                                    // Congela o valor atual exibido na UI para evitar "flash" durante o flush
+                                    saldoTotalSnapshot =
+                                        binding.tvSaldoComAportesValor.text?.toString()
+                                    aportesLabelSnapshot =
+                                        binding.tvSaldoAporteLabel.text?.toString()
+                                    flushingAportes = true
+                                    aporteFlushIndex = 0
+                                    addNextPendingAporte()
+                                    // Nao navega ainda; so depois que terminar de salvar os pendentes
                                 } else {
+                                    // Sem pendentes: comportamento atual
                                     Toast.makeText(
                                         requireContext(),
                                         getString(R.string.obra_data_toast_updated),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                     findNavController().navigateUp()
+                                    viewModel.resetOpState()
                                 }
-                                viewModel.resetOpState()
                             }
 
                             is UiState.ErrorRes -> {
@@ -367,33 +455,52 @@ class DadosObraFragment : Fragment() {
                     viewModel.aporteOpState.collect { ui ->
                         when (ui) {
                             is UiState.Loading -> {
-                                binding.progressDadosObra.visibility = View.VISIBLE
+                                // Durante flush, nao exibir o loader central para evitar "flash"
+                                if (!flushingAportes) {
+                                    binding.progressDadosObra.visibility = View.VISIBLE
+                                }
+                                // Desabilita apenas os controles do card de aporte
                                 binding.btnSalvarAporte.isEnabled = false
                             }
 
                             is UiState.Success -> {
                                 binding.progressDadosObra.visibility = View.GONE
-                                // ✅ Somente TOAST no sucesso (NÃO mostrar snackbar)
-                                Toast.makeText(
-                                    requireContext(),
-                                    getString(R.string.aporte_toast_added),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                // Esconde e limpa o card
-                                hideAporteCard(clear = true)
-                                viewModel.resetAporteOp()
+
+                                if (flushingAportes) {
+                                    // Remova o draft recem-persistido
+                                    if (aporteFlushIndex < pendingAportes.size) {
+                                        pendingAportes.removeAt(aporteFlushIndex)
+                                    }
+                                    // Nao incremente o indice; o proximo item "desliza" para a mesma posicao
+                                    addNextPendingAporte()
+                                    // (Opcional) Atualize a UI apos remover o draft
+                                    updateSaldoComAportesUI()
+                                } else {
+                                    Toast.makeText(
+                                        requireContext(),
+                                        getString(R.string.aporte_toast_added),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    hideAporteCard(clear = true)
+                                    viewModel.resetAporteOp()
+                                }
                             }
 
                             is UiState.ErrorRes -> {
                                 binding.progressDadosObra.visibility = View.GONE
-                                // Erro de aporte -> Snackbar
+
+                                // Em erro durante flush, avise e ABORTE o flush (nao navega)
                                 showSnackbarFragment(
                                     Constants.SnackType.ERROR.name,
                                     getString(R.string.snack_error),
                                     getString(ui.resId),
                                     getString(R.string.snack_button_ok)
                                 )
-                                binding.btnSalvarAporte.isEnabled = true
+                                flushingAportes = false
+                                // limpar snapshots (ja que voltamos a reprocessar normalmente)
+                                saldoTotalSnapshot = null
+                                aportesLabelSnapshot = null
+                                // Nao limpamos pendingAportes: usuario pode tentar salvar de novo
                                 viewModel.resetAporteOp()
                             }
 
@@ -407,28 +514,13 @@ class DadosObraFragment : Fragment() {
                     viewModel.aportesState.collect { ui ->
                         when (ui) {
                             is UiState.Success -> {
-                                val aportes = ui.data
-                                if (aportes.isEmpty()) {
-                                    // sem aportes -> esconde a linha
-                                    binding.llSaldoComAportes.visibility = View.GONE
-                                } else {
-                                    // há aportes -> mostra linha e calcula (Saldo Inicial + total de aportes)
-                                    val totalAportes = aportes.sumOf { it.valor }
-                                    val saldoInicial = currentObra?.saldoInicial ?: 0.0
-                                    binding.llSaldoComAportes.visibility = View.VISIBLE
-                                    // ⬇️ título com plural: "Saldo total com aporte(s)"
-                                    binding.tvSaldoAporteLabel.text = resources.getQuantityString(
-                                        R.plurals.title_aportes_header_plural,
-                                        aportes.size
-                                    )
-                                    binding.tvSaldoComAportesValor.text =
-                                        formatMoneyBR(saldoInicial + totalAportes)
-                                }
+                                // Agora quem calcula e exibe e o helper, pois ele soma banco + pendentes
+                                updateSaldoComAportesUI()
                             }
 
                             is UiState.ErrorRes -> {
-                                // Em caso de erro no carregamento de aportes, esconda a linha
-                                binding.llSaldoComAportes.visibility = View.GONE
+                                // Mesmo em erro, ainda pode haver pendentes locais
+                                updateSaldoComAportesUI()
                             }
 
                             else -> Unit
@@ -513,6 +605,14 @@ class DadosObraFragment : Fragment() {
                 isValid = false
             }
 
+            // Impedir data de término > que data de início
+            val start = parseBrDateOrNull(etDataInicioObra.text?.toString())
+            val end = parseBrDateOrNull(etDataFimObra.text?.toString())
+            if (start != null && end != null && end.isBefore(start)) {
+                tilDataFimObra.error = getString(R.string.dados_obra_date_end_before_start)
+                isValid = false
+            }
+
             btnSalvarObra.isEnabled = isValid
         }
         return isValid
@@ -524,7 +624,8 @@ class DadosObraFragment : Fragment() {
         tilAporteValor.error = null
         tilAporteData.error = null
 
-        val valor = etAporteValor.text?.toString()?.replace(',', '.')?.toDoubleOrNull()
+        val valor =
+            etAporteValor.text?.toString()?.replace(',', '.')?.toDoubleOrNull()
         if (valor == null || valor <= 0.0) {
             tilAporteValor.error = getString(R.string.aporte_value_error)
             ok = false
@@ -580,21 +681,20 @@ class DadosObraFragment : Fragment() {
         // Aporte parcialmente preenchido conta como alteração pendente
         val aporteValorTxt = etAporteValor.text?.toString()?.trim().orEmpty()
         val aporteDescTxt = etAporteDescricao.text?.toString()?.trim().orEmpty()
-        val aportePendente = cardNovoAporte.isGone &&
+        val aportePendente = !cardNovoAporte.isGone &&  // card visível
                 (aporteValorTxt.isNotEmpty() || !aporteDateIso.isNullOrBlank() || aporteDescTxt.isNotEmpty())
-
-        val obraOrig = currentObra
+        val haAportesPendentesNaoPersistidos = pendingAportes.isNotEmpty()
 
         // Se ainda não temos a obra original (ou for um novo cadastro de obra), compara com "vazio"
-        if (obraOrig == null) {
-            return@with nomeAtual.isNotEmpty() ||
+        val obraOrig = currentObra
+            ?: return@with nomeAtual.isNotEmpty() ||
                     endAtual.isNotEmpty() ||
                     contatoAtual.isNotEmpty() ||
                     descAtual.isNotEmpty() ||
                     dataIniAtual.isNotEmpty() ||
                     dataFimAtual.isNotEmpty() ||
-                    aportePendente
-        }
+                    aportePendente ||
+                    haAportesPendentesNaoPersistidos
 
         // Comparação com o original
         return@with (nomeAtual != obraOrig.nomeCliente) ||
@@ -603,7 +703,8 @@ class DadosObraFragment : Fragment() {
                 (descAtual != (obraOrig.descricao?.trim().orEmpty())) ||
                 (dataIniAtual != obraOrig.dataInicio) ||
                 (dataFimAtual != obraOrig.dataFim) ||
-                aportePendente
+                aportePendente ||
+                haAportesPendentesNaoPersistidos
     }
 
     private fun progressBottom(show: Boolean) = with(binding) {
@@ -633,6 +734,32 @@ class DadosObraFragment : Fragment() {
                 scrollDadosObra.smoothScrollTo(0, progressSaveObra.bottom)
             }
         }
+    }
+
+    private fun addNextPendingAporte() {
+        if (aporteFlushIndex >= pendingAportes.size) {
+            flushingAportes = false
+            pendingAportes.clear()
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.obra_data_toast_updated),
+                Toast.LENGTH_SHORT
+            ).show()
+            // limpar snapshots
+            saldoTotalSnapshot = null
+            aportesLabelSnapshot = null
+
+            findNavController().navigateUp()
+            viewModel.resetOpState()
+            viewModel.resetAporteOp()
+            return
+        }
+        val draft = pendingAportes[aporteFlushIndex] // sempre na posicao atual
+        viewModel.addAporte(
+            valor = draft.valor,
+            descricao = draft.descricao,
+            dataIso = draft.dataIso
+        )
     }
 
     override fun onDestroyView() {

@@ -490,6 +490,9 @@
     <string name="dados_obra_date_start_error">Informe a data de início.</string>
     <string name="dados_obra_date_end_error">Informe a data de término.</string>
 
+    <string name="aporte_toast_new_added">Novo aporte adicionado (será salvo ao clicar em "Salvar" da obra).</string>
+    <string name="dados_obra_date_end_before_start">A data de término não pode ser anterior à data de início.</string>
+
     <!-- ResumoFragment -->
     <string name="resumo_title">Resumo da Obra</string>
     <string name="resumo_total_workers">Total Funcionários: %1$d</string>

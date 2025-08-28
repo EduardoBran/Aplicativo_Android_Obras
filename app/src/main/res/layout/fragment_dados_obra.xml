@@ -145,9 +145,9 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:text="R$ 0,00"
                     android:textAppearance="?attr/textAppearanceBodyLarge"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    tools:text="R$ 0,00" />
             </LinearLayout>
 
             <!-- Saldo com aporte (mostra só se houver aporte) -->
@@ -174,9 +174,9 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:text="—"
                     android:textAppearance="?attr/textAppearanceBodyLarge"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    tools:text="—" />
             </LinearLayout>
 
             <!-- ───── APORTES: ação + card (NOVO) ───── -->
@@ -282,7 +282,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
                             android:enabled="false"
-                            android:text="@string/generic_save" />
+                            android:text="@string/adicionar" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
