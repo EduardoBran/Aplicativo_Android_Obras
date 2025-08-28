@@ -12,6 +12,6 @@
         android:layout_gravity="center_vertical"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/nota_menu_summary"
-        android:src="@drawable/ic_filter"
+        android:src="@drawable/ic_image_search"
         app:tint="@color/white" />
 </FrameLayout>

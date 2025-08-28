@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,6 +31,10 @@ class FotosViewModel @Inject constructor(
     private val _filter = MutableStateFlow(ImagemFilter.TODAS)
     val filter: StateFlow<ImagemFilter> = _filter.asStateFlow()
 
+    // Comparador que ordena por data decrescente e, em caso de empate, por nome crescente
+    private val byDateDescThenName = compareByDescending<Imagem> { dataToEpoch(it.data) }
+        .thenBy { it.nome.lowercase(Locale.ROOT) }
+
     /** Lista filtrada observável pela UI */
     val state: StateFlow<UiState<List<Imagem>>> =
         combine(_rawState, _filter) { base, f ->
@@ -37,33 +42,35 @@ class FotosViewModel @Inject constructor(
             val list = base.data
 
             val filtered = when (f) {
-                ImagemFilter.NOME -> list.sortedBy { it.nome.lowercase() }
+                ImagemFilter.NOME ->
+                    list.sortedBy { it.nome.lowercase(Locale.ROOT) } // continua só por nome (A→Z)
 
-                ImagemFilter.TODAS -> list.sortedBy { dataToEpoch(it.data) }
+                ImagemFilter.TODAS ->
+                    list.sortedWith(byDateDescThenName)
 
                 ImagemFilter.PINTURA ->
                     list.filter { it.tipo.equals("Pintura", true) }
-                        .sortedBy { dataToEpoch(it.data) }
+                        .sortedWith(byDateDescThenName)
 
                 ImagemFilter.PEDREIRO ->
                     list.filter { it.tipo.equals("Pedreiro", true) }
-                        .sortedBy { dataToEpoch(it.data) }
+                        .sortedWith(byDateDescThenName)
 
                 ImagemFilter.LADRILHEIRO ->
                     list.filter { it.tipo.equals("Ladrilheiro", true) }
-                        .sortedBy { dataToEpoch(it.data) }
+                        .sortedWith(byDateDescThenName)
 
                 ImagemFilter.HIDRAULICA ->
                     list.filter { it.tipo.equals("Hidráulica", true) }
-                        .sortedBy { dataToEpoch(it.data) }
+                        .sortedWith(byDateDescThenName)
 
                 ImagemFilter.ELETRICA ->
                     list.filter { it.tipo.equals("Elétrica", true) }
-                        .sortedBy { dataToEpoch(it.data) }
+                        .sortedWith(byDateDescThenName)
 
                 ImagemFilter.OUTRO ->
                     list.filter { it.tipo.equals("Outro", true) }
-                        .sortedBy { dataToEpoch(it.data) }
+                        .sortedWith(byDateDescThenName)
             }
             UiState.Success(filtered)
         }.stateIn(viewModelScope, SharingStarted.Eagerly, UiState.Loading)
@@ -123,7 +130,7 @@ class FotosViewModel @Inject constructor(
         val formatos = arrayOf("dd/MM/yyyy", "d/M/yyyy", "d/MM/yyyy", "dd/M/yyyy")
         for (f in formatos) {
             try {
-                val sdf = java.text.SimpleDateFormat(f, java.util.Locale("pt", "BR"))
+                val sdf = java.text.SimpleDateFormat(f, Locale("pt", "BR"))
                 sdf.isLenient = false
                 val time = sdf.parse(s)?.time
                 if (time != null) return time

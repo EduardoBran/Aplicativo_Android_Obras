@@ -680,7 +680,7 @@
     <string name="imagens_filter_hidraulica">Hidráulica</string>
     <string name="imagens_filter_eletrica">Elétrica</string>
     <string name="imagens_filter_outro">Outro</string>
-    <string name="imagens_filter_title">Filtrando: %1$s</string>
+    <string name="imagens_filter_title">%1$s</string>
 
     <!-- Ações -->
     <string name="imagens_btn_send">Enviar</string>
@@ -714,6 +714,6 @@
     <string name="imagens_detail_date_fmt">Data: %1$s</string>
     <string name="imagens_detail_type_fmt">Tipo: %1$s</string>
     <string name="imagens_delete_confirm_msg">Deseja excluir esta imagem?</string>
-    <string name="imagens_filter_title_fmt">Filtrando: %1$s</string>
+    <string name="imagens_filter_title_fmt">%1$s</string>
 
 </resources>
