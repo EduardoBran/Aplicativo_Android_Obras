@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="?attr/bottomSheetStyle"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:overScrollMode="ifContentScrolls"
+    android:scrollbars="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/imagens_card_title"
+            android:textAppearance="?attr/textAppearanceHeadline5" />
+
+        <!-- Nome -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilNomeImagem"
+            style="@style/Widget.ObrasApp.TextInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNomeImagem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/ic_image"
+                android:drawablePadding="12dp"
+                android:hint="@string/imagens_form_name_hint"
+                android:minHeight="60dp"
+                android:paddingVertical="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Descrição -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.ObrasApp.TextInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDescricaoImagem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/ic_summary"
+                android:drawablePadding="12dp"
+                android:hint="@string/imagens_form_desc_hint"
+                android:minHeight="60dp"
+                android:paddingVertical="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Tipo (Radio) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/imagens_form_type_title"
+            android:textAppearance="?attr/textAppearanceHeadline6" />
+
+        <RadioGroup
+            android:id="@+id/rgTipos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="vertical">
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/rbPintura"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/imagens_filter_pintura" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/rbPedreiro"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/imagens_filter_pedreiro" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/rbLadrilheiro"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/imagens_filter_ladrilheiro" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/rbHidraulica"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/imagens_filter_hidraulica" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/rbEletrica"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/imagens_filter_eletrica" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/rbOutro"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/imagens_filter_outro" />
+        </RadioGroup>
+
+        <!-- Data -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilDataImagem"
+            style="@style/Widget.ObrasApp.TextInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDataImagem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/ic_schedule"
+                android:drawablePadding="12dp"
+                android:focusable="false"
+                android:hint="@string/imagens_form_date_hint"
+                android:minHeight="60dp"
+                android:paddingVertical="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Botões -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSalvarImagem"
+                style="@style/Widget.ObrasApp.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/generic_save" />
+
+            <Space
+                android:layout_width="12dp"
+                android:layout_height="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelarImagem"
+                style="@style/Widget.ObrasApp.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/generic_back" />
+        </LinearLayout>
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressSalvarImagem"
+            style="?attr/linearProgressIndicatorStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:trackCornerRadius="8dp"
+            tools:visibility="visible" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

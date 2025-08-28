@@ -17,6 +17,7 @@
     <string name="error_no_internet">Você está sem conexão à internet.</string>
     <string name="menu_title">Menu</string>
     <string name="unsaved_confirm_msg">Nenhuma alteração será salva. Quer mesmo retornar?</string>
+    <string name="loading">Carregando</string>
 
 
     <!-- SnackbarFragment -->

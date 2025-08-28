@@ -5,11 +5,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Aporte
 import com.luizeduardobrandao.obra.databinding.ItemAporteBinding
 import java.text.NumberFormat
-import java.text.SimpleDateFormat
 import java.util.Locale
 import android.view.View
 
@@ -36,7 +34,6 @@ class AporteAdapter(
 
         // entrada: ISO yyyy-MM-dd -> saída: dd/MM/yyyy
         private val inFmt = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
-        private val outFmt = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
         fun bind(item: Aporte, showDivider: Boolean) = with(bind) {
             tvAporteValor.text = currency.format(item.valor)

@@ -31,7 +31,26 @@ class FotosViewModel @Inject constructor(
     private val _filter = MutableStateFlow(ImagemFilter.TODAS)
     val filter: StateFlow<ImagemFilter> = _filter.asStateFlow()
 
-    // Comparador que ordena por data decrescente e, em caso de empate, por nome crescente
+    // >>> Dados pendentes da imagem (para o BottomSheet consumir)
+    private var pendingBytes: ByteArray? = null
+    private var pendingMime: String? = null
+    fun setPendingPhoto(bytes: ByteArray, mime: String) {
+        pendingBytes = bytes
+        pendingMime = mime
+    }
+
+    fun consumePendingPhoto(): Pair<ByteArray?, String?> {
+        val pair = pendingBytes to pendingMime
+        // não limpamos automaticamente para permitir reabertura do sheet se fechar acidentalmente
+        return pair
+    }
+
+    fun clearPendingPhoto() {
+        pendingBytes = null
+        pendingMime = null
+    }
+
+    // Comparador: data desc + nome asc
     private val byDateDescThenName = compareByDescending<Imagem> { dataToEpoch(it.data) }
         .thenBy { it.nome.lowercase(Locale.ROOT) }
 
@@ -43,7 +62,7 @@ class FotosViewModel @Inject constructor(
 
             val filtered = when (f) {
                 ImagemFilter.NOME ->
-                    list.sortedBy { it.nome.lowercase(Locale.ROOT) } // continua só por nome (A→Z)
+                    list.sortedBy { it.nome.lowercase(Locale.ROOT) }
 
                 ImagemFilter.TODAS ->
                     list.sortedWith(byDateDescThenName)
@@ -107,7 +126,6 @@ class FotosViewModel @Inject constructor(
             onFailure = { UiState.ErrorRes(R.string.imagens_save_error) }
         )
         emit(state)
-        // recarrega lista após salvar
         load()
     }.flowOn(io)
 
