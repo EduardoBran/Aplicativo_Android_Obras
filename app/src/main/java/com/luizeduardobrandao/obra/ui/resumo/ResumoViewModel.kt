@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.luizeduardobrandao.obra.R
-import com.luizeduardobrandao.obra.data.model.Funcionario
 import com.luizeduardobrandao.obra.data.model.Nota
 import com.luizeduardobrandao.obra.data.model.Aporte
 import com.luizeduardobrandao.obra.data.model.UiState
@@ -64,6 +63,10 @@ class ResumoViewModel @Inject constructor(
 
     init {
         // Flows independentes
+
+        // ★ NOVO: totais de pagamentos por funcionário (mapa funcId -> total pago)
+        val totalPagPorFuncFlow = repoFun.observeTotalPagamentosPorFuncionario(obraId)
+
         val obraFlow = repoObra.observeObras()
             .map { list -> list.firstOrNull { it.obraId == obraId } }
 
@@ -74,19 +77,19 @@ class ResumoViewModel @Inject constructor(
         val aporteFlow = repoObra.observeAportes(obraId)
 
         // ★ Incluímos aporteFlow no combine
-        combine(obraFlow, funFlow, notaFlow, aporteFlow) { obra, funs, notas, aportes ->
-
+        combine(obraFlow, funFlow, notaFlow, aporteFlow, totalPagPorFuncFlow) { obra, funs, notas, aportes, totalPagPorFunc ->
             requireNotNull(obra) { "Obra não encontrada." }
 
             // 1) Funcionários
             val totalDias = funs.sumOf { it.diasTrabalhados }
-            val totalMao  = funs.sumOf(Funcionario::totalGasto)
+            // 👇 MUDOU: total de mão de obra agora é a soma dos PAGAMENTOS
+            val totalMao = totalPagPorFunc.values.sum()
 
-            // 👇 NOVOS: contadores por status
+            // contadores por status (mantém)
             val ativos   = funs.count { it.status.equals("ativo", ignoreCase = true) }
             val inativos = funs.count { it.status.equals("inativo", ignoreCase = true) }
 
-            // 2) Notas / Materiais
+            // 2) Notas / Materiais (mantém)
             val totalNotas = notas.sumOf(Nota::valor)
             val porTipo = buildMap<String, Double> {
                 notas.forEach { n ->
@@ -96,16 +99,16 @@ class ResumoViewModel @Inject constructor(
                 }
             }
 
-            // 3) Aportes
+            // 3) Aportes (mantém)
             val totalAportes = aportes.sumOf { it.valor }
 
-            // 4) Saldos (recalcula com aportes)
+            // 4) Saldos (mantém: saldoRestante usa gastoTotal da obra)
             val saldoRestante = obra.saldoInicial + totalAportes - obra.gastoTotal
 
             ResumoData(
                 countFuncionarios = funs.size,
                 totalDias = totalDias,
-                totalMaoDeObra = totalMao,
+                totalMaoDeObra = totalMao,          // 👈 agora vem de pagamentos
                 countNotas = notas.size,
                 totalMateriais = totalNotas,
                 totalPorTipo = porTipo,

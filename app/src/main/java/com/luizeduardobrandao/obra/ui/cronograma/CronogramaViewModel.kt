@@ -20,7 +20,7 @@ import javax.inject.Inject
  *
  * • Recebe [obraId] via Safe-Args/SavedStateHandle.
  * • Mantém um único listener (Job cancelável) para não duplicar coleta.
- * • Não altera custos ([gastoTotal]) — só gerencia etapas.
+ * • Não altera custos ("gastoTotal") — só gerencia etapas.
  */
 
 @HiltViewModel

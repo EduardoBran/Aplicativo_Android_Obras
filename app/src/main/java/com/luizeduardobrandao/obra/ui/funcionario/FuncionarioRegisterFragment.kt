@@ -1,11 +1,17 @@
 package com.luizeduardobrandao.obra.ui.funcionario
 
+import android.app.DatePickerDialog
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioGroup
 import android.widget.Toast
+import androidx.activity.addCallback
+import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -14,24 +20,23 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.radiobutton.MaterialRadioButton
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Funcionario
+import com.luizeduardobrandao.obra.data.model.Pagamento
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentFuncionarioRegisterBinding
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.ui.funcionario.adapter.PagamentoAdapter
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import android.content.Context
-import android.content.ClipData
-import android.content.ClipboardManager
-import androidx.activity.addCallback
-import java.util.Locale
 import java.text.NumberFormat
-import androidx.core.view.isVisible
+import java.util.Calendar
+import java.util.Locale
 
 @AndroidEntryPoint
 class FuncionarioRegisterFragment : Fragment() {
@@ -45,16 +50,30 @@ class FuncionarioRegisterFragment : Fragment() {
     private val isEdit get() = args.funcionarioId != null
     private var diasTrabalhados = 0
 
-    private var previousAdicional: Double? = null
-
     private var funcionarioOriginal: Funcionario? = null
 
-    // Flags de controle de loading
-    // controla exclusivamente o loading do botão (salvar/alterar)
+    // Loading do botão principal
     private var isSaving = false
-
-    // Fecha a tela apenas quando o sucesso vier de um salvamento (criar/atualizar)
     private var shouldCloseAfterSave = false
+
+    // Pagamentos
+    private lateinit var pagamentoAdapter: PagamentoAdapter
+    private val calendar: Calendar = Calendar.getInstance()
+
+    // Cache da lista para update otimista
+    private var cachedPagamentos: List<Pagamento> = emptyList()
+
+    // Estado da edição
+    private var pagamentoEmEdicao: Pagamento? = null
+    private var editDataIso: String? = null
+
+    // Houve alterações na lista de pagamentos (add/editar/excluir) desde que a tela abriu?
+    private var pagamentosAlterados: Boolean = false
+
+    // Adições/Edições/Exclusões pendentes (somente local; não enviamos ao banco até confirmar)
+    private val pagamentosExcluidosPendentes = mutableSetOf<Pagamento>()
+    private val pagamentosAdicionadosPendentes = mutableListOf<Pagamento>()
+    private val pagamentosEditadosPendentes = mutableMapOf<String, Pagamento>() // key = id original
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -70,9 +89,6 @@ class FuncionarioRegisterFragment : Fragment() {
         binding.toolbarFuncReg.setNavigationOnClickListener { handleBackPress() }
 
         if (isEdit) prefillFields()
-        if (!isEdit) {
-            binding.tvAdicionalTotalInfo.visibility = View.GONE
-        }
 
         binding.btnPlus.setOnClickListener { updateDias(+1) }
         binding.btnMinus.setOnClickListener { updateDias(-1) }
@@ -81,14 +97,15 @@ class FuncionarioRegisterFragment : Fragment() {
             edit.doAfterTextChanged { validateForm() }
         }
 
-        // Escuta mudanças nos checkboxes de função
+        // Checkboxes de função
         getAllFuncaoCheckboxes().forEach { cb ->
             cb.setOnCheckedChangeListener { _, _ -> validateForm() }
         }
+
+        // Forma de pagamento (RadioButtons)
         getAllPagamentoRadios().forEach { rb ->
             rb.setOnCheckedChangeListener { button, isChecked ->
                 if (isChecked) {
-                    // exclusividade manual
                     getAllPagamentoRadios().forEach { other ->
                         if (other != button && other.isChecked) other.isChecked = false
                     }
@@ -99,19 +116,25 @@ class FuncionarioRegisterFragment : Fragment() {
         }
 
         updateDiasLabel()
-
         observeSaveState()
 
         binding.btnSaveFuncionario.setOnClickListener { onSave() }
 
         validateForm()
 
-        // Interceptar botão físico/gesto de voltar
+        // Voltar físico/gesto
+        // Voltar físico/gesto
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            // Se o modal de edição estiver visível, somente fecha o modal.
+            if (binding.overlayEditPagamento.isVisible) {
+                fecharModalEdicao()
+                return@addCallback
+            }
+            // Fluxo normal de saída (com Snackbar se houver mudanças)
             handleBackPress()
         }
 
-        // copiar pix
+        // Copiar PIX
         binding.tilPix.setEndIconOnClickListener {
             val text = binding.etPix.text?.toString().orEmpty()
             if (text.isNotBlank()) {
@@ -124,7 +147,6 @@ class FuncionarioRegisterFragment : Fragment() {
                     Toast.LENGTH_SHORT
                 ).show()
             } else {
-                // opcional: feedback quando vazio
                 Toast.makeText(
                     requireContext(),
                     getString(R.string.func_toast_pix_copy_empty),
@@ -132,8 +154,75 @@ class FuncionarioRegisterFragment : Fragment() {
                 ).show()
             }
         }
+
+        /* ───────────── Pagamentos (somente no modo edição) ───────────── */
+        binding.layoutPagamento.isVisible = isEdit
+        binding.cardAbaHistoricoPagto.isVisible = false
+        binding.tvEmptyPagamentos.isVisible = false
+
+        if (isEdit) {
+            // Adapter com deletar + editar
+            pagamentoAdapter = PagamentoAdapter(
+                showDelete = true,
+                showEdit = true,
+                onDeleteClick = { pagamento ->
+
+                    // Snackbar de confirmação (SIM / NÃO)
+                    showSnackbarFragment(
+                        type = Constants.SnackType.WARNING.name,
+                        title = getString(R.string.snack_delete_pagamento_title),
+                        msg = getString(R.string.snack_delete_pagamento_msg),
+                        btnText = getString(R.string.snack_button_yes),
+                        onAction = {
+                            // --- CONFIRMADO (SIM) ---
+
+                            // Remove só da lista local/visível
+                            cachedPagamentos = cachedPagamentos.filter { it.id != pagamento.id }
+                            pagamentoAdapter.submitList(cachedPagamentos) {
+                                val n = cachedPagamentos.size
+                                if (n - 1 >= 0) pagamentoAdapter.notifyItemChanged(n - 1)
+                            }
+
+                            // Marca como exclusão pendente (não persiste ainda)
+                            pagamentosExcluidosPendentes.add(pagamento)
+                            pagamentosAlterados = true
+
+                            // Se ficou vazio: esconder a aba e mostrar a mensagem
+                            if (cachedPagamentos.isEmpty()) {
+                                binding.cardAbaHistoricoPagto.isVisible = false
+                                binding.tvEmptyPagamentos.isVisible = true
+                            }
+                        },
+                        btnNegativeText = getString(R.string.snack_button_no),
+                        onNegative = {
+                            // NÃO: nada a fazer
+                        }
+                    )
+                },
+                onEditClick = { pagamento -> abrirModalEdicao(pagamento) }
+            )
+            binding.rvPagamentos.apply {
+                layoutManager = LinearLayoutManager(requireContext())
+                adapter = pagamentoAdapter
+            }
+
+            // Observa histórico
+            observePagamentos(args.funcionarioId!!)
+
+            // Toggle da aba
+            setupExpandableHistorico()
+
+            // Botão "Adicionar" ao lado do campo Pagamento
+            binding.btnAddPagamento.setOnClickListener { onAddPagamentoClick() }
+
+            // Listeners do modal de edição
+            binding.btnCancelEditPagamento.setOnClickListener { fecharModalEdicao() }
+            binding.btnSaveEditPagamento.setOnClickListener { onSaveEditPagamento() }
+            binding.etEditData.setOnClickListener { abrirDatePickerEdicao() }
+        }
     }
 
+    /* ───────────────────────── Pré-preenchimento (edição) ───────────────────────── */
     private fun prefillFields() {
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -146,28 +235,15 @@ class FuncionarioRegisterFragment : Fragment() {
                             val nf = NumberFormat.getNumberInstance(Locale("pt", "BR")).apply {
                                 minimumFractionDigits = 2
                                 maximumFractionDigits = 2
-                                isGroupingUsed = false // evita "1.234,56" no campo de edição
+                                isGroupingUsed = false
                             }
                             etSalario.setText(nf.format(func.salario))
                             etPix.setText(func.pix)
                             tvDias.text = func.diasTrabalhados.toString()
                             diasTrabalhados = func.diasTrabalhados
-                            previousAdicional = func.adicional
-                            etAdicional.setText("") // campo vazio ao editar
-
-                            val tot = (previousAdicional ?: 0.0)
-                            if (tot > 0.0) {
-                                val totFmt = getString(R.string.money_mask, tot)
-                                tvAdicionalTotalInfo.visibility = View.VISIBLE
-                                tvAdicionalTotalInfo.text =
-                                    getString(R.string.func_reg_additional_total, totFmt)
-                            } else {
-                                tvAdicionalTotalInfo.visibility = View.GONE
-                            }
 
                             btnSaveFuncionario.setText(R.string.generic_update)
 
-                            // Marca múltiplas funções
                             val funcoesMarcadas = func.funcao.split("/").map { it.trim() }
                             getAllFuncaoCheckboxes().forEach { cb ->
                                 cb.isChecked = funcoesMarcadas.any {
@@ -175,7 +251,6 @@ class FuncionarioRegisterFragment : Fragment() {
                                 }
                             }
 
-                            // Forma de pagamento e status continuam com RadioButton
                             selectPagamentoByText(func.formaPagamento)
                             selectSingleChoice(binding.rgStatus, func.status)
                             updateDiasLabel()
@@ -198,78 +273,62 @@ class FuncionarioRegisterFragment : Fragment() {
         }
     }
 
+    /* ───────────────────────── Validação geral ───────────────────────── */
     private fun validateForm(): Boolean = with(binding) {
-        // Nome (mínimo de caracteres)
         val nome = etNomeFunc.text?.toString()?.trim().orEmpty()
         val nomeOk = nome.length >= Constants.Validation.MIN_NAME
         tilNomeFunc.error = if (!nomeOk)
             getString(R.string.func_reg_error_nome, Constants.Validation.MIN_NAME)
         else null
 
-        // Salário (> MIN_SALDO)
         val salario = etSalario.text?.toString()?.replace(',', '.')?.toDoubleOrNull()
         val salarioOk = salario != null && salario > Constants.Validation.MIN_SALDO
         tilSalario.error = if (!salarioOk) getString(R.string.func_reg_error_salario) else null
 
-        // Pelo menos UMA função marcada
         val funcoes = getCheckedFuncaoTexts()
         val funcaoOk = funcoes.isNotEmpty()
         tvFuncaoError.text = if (!funcaoOk) getString(R.string.func_reg_error_role) else null
         tvFuncaoError.visibility = if (!funcaoOk) View.VISIBLE else View.GONE
 
-        // Uma forma de pagamento selecionada
         val pagtoOk = getAllPagamentoRadios().any { it.isChecked }
         tvPagamentoError.text = if (!pagtoOk) getString(R.string.func_reg_error_pagamento) else null
         tvPagamentoError.visibility = if (!pagtoOk) View.VISIBLE else View.GONE
 
-        // Adicional (opcional, mas se informado não pode ser negativo)
-        val adicionalTxt = etAdicional.text?.toString()?.trim().orEmpty()
-        val adicionalVal = adicionalTxt.replace(',', '.').toDoubleOrNull()
-        val adicionalOk = adicionalVal == null || adicionalVal >= 0.0
-        tilAdicional.error = if (!adicionalOk)
-            getString(R.string.func_reg_error_additional_negative) else null
-
-        val formOk = nomeOk && salarioOk && funcaoOk && pagtoOk && adicionalOk
+        val formOk = nomeOk && salarioOk && funcaoOk && pagtoOk
         btnSaveFuncionario.isEnabled = formOk
         formOk
     }
 
+    /* ───────────────────────── Observa estado de salvar ───────────────────────── */
     private fun observeSaveState() {
         lifecycleScope.launch {
             viewModel.opState.collect { state ->
                 when (state) {
                     is UiState.Loading -> {
-                        // Só mostra o loading do botão quando estiver salvando
                         if (isSaving) progress(true)
                     }
 
                     is UiState.Success -> {
                         isSaving = false
-
                         if (shouldCloseAfterSave) {
-                            // Toast conforme operação
                             val msgRes = if (isEdit) R.string.func_updated else R.string.func_added
                             Toast.makeText(
                                 requireContext(),
                                 getString(msgRes, binding.etNomeFunc.text.toString().trim()),
                                 Toast.LENGTH_SHORT
                             ).show()
-
-                            // fecha teclado e navega (post para garantir desenhar spinner)
                             binding.root.hideKeyboard()
                             binding.root.post {
                                 findNavController().navigateUp()
                                 shouldCloseAfterSave = false
                             }
                         } else {
-                            // operações que NÃO fecham a tela (se houverem no futuro)
                             progress(false)
                             binding.btnSaveFuncionario.isEnabled = true
                         }
                     }
 
                     is UiState.ErrorRes -> {
-                        // erro em qualquer operação: some loading do botão e reabilita
                         progress(false)
                         isSaving = false
                         shouldCloseAfterSave = false
@@ -286,6 +345,244 @@ class FuncionarioRegisterFragment : Fragment() {
                 }
             }
         }
+    }
+
+    /* ───────────────────────── Pagamentos: observar & renderizar ───────────────────────── */
+    private fun observePagamentos(funcId: String) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.observePagamentos(funcId).collect { listaFromDb ->
+                    // 1) remove itens marcados p/ exclusão
+                    var composed = listaFromDb.filter { dbItem ->
+                        pagamentosExcluidosPendentes.none { it.id == dbItem.id }
+                    }
+
+                    // 2) aplica edições pendentes
+                    if (pagamentosEditadosPendentes.isNotEmpty()) {
+                        composed = composed.map { dbItem ->
+                            pagamentosEditadosPendentes[dbItem.id] ?: dbItem
+                        }
+                    }
+
+                    // 3) acrescenta os adicionados pendentes (id temporário)
+                    if (pagamentosAdicionadosPendentes.isNotEmpty()) {
+                        composed = composed + pagamentosAdicionadosPendentes
+                    }
+
+                    cachedPagamentos = composed
+                    renderPagamentos(composed)
+                }
+            }
+        }
+    }
+
+    private fun renderPagamentos(lista: List<Pagamento>) = with(binding) {
+        pagamentoAdapter.submitList(lista) {
+            val n = lista.size
+            if (n - 2 >= 0) pagamentoAdapter.notifyItemChanged(n - 2)
+            if (n - 1 >= 0) pagamentoAdapter.notifyItemChanged(n - 1)
+        }
+
+        tvEmptyPagamentos.isVisible = lista.isEmpty()
+
+        if (lista.isNotEmpty()) {
+            cardAbaHistoricoPagto.isVisible = true
+            if (!contentAbaHistoricoPagto.isVisible) {
+                contentAbaHistoricoPagto.isVisible = true
+                ivArrowHistoricoPagto.rotation = 180f
+            }
+        }
+
+        tvTituloHistoricoPagto.text = if (lista.size == 1)
+            getString(R.string.historico_pagamento)
+        else
+            getString(R.string.historico_pagamentos)
+    }
+
+    private fun setupExpandableHistorico() = with(binding) {
+        val header = headerAbaHistoricoPagto
+        val content = contentAbaHistoricoPagto
+        val arrow = ivArrowHistoricoPagto
+
+        fun applyState(expanded: Boolean, animate: Boolean) {
+            if (animate) {
+                androidx.transition.TransitionManager.beginDelayedTransition(
+                    content,
+                    androidx.transition.AutoTransition().apply { duration = 180 }
+                )
+            }
+            content.isVisible = expanded
+            arrow.animate().rotation(if (expanded) 180f else 0f).setDuration(180).start()
+        }
+        header.setOnClickListener { applyState(!content.isVisible, animate = true) }
+    }
+
+    /* ───────────────────────── Adicionar pagamento ───────────────────────── */
+    private fun onAddPagamentoClick() = with(binding) {
+        val valorTxt = etPagamento.text?.toString()?.trim().orEmpty()
+        val valor = parseBrlToDouble(valorTxt)
+        if (valor == null || valor <= 0.0) {
+            showSnackbarFragment(
+                type = Constants.SnackType.ERROR.name,
+                title = getString(R.string.snack_error),
+                msg = getString(R.string.erro_pagamento_valor),
+                btnText = getString(R.string.snack_button_ok)
+            )
+            return@with
+        }
+        // Solicita data e, ao escolher, persiste
+        showPagamentoDatePicker(valor)
+    }
+
+    private fun showPagamentoDatePicker(valorPre: Double? = null) {
+        val y = calendar.get(Calendar.YEAR)
+        val m = calendar.get(Calendar.MONTH)
+        val d = calendar.get(Calendar.DAY_OF_MONTH)
+
+        val dp = DatePickerDialog(requireContext(), { _, yy, mm, dd ->
+            val iso = "%04d-%02d-%02d".format(yy, mm + 1, dd)
+
+            valorPre?.let { v ->
+                // NÃO persiste agora.
+                // Cria um pagamento "temporário" com id fake p/ aparecer na lista
+                val temp = Pagamento(
+                    id = "tmp-${System.currentTimeMillis()}",
+                    valor = v,
+                    data = iso
+                )
+
+                // Se por acaso o usuário marcou esse mesmo pagamento para excluir antes, desfaça
+                // (caso de reverter uma exclusão, por exemplo)
+                pagamentosExcluidosPendentes.removeAll { it.id == temp.id }
+
+                // Marca como "adição pendente"
+                pagamentosAdicionadosPendentes.add(temp)
+                pagamentosAlterados = true
+
+                // Reflete no RecyclerView
+                cachedPagamentos = cachedPagamentos + temp
+                pagamentoAdapter.submitList(cachedPagamentos) {
+                    val n = cachedPagamentos.size
+                    if (n - 2 >= 0) pagamentoAdapter.notifyItemChanged(n - 2)
+                    if (n - 1 >= 0) pagamentoAdapter.notifyItemChanged(n - 1)
+                }
+
+                // Limpa o campo p/ próxima inserção
+                binding.etPagamento.setText("")
+                binding.cardAbaHistoricoPagto.isVisible = true
+            }
+        }, y, m, d)
+
+        dp.setCancelable(false)
+        dp.setCanceledOnTouchOutside(false)
+        dp.show()
+    }
+
+    /* ───────────────────────── Edição via modal ───────────────────────── */
+    private fun abrirModalEdicao(pagamento: Pagamento) = with(binding) {
+        pagamentoEmEdicao = pagamento
+        // Valor preenchido
+        etEditValor.setText(formatMoneyNumber(pagamento.valor))
+        // Data preenchida (texto dd/MM/yyyy) + iso para controle
+        etEditData.setText(formatDateBR(pagamento.data))
+        editDataIso = pagamento.data
+
+        // Exibe modal (não fecha ao clicar fora)
+        scrimEditPagamento.visibility = View.VISIBLE
+        overlayEditPagamento.visibility = View.VISIBLE
+
+        // Foco no valor
+        etEditValor.requestFocus()
+    }
+
+    private fun fecharModalEdicao() = with(binding) {
+        pagamentoEmEdicao = null
+        editDataIso = null
+        etEditValor.setText("")
+        etEditData.setText("")
+
+        scrimEditPagamento.visibility = View.GONE
+        overlayEditPagamento.visibility = View.GONE
+    }
+
+    private fun abrirDatePickerEdicao() {
+        val cal = Calendar.getInstance()
+        // se já houver data, abre nela
+        editDataIso?.let { iso ->
+            val parts = iso.split("-")
+            if (parts.size == 3) {
+                cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
+            }
+        }
+
+        val dp = DatePickerDialog(
+            requireContext(),
+            { _, y, m, d ->
+                val iso = "%04d-%02d-%02d".format(y, m + 1, d)
+                editDataIso = iso
+                binding.etEditData.setText(formatDateBR(iso))
+            },
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH),
+            cal.get(Calendar.DAY_OF_MONTH)
+        )
+        dp.setCancelable(false)
+        dp.setCanceledOnTouchOutside(false)
+        dp.show()
+    }
+
+    private fun onSaveEditPagamento() {
+        val original = pagamentoEmEdicao ?: return
+        val valorTxt = binding.etEditValor.text?.toString()?.trim().orEmpty()
+        val valorNovo = parseBrlToDouble(valorTxt)
+        val dataIsoNova = editDataIso
+
+        if (valorNovo == null || valorNovo <= 0.0 || dataIsoNova.isNullOrBlank()) {
+            showSnackbarFragment(
+                type = Constants.SnackType.ERROR.name,
+                title = getString(R.string.snack_error),
+                msg = getString(R.string.erro_pagamento_valor),
+                btnText = getString(R.string.snack_button_ok)
+            )
+            return
+        }
+
+        val atualizado = original.copy(valor = valorNovo, data = dataIsoNova)
+
+        // Marca como "edição pendente" (por id real; se for temporário, usa o id temporário)
+        pagamentosEditadosPendentes[original.id] = atualizado
+        pagamentosAlterados = true
+
+        // Atualiza só local/Recycler
+        cachedPagamentos = cachedPagamentos.map { if (it.id == original.id) atualizado else it }
+        pagamentoAdapter.submitList(cachedPagamentos) {
+            val n = cachedPagamentos.size
+            if (n - 2 >= 0) pagamentoAdapter.notifyItemChanged(n - 2)
+            if (n - 1 >= 0) pagamentoAdapter.notifyItemChanged(n - 1)
+        }
+
+        fecharModalEdicao()
+    }
+
+    /* ───────────────────────── Helpers ───────────────────────── */
+    private fun parseBrlToDouble(text: String): Double? =
+        text.replace(".", "").replace(',', '.').toDoubleOrNull()
+
+    private fun formatDateBR(iso: String): String {
+        // yyyy-MM-dd -> dd/MM/yyyy simples
+        return if (iso.length == 10 && iso[4] == '-' && iso[7] == '-')
+            "${iso.substring(8, 10)}/${iso.substring(5, 7)}/${iso.substring(0, 4)}"
+        else iso
+    }
+
+    private fun formatMoneyNumber(value: Double): String {
+        // sem símbolo, 2 casas, agrupamento desabilitado para edição
+        val nf = NumberFormat.getNumberInstance(Locale("pt", "BR")).apply {
+            minimumFractionDigits = 2
+            maximumFractionDigits = 2
+            isGroupingUsed = false
+        }
+        return nf.format(value)
     }
 
     private fun updateDias(delta: Int) {
@@ -306,19 +603,9 @@ class FuncionarioRegisterFragment : Fragment() {
 
         binding.root.hideKeyboard()
 
-        // ligar controle de loading como em NotaRegisterFragment
         shouldCloseAfterSave = true
         isSaving = true
         progress(true)
-
-        val adicionalInput = binding.etAdicional.text?.toString()?.trim().orEmpty()
-        val adicionalParsed = adicionalInput.replace(',', '.').toDoubleOrNull()
-
-        val adicionalFinal = if (isEdit) {
-            (previousAdicional ?: 0.0) + (adicionalParsed ?: 0.0)
-        } else {
-            adicionalParsed
-        }
 
         val funcionario = Funcionario(
             id = args.funcionarioId ?: "",
@@ -328,13 +615,39 @@ class FuncionarioRegisterFragment : Fragment() {
             formaPagamento = getCheckedRadioTextPagamento(),
             pix = binding.etPix.text.toString().trim(),
             diasTrabalhados = diasTrabalhados,
-            status = getCheckedRadioText(binding.rgStatus).lowercase(),
-            adicional = adicionalFinal
+            status = getCheckedRadioText(binding.rgStatus).lowercase()
         )
 
-        // NÃO faz Toast aqui; mostramos no sucesso (como nas Notas)
         if (isEdit) {
             viewModel.updateFuncionario(funcionario)
+
+            // 1) Exclusões pendentes
+            pagamentosExcluidosPendentes.forEach { p ->
+                viewModel.deletePagamento(args.funcionarioId!!, p.id)
+            }
+            pagamentosExcluidosPendentes.clear()
+
+            // 2) Edições pendentes
+            pagamentosEditadosPendentes.values.forEach { p ->
+                // Se o item editado for um "temporário" (acabou de ser adicionado e foi editado),
+                // não existe no banco ainda. Nesse caso ele também estará nos "adicionados pendentes"
+                // e será tratado como adição (abaixo). Aqui só atualizamos os que já existem no DB.
+                val isTemp = p.id.startsWith("tmp-")
+                if (!isTemp) {
+                    viewModel.updatePagamento(args.funcionarioId!!, p)
+                }
+            }
+            pagamentosEditadosPendentes.clear()
+
+            // 3) Adições pendentes (criam ID real)
+            pagamentosAdicionadosPendentes.forEach { pTemp ->
+                viewModel.addPagamento(args.funcionarioId!!, pTemp.copy(id = "")) // repo gera id
+            }
+            pagamentosAdicionadosPendentes.clear()
+
+            // Limpa o “sujo” dos pagamentos
+            pagamentosAlterados = false
+
         } else {
             viewModel.addFuncionario(funcionario)
         }
@@ -342,7 +655,7 @@ class FuncionarioRegisterFragment : Fragment() {
 
     private fun getCheckedRadioText(group: RadioGroup): String {
         val id = group.checkedRadioButtonId
-        if (id == -1) return ""  // segurança, embora o validateForm já garanta seleção
+        if (id == -1) return ""
         val rb = group.findViewById<MaterialRadioButton>(id)
         return rb.text.toString()
     }
@@ -354,14 +667,12 @@ class FuncionarioRegisterFragment : Fragment() {
         (0 until binding.rgFuncao.childCount).mapNotNull { binding.rgFuncao.getChildAt(it) as? MaterialCheckBox } +
                 (0 until binding.rgFuncao2.childCount).mapNotNull { binding.rgFuncao2.getChildAt(it) as? MaterialCheckBox }
 
-
-    // Altera rótulo de "Dias trabalhados" conforme "Forma de Pagamento" escolhida
     private fun updateDiasLabel() = with(binding) {
         val res = when {
             rbDiaria.isChecked -> R.string.func_reg_days_hint
             rbSemanal.isChecked -> R.string.func_reg_weeks_hint
             rbMensal.isChecked -> R.string.func_reg_months_hint
-            rbTarefeiro.isChecked -> R.string.func_reg_task_fixed_hint // <-- novo texto
+            rbTarefeiro.isChecked -> R.string.func_reg_task_fixed_hint
             else -> R.string.func_reg_days_hint
         }
         tvLabelDias.setText(res)
@@ -378,7 +689,6 @@ class FuncionarioRegisterFragment : Fragment() {
         target?.isChecked = true
     }
 
-
     private fun getAllPagamentoRadios() = listOf(
         binding.rbDiaria,
         binding.rbSemanal,
@@ -387,44 +697,37 @@ class FuncionarioRegisterFragment : Fragment() {
     )
 
     private fun progress(show: Boolean) = with(binding) {
-        // o scroll e o botão só travam quando estamos salvando
         val saving = show && isSaving
         funcRegScroll.isEnabled = !saving
         btnSaveFuncionario.isEnabled = !saving
 
-        // o indicador abaixo do botão aparece só durante salvamento
         progressSaveFuncionario.isVisible = saving
 
         if (saving) {
-            // 1) Limpa o foco de qualquer campo para evitar auto-scroll do sistema
             requireActivity().currentFocus?.clearFocus()
             root.clearFocus()
 
-            // 2) Foca o container não-editável para “segurar” o foco
             funcRegScroll.isFocusableInTouchMode = true
             funcRegScroll.requestFocus()
 
-            // 3) Agora sim, fecha o teclado
             root.hideKeyboard()
 
-            // 4) Garante visibilidade do spinner: rola até ele
             progressSaveFuncionario.post {
                 funcRegScroll.smoothScrollTo(0, progressSaveFuncionario.bottom)
             }
         }
     }
 
-    // ---------------- Verificação de Edição -----------------
-
+    /* ───────────────────────── Verificação de edição ───────────────────────── */
     private fun handleBackPress() {
         if (hasUnsavedChanges()) {
             showSnackbarFragment(
                 type = Constants.SnackType.WARNING.name,
                 title = getString(R.string.snack_attention),
                 msg = getString(R.string.unsaved_confirm_msg),
-                btnText = getString(R.string.snack_button_yes), // SIM
+                btnText = getString(R.string.snack_button_yes),
                 onAction = { findNavController().navigateUp() },
-                btnNegativeText = getString(R.string.snack_button_no), // NÃO
+                btnNegativeText = getString(R.string.snack_button_no),
                 onNegative = { /* permanece nesta tela */ }
             )
         } else {
@@ -432,41 +735,37 @@ class FuncionarioRegisterFragment : Fragment() {
         }
     }
 
-    /** Verifica se existem alterações não salvas no formulário. */
     private fun hasUnsavedChanges(): Boolean = with(binding) {
         val nomeStr = etNomeFunc.text?.toString()?.trim().orEmpty()
         val salarioStr = etSalario.text?.toString()?.trim().orEmpty()
         val salarioNum = salarioStr.replace(',', '.').toDoubleOrNull()
         val pixStr = etPix.text?.toString()?.trim().orEmpty()
-        val adicionalInput = etAdicional.text?.toString()?.trim().orEmpty()
 
         val funcoesSel = getCheckedFuncaoTexts()
             .map { it.trim().lowercase(Locale.getDefault()) }
             .toSet()
 
-        val formaPagto = getCheckedRadioTextPagamento() // já retorna texto do RB
-        val statusStr = getCheckedRadioText(binding.rgStatus).lowercase(Locale.getDefault())
+        val formaPagto = getCheckedRadioTextPagamento()
+        val statusStr = getCheckedRadioText(rgStatus).lowercase(Locale.getDefault())
 
         val diasAtual = diasTrabalhados
 
         if (!isEdit) {
-            // Inclusão: qualquer campo preenchido/selecionado conta como alteração
             val temRadioPagto = getAllPagamentoRadios().any { it.isChecked }
             return@with nomeStr.isNotEmpty() ||
                     salarioStr.isNotEmpty() ||
                     pixStr.isNotEmpty() ||
-                    adicionalInput.isNotEmpty() ||
                     funcoesSel.isNotEmpty() ||
                     temRadioPagto ||
                     statusStr.isNotEmpty() ||
-                    diasAtual != 0
+                    diasAtual != 0 ||
+                    pagamentosAlterados               // <--- add aqui também no modo "novo"
         }
 
-        // Edição: compara com o original
         val orig = funcionarioOriginal ?: return@with false
 
         val salarioMudou = when {
-            salarioNum == null -> true // limpou o campo → alteração
+            salarioNum == null -> true
             else -> salarioNum != orig.salario
         }
 
@@ -484,8 +783,7 @@ class FuncionarioRegisterFragment : Fragment() {
                 formaMudou ||
                 statusMudou ||
                 funcoesSel != funcoesOrig ||
-                // Em edição, campo "Adicional" vazio não muda nada; se digitou algo, conta alteração
-                adicionalInput.isNotEmpty()
+                pagamentosAlterados                   // <--- add aqui no modo edição
     }
 
     override fun onDestroyView() {

@@ -26,10 +26,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
-import android.text.SpannableStringBuilder
-import android.text.Spanned
-import android.text.style.StyleSpan
-import android.graphics.Typeface
 
 @AndroidEntryPoint
 class ResumoFuncionarioFragment : Fragment() {
@@ -44,6 +40,9 @@ class ResumoFuncionarioFragment : Fragment() {
 
     // Estado de expansão da aba
     private var isResumoFuncsExpanded = false
+
+    // Mapa agregado vindo do ViewModel: funcId -> total pago
+    private var totaisPorFunc: Map<String, Double> = emptyMap()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,6 +80,17 @@ class ResumoFuncionarioFragment : Fragment() {
 
         /*  disparo único do listener  */
         viewModel.loadFuncionarios()
+
+        // Observa o agregado de pagamentos para preencher a aba de resumo
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.observeTotaisPorFuncionario().collect { mapa ->
+                    totaisPorFunc = mapa
+                    // Atualiza a caixinha do resumo quando o mapa mudar
+                    updateResumoBox()
+                }
+            }
+        }
     }
 
     /* ───────────────────────── observers ───────────────────────── */
@@ -97,6 +107,48 @@ class ResumoFuncionarioFragment : Fragment() {
                 }
             }
         }
+    }
+
+    /** Atualiza a aba (Nome + Total pago) usando o mapa de totais por funcionário. */
+    private fun updateResumoBox() = with(binding) {
+        val list = adapter.currentList
+        if (list.isEmpty()) {
+            containerResumoFuncionarios.removeAllViews()
+            tvResumoTotalGeralFuncs.text = formatMoneyBR(0.0)
+            return@with
+        }
+
+        containerResumoFuncionarios.removeAllViews()
+
+        var totalGeral = 0.0
+        list.forEach { f ->
+            val totalPago = totaisPorFunc[f.id] ?: 0.0
+            totalGeral += totalPago
+
+            // Reuso do layout simples para uma linha de texto
+            val tv = layoutInflater.inflate(
+                R.layout.item_tipo_valor, containerResumoFuncionarios, false
+            ) as android.widget.TextView
+
+            // "Nome: R$ X,XX" (negrito no nome)
+            val valorFmt = formatMoneyBR(totalPago)
+            val textoLinha = "${f.nome}: $valorFmt"
+
+            val spannable = android.text.SpannableStringBuilder(textoLinha).apply {
+                setSpan(
+                    android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                    0,
+                    f.nome.length,
+                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+            tv.text = spannable
+            tv.textSize = 18f
+
+            containerResumoFuncionarios.addView(tv)
+        }
+
+        tvResumoTotalGeralFuncs.text = formatMoneyBR(totalGeral)
     }
 
     /* ───────────────────────── UI helpers ──────────────────────── */
@@ -121,46 +173,11 @@ class ResumoFuncionarioFragment : Fragment() {
         rvFuncionarios.visibility = View.VISIBLE
         cardAbaResumoFuncs.visibility = View.VISIBLE
 
-        // Preenche a lista principal (fora da aba)
+        // Lista principal (fora da aba)
         adapter.submitList(list)
 
-        // ====== Preenche o conteúdo da ABA (Nome + Total) ======
-        containerResumoFuncionarios.removeAllViews()
-
-        var totalGeral = 0.0
-        list.forEach { f ->
-            totalGeral += f.totalGasto
-
-            // Reuso do layout simples para uma linha de texto (se preferir crio TextView programático)
-            val tv = layoutInflater.inflate(
-                R.layout.item_tipo_valor, containerResumoFuncionarios, false
-            ) as android.widget.TextView
-
-            // Texto no padrão: "Nome - Valor"
-            val valorFmt = formatMoneyBR(f.totalGasto)
-            val textoLinha = if ((f.adicional ?: 0.0) > 0.0) {
-                "${f.nome}: $valorFmt (Adicional: ${formatMoneyBR(f.adicional ?: 0.0)})"
-            } else {
-                "${f.nome}: $valorFmt"
-            }
-
-            // Aplica negrito no nome
-            val spannable = SpannableStringBuilder(textoLinha)
-            spannable.setSpan(
-                StyleSpan(Typeface.BOLD),
-                0,
-                f.nome.length,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-
-            tv.text = spannable
-            tv.textSize = 18f   // aumenta o tamanho da fonte (em sp)
-
-            containerResumoFuncionarios.addView(tv)
-        }
-
-        // Total geral dentro da aba
-        tvResumoTotalGeralFuncs.text = formatMoneyBR(totalGeral)
+        // Atualiza a aba com o mapa atual de totais por funcionário
+        updateResumoBox()
     }
 
     private fun showError(resId: Int) {

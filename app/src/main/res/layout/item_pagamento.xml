@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="56dp"
+    android:paddingStart="8dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="8dp"
+    android:paddingBottom="10dp">
+
+    <!-- Valor (esquerda) -->
+    <TextView
+        android:id="@+id/tvValorPagamento"
+        android:textSize="20sp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/colorOnSurface"
+        android:textStyle="bold"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/tvDataPagamento"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_goneMarginEnd="8dp"
+        tools:text="R$ 2.500,00" />
+
+    <!-- Data (meio) -->
+    <TextView
+        android:id="@+id/tvDataPagamento"
+        android:textSize="18sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="12dp"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintBaseline_toBaselineOf="@id/tvValorPagamento"
+        app:layout_constraintEnd_toStartOf="@id/btnEditPagamento"
+        app:layout_constraintStart_toEndOf="@id/tvValorPagamento"
+        app:layout_goneMarginEnd="8dp"
+        app:layout_goneMarginStart="8dp"
+        tools:text="12/03/2025" />
+
+    <ImageButton
+        android:id="@+id/btnEditPagamento"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/generic_edit"
+        android:src="@drawable/ic_edit2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnDeletePagamento"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/icon_edit_recycler"
+        tools:ignore="TouchTargetSizeCheck" />
+
+    <!-- Excluir (direita) - o adapter controla visibility -->
+    <ImageButton
+        android:id="@+id/btnDeletePagamento"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/generic_delete"
+        android:src="@drawable/ic_delete2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorError"
+        tools:ignore="TouchTargetSizeCheck" />
+
+    <!-- Divider controlado pelo adapter (some no último item) -->
+    <View
+        android:id="@+id/dividerPagamento"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="10dp"
+        android:background="?attr/colorOutline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvValorPagamento" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

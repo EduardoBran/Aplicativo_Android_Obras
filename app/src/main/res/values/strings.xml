@@ -127,6 +127,10 @@
     <string name="func_list_salary_format">%1$s (%2$s)</string>
     <string name="func_save_error">Erro ao salvar funcionário. Verifique sua conexão.</string>
     <string name="func_update_error">Erro ao atualizar funcionário. Verifique sua conexão.</string>
+    <string name="func_delete_error">Erro ao excluir funcionário. Verifique sua conexão.</string>
+    <string name="func_payment_add_error">Erro ao adicionar pagamento. Verifique sua conexão.</string>
+    <string name="func_payment_update_error">Erro ao atualizar pagamento. Verifique sua conexão.</string>
+    <string name="func_payment_delete_error">Erro ao excluir pagamento. Verifique sua conexão.</string>
     <!-- Singular -->
     <string name="func_dias_trabalhados_singular">%1$d dia trabalhado</string>
     <!-- Plural -->
@@ -171,7 +175,7 @@
     <string name="func_reg_payment">Forma de Pagamento</string>
     <string name="func_reg_status">Status</string>
     <string name="func_reg_button_save">Salvar</string>
-    <string name="func_reg_button_update">Alterar</string>
+    <string name="func_reg_button_update">Salvar</string>
     <string name="func_reg_error_required">Preencha todos os campos obrigatórios.</string>
     <string name="func_error_nome">O nome deve ter ao menos 3 caracteres.</string>
     <string name="func_error_salario">Informe um salário válido (> 0).</string>
@@ -201,6 +205,26 @@
     <string name="func_outro">Outro</string>
     <string name="dias_trabalhados_qtd">0</string>
 
+    <string name="pagamento">Pagamento</string>
+    <string name="adicionar">Adicionar</string>
+    <string name="historico_pagamento">Histórico de Pagamento</string>
+    <string name="historico_pagamentos">Histórico de Pagamentos</string>
+    <string name="total_pago">Total Pago: %s</string>
+    <string name="nenhum_pagamento">Nenhum pagamento cadastrado.</string>
+    <string name="erro_pagamento_valor">O valor do pagamento deve ser maior que 0.</string>
+    <string name="selecione_data">Selecione a data</string>
+    <string name="editar_data">Clique para editar a data</string>
+    <string name="editar_pagamento">Editar Pagamento</string>
+
+    <string name="snack_delete_pagamento_title">Excluir pagamento</string>
+    <string name="snack_delete_pagamento_msg">Deseja realmente excluir este pagamento?</string>
+
+    <!-- Plural de pagamento(s) -->
+    <plurals name="qtd_pagamentos">
+        <item quantity="one">%d pagamento</item>
+        <item quantity="other">%d pagamentos</item>
+    </plurals>
+
     <!-- DetalheFuncionarioFragment -->
     <string name="func_detail_title">Funcionário %1$s</string>
     <string name="func_detail_total">Total Gasto: R$ %1$s</string>
@@ -210,6 +234,10 @@
     <string name="func_detail_additional_none2">-</string>
     <string name="func_reg_pix_detail">Pix</string>
     <string name="func_total_gasto">Total Gasto com o Funcionário</string>
+    <!-- Quando não há pagamentos no detalhe -->
+    <string name="nenhum_pagamento_efetuado">Nenhum pagamento efetuado.</string>
+    <!-- Rótulo do rodapé no card (sem %s aqui; o valor está no TextView ao lado) -->
+    <string name="total_pago_func_detail">Total Pago:</string>
 
 
     <!-- ResumoFuncionarioFragment -->
@@ -232,7 +260,8 @@
     <string name="nota_reg_button_save">Adicionar nota</string>
     <string name="nota_reg_button_edit">Editar nota</string>
     <string name="detail">Detalhes</string>
-    <string name="generic_delete">Excluir nota</string>
+    <string name="generic_delete">Excluir</string>
+    <string name="generic_edit">Editar</string>
     <string name="nota_load_error">Não foi possível carregar notas.</string>
     <string name="nota_load_error2">Não foi possível encontrar esta nota.</string>
     <plurals name="nota_list_types">
@@ -320,7 +349,7 @@
     <string name="nota_pago">Pago</string>
     <string name="total_geral_title_totais">Totais</string>
     <string name="total_geral_title_tipos">Totais por tipo</string>
-    <string name="expandir">Expandir</string>
+    <string name="expandir">Expandir/recolher</string>
     <!-- Mensagens das seções "Totais por tipo" -->
     <string name="nota_sum_all_paid_msg">Todas as notas pagas.</string>
     <string name="nota_sum_none_paid_msg">Nenhuma nota paga.</string>
@@ -553,10 +582,6 @@
 
     <!-- Saldo -->
     <string name="resumo_saldo_atual">Saldo Atual da Obra</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="home_photos_unavailable">Implementação ainda em construção.</string>
 
     <string name="aporte_load_error">Falha ao carregar os aportes.</string>
     <string name="aporte_create_error">Falha ao adicionar o aporte.</string>

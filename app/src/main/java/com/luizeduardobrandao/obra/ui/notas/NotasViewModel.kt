@@ -100,10 +100,17 @@ class NotasViewModel @Inject constructor(
 
     // Mesmo cálculo compartilhado: soma mão de obra + materiais “A Pagar”.
     private suspend fun recalcGastoTotal() {
-        val funs  = repoFun.observeFuncionarios(obraId).first()
+        // mão de obra agora vem dos PAGAMENTOS agregados por funcionário
+        val totalFun = repoFun
+            .observeTotalPagamentosPorFuncionario(obraId)
+            .first()
+            .values
+            .sum()
+
+        // materiais: mantém “A Pagar”, como já funciona
         val notas = repoNota.observeNotas(obraId).first()
-        val totalFun = funs.sumOf { it.totalGasto }
         val totalMat = notas.filter { it.status == "A Pagar" }.sumOf { it.valor }
+
         repoObra.updateGastoTotal(obraId, totalFun + totalMat)
     }
 
@@ -137,7 +144,7 @@ class NotasViewModel @Inject constructor(
             val notaId = addRes.getOrNull()!!
 
             val bytes = pendingPhotoBytes
-            val mime  = pendingPhotoMime
+            val mime = pendingPhotoMime
 
             if (bytes != null && mime != null) {
                 val upRes = repoNota.uploadNotaPhoto(obraId, notaId, bytes, mime)
@@ -178,7 +185,7 @@ class NotasViewModel @Inject constructor(
             _state.value = UiState.Loading
 
             val bytes = pendingPhotoBytes
-            val mime  = pendingPhotoMime
+            val mime = pendingPhotoMime
 
             if (bytes == null || mime == null) {
                 // sem troca de foto → fluxo normal

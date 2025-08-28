@@ -329,37 +329,141 @@
                     android:textSize="16sp" />
             </RadioGroup>
 
-            <!-- Adicional (opcional) -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilAdicional"
-                style="@style/Widget.ObrasApp.TextInputLayout"
+            <!-- ─────────  Pagamento (somente no modo edição)  ───────── -->
+            <LinearLayout
+                android:id="@+id/layoutPagamento"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp">
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:visibility="visible">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etAdicional"
-                    android:layout_width="match_parent"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilPagamento"
+                    style="@style/Widget.ObrasApp.TextInputLayout"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:digits="0123456789.,"
-                    android:drawableStart="@drawable/ic_money"
-                    android:drawablePadding="12dp"
-                    android:hint="@string/func_reg_additional_hint"
-                    android:inputType="numberDecimal|number"
-                    android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_weight="1">
 
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPagamento"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:digits="0123456789.,"
+                        android:drawableStart="@drawable/ic_money"
+                        android:drawablePadding="12dp"
+                        android:hint="@string/pagamento"
+                        android:inputType="numberDecimal|number"
+                        android:minHeight="60dp"
+                        android:paddingVertical="16dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddPagamento"
+                    style="@style/Widget.ObrasApp.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/adicionar" />
+            </LinearLayout>
+
+
+            <!-- Mensagem de vazio (mostrada quando não há pagamentos ainda) -->
             <TextView
-                android:id="@+id/tvAdicionalTotalInfo"
+                android:id="@+id/tvEmptyPagamentos"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
+                android:text="@string/nenhum_pagamento"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:visibility="gone"
-                tools:text="Adicional acumulado: R$ 250,00"
                 tools:visibility="visible" />
+
+            <!-- ======= ABA: Histórico de Pagamento(s) ======= -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAbaHistoricoPagto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Cabeçalho (clicável para expandir/retrair) -->
+                    <LinearLayout
+                        android:id="@+id/headerAbaHistoricoPagto"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="12dp">
+
+                        <TextView
+                            android:id="@+id/tvTituloHistoricoPagto"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/historico_pagamentos"
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textSize="20sp" />
+
+                        <ImageView
+                            android:id="@+id/ivArrowHistoricoPagto"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:contentDescription="@string/expandir"
+                            android:importantForAccessibility="no"
+                            android:rotation="0"
+                            android:src="@drawable/ic_expand_more" />
+                    </LinearLayout>
+
+                    <!-- Conteúdo expansível -->
+                    <LinearLayout
+                        android:id="@+id/contentAbaHistoricoPagto"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <androidx.core.widget.NestedScrollView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:maxHeight="320dp"
+                            android:overScrollMode="ifContentScrolls"
+                            android:scrollbarStyle="outsideOverlay"
+                            android:scrollbars="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <!-- RecyclerView do histórico de pagamentos (com botão Excluir) -->
+                                <androidx.recyclerview.widget.RecyclerView
+                                    android:id="@+id/rvPagamentos"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    tools:listitem="@layout/item_pagamento" />
+                            </LinearLayout>
+                        </androidx.core.widget.NestedScrollView>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Botão -->
             <com.google.android.material.button.MaterialButton
@@ -385,4 +489,127 @@
                 tools:visibility="visible" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <View
+        android:id="@+id/scrimEditPagamento"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#80000000"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Overlay que captura toques fora do card (não fecha ao tocar) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/overlayEditPagamento"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardEditPagamento"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="24dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="6dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_min="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/editar_pagamento"
+                    android:textSize="22sp"
+                    android:textStyle="bold|italic" />
+
+                <!-- Valor -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilEditValor"
+                    style="@style/Widget.ObrasApp.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:hint="@string/pagamento">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etEditValor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:digits="0123456789.,"
+                        android:inputType="numberDecimal|number"
+                        android:minHeight="60dp"
+                        android:paddingVertical="16dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Data (abre DatePicker ao tocar) -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilEditData"
+                    style="@style/Widget.ObrasApp.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:hint="@string/editar_data">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etEditData"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="false"
+                        android:minHeight="60dp"
+                        android:paddingVertical="16dp"
+                        android:textStyle="bold" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Botões: Salvar (esquerda) | Cancelar (direita) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSaveEditPagamento"
+                        style="@style/Widget.ObrasApp.Button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/generic_save" />
+
+                    <!-- espaçador para empurrar o botão Cancelar à direita -->
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCancelEditPagamento"
+                        style="@style/Widget.ObrasApp.Button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/generic_cancel" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

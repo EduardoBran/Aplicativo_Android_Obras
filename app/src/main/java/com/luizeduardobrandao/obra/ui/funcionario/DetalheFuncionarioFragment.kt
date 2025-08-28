@@ -13,6 +13,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Funcionario
+import com.luizeduardobrandao.obra.data.model.Pagamento
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.luizeduardobrandao.obra.ui.funcionario.adapter.PagamentoAdapter
 import com.luizeduardobrandao.obra.databinding.FragmentDetalheFuncionarioBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -33,6 +36,7 @@ class DetalheFuncionarioFragment : Fragment() {
     private val args: DetalheFuncionarioFragmentArgs by navArgs()
     private val viewModel: FuncionarioViewModel by viewModels()
 
+    private lateinit var pagamentoAdapter: PagamentoAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,7 +54,26 @@ class DetalheFuncionarioFragment : Fragment() {
             findNavController().navigateUp()
         }
 
+        // ── RecyclerView do histórico (sem exclusão)
+        pagamentoAdapter = PagamentoAdapter(
+            showDelete = false,
+            showEdit = false,           // <- esconde o ícone de editar no detalhe
+            onDeleteClick = {},
+            onEditClick = {}
+        )
+        binding.rvPagamentosDetalhe.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = pagamentoAdapter
+        }
+
+        // ── Header expansível da aba "Histórico de Pagamento"
+        setupExpandableHistorico()
+
+        // Dados do funcionário
         observeFuncionario()
+
+        // Histórico de pagamentos do funcionário
+        observePagamentos()
     }
 
     private fun observeFuncionario() {
@@ -65,8 +88,7 @@ class DetalheFuncionarioFragment : Fragment() {
 
     private fun bindData(f: Funcionario) = with(binding) {
         // 1) Título da Toolbar: "Funcionário [nome]"
-        toolbarDetalheFuncionario.title =
-            getString(R.string.func_detail_title, f.nome)
+        toolbarDetalheFuncionario.title = getString(R.string.func_detail_title, f.nome)
 
         // 2) Campos simples
         tvDetailNome.text = f.nome
@@ -78,16 +100,15 @@ class DetalheFuncionarioFragment : Fragment() {
         // 4) Forma de pagamento
         tvDetailPagamento.text = f.formaPagamento
 
-        // 5) Pix — só exibimos valor se não for nulo/não em branco
+        // 5) Pix
         val hasPix = !f.pix.isNullOrBlank()
         tvDetailPix.text = if (hasPix) f.pix else "—"
         btnCopyPix.isVisible = hasPix
-
         btnCopyPix.setOnClickListener {
             val text = tvDetailPix.text?.toString().orEmpty()
             if (text.isNotBlank()) {
-                val cm =
-                    requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val cm = requireContext()
+                    .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.setPrimaryClip(ClipData.newPlainText("PIX", text))
                 Toast.makeText(
                     requireContext(),
@@ -97,19 +118,75 @@ class DetalheFuncionarioFragment : Fragment() {
             }
         }
 
-        // 6) Dias e status
+        // 6) Dias e Status
         tvDetailDias.text = f.diasTrabalhados.toString()
         tvDetailStatus.text = f.status.replaceFirstChar { it.titlecase() }
+    }
 
-        // 7) Adicional (opcional)
-        if (f.adicional != null && f.adicional >= 0.0) {
-            tvDetailAdicional.text = formatMoneyBR(f.adicional)
+    private fun observePagamentos() {
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.observePagamentos(args.funcionarioId).collect { lista ->
+                    renderPagamentos(lista)
+                }
+            }
+        }
+    }
+
+    private fun renderPagamentos(lista: List<Pagamento>) = with(binding) {
+        // lista no adapter
+        pagamentoAdapter.submitList(lista)
+
+        // Soma total pago e total geral
+        val totalPago = lista.sumOf { it.valor }
+        tvTotalPagoFuncionario.text = formatMoneyBR(totalPago)
+        tvDetailTotalGasto.text = formatMoneyBR(totalPago)
+
+        if (lista.isEmpty()) {
+            // Esconde o card expansível e mostra título + texto simples
+            cardAbaHistoricoPagtoDetalhe.isVisible = false
+            tvHistoricoTitulo.isVisible = true
+            tvHistoricoEmptyInline.isVisible = true
+
+            // Garante conteúdo da aba fechado
+            contentAbaHistoricoPagtoDetalhe.isVisible = false
+            ivArrowHistoricoPagtoDetalhe.rotation = 0f
         } else {
-            tvDetailAdicional.text = getString(R.string.func_detail_additional_none2)
+            // Mostra o card e esconde o título/empty simples
+            tvHistoricoTitulo.isVisible = false
+            tvHistoricoEmptyInline.isVisible = false
+
+            cardAbaHistoricoPagtoDetalhe.isVisible = true
+
+            // Dentro do card: controla vazio/lista internos
+            tvEmptyPagamentosDetalhe.isVisible = false      // não usamos o vazio interno
+            rvPagamentosDetalhe.isVisible = true
+
+            // Título (singular/plural) no cabeçalho do card
+            tvTituloHistoricoPagtoDetalhe.text = if (lista.size == 1)
+                getString(R.string.historico_pagamento)
+            else
+                getString(R.string.historico_pagamentos)
+        }
+    }
+
+    private fun setupExpandableHistorico() = with(binding) {
+        val header = headerAbaHistoricoPagtoDetalhe
+        val content = contentAbaHistoricoPagtoDetalhe
+        val arrow = ivArrowHistoricoPagtoDetalhe
+
+        fun applyState(expanded: Boolean, animate: Boolean) {
+            if (animate) {
+                androidx.transition.TransitionManager.beginDelayedTransition(
+                    content, androidx.transition.AutoTransition().apply { duration = 180 }
+                )
+            }
+            content.isVisible = expanded
+            arrow.animate().rotation(if (expanded) 180f else 0f).setDuration(180).start()
         }
 
-        // 8) Total gasto
-        tvDetailTotalGasto.text = formatMoneyBR(f.totalGasto)
+        // Estado inicial fechado (já vem GONE do XML)
+        header.setOnClickListener { applyState(!content.isVisible, animate = true) }
     }
 
     private fun formatMoneyBR(value: Double): String =

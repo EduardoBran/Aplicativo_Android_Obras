@@ -6,7 +6,7 @@ import com.google.firebase.database.getValue
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
 import com.google.firebase.storage.StorageReference
-import com.luizeduardobrandao.obra.data.model.Funcionario
+import com.luizeduardobrandao.obra.data.model.Pagamento
 import com.luizeduardobrandao.obra.data.model.Nota
 import com.luizeduardobrandao.obra.data.repository.AuthRepository
 import com.luizeduardobrandao.obra.data.repository.NotaRepository
@@ -144,12 +144,21 @@ class NotaRepositoryImpl @Inject constructor(
      *   • notas (valor)
      * e grava no "gastoTotal" da obra.
      */
+    /**
+     * Recalcula o somatório de todos os custos:
+     *   • funcionários (pagamentos)
+     *   • notas (valor)
+     * e grava no "gastoTotal" da obra.
+     */
     private suspend fun recalcTotalGasto(obraId: String) {
-        // 1) soma funcionários
+        // 1) soma pagamentos dos funcionários
         val funcsSnapshot = funcRef(obraId).get().await()
-        val totalFuncionarios = funcsSnapshot.children
-            .mapNotNull { it.getValue<Funcionario>() }
-            .sumOf { it.totalGasto }
+        val totalFuncionarios = funcsSnapshot.children.sumOf { funcNode ->
+            val pagamentosNode = funcNode.child("pagamentos")
+            pagamentosNode.children
+                .mapNotNull { it.getValue<Pagamento>() }
+                .sumOf { it.valor }
+        }
 
         // 2) soma notas
         val notasSnapshot = notaRef(obraId).get().await()
