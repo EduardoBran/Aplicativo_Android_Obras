@@ -99,4 +99,5 @@ dependencies {
 
     // Imagens
     implementation("io.coil-kt:coil:2.6.0")
+    implementation("com.facebook.shimmer:shimmer:0.5.0")
 }

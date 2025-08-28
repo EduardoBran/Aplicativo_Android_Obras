@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- fundo arredondado -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/colorSurfaceVariant" />
+            <stroke
+                android:width="1dp"
+                android:color="?attr/colorOutline" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+
+    <!-- ícone central; ajuste o inset para o tamanho que preferir -->
+    <item
+        android:gravity="center"
+        android:drawable="@drawable/ic_image_placeholder"
+        android:width="36dp"
+        android:height="36dp"
+        android:alpha="0.35"/>
+</layer-list>

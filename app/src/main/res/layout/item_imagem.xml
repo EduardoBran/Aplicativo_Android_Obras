@@ -25,6 +25,31 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:src="@drawable/ic_image_placeholder" />
 
+        <!-- SHIMMER sobre a área da foto -->
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerThumb"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:clickable="false"
+            android:focusable="false"
+            android:importantForAccessibility="no"
+            android:visibility="gone"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:shimmer_auto_start="false"
+            app:shimmer_base_alpha="0.9"
+            app:shimmer_dropoff="0.5"
+            app:shimmer_highlight_alpha="0.6"
+            app:shimmer_intensity="0.3">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/img_placeholder_square" />
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
         <!-- Botão de zoom sobreposto no canto do thumb -->
         <ImageButton
             android:id="@+id/btnExpand"
