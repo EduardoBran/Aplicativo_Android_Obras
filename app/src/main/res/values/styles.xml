@@ -50,11 +50,28 @@
 
 
     <!-- TextInput -->
-    <style name="Widget.ObrasApp.TextInputLayout" parent="Widget.Material3.TextInputLayout.FilledBox.Dense">
+    <style name="Widget.ObrasApp.TextInputLayout"
+        parent="Widget.Material3.TextInputLayout.FilledBox.Dense">
         <item name="boxBackgroundColor">@color/md_theme_light_surfaceVariant</item>
         <item name="boxStrokeColor">@color/md_theme_light_primary</item>
+
+        <!-- cor do erro -->
         <item name="errorTextColor">@color/md_theme_light_error</item>
-        <item name="helperTextTextColor">@color/md_theme_light_secondary</item>
+        <!-- tipografia do erro -->
+        <item name="errorTextAppearance">@style/TextAppearance.ObrasApp.Error</item>
+
+        <!-- cor do helper -->
+        <item name="helperTextTextColor">@color/md_theme_light_secondary2</item>
+        <!-- tipografia do helper -->
+        <item name="helperTextTextAppearance">@style/TextAppearance.ObrasApp.Helper</item>
+    </style>
+
+    <style name="TextAppearance.ObrasApp.Helper" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="TextAppearance.ObrasApp.Error" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">14sp</item>
     </style>
 
 

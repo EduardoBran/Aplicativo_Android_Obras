@@ -36,6 +36,14 @@ import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
 import com.luizeduardobrandao.obra.ui.extensions.bindScrollToBottomFabBehavior
 import com.luizeduardobrandao.obra.ui.extensions.isAtBottom
 import com.luizeduardobrandao.obra.ui.extensions.updateFabVisibilityAnimated
+import androidx.core.content.ContextCompat
+import androidx.core.text.HtmlCompat
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
+import com.google.android.material.textfield.TextInputLayout
+import android.widget.TextView
+import android.util.TypedValue
+import android.view.ViewGroup
 
 @AndroidEntryPoint
 class NotaRegisterFragment : Fragment() {
@@ -107,11 +115,20 @@ class NotaRegisterFragment : Fragment() {
         }
     }
 
+    // Foto: exclusão pendente (somente em edição)
+    private var isPhotoDeletePending = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentNotaRegisterBinding.inflate(inflater, container, false)
+        binding.tilDataNota.onCaptionToggle {
+            adjustSectionTopSpacing(binding.tilDataNota, binding.tvStatusTitle, collapsedTopDp = 10)
+        }
+        binding.tilValorNota.onCaptionToggle {
+            adjustSectionTopSpacing(binding.tilValorNota, binding.tvPhotoTitle, collapsedTopDp = 34)
+        }
         return binding.root
     }
 
@@ -184,6 +201,20 @@ class NotaRegisterFragment : Fragment() {
 
             collectOperationState()
             validateForm()
+            binding.root.post {
+                adjustSectionTopSpacing(
+                    binding.tilDataNota,
+                    binding.tvStatusTitle,
+                    collapsedTopDp = 10,
+                    animate = false
+                )
+                adjustSectionTopSpacing(
+                    binding.tilValorNota,
+                    binding.tvPhotoTitle,
+                    collapsedTopDp = 34,
+                    animate = false
+                )
+            }
             reevalScrollFab()
         }
         // Intercepta o botão físico/gesto de voltar
@@ -259,10 +290,27 @@ class NotaRegisterFragment : Fragment() {
 
         // chamadas mantendo a foto quando apropriado
         if (isEdit) {
-            if (hasLocalPreview) {
-                viewModel.updateNotaWithOptionalPhoto(notaOriginal, finalNota)
-            } else {
-                viewModel.updateNota(notaOriginal, finalNota)
+            when {
+                // 1) Substituição / inclusão de foto nova
+                hasLocalPreview -> {
+                    // ViewModel deve cuidar da troca (upload + eventual limpeza da antiga)
+                    viewModel.updateNotaWithOptionalPhoto(notaOriginal, finalNota)
+                }
+
+                // 2) Exclusão pendente, sem nova foto
+                isPhotoDeletePending -> {
+                    // Limpa os campos de foto na nota e efetiva a exclusão no storage
+                    val semFoto = finalNota.copy(fotoUrl = null, fotoPath = null)
+                    // 2.1) apagar do storage + limpar campos
+                    viewModel.deleteNotaPhotoAndClearField(notaOriginal)
+                    // 2.2) atualizar demais campos da nota
+                    viewModel.updateNota(notaOriginal, semFoto)
+                }
+
+                // 3) Sem mudanças de foto → apenas atualizar a nota
+                else -> {
+                    viewModel.updateNota(notaOriginal, finalNota)
+                }
             }
         } else {
             if (hasLocalPreview) viewModel.createNotaWithOptionalPhoto(finalNota)
@@ -351,6 +399,9 @@ class NotaRegisterFragment : Fragment() {
         }
         if (n.status == NotaPagerAdapter.STATUS_A_PAGAR) rbStatusPagar.isChecked = true
         else rbStatusPago.isChecked = true
+
+        adjustSectionTopSpacing(binding.tilDataNota, binding.tvStatusTitle, collapsedTopDp = 10)
+        adjustSectionTopSpacing(binding.tilValorNota, binding.tvPhotoTitle, collapsedTopDp = 34)
     }
 
     // Validação
@@ -376,19 +427,44 @@ class NotaRegisterFragment : Fragment() {
             ?.replace(',', '.')
             ?.toDoubleOrNull()
             ?.let { it > 0.0 } == true
+
+        tilValorNota.isErrorEnabled = !valorOk
         tilValorNota.error = if (!valorOk) getString(R.string.nota_reg_error_valor) else null
 
         // Tipos (ao menos um marcado)
         val algumTipo = listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbLimpeza, cbOutros)
             .any { it.isChecked }
-        tvTipoError.text = if (!algumTipo) getString(R.string.nota_reg_error_tipo) else null
-        tvTipoError.visibility = if (!algumTipo) View.VISIBLE else View.GONE
+
+        // Mesma lógica de validação, mas com cor dinâmica:
+        // - Sem seleção: erro + vermelho
+        // - Com seleção: dica + cor de helper (igual ao helperText da data)
+        if (!algumTipo) {
+            tvTipoError.text =
+                getString(R.string.nota_reg_error_tipo) // "Selecione ao menos um tipo."
+            val errorColor =
+                ContextCompat.getColor(requireContext(), R.color.md_theme_light_error)
+            tvTipoError.setTextColor(errorColor)
+            tvTipoError.visibility = View.VISIBLE
+        } else {
+            tvTipoError.text = HtmlCompat.fromHtml(
+                getString(R.string.nota_reg_type_hint_multi_bold), // "Selecione mais de um tipo, se desejar."
+                HtmlCompat.FROM_HTML_MODE_LEGACY
+            )
+            val helperColor =
+                ContextCompat.getColor(requireContext(), R.color.md_theme_light_secondary2)
+            tvTipoError.setTextColor(helperColor)
+            tvTipoError.visibility = View.VISIBLE
+        }
 
         val ok = nomeOk && dataOk && valorOk && algumTipo
         // Nao reabilitar o botao enquanto estiver salvando ou depois do clique que vai fechar a tela.
         if (!isSaving && !shouldCloseAfterSave) {
             btnSaveNota.isEnabled = ok
         }
+        // ⬇️ Recalcula espaçamento conforme helper/erro de Data e Valor
+        adjustSectionTopSpacing(tilDataNota, tvStatusTitle, collapsedTopDp = 10)   // Data → Status
+        adjustSectionTopSpacing(tilValorNota, tvPhotoTitle, collapsedTopDp = 32)   // Valor → Foto
+
         ok
     }
 
@@ -423,6 +499,8 @@ class NotaRegisterFragment : Fragment() {
             binding.tilDataNota.helperText = null
         }
 
+        // ⬇️ Ajusta o espaçamento do título "Status" conforme o helper/erro da data
+        adjustSectionTopSpacing(binding.tilDataNota, binding.tvStatusTitle)
         validateForm()
     }
 
@@ -490,29 +568,42 @@ class NotaRegisterFragment : Fragment() {
 
     /** Pergunta se deseja anexar/substituir a foto na nota. */
     private fun confirmAddPhoto(bytes: ByteArray, mime: String) {
+        val isReplacingExisting = isEdit && hasRemotePhoto
+
+        val titleRes = if (isReplacingExisting)
+            R.string.nota_photo_confirm_replace_title   // "Deseja substituir esta foto da nota?"
+        else
+            R.string.nota_photo_confirm_msg             // "Deseja salvar esta foto na nota?"
+
         showSnackbarFragment(
             type = Constants.SnackType.WARNING.name,
-            title = getString(R.string.nota_photo_confirm_title),
-            msg = getString(R.string.nota_photo_confirm_msg),
+            title = getString(R.string.snack_attention),
+            msg = getString(titleRes), // mantenha sua msg atual
             btnText = getString(R.string.snack_button_yes),
             onAction = {
                 // guarda no ViewModel como pendente para subir no salvar
                 viewModel.setPendingPhoto(bytes, mime)
+
                 // guarda localmente para pré-visualização e para trocar rótulos
                 localPreviewBytes = bytes
                 localPreviewMine = mime
 
-                // feedback
-                val toastRes = if (isEdit && hasRemotePhoto)
-                    R.string.nota_photo_replaced_toast else R.string.nota_photo_added_toast
-                Toast.makeText(requireContext(), getString(toastRes), Toast.LENGTH_SHORT).show()
+                // se havia exclusão pendente, ela deixa de existir (vamos substituir a foto)
+                isPhotoDeletePending = false
+
+                // ➜ Toast com o rótulo CORRETO do botão ("Salvar" na criação, "Alterar" na edição)
+                val actionLabel = binding.btnSaveNota.text.toString()
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.nota_photo_pending_generic_toast, actionLabel),
+                    Toast.LENGTH_LONG
+                ).show()
 
                 updatePhotoUiFromState()
                 reevalScrollFab()
 
-                // NOVO: após confirmar a foto, rola automaticamente até o final da página
+                // Rola ao final para garantir visibilidade do cartão de foto
                 binding.notaRegScroll.post {
-                    // pós-layout, garante que o card de foto já ficou visível
                     binding.notaRegScroll.smoothScrollTo(
                         0,
                         binding.notaRegScroll.getChildAt(0).bottom
@@ -524,7 +615,7 @@ class NotaRegisterFragment : Fragment() {
         )
     }
 
-    /** Excluir (apenas local ou remota) com confirmação. */
+    /** Excluir (apenas pendente; efetiva no "Alterar") com confirmação. */
     private fun onDeletePhotoClick() {
         showSnackbarFragment(
             type = Constants.SnackType.WARNING.name,
@@ -533,27 +624,29 @@ class NotaRegisterFragment : Fragment() {
             btnText = getString(R.string.snack_button_yes),
             onAction = {
                 if (hasLocalPreview) {
-                    // Limpa a prévia local e o pending do ViewModel
+                    // Cancelar a foto local pendente (volta ao estado anterior)
                     localPreviewBytes = null
                     localPreviewMine = null
                     viewModel.clearPendingPhoto()
+                    // Não exclui agora – apenas marca como pendente
+                    isPhotoDeletePending = true
 
-                    // Feedback
+                    val actionLabel = binding.btnSaveNota.text.toString()
                     Toast.makeText(
                         requireContext(),
-                        getString(R.string.nota_photo_removed_toast),
+                        getString(R.string.nota_photo_pending_delete_generic_toast, actionLabel),
                         Toast.LENGTH_SHORT
                     ).show()
 
-                    // Some imediatamente com o overlay e reseta rótulos/visibilidade
                     hidePhotoPreviewOverlay()
                     updatePhotoUiFromState()
                     reevalScrollFab()
+                    return@showSnackbarFragment
+                }
 
-                } else if (isEdit && hasRemotePhoto) {
-                    // Edição: dispara exclusão remota e atualiza UI de forma otimista
-                    viewModel.deleteNotaPhotoAndClearField(notaOriginal)
-                    notaOriginal = notaOriginal.copy(fotoUrl = null, fotoPath = null)
+                if (isEdit && hasRemotePhoto) {
+                    // Não exclui agora – apenas marca como pendente
+                    isPhotoDeletePending = true
 
                     Toast.makeText(
                         requireContext(),
@@ -561,9 +654,10 @@ class NotaRegisterFragment : Fragment() {
                         Toast.LENGTH_SHORT
                     ).show()
 
-                    // Some imediatamente com o overlay e reseta rótulos/visibilidade
+                    // Some com o overlay e atualiza UI (cartão some, botões voltam a "adicionar")
                     hidePhotoPreviewOverlay()
                     updatePhotoUiFromState()
+                    reevalScrollFab()
                 }
             },
             btnNegativeText = getString(R.string.snack_button_no),
@@ -573,21 +667,21 @@ class NotaRegisterFragment : Fragment() {
 
     /** Atualiza textos dos botões e a visibilidade do cartão/preview. */
     private fun updatePhotoUiFromState() = with(binding) {
-        val hasPhoto = hasLocalPreview || hasRemotePhoto
+        // Se estiver marcada exclusão pendente, comporta-se como "sem foto"
+        val hasPhotoNow = !isPhotoDeletePending && (hasLocalPreview || hasRemotePhoto)
 
         // Botões: rótulos padrão vs. "trocar"
         btnPickImage.setText(
-            if (hasPhoto) R.string.nota_btn_pick_image_replace else R.string.nota_btn_pick_image
+            if (hasPhotoNow) R.string.nota_btn_pick_image_replace else R.string.nota_btn_pick_image
         )
         btnTakePhoto.setText(
-            if (hasPhoto) R.string.nota_btn_take_photo_replace else R.string.nota_btn_take_photo
+            if (hasPhotoNow) R.string.nota_btn_take_photo_replace else R.string.nota_btn_take_photo
         )
 
         // Card informativo com texto "Pré-visualizar…" + lixeira
-        cardPhotoInfo.isVisible = hasPhoto
+        cardPhotoInfo.isVisible = hasPhotoNow
 
-        // Limpa overlay se não houver mais foto
-        if (!hasPhoto) hidePhotoPreviewOverlay()
+        if (!hasPhotoNow) hidePhotoPreviewOverlay()
     }
 
     /* ────────────────────── Pré-visualização rápida (overlay) ────────────────────── */
@@ -660,6 +754,9 @@ class NotaRegisterFragment : Fragment() {
 
     // Detecção de alteração não salva
     private fun hasUnsavedChanges(): Boolean = with(binding) {
+        // Excluir a foto (pendente) também conta como alteração
+        if (localPreviewBytes != null || isPhotoDeletePending) return@with true
+
         val nome = etNomeMaterial.text?.toString()?.trim().orEmpty()
         val desc = etDescricaoMaterial.text?.toString()?.trim().orEmpty()
         val loja = etLoja.text?.toString()?.trim().orEmpty()
@@ -676,9 +773,6 @@ class NotaRegisterFragment : Fragment() {
             if (cbLimpeza.isChecked) add(cbLimpeza.text.toString())
             if (cbOutros.isChecked) add(cbOutros.text.toString())
         }.toSet()
-
-        // Selecionar uma nova foto (prévia local) conta como alteração pendente
-        if (localPreviewBytes != null) return@with true
 
         if (!isEdit) {
             // Modo criação: compara com estado “vazio”
@@ -709,6 +803,65 @@ class NotaRegisterFragment : Fragment() {
             binding.fabScrollDown.updateFabVisibilityAnimated(
                 isEdit && !isSaving && !binding.notaRegScroll.isAtBottom()
             )
+        }
+    }
+
+    // Margin Top Ajustável de "Status" e "Foto da Nota"
+    private fun Int.dp(): Int =
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            this.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+
+    /**
+     * Ajusta a margem-top do título de seção (ex.: “Status”, “Foto da nota”)
+     * conforme o helper/erro do TextInputLayout anterior.
+     *
+     * @param precedingTil TIL anterior (ex.: tilDataNota ou tilValorNota)
+     * @param titleView    Título da seção seguinte (ex.: tvStatusTitle ou tvPhotoTitle)
+     * @param expandedTopDp Top quando HÁ helper/erro abaixo do TIL anterior
+     * @param collapsedTopDp Top quando NÃO há helper/erro abaixo do TIL anterior
+     * @param animate      Se true, anima a transição da margem
+     */
+    private fun adjustSectionTopSpacing(
+        precedingTil: TextInputLayout,
+        titleView: TextView,
+        expandedTopDp: Int = 22,
+        collapsedTopDp: Int = 10,
+        animate: Boolean = true
+    ) {
+        val hasCaption = !precedingTil.helperText.isNullOrEmpty() ||
+                !precedingTil.error.isNullOrEmpty()
+
+        val parent = titleView.parent as? ViewGroup ?: return
+        if (animate) {
+            TransitionManager.beginDelayedTransition(
+                parent,
+                AutoTransition().apply { duration = 150 }
+            )
+        }
+
+        (titleView.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+            val newTop = if (hasCaption) expandedTopDp.dp() else collapsedTopDp.dp()
+            if (lp.topMargin != newTop) {
+                lp.topMargin = newTop
+                titleView.layoutParams = lp
+            }
+        }
+    }
+
+    private fun TextInputLayout.hasCaption(): Boolean =
+        !helperText.isNullOrEmpty() || !error.isNullOrEmpty()
+
+    private fun TextInputLayout.onCaptionToggle(onToggle: () -> Unit) {
+        var last = hasCaption()
+        addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            val now = hasCaption()
+            if (now != last) {
+                last = now
+                onToggle()
+            }
         }
     }
 

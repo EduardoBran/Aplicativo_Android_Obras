@@ -95,7 +95,7 @@
     <string name="work_error_date_order">Data de término deve ser igual ou posterior à data de início.</string>
     <string name="work_error_contato">Informe um telefone ou e-mail.</string>
     <string name="obra_data_contact_hint">Contato</string>
-    <string name="work_error_saldo_format">Formato inválido. Use 20.500,00</string>
+    <string name="work_error_saldo_format">Formato inválido. Use "20.500,00".</string>
 
     <!-- HomeFragment -->
     <string name="home_toolbar_title">Obra: %1$s</string>
@@ -187,10 +187,10 @@
     <string name="func_error_pagamento">Selecione a forma de pagamento.</string>
     <string name="func_added">Funcionário %1$s adicionado.</string>
     <string name="func_updated">Dados do %1$s alterado.</string>
-    <string name="func_reg_error_nome">Informe o nome (mín. %1$d caracteres)</string>
+    <string name="func_reg_error_nome">Informe o nome (mín. %1$d caracteres).</string>
     <string name="func_reg_error_salario">Informe um salário válido</string>
-    <string name="func_reg_error_role">Selecione ao menos uma função</string>
-    <string name="func_reg_error_pagamento">Selecione a forma de pagamento</string>
+    <string name="func_reg_error_role">Selecione ao menos uma função.</string>
+    <string name="func_reg_error_pagamento">Selecione a forma de pagamento.</string>
     <string name="func_toast_pix_copy">Pix copiado.</string>
     <string name="func_toast_pix_copy_empty">Sem pix adicionado.</string>
     <!-- Rótulo quando for tarefeiro -->
@@ -292,11 +292,15 @@
     <string name="nota_reg_error_value">Valor inválido.</string>
     <string name="nota_reg_error_required">Preencha: material, loja, data, pelo menos um tipo e valor &gt; 0.</string>
     <string name="nota_past_date_warning">Você selecionou uma data no passado.</string>
-    <string name="nota_reg_error_nome">Informe o nome do material</string>
+    <string name="nota_reg_error_nome">Informe o nome do material.</string>
     <string name="nota_reg_error_loja">Informe o nome da loja</string>
     <string name="nota_reg_error_data">Selecione a data</string>
-    <string name="nota_reg_error_valor">Informe um valor maior que zero</string>
-    <string name="nota_reg_error_tipo">Selecione ao menos um tipo</string>
+    <string name="nota_reg_error_valor">Informe um valor maior que zero.</string>
+    <string name="nota_reg_error_tipo">Selecione ao menos um tipo.</string>
+    <string name="nota_reg_type_hint_multi">Selecione mais de um tipo, se desejar.</string>
+    <string name="nota_reg_type_hint_multi_bold">
+        <![CDATA[Selecione mais de <b>um tipo</b>, se desejar.]]>
+    </string>
 
     <string name="nota_pintura">Pintura</string>
     <string name="nota_pedreiro">Pedreiro</string>
@@ -305,7 +309,7 @@
     <string name="nota_limpeza">Limpeza</string>
     <string name="nota_outro">Outro</string>
 
-    <string name="nota_photo_section_title">Foto da nota</string>
+    <string name="nota_photo_section_title">Foto da Nota</string>
     <string name="nota_btn_pick_image">Enviar</string>
     <string name="nota_btn_take_photo">Tirar foto</string>
     <string name="nota_btn_pick_image_replace">Editar</string>
@@ -321,14 +325,21 @@
     <string name="nota_photo_delete_confirm_title">Excluir foto?</string>
     <string name="nota_photo_delete_confirm_msg">A foto atual será removida da nota. Deseja continuar?</string>
 
-    <string name="nota_photo_added_toast">Foto adicionada à nota.</string>
-    <string name="nota_photo_replaced_toast">Foto substituída.</string>
-    <string name="nota_photo_removed_toast">Foto removida.</string>
+    <string name="nota_photo_added_toast">Foto selecionada. Toque em "Alterar" para salvar.</string>
+    <string name="nota_photo_replaced_toast">A foto será substituída. Toque em "Alterar" para salvar.</string>
+    <string name="nota_photo_removed_toast">A foto será removida. Toque em "Alterar" para confirmar.</string>
+    <string name="nota_photo_local_clear_info">Pré-visualização removida.</string>
 
     <string name="nota_photo_error_pick">Não foi possível carregar a imagem.</string>
     <string name="nota_photo_error_camera">Não foi possível capturar a foto.</string>
     <string name="nota_photo_error_permission_camera">Permissão da câmera negada.</string>
     <string name="nota_photo_error_permission_storage">Permissão de armazenamento negada.</string>
+
+    <!-- Foto: avisos de alteração pendente -->
+    <string name="nota_photo_pending_generic_toast">Foto selecionada. Toque em “%1$s” para confirmar.</string>
+    <string name="nota_photo_pending_delete_generic_toast">A foto será removida. Toque em “%1$s” para confirmar.</string>
+    <!-- Confirmação específica para substituir foto existente -->
+    <string name="nota_photo_confirm_replace_title">Deseja substituir esta foto da nota?</string>
 
     <!-- DetalheNotaFragment -->
     <string name="nota_detail_title">Nota %1$s</string>
@@ -396,10 +407,10 @@
     <!-- Feedback de salvamento -->
     <string name="generic_saving">Salvando…</string>
     <string name="etapa_error_date_order">A data de término deve ser igual ou posterior à data de início.</string>
-    <string name="etapa_reg_employee_helper">Separe os nomes com vírgula (,)</string>
-    <string name="etapa_error_title_required">Informe o título da etapa</string>
-    <string name="etapa_error_date_start_required">Selecione a data de início</string>
-    <string name="etapa_error_date_end_required">Selecione a data de término</string>
+    <string name="etapa_reg_employee_helper">Separe os nomes com vírgula (,).</string>
+    <string name="etapa_error_title_required">Informe o título da etapa.</string>
+    <string name="etapa_error_date_start_required">Selecione a data de início.</string>
+    <string name="etapa_error_date_end_required">Selecione a data de término.</string>
     <string name="etapa_save_error">Erro ao salvar o cronograma.</string>
     <string name="etapa_update_error">Erro ao atualizar o cronograma.</string>
     <string name="etapa_delete_error">Erro ao deletar o cronograma.</string>
@@ -434,7 +445,7 @@
     <string name="material_label_name">Nome</string>
     <string name="material_label_description">Descrição</string>
     <string name="material_label_quantity">Quantidade</string>
-    <string name="material_hint_name">Informe o nome do material</string>
+    <string name="material_hint_name">Informe o nome do material.</string>
     <string name="material_hint_description">Descrição (opcional)</string>
     <string name="material_hint_quantity">Informe a quantidade</string>
     <string name="material_save_error">Erro ao salvar material</string>
@@ -475,7 +486,7 @@
     <string name="obra_data_error_required">Preencha todos os campos obrigatórios antes de salvar.</string>
     <string name="resumo_button_update_balance">Atualizar Saldo</string>
     <string name="obra_data_balance_initial_label">Saldo Inicial</string>
-    <string name="obra_data_balance_updated_hint">Informe o novo saldo</string>
+    <string name="obra_data_balance_updated_hint">Informe o novo saldo.</string>
     <string name="obra_data_balance_with_aportes_label">Saldo total com aporte</string>
 
     <string name="obra_data_balance_adjust_hint">Valor de ajuste (positivo ou negativo)</string>

@@ -95,7 +95,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="20dp"
                 android:text="@string/nota_reg_type"
                 android:textAppearance="?attr/textAppearanceHeadline6" />
 
@@ -152,7 +152,8 @@
                 android:id="@+id/tvTipoError"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="@color/md_theme_light_error"
                 android:visibility="gone"
@@ -165,7 +166,7 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp">
+                android:layout_marginTop="22dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDataNota"
@@ -181,9 +182,10 @@
 
             <!-- Status -->
             <TextView
+                android:id="@+id/tvStatusTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="20dp"
                 android:text="@string/nota_reg_status"
                 android:textAppearance="?attr/textAppearanceHeadline6" />
 
@@ -235,9 +237,10 @@
 
             <!-- Seção: Foto da nota -->
             <TextView
+                android:id="@+id/tvPhotoTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="24dp"
                 android:text="@string/nota_photo_section_title"
                 android:textAppearance="?attr/textAppearanceHeadline6" />
 
@@ -246,7 +249,7 @@
                 android:id="@+id/rowPhotoButtons"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="16dp"
                 android:gravity="center"
                 android:orientation="horizontal">
 
