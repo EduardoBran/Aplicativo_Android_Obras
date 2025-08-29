@@ -19,70 +19,91 @@
         app:title="@string/imagens_title"
         app:titleCentered="true" />
 
-    <!-- Linha de ações (Enviar / Tirar foto) + título de filtro -->
-    <LinearLayout
-        android:id="@+id/headerFotos"
+    <!-- Cabeçalho em um container com respiro e leve separação visual -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/headerCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="1dp"
+        app:cardUseCompatPadding="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbarFotos">
+        app:layout_constraintTop_toBottomOf="@id/toolbarFotos"
+        app:strokeColor="?attr/colorOutlineVariant"
+        app:strokeWidth="1dp">
 
-        <!-- Título de Filtragem -->
-        <TextView
-            android:id="@+id/tvFiltroTitulo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            tools:text="Filtrando: Todas" />
-
-        <!-- Linha de botões -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEnviar"
-                style="@style/Widget.ObrasApp.Button"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/tvFiltroTitulo"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/imagens_btn_send"
-                android:textSize="16sp" />
+                android:gravity="center"
+                android:text="@string/imagens_filter_all"
+                android:textSize="22sp"
+                android:textStyle="bold" />
 
-            <Space
-                android:layout_width="12dp"
-                android:layout_height="1dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnTirarFoto"
-                style="@style/Widget.ObrasApp.Button"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/imagens_btn_take"
-                android:textSize="16sp" />
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEnviar"
+                    style="@style/Widget.ObrasApp.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/imagens_btn_send"
+                    android:textSize="16sp" />
+
+                <Space
+                    android:layout_width="12dp"
+                    android:layout_height="1dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTirarFoto"
+                    style="@style/Widget.ObrasApp.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/imagens_btn_take"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvEmptyImagens"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:text="@string/imagens_empty"
+                android:textSize="18sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
         </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
-        <!-- Texto vazio -->
-        <TextView
-            android:id="@+id/tvEmptyImagens"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center"
-            android:text="@string/imagens_empty"
-            android:textSize="22sp"
-            android:visibility="gone"
-            tools:visibility="gone" />
-    </LinearLayout>
+    <!-- Divisor entre header e grid -->
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/dividerHeader"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        app:dividerColor="?attr/colorOutlineVariant"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerCard" />
 
     <!-- GRID (agora é o container de rolagem principal) -->
     <androidx.recyclerview.widget.RecyclerView
@@ -91,12 +112,13 @@
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:paddingStart="16dp"
+        android:paddingTop="8dp"
         android:paddingEnd="16dp"
         android:paddingBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headerFotos"
+        app:layout_constraintTop_toBottomOf="@id/dividerHeader"
         tools:listitem="@layout/item_imagem" />
 
     <!-- Progress principal -->

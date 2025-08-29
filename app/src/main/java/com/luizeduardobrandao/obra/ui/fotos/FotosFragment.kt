@@ -5,8 +5,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.widget.PopupMenu
-import android.widget.RadioButton
-import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isGone
@@ -29,9 +27,11 @@ import com.luizeduardobrandao.obra.ui.fotos.adapter.ImagemAdapter
 import com.luizeduardobrandao.obra.utils.Constants
 import com.luizeduardobrandao.obra.utils.FileUtils
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import android.content.res.Configuration
+import android.util.TypedValue
+import androidx.core.view.updateLayoutParams
 
 @AndroidEntryPoint
 class FotosFragment : Fragment() {
@@ -110,6 +110,9 @@ class FotosFragment : Fragment() {
         }
     }
 
+    // util simples
+    private fun Int.dp() = (this * resources.displayMetrics.density).toInt()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -148,6 +151,7 @@ class FotosFragment : Fragment() {
         setupToolbar()
         setupRecycler()
         setupButtons()
+        applyLandscapeCompactUiIfNeeded()
         bindState()
 
         // back físico: comportamento padrão (apenas navigateUp)
@@ -207,7 +211,7 @@ class FotosFragment : Fragment() {
             addItemDecoration(
                 GridSpacingItemDecoration(
                     spanCount = span,
-                    spacingDp = 8,
+                    spacingDp = 10,
                     includeEdge = true
                 )
             )
@@ -227,6 +231,63 @@ class FotosFragment : Fragment() {
                 obraId = args.obraId,
                 imagemId = img.id
             )
+        )
+    }
+
+    private fun applyLandscapeCompactUiIfNeeded() = with(binding) {
+        val isLandscape =
+            resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        if (!isLandscape) return@with
+
+        // ↓ margens menores do card
+        headerCard.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            leftMargin = 12.dp()
+            rightMargin = 12.dp()
+            topMargin = 8.dp()
+        }
+
+        // ↓ padding interno menor (o LinearLayout é o filho 0 do card)
+        (headerCard.getChildAt(0) as? ViewGroup)?.setPadding(
+            12.dp(), // start
+            10.dp(), // top
+            12.dp(), // end
+            10.dp()  // bottom
+        )
+
+        // ↓ título menor
+        tvFiltroTitulo.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+
+        // ↓ botões mais baixos e com texto menor
+        // ↓ botões mais compactos (sem perder o texto)
+        (btnEnviar).apply {
+            // permitir encolher
+            minHeight = 0
+            insetTop = 0
+            insetBottom = 0
+            // texto menor e padding vertical reduzido
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            setPadding(paddingLeft, 6.dp(), paddingRight, 6.dp())
+            // NÃO force height aqui
+        }
+        (btnTirarFoto).apply {
+            minHeight = 0
+            insetTop = 0
+            insetBottom = 0
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            setPadding(paddingLeft, 6.dp(), paddingRight, 6.dp())
+        }
+
+        // ↓ divisor com respiro menor
+        dividerHeader.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            topMargin = 4.dp()
+        }
+
+        // ↓ menos padding no topo da lista para “grudar” no cabeçalho
+        rvImagens.setPadding(
+            rvImagens.paddingLeft,
+            4.dp(),
+            rvImagens.paddingRight,
+            rvImagens.paddingBottom
         )
     }
 
@@ -312,8 +373,6 @@ class FotosFragment : Fragment() {
 
     private fun showLoading(show: Boolean) = with(binding) {
         progressFotos.isVisible = show
-        // com RecyclerView como container, não precisamos esconder o header
-        headerFotos.isGone = show
         rvImagens.isGone = show
     }
 }
