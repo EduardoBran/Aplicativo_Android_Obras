@@ -31,7 +31,8 @@
                 android:hint="@string/login_email_hint"
                 android:inputType="textEmailAddress"
                 android:minHeight="60dp"
-                android:paddingVertical="16dp" />
+                android:paddingTop="22dp"
+                android:paddingBottom="16dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Senha -->
@@ -52,7 +53,8 @@
                 android:hint="@string/login_password_hint"
                 android:inputType="textPassword"
                 android:minHeight="60dp"
-                android:paddingVertical="16dp" />
+                android:paddingTop="22dp"
+                android:paddingBottom="16dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Botão Entrar -->

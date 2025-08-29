@@ -135,7 +135,8 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/work_new_button" />
+                        android:text="@string/work_new_button"
+                        android:textSize="16sp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnContinue"
@@ -145,7 +146,8 @@
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
                         android:enabled="false"
-                        android:text="@string/generic_continue" />
+                        android:text="@string/generic_continue"
+                        android:textSize="16sp" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -185,7 +187,8 @@
                             android:hint="@string/obra_data_client_hint"
                             android:maxLength="15"
                             android:minHeight="60dp"
-                            android:paddingVertical="16dp" />
+                            android:paddingTop="22dp"
+                            android:paddingBottom="16dp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- Endereço -->
@@ -203,7 +206,8 @@
                             android:drawablePadding="12dp"
                             android:hint="@string/obra_data_address_hint"
                             android:minHeight="60dp"
-                            android:paddingVertical="16dp" />
+                            android:paddingTop="22dp"
+                            android:paddingBottom="16dp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- Contato (telefone ou e-mail) -->
@@ -223,7 +227,8 @@
                             android:hint="@string/obra_data_contact_hint"
                             android:inputType="textEmailAddress|phone"
                             android:minHeight="60dp"
-                            android:paddingVertical="16dp" />
+                            android:paddingTop="22dp"
+                            android:paddingBottom="16dp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -242,7 +247,8 @@
                             android:drawablePadding="12dp"
                             android:hint="@string/obra_data_desc_hint"
                             android:minHeight="60dp"
-                            android:paddingVertical="16dp" />
+                            android:paddingTop="22dp"
+                            android:paddingBottom="16dp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- Saldo -->
@@ -262,7 +268,8 @@
                             android:hint="@string/obra_data_balance_hint"
                             android:inputType="numberDecimal|number"
                             android:minHeight="60dp"
-                            android:paddingVertical="16dp" />
+                            android:paddingTop="22dp"
+                            android:paddingBottom="16dp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- Datas -->
@@ -289,7 +296,8 @@
                                 android:focusable="false"
                                 android:hint="@string/obra_data_date_start_hint"
                                 android:minHeight="60dp"
-                                android:paddingVertical="16dp" />
+                                android:paddingTop="22dp"
+                                android:paddingBottom="16dp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <!-- Espaço entre os campos -->
@@ -313,7 +321,8 @@
                                 android:focusable="false"
                                 android:hint="@string/obra_data_date_end_hint"
                                 android:minHeight="60dp"
-                                android:paddingVertical="16dp" />
+                                android:paddingTop="22dp"
+                                android:paddingBottom="16dp" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
 
@@ -332,7 +341,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:enabled="false"
-                            android:text="@string/generic_save" />
+                            android:text="@string/generic_save"
+                            android:textSize="16sp" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnCancelWork"
@@ -341,7 +351,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
                             android:layout_weight="1"
-                            android:text="@string/generic_back" />
+                            android:text="@string/generic_back"
+                            android:textSize="16sp" />
                     </LinearLayout>
 
                     <ProgressBar
@@ -352,7 +363,7 @@
                         android:layout_gravity="center"
                         android:layout_marginTop="16dp"
                         android:visibility="gone"
-                        tools:visibility="visible" />
+                        tools:visibility="gone" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

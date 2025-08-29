@@ -51,7 +51,8 @@
                     android:drawablePadding="12dp"
                     android:hint="@string/etapa_reg_name_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Descrição (opcional) -->
@@ -69,7 +70,8 @@
                     android:drawablePadding="12dp"
                     android:hint="@string/etapa_reg_desc_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Funcionários (opcional) -->
@@ -90,7 +92,8 @@
                     android:drawablePadding="12dp"
                     android:hint="@string/etapa_reg_employee_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Data de Início -->
@@ -110,7 +113,8 @@
                     android:focusable="false"
                     android:hint="@string/etapa_reg_date_start_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Data de Término -->
@@ -130,7 +134,8 @@
                     android:focusable="false"
                     android:hint="@string/etapa_reg_date_end_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Status -->

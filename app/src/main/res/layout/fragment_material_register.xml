@@ -51,7 +51,8 @@
                     android:drawablePadding="12dp"
                     android:hint="@string/material_name_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Descrição (opcional) -->
@@ -70,7 +71,8 @@
                     android:drawablePadding="12dp"
                     android:hint="@string/material_hint_description"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Quantidade (– / número / +) -->

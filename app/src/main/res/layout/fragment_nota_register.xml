@@ -51,7 +51,8 @@
                     android:drawablePadding="12dp"
                     android:hint="@string/nota_reg_material_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Descrição (opcional) -->
@@ -69,7 +70,8 @@
                     android:drawablePadding="12dp"
                     android:hint="@string/nota_reg_desc_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Nome da Loja -->
@@ -88,7 +90,8 @@
                     android:drawablePadding="12dp"
                     android:hint="@string/nota_reg_store_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Tipo (CheckBoxes) -->
@@ -177,7 +180,8 @@
                     android:focusable="false"
                     android:hint="@string/nota_reg_date_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Status -->
@@ -232,7 +236,8 @@
                     android:hint="@string/nota_reg_value_hint"
                     android:inputType="numberDecimal|number"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Seção: Foto da nota -->

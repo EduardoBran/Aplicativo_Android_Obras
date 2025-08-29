@@ -51,7 +51,8 @@
                     android:drawablePadding="12dp"
                     android:hint="@string/func_reg_name_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Função -->
@@ -157,7 +158,8 @@
                     android:hint="@string/func_reg_salary_hint"
                     android:inputType="numberDecimal|number"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Forma de Pagamento -->
@@ -251,7 +253,8 @@
                     android:drawablePadding="12dp"
                     android:hint="@string/func_reg_pix_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Dias trabalhados -->
@@ -357,7 +360,8 @@
                         android:hint="@string/pagamento"
                         android:inputType="numberDecimal|number"
                         android:minHeight="60dp"
-                        android:paddingVertical="16dp" />
+                        android:paddingTop="22dp"
+                        android:paddingBottom="16dp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.button.MaterialButton
@@ -571,9 +575,12 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:digits="0123456789.,"
+                        android:drawableStart="@drawable/ic_money"
+                        android:drawablePadding="12dp"
                         android:inputType="numberDecimal|number"
                         android:minHeight="60dp"
-                        android:paddingVertical="16dp" />
+                        android:paddingTop="22dp"
+                        android:paddingBottom="16dp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Data (abre DatePicker ao tocar) -->
@@ -590,9 +597,12 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
+                        android:drawableStart="@drawable/ic_schedule"
+                        android:drawablePadding="12dp"
                         android:focusable="false"
                         android:minHeight="60dp"
-                        android:paddingVertical="16dp"
+                        android:paddingTop="22dp"
+                        android:paddingBottom="16dp"
                         android:textStyle="bold" />
                 </com.google.android.material.textfield.TextInputLayout>
 

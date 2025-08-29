@@ -55,7 +55,8 @@
                     android:drawablePadding="12dp"
                     android:hint="@string/register_name_hint"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- E‑mail (ícone ic_login) -->
@@ -74,7 +75,8 @@
                     android:hint="@string/register_email_hint"
                     android:inputType="textEmailAddress"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Senha (ícone ic_pass) -->
@@ -93,7 +95,8 @@
                     android:hint="@string/register_password_hint"
                     android:inputType="textPassword"
                     android:minHeight="60dp"
-                    android:paddingVertical="16dp" />
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Botão Cadastrar -->
