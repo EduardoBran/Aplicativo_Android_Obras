@@ -33,6 +33,9 @@ import java.text.NumberFormat
 import androidx.activity.addCallback
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
+import com.luizeduardobrandao.obra.ui.extensions.bindScrollToBottomFabBehavior
+import com.luizeduardobrandao.obra.ui.extensions.isAtBottom
+import com.luizeduardobrandao.obra.ui.extensions.updateFabVisibilityAnimated
 
 @AndroidEntryPoint
 class NotaRegisterFragment : Fragment() {
@@ -171,8 +174,17 @@ class NotaRegisterFragment : Fragment() {
                 updatePhotoUiFromState()
             }
 
+            // Floating Bottom Rolagem – mostra só quando: edição && !salvando && !no final
+            bindScrollToBottomFabBehavior(
+                fab = binding.fabScrollDown,
+                scrollView = binding.notaRegScroll,
+                isEditProvider = { isEdit },
+                isSavingProvider = { isSaving }
+            )
+
             collectOperationState()
             validateForm()
+            reevalScrollFab()
         }
         // Intercepta o botão físico/gesto de voltar
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
@@ -258,7 +270,6 @@ class NotaRegisterFragment : Fragment() {
         }
 
         btnSaveNota.isEnabled = false
-        // progress(true)
     }
 
     /* ────────────────────── State collector ────────────────────── */
@@ -422,6 +433,11 @@ class NotaRegisterFragment : Fragment() {
         notaRegScroll.isEnabled = !saving
         btnSaveNota.isEnabled = if (saving) false else !shouldCloseAfterSave
 
+        // esconde floating bottom rolagem
+        fabScrollDown.updateFabVisibilityAnimated(
+            visible = isEdit && !saving && !notaRegScroll.isAtBottom()
+        )
+
         // o indicador abaixo do botão aparece só durante salvamento
         progressSaveNota.isVisible = saving
 
@@ -441,6 +457,8 @@ class NotaRegisterFragment : Fragment() {
             progressSaveNota.post {
                 notaRegScroll.smoothScrollTo(0, progressSaveNota.bottom)
             }
+
+            reevalScrollFab()
         }
     }
 
@@ -490,6 +508,7 @@ class NotaRegisterFragment : Fragment() {
                 Toast.makeText(requireContext(), getString(toastRes), Toast.LENGTH_SHORT).show()
 
                 updatePhotoUiFromState()
+                reevalScrollFab()
 
                 // NOVO: após confirmar a foto, rola automaticamente até o final da página
                 binding.notaRegScroll.post {
@@ -529,6 +548,7 @@ class NotaRegisterFragment : Fragment() {
                     // Some imediatamente com o overlay e reseta rótulos/visibilidade
                     hidePhotoPreviewOverlay()
                     updatePhotoUiFromState()
+                    reevalScrollFab()
 
                 } else if (isEdit && hasRemotePhoto) {
                     // Edição: dispara exclusão remota e atualiza UI de forma otimista
@@ -619,7 +639,7 @@ class NotaRegisterFragment : Fragment() {
         binding.photoPreviewOverlay.isVisible = false
     }
 
-    // ---------------- Verificação de Edição -----------------
+    /* ────────────────────── Verificação de Edição ────────────────────── */
 
     // Botão Voltar
     private fun handleBackPress() {
@@ -683,8 +703,29 @@ class NotaRegisterFragment : Fragment() {
                 tiposAtual != tiposOrig
     }
 
+    // “Recheck” útil para mudanças que alteram a altura/posição do conteúdo
+    private fun reevalScrollFab() {
+        binding.notaRegScroll.post {
+            binding.fabScrollDown.updateFabVisibilityAnimated(
+                isEdit && !isSaving && !binding.notaRegScroll.isAtBottom()
+            )
+        }
+    }
+
     override fun onDestroyView() {
-        super.onDestroyView()
+        // 1) Remova listeners para evitar leaks
+        binding.notaRegScroll.setOnScrollChangeListener(
+            null as androidx.core.widget.NestedScrollView.OnScrollChangeListener?
+        )
+        binding.fabScrollDown.setOnClickListener(null)
+
+        // (opcional) garanta que o overlay esteja fechado
+        binding.photoPreviewOverlay.visibility = View.GONE
+
+        // 2) Libere o binding
         _binding = null
+
+        // 3) Chame o super no final
+        super.onDestroyView()
     }
 }

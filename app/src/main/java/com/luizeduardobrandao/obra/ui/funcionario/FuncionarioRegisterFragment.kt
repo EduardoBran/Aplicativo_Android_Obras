@@ -37,6 +37,10 @@ import java.text.NumberFormat
 import java.util.Locale
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
+import androidx.core.widget.NestedScrollView
+import com.luizeduardobrandao.obra.ui.extensions.bindScrollToBottomFabBehavior
+import com.luizeduardobrandao.obra.ui.extensions.isAtBottom
+import com.luizeduardobrandao.obra.ui.extensions.updateFabVisibilityAnimated
 
 @AndroidEntryPoint
 class FuncionarioRegisterFragment : Fragment() {
@@ -88,6 +92,21 @@ class FuncionarioRegisterFragment : Fragment() {
         binding.toolbarFuncReg.setNavigationOnClickListener { handleBackPress() }
 
         if (isEdit) prefillFields()
+
+        // FAB de rolagem – visível só quando: edição && !salvando && !no final
+        bindScrollToBottomFabBehavior(
+            fab = binding.fabScrollDown,
+            scrollView = binding.funcRegScroll,
+            isEditProvider = { isEdit },
+            isSavingProvider = { isSaving }
+        )
+
+        // Reavalia a visibilidade após primeiro layout (caso a tela já abra no fim)
+        binding.funcRegScroll.post {
+            binding.fabScrollDown.updateFabVisibilityAnimated(
+                isEdit && !isSaving && !binding.funcRegScroll.isAtBottom()
+            )
+        }
 
         binding.btnPlus.setOnClickListener { updateDias(+1) }
         binding.btnMinus.setOnClickListener { updateDias(-1) }
@@ -258,6 +277,7 @@ class FuncionarioRegisterFragment : Fragment() {
                             updateDiasLabel()
                         }
                         validateForm()
+                        reevalScrollFab()
                     }
             }
         }
@@ -400,6 +420,9 @@ class FuncionarioRegisterFragment : Fragment() {
             getString(R.string.historico_pagamento)
         else
             getString(R.string.historico_pagamentos)
+
+        // Reavaliar FAB após atualizar lista/altura
+        reevalScrollFab()
     }
 
     private fun setupExpandableHistorico() = with(binding) {
@@ -417,7 +440,10 @@ class FuncionarioRegisterFragment : Fragment() {
             content.isVisible = expanded
             arrow.animate().rotation(if (expanded) 180f else 0f).setDuration(180).start()
         }
-        header.setOnClickListener { applyState(!content.isVisible, animate = true) }
+        header.setOnClickListener {
+            applyState(!content.isVisible, animate = true)
+            reevalScrollFab()
+        }
     }
 
     /* ───────────────────────── Adicionar pagamento ───────────────────────── */
@@ -654,8 +680,12 @@ class FuncionarioRegisterFragment : Fragment() {
         getAllFuncaoCheckboxes().filter { it.isChecked }.map { it.text.toString() }
 
     private fun getAllFuncaoCheckboxes(): List<MaterialCheckBox> =
-        (0 until binding.rgFuncao.childCount).mapNotNull { binding.rgFuncao.getChildAt(it) as? MaterialCheckBox } +
-                (0 until binding.rgFuncao2.childCount).mapNotNull { binding.rgFuncao2.getChildAt(it) as? MaterialCheckBox }
+        (0 until binding.rgFuncao.childCount).mapNotNull {
+            binding.rgFuncao.getChildAt(it) as? MaterialCheckBox
+        } +
+                (0 until binding.rgFuncao2.childCount).mapNotNull {
+                    binding.rgFuncao2.getChildAt(it) as? MaterialCheckBox
+                }
 
     private fun updateDiasLabel() = with(binding) {
         val res = when {
@@ -690,6 +720,11 @@ class FuncionarioRegisterFragment : Fragment() {
         val saving = show && isSaving
         funcRegScroll.isEnabled = !saving
         btnSaveFuncionario.isEnabled = !saving
+
+        // Controla FAB (some enquanto salva e quando está no fim)
+        fabScrollDown.updateFabVisibilityAnimated(
+            visible = isEdit && !saving && !funcRegScroll.isAtBottom()
+        )
 
         progressSaveFuncionario.isVisible = saving
 
@@ -776,8 +811,23 @@ class FuncionarioRegisterFragment : Fragment() {
                 pagamentosAlterados                   // <--- add aqui no modo edição
     }
 
+    // “Recheck” útil para mudanças que alteram a altura/posição do conteúdo
+    private fun reevalScrollFab() {
+        binding.funcRegScroll.post {
+            binding.fabScrollDown.updateFabVisibilityAnimated(
+                isEdit && !isSaving && !binding.funcRegScroll.isAtBottom()
+            )
+        }
+    }
+
     override fun onDestroyView() {
-        super.onDestroyView()
+        // Remover listeners do scroll e do FAB
+        binding.funcRegScroll.setOnScrollChangeListener(
+            null as NestedScrollView.OnScrollChangeListener?
+        )
+        binding.fabScrollDown.setOnClickListener(null)
+
         _binding = null
+        super.onDestroyView()
     }
 }

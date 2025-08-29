@@ -111,4 +111,7 @@
 
     <color name="link_text">#2962FF</color>
 
+    <color name="fab_scroll_bg">#DBDBDB</color>         <!-- cinza 300 -->
+    <color name="fab_scroll_icon_tint">#282828</color>  <!-- cinza 700 -->
+
 </resources>

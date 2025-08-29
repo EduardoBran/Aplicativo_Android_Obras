@@ -284,7 +284,7 @@
                 app:cardUseCompatPadding="true"
                 app:strokeColor="?attr/colorOutline"
                 app:strokeWidth="1dp"
-                tools:visibility="visible">
+                tools:visibility="gone">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
@@ -349,6 +349,21 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <!-- FAB: rolar para o final (aparece só em modo edição) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabScrollDown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:contentDescription="@string/scroll_to_bottom"
+        android:src="@drawable/ic_arrow_downward"
+        android:visibility="gone"
+        app:backgroundTint="@color/fab_scroll_bg"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@color/fab_scroll_icon_tint"
+        tools:visibility="visible" />
+
     <!-- Overlay de pré-visualização: cobre a tela; fecha ao tocar fora ou no X -->
     <FrameLayout
         android:id="@+id/photoPreviewOverlay"
@@ -362,7 +377,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible">
+        tools:visibility="gone">
 
         <!-- Card central com a imagem -->
         <com.google.android.material.card.MaterialCardView

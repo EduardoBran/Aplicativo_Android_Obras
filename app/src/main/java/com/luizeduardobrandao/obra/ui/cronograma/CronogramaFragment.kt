@@ -27,14 +27,17 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class CronogramaFragment : Fragment(), EtapaActions {
 
-    /*---------- boilerplate ----------*/
+    // boilerplate
     private var _binding: FragmentCronogramaBinding? = null
     private val binding get() = _binding!!
     private val args: CronogramaFragmentArgs by navArgs()
     private val viewModel: CronogramaViewModel by viewModels()
-    /*---------------------------------*/
 
+    // adapter
     private lateinit var pagerAdapter: CronogramaPagerAdapter
+
+    // controle do fab
+    private var pageChangeCallback: ViewPager2.OnPageChangeCallback? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -64,22 +67,20 @@ class CronogramaFragment : Fragment(), EtapaActions {
                 }
             }.attach()
 
+            // controla visibilidade do FAB (exibe nas 3 abas)
+            fun updateFab(@Suppress("UNUSED_PARAMETER") pos: Int) {
+                fabNewEtapa.show()
+            }
+            pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) = updateFab(position)
+            }.also { pagerCronograma.registerOnPageChangeCallback(it) }
+
+            // posição inicial + garante FAB visível no primeiro draw
             pagerCronograma.post {
                 val target = args.startTab.coerceIn(0, 2)
                 pagerCronograma.currentItem = target
+                updateFab(target)
             }
-
-            // controla visibilidade do FAB (exibe nas 3 abas)
-            fun updateFab(@Suppress("UNUSED_PARAMETER") pos: Int) {
-                fabNewEtapa.visibility = View.VISIBLE
-            }
-            pagerCronograma.registerOnPageChangeCallback(
-                object : ViewPager2.OnPageChangeCallback() {
-                    override fun onPageSelected(position: Int) {
-                        updateFab(position)
-                    }
-                }
-            )
 
             // clique do FAB: cria nova etapa
             fabNewEtapa.setOnClickListener {
@@ -107,6 +108,12 @@ class CronogramaFragment : Fragment(), EtapaActions {
         }
 
         viewModel.loadEtapas()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // se a view ainda existe, reexibe com animação
+        _binding?.fabNewEtapa?.show()
     }
 
     /*────────────────────────  EtapaActions (callbacks do Adapter) ────────────────────────*/
@@ -144,6 +151,12 @@ class CronogramaFragment : Fragment(), EtapaActions {
     }
 
     override fun onDestroyView() {
-        super.onDestroyView(); _binding = null
+        // desregistrar callback e soltar adapter
+        pageChangeCallback?.let { binding.pagerCronograma.unregisterOnPageChangeCallback(it) }
+        pageChangeCallback = null
+        binding.pagerCronograma.adapter = null
+
+        _binding = null
+        super.onDestroyView()
     }
 }

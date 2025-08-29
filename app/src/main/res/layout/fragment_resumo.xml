@@ -538,10 +538,10 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:background="@color/totalOverall_bg"
+                                android:gravity="center_vertical"
                                 android:orientation="horizontal"
                                 android:paddingHorizontal="12dp"
-                                android:paddingVertical="10dp"
-                                android:gravity="center_vertical">
+                                android:paddingVertical="10dp">
 
                                 <!-- Texto único: "Total geral: R$ XXX" -->
                                 <TextView
@@ -1289,4 +1289,17 @@
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- FAB: rolar até o final do Resumo -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabScrollDownResumo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:contentDescription="@string/scroll_to_bottom"
+        android:src="@drawable/ic_arrow_downward"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible" />
 </androidx.constraintlayout.widget.ConstraintLayout>

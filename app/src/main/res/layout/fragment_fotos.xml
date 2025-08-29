@@ -134,4 +134,16 @@
         app:layout_constraintTop_toBottomOf="@id/toolbarFotos"
         tools:visibility="visible" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabScrollDown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="@string/scroll_to_bottom"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/ic_arrow_downward"
+        app:useCompatPadding="true" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

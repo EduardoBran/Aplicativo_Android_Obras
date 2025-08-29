@@ -23,6 +23,9 @@ import com.luizeduardobrandao.obra.data.model.Imagem
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentFotosBinding
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.ui.extensions.bindScrollToBottomFabForRecycler
+import com.luizeduardobrandao.obra.ui.extensions.RecyclerFabBindings
+import com.luizeduardobrandao.obra.ui.extensions.updateFabVisibilityAnimated
 import com.luizeduardobrandao.obra.ui.fotos.adapter.ImagemAdapter
 import com.luizeduardobrandao.obra.utils.Constants
 import com.luizeduardobrandao.obra.utils.FileUtils
@@ -45,6 +48,9 @@ class FotosFragment : Fragment() {
     private lateinit var imagesAdapter: ImagemAdapter
 
     private var suppressNextErrorAfterDelete = false
+
+    // Comportamento do FAB
+    private var rvFabBindings: RecyclerFabBindings? = null
 
     // Foto temporária capturada via câmera
     private var tempCameraUri: Uri? = null
@@ -150,6 +156,12 @@ class FotosFragment : Fragment() {
 
         setupToolbar()
         setupRecycler()
+
+        rvFabBindings = bindScrollToBottomFabForRecycler(
+            fab = binding.fabScrollDown,
+            recyclerView = binding.rvImagens
+        )
+
         setupButtons()
         applyLandscapeCompactUiIfNeeded()
         bindState()
@@ -158,11 +170,6 @@ class FotosFragment : Fragment() {
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
             findNavController().navigateUp()
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 
     /* -------------------- Toolbar & filtro -------------------- */
@@ -374,6 +381,21 @@ class FotosFragment : Fragment() {
     private fun showLoading(show: Boolean) = with(binding) {
         progressFotos.isVisible = show
         rvImagens.isGone = show
+        binding.fabScrollDown.updateFabVisibilityAnimated(!show) // esconde o FAB
+    }
+
+    override fun onDestroyView() {
+        // Remover listeners do FAB/Recycler para evitar leaks
+        rvFabBindings?.let { (gl, sl, obs) ->
+            binding.rvImagens.removeOnScrollListener(sl)
+            binding.rvImagens.viewTreeObserver.removeOnGlobalLayoutListener(gl)
+            obs?.let { binding.rvImagens.adapter?.unregisterAdapterDataObserver(it) }
+        }
+        rvFabBindings = null
+        binding.fabScrollDown.setOnClickListener(null)
+
+        super.onDestroyView()
+        _binding = null
     }
 }
 

@@ -31,6 +31,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
+import android.view.ViewTreeObserver
+import com.luizeduardobrandao.obra.ui.extensions.bindScrollToBottomFabForResumo
 
 @AndroidEntryPoint
 class ResumoFragment : Fragment() {
@@ -60,6 +62,9 @@ class ResumoFragment : Fragment() {
     private var isMatExpanded = false
     private var isSaldoExpanded = false
     private var isAportesExpanded = false
+
+    // Comportamento do FAB
+    private var resumoFabGlobalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -132,6 +137,12 @@ class ResumoFragment : Fragment() {
             ivArrowAportes,
             isAportesExpanded
         ) { isAportesExpanded = it }
+
+        // FAB de rolagem do Resumo – visível somente quando houver conteúdo rolável
+        resumoFabGlobalLayoutListener = bindScrollToBottomFabForResumo(
+            fab = binding.fabScrollDownResumo,
+            scrollView = binding.scrollResumo
+        )
 
         // ── Funcionários → ResumoFuncionarioFragment
         btnAbrirFuncionarios.setOnClickListener {
@@ -590,6 +601,16 @@ class ResumoFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        // Remover listeners do FAB/scroll para evitar leaks
+        binding.scrollResumo.setOnScrollChangeListener(
+            null as androidx.core.widget.NestedScrollView.OnScrollChangeListener?
+        )
+        binding.fabScrollDownResumo.setOnClickListener(null)
+        resumoFabGlobalLayoutListener?.let {
+            binding.scrollResumo.viewTreeObserver.removeOnGlobalLayoutListener(it)
+            resumoFabGlobalLayoutListener = null
+        }
+
         super.onDestroyView()
         _binding = null
     }
