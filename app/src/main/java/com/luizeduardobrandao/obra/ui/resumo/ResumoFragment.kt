@@ -33,6 +33,7 @@ import java.text.NumberFormat
 import java.util.Locale
 import android.view.ViewTreeObserver
 import com.luizeduardobrandao.obra.ui.extensions.bindScrollToBottomFabForResumo
+import androidx.core.content.ContextCompat
 
 @AndroidEntryPoint
 class ResumoFragment : Fragment() {
@@ -306,16 +307,34 @@ class ResumoFragment : Fragment() {
                             aporteAdapter.submitList(ordenados)
                             tvAportesEmpty.isVisible = ordenados.isEmpty()
                             // Títulos com plural
-                            binding.tvAportesHeader.text = resources.getQuantityString(
-                                R.plurals.resumo_aportes_header_plural,
-                                ordenados.size
-                            )
+                            binding.tvAportesHeader.text = if (ordenados.size == 1)
+                                getString(R.string.aporte_singular)
+                            else
+                                getString(R.string.aporte_plural)
+                            binding.tvAportesHeaderTitle.text = if (ordenados.size == 1)
+                                getString(R.string.aporte_singular)
+                            else
+                                getString(R.string.aporte_plural)
                             binding.tvSaldoAjustadoLabel.text = resources.getQuantityString(
                                 R.plurals.resumo_adjusted_balance_header_plural,
                                 res.aportes.size
                             )
 
                             tvSaldoRestanteResumo.text = formatMoneyBR(res.saldoRestante)
+
+                            // vermelho se negativo, cor padrão do tema caso contrário
+                            val normalColor = ContextCompat.getColor(
+                                requireContext(),
+                                R.color.md_theme_light_onSurfaceVariant
+                            )
+                            val errorColor = ContextCompat.getColor(
+                                requireContext(),
+                                R.color.md_theme_light_error
+                            )
+
+                            tvSaldoRestanteResumo.setTextColor(
+                                if (res.saldoRestante < 0) errorColor else normalColor
+                            )
 
 
                             // TOAST quando um novo aporte é adicionado (evita disparar no 1º load)
@@ -398,7 +417,8 @@ class ResumoFragment : Fragment() {
                                 it.status.equals("A Receber", true) ||
                                         it.status.equals("A Pagar", true)
                             }
-                            val paidList = list.filter { it.status.equals("Pago", true) }
+                            val paidList =
+                                list.filter { it.status.equals("Pago", true) }
 
                             val dueCount = dueList.size
                             val paidCount = paidList.size

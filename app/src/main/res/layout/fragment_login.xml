@@ -64,7 +64,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="@string/login_button" />
+            android:text="@string/login_button"
+            android:textSize="20sp" />
 
         <!-- ProgressBar (invisível por padrão) -->
         <ProgressBar
@@ -93,6 +94,7 @@
                 android:gravity="start"
                 android:text="@string/login_create_account"
                 android:textColor="@color/md_theme_light_primary"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -105,6 +107,7 @@
                 android:gravity="end"
                 android:text="@string/login_forgot_password"
                 android:textColor="@color/md_theme_light_primary"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
         </LinearLayout>

@@ -613,11 +613,8 @@
     <string name="aporte_value_error">Informe um valor maior que zero.</string>
     <string name="aporte_date_error">Selecione a data do aporte.</string>
     <string name="resumo_aportes_header">Aporte</string>
-
-    <plurals name="resumo_aportes_header_plural">
-        <item quantity="one">Aporte</item>
-        <item quantity="other">Aportes</item>
-    </plurals>
+    <string name="aporte_singular">Aporte</string>
+    <string name="aporte_plural">Aportes</string>
 
     <plurals name="resumo_adjusted_balance_header_plural">
         <item quantity="one">Saldo com Aporte</item>
