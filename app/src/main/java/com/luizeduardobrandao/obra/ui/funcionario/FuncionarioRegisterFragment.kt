@@ -248,6 +248,11 @@ class FuncionarioRegisterFragment : Fragment() {
                     .collect { func ->
                         func ?: return@collect
                         funcionarioOriginal = func
+
+                        // 🔹 Define o título da Toolbar no modo edição: "Editar [Nome do Funcionário]"
+                        binding.toolbarFuncReg.title =
+                            getString(R.string.func_reg_title_edit, func.nome)
+
                         binding.apply {
                             etNomeFunc.setText(func.nome)
                             val nf =

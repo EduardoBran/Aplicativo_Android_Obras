@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="login_logo_top_space">4dp</dimen>
+    <dimen name="login_logo_bottom_space">16dp</dimen>
+    <dimen name="login_logo_max_height">148dp</dimen>
+    <dimen name="login_hero_stroke">2dp</dimen>
+    <dimen name="login_hero_inner_padding">8dp</dimen>
+</resources>

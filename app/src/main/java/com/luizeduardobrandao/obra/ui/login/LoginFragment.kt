@@ -25,6 +25,8 @@ import android.net.ConnectivityManager
 import com.luizeduardobrandao.obra.utils.isConnectedToInternet
 import com.luizeduardobrandao.obra.utils.registerConnectivityCallback
 import com.luizeduardobrandao.obra.utils.unregisterConnectivityCallback
+import androidx.core.view.doOnPreDraw
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
@@ -33,6 +35,9 @@ class LoginFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: LoginViewModel by viewModels()
+
+    // Animação Imagem
+    private var hasPlayedEnterAnim = false
 
     // Conexão a internet
     private var netCallback: ConnectivityManager.NetworkCallback? = null
@@ -86,8 +91,22 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        hasPlayedEnterAnim = savedInstanceState?.getBoolean("hasPlayedEnterAnim") ?: false
+        if (!hasPlayedEnterAnim) {
+            // roda depois do layout medir as views (evita flicker)
+            view.doOnPreDraw {
+                runEnterAnimation()
+                hasPlayedEnterAnim = true
+            }
+        }
+
         setupListeners()  // cliques e text-changes
         collectUiState()  // estados do ViewModel
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean("hasPlayedEnterAnim", hasPlayedEnterAnim)
     }
 
     override fun onDestroyView() {
@@ -152,6 +171,8 @@ class LoginFragment : Fragment() {
     private fun showLoading() = with(binding) {
         progressLogin.isVisible = true
         btnLogin.isEnabled = false                 // evita múltiplos cliques
+        tvCreateAccount.isGone = true
+        tvForgotPassword.isGone = true
     }
 
     private fun showError(message: String) {
@@ -173,5 +194,38 @@ class LoginFragment : Fragment() {
         // direção gerada pelo Safe-Args
         val directions = LoginFragmentDirections.actionLoginToWork()
         findNavController().navigate(directions)
+    }
+
+    // Fundo de Animação para Imagem
+    private fun runEnterAnimation() = with(binding) {
+        val interp = FastOutSlowInInterpolator()
+
+        // deslocamento leve em dp
+        val dy = 16f * resources.displayMetrics.density
+
+        // estado inicial (antes de aparecer)
+        imgLogin.alpha = 0f
+        imgLogin.translationY = -dy
+
+        formContainer.alpha = 0f
+        formContainer.translationY = dy
+
+        // anima "hero" (imagem)
+        imgLogin.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(220L)
+            .setStartDelay(40L)
+            .setInterpolator(interp)
+            .start()
+
+        // anima formulário (campos + botão + links)
+        formContainer.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(240L)
+            .setStartDelay(80L)
+            .setInterpolator(interp)
+            .start()
     }
 }

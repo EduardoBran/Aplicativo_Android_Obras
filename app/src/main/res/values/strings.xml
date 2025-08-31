@@ -1,6 +1,6 @@
 <resources>
 
-    <string name="app_name">Obra</string>
+    <string name="app_name">Gestão Obra</string>
 
     <!-- GERAL-->
     <string name="generic_save">Salvar</string>
@@ -19,6 +19,8 @@
     <string name="unsaved_confirm_msg">Nenhuma alteração será salva. Quer mesmo retornar?</string>
     <string name="loading">Carregando</string>
     <string name="scroll_to_bottom">Rolar para o final</string>
+    <string name="cd_toggle_password_visibility">Mostrar ou ocultar senha</string>
+    <string name="cd_login_illustration">Ilustração de login</string>
 
 
     <!-- SnackbarFragment -->
@@ -165,6 +167,7 @@
 
     <!-- FuncionarioRegisterFragment -->
     <string name="func_reg_title">Registro de Funcionários</string>
+    <string name="func_reg_title_edit">Editar: %1$s</string>
     <string name="func_reg_name_hint">Nome do Funcionário</string>
     <string name="func_reg_salary_hint">Salário</string>
     <string name="func_reg_pix_hint">Pix (opcional)</string>

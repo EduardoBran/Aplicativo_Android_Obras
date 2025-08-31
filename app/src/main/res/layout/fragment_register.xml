@@ -53,6 +53,7 @@
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_person"
                     android:drawablePadding="12dp"
+                    android:drawableTint="@color/md_theme_light_onSurfaceVariant"
                     android:hint="@string/register_name_hint"
                     android:minHeight="60dp"
                     android:paddingTop="22dp"
@@ -72,6 +73,7 @@
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_login"
                     android:drawablePadding="12dp"
+                    android:drawableTint="@color/md_theme_light_onSurfaceVariant"
                     android:hint="@string/register_email_hint"
                     android:inputType="textEmailAddress"
                     android:minHeight="60dp"
@@ -84,7 +86,10 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp">
+                android:layout_marginTop="16dp"
+                app:endIconContentDescription="@string/cd_toggle_password_visibility"
+                app:endIconMode="password_toggle"
+                app:endIconTint="@color/md_theme_light_onSurface">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPasswordReg"
@@ -92,6 +97,7 @@
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_pass"
                     android:drawablePadding="12dp"
+                    android:drawableTint="@color/md_theme_light_onSurfaceVariant"
                     android:hint="@string/register_password_hint"
                     android:inputType="textPassword"
                     android:minHeight="60dp"

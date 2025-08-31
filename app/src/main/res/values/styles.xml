@@ -18,6 +18,9 @@
         <item name="shapeAppearanceSmallComponent">@style/App.Shape.Small</item>
         <item name="shapeAppearanceMediumComponent">@style/App.Shape.Medium</item>
         <item name="shapeAppearanceLargeComponent">@style/App.Shape.Large</item>
+
+        <item name="fontFamily">@font/inter_family</item>
+        <item name="android:fontFamily">@font/inter_family</item>
     </style>
 
 
@@ -48,6 +51,38 @@
         <item name="android:textColor">@color/md_theme_light_primary</item>
     </style>
 
+    <!-- Buttons Login -->
+    <!-- Tipografia do texto do botão Entrar -->
+    <style name="TextAppearance.ObrasApp.ButtonLogin" parent="TextAppearance.Material3.LabelLarge">
+        <!-- pese 600 bonito para CTA -->
+        <item name="fontFamily">@font/inter_semibold</item>
+        <item name="android:fontFamily">@font/inter_bold</item>
+
+        <!-- tracking leve melhora a leitura -->
+        <item name="android:letterSpacing">0.08</item>
+    </style>
+
+    <!-- Estilo do MaterialButton do login -->
+    <style name="Widget.ObrasApp.ButtonLogin" parent="Widget.Material3.Button">
+        <item name="android:background">@drawable/selector_button_primary</item>
+        <item name="android:textColor">@color/md_theme_light_onPrimary</item>
+
+        <!-- aplique a aparência nas DUAS chaves -->
+        <item name="android:textAppearance">@style/TextAppearance.ObrasApp.ButtonLogin</item>
+
+        <!-- redundância útil para alguns devices -->
+        <item name="fontFamily">@font/inter_bold</item>
+        <item name="android:fontFamily">@font/inter_bold</item>
+
+        <item name="textAllCaps">false</item>
+        <item name="android:textAllCaps">false</item>
+
+        <item name="android:insetLeft">16dp</item>
+        <item name="android:insetRight">16dp</item>
+        <item name="android:insetTop">8dp</item>
+        <item name="android:insetBottom">8dp</item>
+    </style>
+
 
     <!-- TextInput -->
     <style name="Widget.ObrasApp.TextInputLayout"
@@ -68,14 +103,20 @@
 
     <style name="TextAppearance.ObrasApp.Helper" parent="TextAppearance.Material3.BodySmall">
         <item name="android:textSize">14sp</item>
+        <item name="fontFamily">@font/inter_family</item>
     </style>
 
     <style name="TextAppearance.ObrasApp.Error" parent="TextAppearance.Material3.BodySmall">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">14sp</item><item name="fontFamily">@font/inter_family</item>
+
     </style>
 
 
     <!--  Menu/ Toolbar icons -->
+    <style name="TextAppearance.ObrasApp.Toolbar.Title" parent="TextAppearance.Material3.TitleLarge">
+        <item name="fontFamily">@font/inter_family</item>
+    </style>
+
     <style name="ThemeOverlay.ObrasApp.Toolbar" parent="ThemeOverlay.Material3.ActionBar">
         <item name="android:colorControlNormal">@color/md_theme_light_onPrimary</item>
         <item name="android:textColorPrimary">@color/md_theme_light_onPrimary</item>
@@ -92,6 +133,7 @@
 
     <style name="TextAppearance.ObrasApp.Tab" parent="TextAppearance.Material3.BodyLarge">
         <item name="android:textSize">18sp</item>
+        <item name="fontFamily">@font/inter_family</item>
     </style>
 
     <!-- Estilo alternativo com texto menor -->
@@ -104,6 +146,14 @@
 
     <style name="TextAppearance.ObrasApp.Tab.Min" parent="TextAppearance.Material3.BodyLarge">
         <item name="android:textSize">16sp</item>
+        <item name="fontFamily">@font/inter_family</item>
+    </style>
+
+
+    <!-- Imagem Login-->
+    <style name="ShapeAppearanceOverlay.ObrasApp.Hero" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
     </style>
 
 </resources>

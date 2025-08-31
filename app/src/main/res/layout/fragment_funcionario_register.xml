@@ -49,6 +49,7 @@
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_person"
                     android:drawablePadding="12dp"
+                    android:drawableTint="@color/md_theme_light_onSurfaceVariant"
                     android:hint="@string/func_reg_name_hint"
                     android:minHeight="60dp"
                     android:paddingTop="22dp"
@@ -155,6 +156,7 @@
                     android:digits="0123456789.,"
                     android:drawableStart="@drawable/ic_money"
                     android:drawablePadding="12dp"
+                    android:drawableTint="@color/md_theme_light_onSurfaceVariant"
                     android:hint="@string/func_reg_salary_hint"
                     android:inputType="numberDecimal|number"
                     android:minHeight="60dp"
@@ -243,7 +245,8 @@
                 android:layout_marginTop="18dp"
                 app:endIconContentDescription="@string/generic_copy"
                 app:endIconDrawable="@drawable/ic_copy"
-                app:endIconMode="custom">
+                app:endIconMode="custom"
+                app:endIconTint="@color/md_theme_light_onSurface">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPix"
@@ -251,6 +254,7 @@
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_pix"
                     android:drawablePadding="12dp"
+                    android:drawableTint="@color/md_theme_light_onSurfaceVariant"
                     android:hint="@string/func_reg_pix_hint"
                     android:minHeight="60dp"
                     android:paddingTop="22dp"
@@ -357,6 +361,7 @@
                         android:digits="0123456789.,"
                         android:drawableStart="@drawable/ic_money"
                         android:drawablePadding="12dp"
+                        android:drawableTint="@color/md_theme_light_onSurfaceVariant"
                         android:hint="@string/pagamento"
                         android:inputType="numberDecimal|number"
                         android:minHeight="60dp"
@@ -577,6 +582,7 @@
                         android:digits="0123456789.,"
                         android:drawableStart="@drawable/ic_money"
                         android:drawablePadding="12dp"
+                        android:drawableTint="@color/md_theme_light_onSurfaceVariant"
                         android:inputType="numberDecimal|number"
                         android:minHeight="60dp"
                         android:paddingTop="22dp"
@@ -599,6 +605,7 @@
                         android:clickable="true"
                         android:drawableStart="@drawable/ic_schedule"
                         android:drawablePadding="12dp"
+                        android:drawableTint="@color/md_theme_light_onSurfaceVariant"
                         android:focusable="false"
                         android:minHeight="60dp"
                         android:paddingTop="22dp"
