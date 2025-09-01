@@ -61,7 +61,8 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="4dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDescEtapa"
@@ -76,28 +77,46 @@
                     android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Funcionários (opcional) -->
+            <!-- MaterialAlertDialogBuilder de Funcionários -->
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.ObrasApp.TextInputLayout"
+                android:id="@+id/tilFuncionarios"
+                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:helperText="@string/etapa_reg_employee_helper"
-                app:helperTextTextAppearance="?attr/textAppearanceBodyMedium"
-                app:helperTextTextColor="@color/md_theme_light_secondary">
+                android:layout_marginTop="16dp"
+                android:hint="@string/cron_func_dropdown_hint"
+                app:endIconContentDescription="@string/cron_func_dropdown_hint"
+                app:endIconDrawable="@drawable/ic_checklist"
+                app:endIconMode="custom"
+                app:endIconTint="@color/md_theme_light_onSurfaceVariant"
+                app:startIconDrawable="@drawable/ic_person"
+                app:startIconTint="@color/md_theme_light_onSurfaceVariant">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etFuncEtapa"
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/dropdownFuncionarios"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@drawable/ic_person"
-                    android:drawablePadding="12dp"
-                    android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/etapa_reg_employee_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:ellipsize="end"
+                    android:focusable="false"
+                    android:importantForAutofill="noExcludeDescendants"
+                    android:inputType="none"
+                    android:maxLines="1"
+                    android:paddingVertical="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Funcionários selecionados (aparece só quando houver seleção) -->
+            <TextView
+                android:id="@+id/tvFuncionariosSelecionados"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="@color/md_theme_light_onSurface"
+                android:visibility="gone"
+                tools:text="Funcionários: João, Maria."
+                tools:visibility="visible" />
 
             <!-- Data de Início -->
             <com.google.android.material.textfield.TextInputLayout
@@ -105,7 +124,7 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp">
+                android:layout_marginTop="24dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDataInicioEtapa"
@@ -147,7 +166,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="18dp"
                 android:text="@string/etapa_reg_status"
                 android:textAppearance="?attr/textAppearanceHeadline6" />
 

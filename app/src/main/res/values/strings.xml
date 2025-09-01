@@ -417,7 +417,14 @@
     <string name="etapa_save_error">Erro ao salvar o cronograma.</string>
     <string name="etapa_update_error">Erro ao atualizar o cronograma.</string>
     <string name="etapa_delete_error">Erro ao deletar o cronograma.</string>
-
+    <!-- Cronograma: Dropdown de Funcionários -->
+    <string name="cron_func_dropdown_hint">Funcionário(s) – opcional</string>
+    <string name="cron_func_no_employees">Sem funcionários cadastrados.</string>
+    <string name="cron_func_material_title">Selecione os Funcionários:</string>
+    <plurals name="cron_func_selected_label">
+        <item quantity="one">Funcionário nesta etapa: %1$s.</item>
+        <item quantity="other">Funcionários nesta etapa: %1$s.</item>
+    </plurals>
 
     <!-- Erros de validação -->
     <string name="etapa_error_title">Título da etapa muito curto.</string>

@@ -156,4 +156,15 @@
         <item name="cornerSize">16dp</item>
     </style>
 
+
+    <!-- Material Alert Dialog -->
+    <style name="ThemeOverlay.ObrasApp.FuncDialog"
+        parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+
+        <!-- Cor do check/toggle do multi-choice -->
+        <item name="colorControlActivated">@color/md_theme_light_tertiary</item>
+        <!-- ajuda em devices mais novos / componentes que usam Secondary -->
+        <item name="colorSecondary">@color/md_theme_light_tertiary</item>
+    </style>
+
 </resources>

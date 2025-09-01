@@ -1,9 +1,9 @@
 package com.luizeduardobrandao.obra.ui.cronograma
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
+import android.view.LayoutInflater
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.core.view.isVisible
@@ -17,19 +17,30 @@ import androidx.navigation.fragment.navArgs
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Etapa
 import com.luizeduardobrandao.obra.data.model.UiState
+import com.luizeduardobrandao.obra.ui.funcionario.FuncionarioViewModel
 import com.luizeduardobrandao.obra.databinding.FragmentCronogramaRegisterBinding
 import com.luizeduardobrandao.obra.ui.cronograma.adapter.CronogramaPagerAdapter
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.utils.Constants
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import android.text.Editable
+import android.text.TextWatcher
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.StyleSpan
+import android.text.style.ForegroundColorSpan
 import java.util.Date
 import java.util.Locale
-import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
-import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
+import android.util.TypedValue
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.core.content.ContextCompat
+import android.graphics.Typeface
 
 @AndroidEntryPoint
 class CronogramaRegisterFragment : Fragment() {
@@ -52,8 +63,27 @@ class CronogramaRegisterFragment : Fragment() {
     private var isSaving = false
     private var shouldCloseAfterSave = false
 
+    // ViewModel de Funcionários (pega obraId via Safe-Args / SavedStateHandle)
+    private val viewModelFuncionario: FuncionarioViewModel by viewModels()
+
+    // Lista (ordenada) de funcionários ATIVOS por nome
+    private val funcionariosAtivos: MutableList<String> = mutableListOf()
+
+    // Seleção atual (exibida e salva)
+    private val selecionadosAtual: LinkedHashSet<String> = linkedSetOf()
+
+    // controla restauração do diálogo após rotação
+    private var isFuncPickerOpen: Boolean = false
+    private var shouldReopenPicker: Boolean = false
+    private var restoredSelectionFromState: Boolean = false
+
+    private companion object {
+        private const val STATE_FUNC_PICKER_OPEN = "state_func_picker_open"
+        private const val STATE_FUNC_SELECTION = "state_func_selection"
+    }
+
     override fun onCreateView(
-        inflater: android.view.LayoutInflater,
+        inflater: LayoutInflater,
         container: android.view.ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
@@ -63,6 +93,17 @@ class CronogramaRegisterFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // se o picker estava aberto antes da rotação, marcamos para reabrir
+        shouldReopenPicker = savedInstanceState?.getBoolean(STATE_FUNC_PICKER_OPEN) == true
+
+// restaura a seleção feita no diálogo antes da rotação (se houver)
+        savedInstanceState?.getStringArrayList(STATE_FUNC_SELECTION)?.let { restored ->
+            selecionadosAtual.clear()
+            selecionadosAtual.addAll(restored)
+            restoredSelectionFromState = true
+            renderFuncionariosSelecionados() // já exibe abaixo do campo
+        }
 
         with(binding) {
             // Toolbar back & title
@@ -114,6 +155,35 @@ class CronogramaRegisterFragment : Fragment() {
 
             // Coleta estado de operação (loading/sucesso/erro)
             collectOperationState()
+
+            // ▼ Funcionários (dropdown multi-seleção)
+            setupFuncionariosDropdown()                       // configura listeners/adapter
+            viewModelFuncionario.loadFuncionarios()           // inicia listener dos funcionários
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    viewModelFuncionario.state.collect { ui ->
+                        when (ui) {
+                            is UiState.Success -> {
+                                val ativos = ui.data
+                                    .filter { it.status.equals("Ativo", ignoreCase = true) }
+                                    .map { it.nome.trim() }
+                                    .filter { it.isNotEmpty() }
+                                    .sortedBy { it.lowercase(Locale.getDefault()) }
+
+                                funcionariosAtivos.clear()
+                                funcionariosAtivos.addAll(ativos)
+                                // reabrir o diálogo se ele estava aberto antes da rotação
+                                if (shouldReopenPicker) {
+                                    shouldReopenPicker = false
+                                    binding.root.post { openFuncionariosPicker() }
+                                }
+                            }
+
+                            else -> Unit
+                        }
+                    }
+                }
+            }
         }
 
         // Back físico/gesto
@@ -126,6 +196,15 @@ class CronogramaRegisterFragment : Fragment() {
             viewModel.loadEtapas()
             observeEtapa()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_FUNC_PICKER_OPEN, isFuncPickerOpen)
+        outState.putStringArrayList(
+            STATE_FUNC_SELECTION,
+            ArrayList(selecionadosAtual) // salva as marcações correntes
+        )
     }
 
     /*──────────── Observa a lista para obter a etapa em modo edição ───────────*/
@@ -196,14 +275,22 @@ class CronogramaRegisterFragment : Fragment() {
     private fun fillFields(e: Etapa) = with(binding) {
         etTituloEtapa.setText(e.titulo)
         etDescEtapa.setText(e.descricao)
-        etFuncEtapa.setText(e.funcionarios)
         etDataInicioEtapa.setText(e.dataInicio)
         etDataFimEtapa.setText(e.dataFim)
+
         when (e.status) {
             CronogramaPagerAdapter.STATUS_PENDENTE -> rbStatPend.isChecked = true
             CronogramaPagerAdapter.STATUS_ANDAMENTO -> rbStatAnd.isChecked = true
             else -> rbStatConcl.isChecked = true
         }
+
+        // Seleção inicial (parse do CSV salvo)
+        if (!restoredSelectionFromState) {
+            val nomes = parseCsvNomes(e.funcionarios)
+            selecionadosAtual.clear()
+            selecionadosAtual.addAll(nomes)
+        }
+        renderFuncionariosSelecionados()
         validateForm()
     }
 
@@ -214,16 +301,13 @@ class CronogramaRegisterFragment : Fragment() {
         val dataFim = binding.etDataFimEtapa.text.toString().trim()
 
         if (titulo.length < Constants.Validation.MIN_NAME) {
-            showError(R.string.etapa_error_title)
-            return
+            showError(R.string.etapa_error_title); return
         }
         if (dataIni.isBlank() || dataFim.isBlank()) {
-            showError(R.string.etapa_error_dates)
-            return
+            showError(R.string.etapa_error_dates); return
         }
         if (!isDateOrderValid(dataIni, dataFim)) {
-            binding.tilDataFimEtapa.error = getString(R.string.etapa_error_date_order)
-            return
+            binding.tilDataFimEtapa.error = getString(R.string.etapa_error_date_order); return
         }
 
         val status = when (binding.rgStatusEtapa.checkedRadioButtonId) {
@@ -236,13 +320,16 @@ class CronogramaRegisterFragment : Fragment() {
             id = etapaOriginal?.id ?: "",
             titulo = titulo,
             descricao = binding.etDescEtapa.text.toString().trim(),
-            funcionarios = binding.etFuncEtapa.text.toString().trim(),
+            // salva como CSV "João, Maria" (sem ponto final)
+            funcionarios = selecionadosAtual
+                .toList()
+                .sortedBy { it.lowercase(Locale.getDefault()) }
+                .joinToString(", "),
             dataInicio = dataIni,
             dataFim = dataFim,
             status = status
         )
 
-        // Fluxo de loading como Nota/Funcionário
         shouldCloseAfterSave = true
         isSaving = true
         progress(true)
@@ -339,7 +426,6 @@ class CronogramaRegisterFragment : Fragment() {
     private fun hasUnsavedChanges(): Boolean = with(binding) {
         val titulo = etTituloEtapa.text?.toString()?.trim().orEmpty()
         val desc = etDescEtapa.text?.toString()?.trim().orEmpty()
-        val func = etFuncEtapa.text?.toString()?.trim().orEmpty()
         val ini = etDataInicioEtapa.text?.toString()?.trim().orEmpty()
         val fim = etDataFimEtapa.text?.toString()?.trim().orEmpty()
 
@@ -351,21 +437,23 @@ class CronogramaRegisterFragment : Fragment() {
 
         if (!isEdit) {
             val statusDefault = CronogramaPagerAdapter.STATUS_PENDENTE
-            return@with titulo.isNotEmpty() ||
-                    desc.isNotEmpty() ||
-                    func.isNotEmpty() ||
-                    ini.isNotEmpty() ||
-                    fim.isNotEmpty() ||
-                    statusAtual != statusDefault
+            return@with titulo.isNotEmpty()
+                    || desc.isNotEmpty()
+                    || ini.isNotEmpty()
+                    || fim.isNotEmpty()
+                    || statusAtual != statusDefault
+                    || selecionadosAtual.isNotEmpty()
         }
 
         val orig = etapaOriginal ?: return@with false
-        return@with titulo != orig.titulo ||
-                desc != orig.descricao ||
-                func != orig.funcionarios ||
-                ini != orig.dataInicio ||
-                fim != orig.dataFim ||
-                statusAtual != orig.status
+        val nomesOrig = parseCsvNomes(orig.funcionarios)
+
+        return@with titulo != orig.titulo
+                || desc != (orig.descricao ?: "")
+                || ini != (orig.dataInicio)
+                || fim != (orig.dataFim)
+                || statusAtual != (orig.status)
+                || selecionadosAtual != nomesOrig
     }
 
     /*──────────── Progress control (spinner + UX) ───────────*/
@@ -386,6 +474,131 @@ class CronogramaRegisterFragment : Fragment() {
                 cronRegScroll.smoothScrollTo(0, progressSaveEtapa.bottom)
             }
         }
+    }
+
+    /** Configura o MaterialAlertDialogBuilder */
+    private fun setupFuncionariosDropdown() = with(binding) {
+        val dd = dropdownFuncionarios
+
+        // Campo “inerte”: não mostra/usa dropdown nativo, só serve para abrir o picker
+        dd.setText("", false)
+        dd.inputType = android.text.InputType.TYPE_NULL
+        dd.isCursorVisible = false
+        dd.keyListener = null
+        dd.setOnClickListener { openFuncionariosPicker() }
+        tilFuncionarios.setEndIconOnClickListener { openFuncionariosPicker() }
+    }
+
+    private fun openFuncionariosPicker() {
+        // lista = ativos + selecionados inativos
+        val itens = buildList {
+            addAll(funcionariosAtivos)
+            addAll(selecionadosAtual.filter { it !in funcionariosAtivos })
+        }
+            .distinct()
+            .sortedBy { it.lowercase(Locale.getDefault()) }
+
+        if (itens.isEmpty()) {
+            showSnackbarFragment(
+                type = Constants.SnackType.WARNING.name,
+                title = getString(R.string.snack_attention),
+                msg = getString(R.string.cron_func_no_employees),
+                btnText = getString(R.string.snack_button_ok)
+            )
+            return
+        }
+
+        val checked = itens.map { selecionadosAtual.contains(it) }.toBooleanArray()
+
+        val titleView = TextView(requireContext()).apply {
+            text = getString(R.string.cron_func_material_title)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f) // Aumenta título
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(48, 32, 48, 8) // Ajuste conforme layout
+        }
+
+        val dlg = MaterialAlertDialogBuilder(
+            requireContext(),
+            R.style.ThemeOverlay_ObrasApp_FuncDialog
+        )
+            .setCustomTitle(titleView)
+            .setMultiChoiceItems(itens.toTypedArray(), checked) { _, which, isChecked ->
+                val nome = itens[which]
+                if (isChecked) selecionadosAtual.add(nome) else selecionadosAtual.remove(nome)
+            }
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                renderFuncionariosSelecionados()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .create()
+
+        // marque que o dialog está aberto e limpe ao fechar
+        isFuncPickerOpen = true
+        dlg.setOnDismissListener { isFuncPickerOpen = false }
+        dlg.show()
+    }
+
+    /** Atualiza o TextView abaixo do MaterialAlertDialogBuilder com os nomes selecionados (singular/plural). */
+    private fun renderFuncionariosSelecionados() = with(binding) {
+        val tv = tvFuncionariosSelecionados
+        val qtd = selecionadosAtual.size
+        if (qtd == 0) {
+            tv.visibility = View.GONE
+            tv.text = ""
+            return@with
+        }
+
+        val nomesOrdenados = selecionadosAtual
+            .toList()
+            .sortedBy { it.lowercase(Locale.getDefault()) }
+
+        // Monta lista com "e" antes do último nome
+        val lista = when (nomesOrdenados.size) {
+            1 -> nomesOrdenados[0]
+            2 -> nomesOrdenados.joinToString(" e ")
+            else ->
+                nomesOrdenados.dropLast(1).joinToString(", ") +
+                        " e " + nomesOrdenados.last()
+        }
+
+        // Monta string completa a partir do plural
+        val textoCompleto = resources.getQuantityString(
+            R.plurals.cron_func_selected_label,
+            qtd,
+            lista
+        )
+
+        val spannable = SpannableString(textoCompleto)
+
+        // Deixa prefixo em negrito
+        val prefixoFim = textoCompleto.indexOf(lista).takeIf { it > 0 } ?: textoCompleto.length
+        spannable.setSpan(
+            StyleSpan(Typeface.BOLD),
+            0,
+            prefixoFim,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+
+        // Cor para os nomes
+        val corNomes = ContextCompat.getColor(root.context, R.color.btn_text_success)
+        spannable.setSpan(
+            ForegroundColorSpan(corNomes),
+            prefixoFim,
+            textoCompleto.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+
+        tv.visibility = View.VISIBLE
+        tv.text = spannable
+    }
+
+    /** Converte CSV "João, Maria" -> Set("João","Maria"), tolerante a null/strings vazias. */
+    private fun parseCsvNomes(csv: String?): LinkedHashSet<String> {
+        if (csv.isNullOrBlank()) return linkedSetOf()
+        return csv.split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .toCollection(linkedSetOf())
     }
 
     override fun onDestroyView() {
