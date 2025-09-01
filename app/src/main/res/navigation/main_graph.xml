@@ -468,8 +468,26 @@
             android:id="@+id/action_resumo_to_material"
             app:destination="@id/materialFragment" />
 
+        <!-- Exportar Resumo -->
+        <action
+            android:id="@+id/action_resumo_to_export"
+            app:destination="@id/exportSummaryFragment" />
+
     </fragment>
 
+    <!-- ────────────────────────────  ►  EXPORT SUMMARY  ◄  ────────────────────── -->
+    <fragment
+        android:id="@+id/exportSummaryFragment"
+        android:name="com.luizeduardobrandao.obra.ui.resumo.ExportSummaryFragment"
+        android:label="@string/export_summary_title"
+        tools:layout="@layout/fragment_export_summary">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+    </fragment>
+
+    <!-- ────────────────────────────  ►  Visualizar Imagem  ◄  ────────────────────── -->
     <fragment
         android:id="@+id/imageViewerFragment"
         android:name="com.luizeduardobrandao.obra.ui.notas.ImageViewerFragment"

@@ -136,3 +136,97 @@ object FileUtils {
         return android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.P
     }
 }
+
+// ───────────────────────────── PDF Utils ─────────────────────────────
+
+/**
+ * Salva um PDF na pasta "Download/ObraApp" do dispositivo e retorna a Uri do arquivo salvo.
+ *
+ * • API 29+ (scoped storage): usa MediaStore.Downloads com RELATIVE_PATH.
+ * • API 28-: grava em Download/ObraApp e registra no MediaStore para aparecer em apps de arquivos.
+ *
+ * @param context Context
+ * @param bytes Conteúdo do PDF
+ * @param displayName Nome do arquivo (ex: "resumo_obra_123_2025-09-01.pdf")
+ * @return Uri do arquivo salvo (ou null em caso de falha)
+ */
+fun savePdfToDownloads(context: Context, bytes: ByteArray, displayName: String): Uri? {
+    val resolver = context.contentResolver
+    val mime = "application/pdf"
+
+    return try {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            // Android 10+ → scoped storage
+            val values = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, displayName)
+                put(MediaStore.Downloads.MIME_TYPE, mime)
+                // Pasta Download/ObraApp
+                put(
+                    MediaStore.Downloads.RELATIVE_PATH,
+                    Environment.DIRECTORY_DOWNLOADS + File.separator + "ObraApp"
+                )
+                put(MediaStore.Downloads.IS_PENDING, 1)
+            }
+
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                ?: return null
+
+            resolver.openOutputStream(uri)?.use { out ->
+                out.write(bytes)
+                out.flush()
+            }
+
+            // Finaliza pendência para tornar o arquivo visível
+            val done = ContentValues().apply {
+                put(MediaStore.Downloads.IS_PENDING, 0)
+            }
+            resolver.update(uri, done, null, null)
+
+            uri
+        } else {
+            // Android 9 ou anterior → grava direto no FS público
+            val downloads =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val dir = File(downloads, "ObraApp").apply { if (!exists()) mkdirs() }
+            val file = File(dir, displayName)
+
+            FileOutputStream(file).use { out ->
+                out.write(bytes)
+                out.flush()
+            }
+
+            // Registra no MediaStore para aparecer em apps de arquivos
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DATA, file.absolutePath) // legado
+                put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+                put(MediaStore.MediaColumns.MIME_TYPE, mime)
+            }
+            val uri = resolver.insert(
+                MediaStore.Files.getContentUri("external"),
+                values
+            ) ?: Uri.fromFile(file)
+
+            uri
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}
+
+/**
+ * Escreve bytes em uma Uri arbitrária (útil se você criou a Uri antes).
+ * Retorna true em caso de sucesso.
+ */
+fun writeBytesToUri(context: Context, target: Uri, bytes: ByteArray): Boolean {
+    return try {
+        context.contentResolver.openOutputStream(target)?.use { out ->
+            out.write(bytes)
+            out.flush()
+        }
+        true
+    } catch (e: Exception) {
+        e.printStackTrace()
+        false
+    }
+}

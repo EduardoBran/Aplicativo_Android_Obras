@@ -13,6 +13,7 @@
         android:background="?attr/colorPrimary"
         android:theme="@style/ThemeOverlay.ObrasApp.Toolbar"
         app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/menu_resumo"
         app:navigationIcon="@drawable/ic_back"
         app:navigationIconTint="@color/white"
         app:title="@string/resumo_title"

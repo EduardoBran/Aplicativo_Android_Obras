@@ -167,4 +167,9 @@
         <item name="colorSecondary">@color/md_theme_light_tertiary</item>
     </style>
 
+
+    <style name="TextAppearance.ObrasApp.TitleMedium18" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">18sp</item>
+    </style>
+
 </resources>

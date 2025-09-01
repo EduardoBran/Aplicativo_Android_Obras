@@ -736,4 +736,91 @@
     <string name="imagens_delete_confirm_msg">Deseja excluir esta imagem?</string>
     <string name="imagens_filter_title_fmt">%1$s</string>
 
+
+    <!-- Export Summary / Navegação -->
+    <string name="export_summary_title">Exportar Resumo</string>
+    <string name="export_summary_action_pdf">Salvar em PDF</string>
+    <string name="export_summary_snack_title">Confirmar</string>
+    <string name="export_summary_snack_msg">Deseja salvar este resumo em PDF no seu dispositivo?</string>
+    <string name="export_summary_snack_yes">SIM</string>
+    <string name="export_summary_snack_no">NÃO</string>
+    <string name="export_summary_doc_name_fmt">resumo_obra_%1$s_%2$s.pdf</string>
+
+    <!-- Cabeçalho do preview -->
+    <string name="export_obraname_title">Nome da Obra: %1$s</string>
+
+    <!-- Informações da obra -->
+    <string name="export_section_info">Informações da Obra</string>
+    <string name="export_client_name">Nome do cliente: %1$s</string>
+    <string name="export_address">Endereço da obra: %1$s</string>
+    <string name="export_contact">Contato: %1$s</string>
+    <string name="export_description">Descrição da obra: %1$s</string>
+    <string name="export_date_start_line">Data de Início: %1$s</string>
+    <string name="export_date_end_line">Data de Término: %1$s</string>
+    <string name="export_dates">Data de início: %1$s     Data de término: %2$s</string>
+
+    <!-- Funcionários -->
+    <string name="export_section_func">Funcionários</string>
+    <string name="export_sub_active">Ativos</string>
+    <string name="export_sub_inactive">Inativos</string>
+    <string name="export_func_item_paid_fmt">%1$s (pago: %2$s)</string>
+    <string name="export_func_total_paid">Total gasto com Funcionário: %1$s</string>
+
+    <!-- Notas -->
+    <string name="export_section_notas">Notas</string>
+    <string name="export_sub_due">A Receber</string>
+    <string name="export_sub_paid">Pago</string>
+    <string name="export_nota_line">%1$s — %2$s — %3$s</string>
+    <string name="export_total_notas_due">Total de Notas para Receber: %1$s</string>
+    <string name="export_total_notas_paid">Total de Notas Pagas: %1$s</string>
+    <string name="export_total_notas_all">Total geral de Notas: %1$s</string>
+    <string name="nota_none_summary">Nenhuma nota cadastrada para receber.</string>
+    <string name="nota_none_summary2">Nenhuma nota cadastrada paga.</string>
+
+    <!-- Cronogramas -->
+    <string name="export_section_cron">Cronogramas</string>
+    <string name="export_cron_line">%1$s — Início: %2$s  Fim: %3$s</string>
+    <string name="export_total_cron_pend">Total de cronogramas em "Pendente": %1$d</string>
+    <string name="export_total_cron_prog">Total de cronogramas em "Andamento": %1$d</string>
+    <string name="export_total_cron_done">Total de cronogramas em "Concluído": %1$d</string>
+    <string name="cron_none_pending_summary">Nenhum cronograma cadastrado como pendente.</string>
+    <string name="cron_none_progress_summary">Nenhum cronograma cadastrado como andamento.</string>
+    <string name="cron_none_done_summary">Nenhum cronograma cadastrado como concluído.</string>
+
+    <!-- Materiais -->
+    <string name="export_section_material">Materiais</string>
+    <string name="export_mat_line">%1$s — Qtde: %2$d</string>
+    <string name="export_total_mat_active">Total de Materiais Ativo: %1$d</string>
+    <string name="export_total_mat_inactive">Total de Materiais Inativo: %1$d</string>
+    <string name="export_total_mat_all">Total de materiais usados na obra: %1$d</string>
+    <string name="material_empty_summary">Nenhum material cadastrado como ativo.</string>
+    <string name="material_empty_summary2">Nenhum material cadastrado como inativo.</string>
+
+    <!-- Financeiro -->
+    <string name="export_section_finance">Financeiro</string>
+    <string name="export_fin_func_total">Total gasto com funcionários: %1$s</string>
+    <string name="export_fin_notas_due">Total a receber por notas: %1$s</string>
+    <string name="export_fin_notas_paid">Total pago por notas: %1$s</string>
+    <string name="export_fin_notas_all">Total geral de Notas: %1$s</string>
+
+    <!-- Saldos / Aportes -->
+    <string name="export_section_saldo_inicial">Saldo Inicial</string>
+    <string name="export_saldo_inicial_val">Valor: %1$s</string>
+    <string name="export_section_aportes">Aportes</string>
+    <string name="export_aporte_line">%1$s  —  %2$s  —  %3$s</string>
+    <string name="export_aportes_empty">Sem aportes cadastrados.</string>
+    <string name="export_saldo_com_aportes">Saldo com Aportes: %1$s</string>
+    <string name="export_section_saldo_restante">Saldo Restante</string>
+    <string name="export_saldo_restante_val">Valor: %1$s</string>
+
+    <!-- Rodapé -->
+    <string name="export_footer_today">Gerado em %1$s</string>
+
+    <!-- PDF status -->
+    <string name="export_pdf_saved_toast">PDF salvo com sucesso.</string>
+    <string name="export_pdf_error_toast">Não foi possível salvar o PDF.</string>
+
+    <!-- Menu/toolbar do Resumo -->
+    <string name="resumo_menu_export">Exportar</string>
+
 </resources>

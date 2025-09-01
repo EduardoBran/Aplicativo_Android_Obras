@@ -5,4 +5,8 @@
     <dimen name="login_logo_max_height">200dp</dimen>
     <dimen name="login_hero_stroke">2dp</dimen>
     <dimen name="login_hero_inner_padding">12dp</dimen>
+    <dimen name="spacing_1">4dp</dimen>
+    <dimen name="spacing_2">8dp</dimen>
+    <dimen name="spacing_3">12dp</dimen>
+    <dimen name="spacing_4">16dp</dimen>
 </resources>

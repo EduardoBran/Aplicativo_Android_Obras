@@ -94,6 +94,25 @@ class ResumoFragment : Fragment() {
             findNavController().navigateUp()
         }
 
+        // Garante ícone branco no menu (Exportar)
+        toolbarResumoObra.menu.findItem(R.id.action_export_summary)?.icon?.setTint(
+            ContextCompat.getColor(requireContext(), android.R.color.white)
+        )
+
+        // ► Novo: item de menu "Exportar"
+        toolbarResumoObra.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_export_summary -> {
+                    // Safe Args: navega passando o obraId atual
+                    findNavController().navigate(
+                        ResumoFragmentDirections.actionResumoToExport(args.obraId)
+                    )
+                    true
+                }
+                else -> false
+            }
+        }
+
         // Abas expansíveis (padrão)
         setupExpandable(
             containerResumo,
