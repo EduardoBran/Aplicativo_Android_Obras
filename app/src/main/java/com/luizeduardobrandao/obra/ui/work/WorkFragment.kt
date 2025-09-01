@@ -35,6 +35,8 @@ import com.luizeduardobrandao.obra.utils.isConnectedToInternet
 import com.luizeduardobrandao.obra.utils.registerConnectivityCallback
 import com.luizeduardobrandao.obra.utils.unregisterConnectivityCallback
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
+import androidx.core.view.doOnPreDraw
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 
 @AndroidEntryPoint
 class WorkFragment : Fragment() {
@@ -44,7 +46,7 @@ class WorkFragment : Fragment() {
 
     private val viewModel: WorkViewModel by viewModels()
 
-    /** obra selecionada no dropdown */
+    // obra selecionada no dropdown
     private var selectedObra: Obra? = null
 
     // guarda a lista ordenada para mapear posição -> Obra
@@ -53,6 +55,10 @@ class WorkFragment : Fragment() {
     // Formato dd/MM/yyyy sem leniência
     private val sdf =
         SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false }
+
+    // Flags Imagens
+    private var hasAnimatedEmpty = false
+    private var hasAnimatedSelect = false
 
     // Conexão a Internet
     private var netCallback: ConnectivityManager.NetworkCallback? = null
@@ -245,11 +251,21 @@ class WorkFragment : Fragment() {
         progressWork.isGone = true
 
         if (lista.isEmpty()) {
-            layoutEmpty.isVisible = true
+            // cenário vazio
             layoutSelect.isGone = true
+            layoutEmpty.isVisible = true
+
+            // anima só na primeira vez
+            if (!hasAnimatedEmpty) {
+                root.doOnPreDraw {
+                    animateIn(imgEmpty, emptyContainer)
+                    hasAnimatedEmpty = true
+                }
+            }
             return@with
         }
 
+        // cenário com obras
         layoutEmpty.isGone = true
         layoutSelect.isVisible = true
 
@@ -258,16 +274,24 @@ class WorkFragment : Fragment() {
 
         val adapter = ArrayAdapter(
             requireContext(),
-            R.layout.item_spinner,           // linha “fechada”
+            R.layout.item_spinner,
             nomes
         ).apply { setDropDownViewResource(R.layout.item_spinner_dropdown) }
 
         autoObras.setAdapter(adapter)
 
-        // começa vazio (só hint visível)
-        autoObras.setText("", false)
+        autoObras.setText("", false) // começa vazio (só hint)
         selectedObra = null
         btnContinue.isEnabled = false
+        btnNewWork.isEnabled = false
+
+        // anima só na primeira vez
+        if (!hasAnimatedSelect) {
+            root.doOnPreDraw {
+                animateIn(imgSelect, selectContainer)
+                hasAnimatedSelect = true
+            }
+        }
     }
 
     private fun toggleNewWorkCard(show: Boolean) = with(binding) {
@@ -398,5 +422,32 @@ class WorkFragment : Fragment() {
 
             else -> null // formato inválido (ex.: "20,500,00")
         }
+    }
+
+    // Função Animação Imagens
+    private fun animateIn(hero: View, container: View) {
+        val interp = FastOutSlowInInterpolator()
+        val dy = 16f * resources.displayMetrics.density
+
+        hero.alpha = 0f
+        hero.translationY = -dy
+        container.alpha = 0f
+        container.translationY = dy
+
+        hero.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(220L)
+            .setStartDelay(40L)
+            .setInterpolator(interp)
+            .start()
+
+        container.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(240L)
+            .setStartDelay(80L)
+            .setInterpolator(interp)
+            .start()
     }
 }

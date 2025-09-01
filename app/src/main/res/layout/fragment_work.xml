@@ -43,13 +43,12 @@
 
 
             <!-- Cenário: sem obras -->
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layoutEmpty"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:baselineAligned="false"
                 android:gravity="center"
-                android:orientation="vertical"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="@id/gCenter"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -57,31 +56,68 @@
                 app:layout_constraintTop_toTopOf="@id/gCenter"
                 tools:visibility="gone">
 
-                <TextView
-                    android:id="@+id/tvNoWorks"
-                    android:layout_width="wrap_content"
+                <!-- HERO (igual ao login) -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/imgEmpty"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/work_no_items"
-                    android:textAlignment="center"
-                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+                    android:layout_marginTop="@dimen/login_logo_top_space"
+                    android:layout_marginBottom="@dimen/login_logo_bottom_space"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/cd_login_illustration"
+                    android:maxHeight="@dimen/login_logo_max_height"
+                    android:padding="@dimen/login_hero_inner_padding"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/img_new_work"
+                    app:contentPadding="@dimen/login_hero_inner_padding"
+                    app:layout_constraintBottom_toTopOf="@id/emptyContainer"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.ObrasApp.Hero"
+                    app:strokeColor="@color/md_theme_light_outline"
+                    app:strokeWidth="@dimen/login_hero_stroke" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnNewWorkEmpty"
-                    style="@style/Widget.ObrasApp.Button"
-                    android:layout_width="wrap_content"
+                <!-- CONTAINER do texto/botão (centralizado como no login) -->
+                <LinearLayout
+                    android:id="@+id/emptyContainer"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="@string/work_new_button" />
-            </LinearLayout>
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/tvNoWorks"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/work_no_items"
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textStyle="bold|italic" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnNewWorkEmpty"
+                        style="@style/Widget.ObrasApp.ButtonLogin"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="32dp"
+                        android:text="@string/work_new_button"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textStyle="normal" />
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
 
             <!-- Cenário: obras existentes -->
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layoutSelect"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:baselineAligned="false"
-                android:gravity="center"
                 android:orientation="vertical"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="@id/gCenter"
@@ -90,66 +126,106 @@
                 app:layout_constraintTop_toTopOf="@id/gCenter"
                 tools:visibility="visible">
 
-                <TextView
-                    android:id="@+id/tvSelectWork"
-                    android:layout_width="wrap_content"
+                <!-- HERO (igual ao login) -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/imgSelect"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/work_select_prompt"
-                    android:textAlignment="center"
-                    android:textAppearance="?attr/textAppearanceTitleLarge" />
+                    android:layout_marginTop="@dimen/login_logo_top_space"
+                    android:layout_marginBottom="@dimen/login_logo_bottom_space"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/cd_login_illustration"
+                    android:maxHeight="@dimen/login_logo_max_height"
+                    android:padding="@dimen/login_hero_inner_padding"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/img_sele_work"
+                    app:contentPadding="@dimen/login_hero_inner_padding"
+                    app:layout_constraintBottom_toTopOf="@id/selectContainer"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.ObrasApp.Hero"
+                    app:strokeColor="@color/md_theme_light_outline"
+                    app:strokeWidth="@dimen/login_hero_stroke" />
 
-                <!-- Exposed Dropdown -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilObras"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
-                    android:layout_width="match_parent"
+                <!-- CONTAINER do título + dropdown + botões (centralizado) -->
+                <LinearLayout
+                    android:id="@+id/selectContainer"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:hint="@string/work_dropdown_hint"
-                    app:boxBackgroundMode="filled"
-                    app:endIconMode="dropdown_menu"
-                    app:hintEnabled="true">
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
 
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/autoObras"
+                    <TextView
+                        android:id="@+id/tvSelectWork"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/work_select_prompt"
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textStyle="bold|italic" />
+
+                    <!-- Exposed Dropdown -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilObras"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:dropDownVerticalOffset="0dp"
-                        android:ellipsize="end"
-                        android:inputType="none"
-                        android:maxLines="1"
-                        android:singleLine="true" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:layout_marginTop="24dp"
+                        android:hint="@string/work_dropdown_hint"
+                        app:boxBackgroundMode="filled"
+                        app:endIconMode="dropdown_menu"
+                        app:hintEnabled="true">
 
-                <!-- Botões Nova Obra / Continuar -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:gravity="center"
-                    android:orientation="horizontal">
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/autoObras"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:dropDownVerticalOffset="0dp"
+                            android:ellipsize="end"
+                            android:inputType="none"
+                            android:maxLines="1"
+                            android:singleLine="true" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnNewWork"
-                        style="@style/Widget.ObrasApp.OutlinedButton"
-                        android:layout_width="0dp"
+                    <!-- Botões Nova Obra / Continuar -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/work_new_button"
-                        android:textSize="16sp" />
+                        android:layout_marginTop="26dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnContinue"
-                        style="@style/Widget.ObrasApp.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:enabled="false"
-                        android:text="@string/generic_continue"
-                        android:textSize="16sp" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnNewWork"
+                            style="@style/Widget.ObrasApp.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/work_new_button"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnContinue"
+                            style="@style/Widget.ObrasApp.Button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:enabled="false"
+                            android:text="@string/generic_continue"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
 
             <!-- CardView Novo Cadastro -->
             <androidx.cardview.widget.CardView

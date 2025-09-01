@@ -21,6 +21,8 @@ import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import androidx.core.view.doOnPreDraw
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 
 @AndroidEntryPoint
 class RegisterFragment : Fragment() {
@@ -29,6 +31,8 @@ class RegisterFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: RegisterViewModel by viewModels()
+
+    private var hasPlayedEnterAnim = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,9 +45,23 @@ class RegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Animação Imagem
+        hasPlayedEnterAnim = savedInstanceState?.getBoolean("hasPlayedEnterAnim") ?: false
+        if (!hasPlayedEnterAnim) {
+            view.doOnPreDraw {
+                runEnterAnimation()
+                hasPlayedEnterAnim = true
+            }
+        }
+
         setupToolbar()
         setupListeners()
         observeViewModel()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean("hasPlayedEnterAnim", hasPlayedEnterAnim)
     }
 
     override fun onDestroyView() {
@@ -83,7 +101,7 @@ class RegisterFragment : Fragment() {
                     viewModel.state.collect { state ->
                         when (state) {
                             is UiState.Idle -> resetUi()
-                            is UiState.Loading -> { }
+                            is UiState.Loading -> {}
                             is UiState.Success -> {
                                 resetUi()
                                 Toast.makeText(
@@ -111,9 +129,9 @@ class RegisterFragment : Fragment() {
                             is UiState.Error -> {      // caso use mensagem livre
                                 resetUi()
                                 showSnackbarFragment(
-                                    type    = Constants.SnackType.ERROR.name,
-                                    title   = getString(R.string.snack_error),
-                                    msg     = state.message,
+                                    type = Constants.SnackType.ERROR.name,
+                                    title = getString(R.string.snack_error),
+                                    msg = state.message,
                                     btnText = getString(R.string.snack_button_ok)
                                 )
                             }
@@ -128,5 +146,36 @@ class RegisterFragment : Fragment() {
     private fun resetUi() = with(binding) {
         progressRegister.isGone = true
         btnRegister.isEnabled = true
+    }
+
+    // Função Animação da Imagem
+    private fun runEnterAnimation() = with(binding) {
+        val interp = FastOutSlowInInterpolator()
+        val dy = 16f * resources.displayMetrics.density  // deslocamento leve
+
+        // estado inicial
+        imgRegister.alpha = 0f
+        imgRegister.translationY = -dy
+
+        formContainer.alpha = 0f
+        formContainer.translationY = dy
+
+        // hero
+        imgRegister.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(220L)
+            .setStartDelay(40L)
+            .setInterpolator(interp)
+            .start()
+
+        // formulário
+        formContainer.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(240L)
+            .setStartDelay(80L)
+            .setInterpolator(interp)
+            .start()
     }
 }
