@@ -339,7 +339,7 @@
     <string name="nota_photo_error_permission_storage">Permissão de armazenamento negada.</string>
 
     <!-- Foto: avisos de alteração pendente -->
-    <string name="nota_photo_pending_generic_toast">Foto selecionada. Toque em “%1$s” para confirmar.</string>
+    <string name="nota_photo_pending_generic_toast">Foto selecionada.</string>
     <string name="nota_photo_pending_delete_generic_toast">A foto será removida. Toque em “%1$s” para confirmar.</string>
     <!-- Confirmação específica para substituir foto existente -->
     <string name="nota_photo_confirm_replace_title">Deseja substituir esta foto da nota?</string>
@@ -822,5 +822,21 @@
 
     <!-- Menu/toolbar do Resumo -->
     <string name="resumo_menu_export">Exportar</string>
+
+    <!-- 🔹 IA: Pergunta de preenchimento automático -->
+    <string name="ia_autofill_message">Deseja preenchimento automático?</string>
+    <!-- IA: Título do diálogo de preenchimento automático -->
+    <string name="ia_autofill_title">Preenchimento Automático</string>
+
+    <!-- 🔹 IA: Mensagem de erro -->
+    <string name="ia_autofill_error_message">Erro no preenchimento automático.</string>
+    <string name="ia_autofill_retry_message">Deseja tentar mais uma vez?</string>
+    <string name="ia_autofill_error_ok">OK</string>
+
+    <!-- 🔹 IA: Acessibilidade / contentDescription do ícone de robô -->
+    <string name="ia_robot_icon_desc">Analisando imagem com IA</string>
+
+    <!-- 🔹 IA: Texto opcional para overlay de loading -->
+    <string name="ia_autofill_loading">Analisando nota…</string>
 
 </resources>

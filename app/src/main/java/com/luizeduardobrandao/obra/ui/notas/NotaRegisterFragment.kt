@@ -2,12 +2,17 @@ package com.luizeduardobrandao.obra.ui.notas
 
 import android.Manifest
 import android.graphics.BitmapFactory
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.addCallback
 import androidx.core.view.isVisible
+import androidx.core.content.ContextCompat
+import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -17,33 +22,32 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import coil.load
 import com.luizeduardobrandao.obra.R
+import com.luizeduardobrandao.obra.data.model.AutoFillResult
 import com.luizeduardobrandao.obra.data.model.Nota
+import com.luizeduardobrandao.obra.data.model.TipoNota
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentNotaRegisterBinding
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
-import com.luizeduardobrandao.obra.ui.notas.adapter.NotaPagerAdapter
-import com.luizeduardobrandao.obra.utils.Constants
-import com.luizeduardobrandao.obra.utils.FileUtils
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
-import androidx.core.widget.doAfterTextChanged
-import java.util.*
-import java.text.NumberFormat
-import androidx.activity.addCallback
-import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
-import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
 import com.luizeduardobrandao.obra.ui.extensions.bindScrollToBottomFabBehavior
 import com.luizeduardobrandao.obra.ui.extensions.isAtBottom
 import com.luizeduardobrandao.obra.ui.extensions.updateFabVisibilityAnimated
-import androidx.core.content.ContextCompat
-import androidx.core.text.HtmlCompat
+import com.luizeduardobrandao.obra.ui.notas.adapter.NotaPagerAdapter
+import com.luizeduardobrandao.obra.utils.Constants
+import com.luizeduardobrandao.obra.utils.FileUtils
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import kotlin.math.abs
+import androidx.core.widget.doAfterTextChanged
+import java.util.*
+import android.util.TypedValue
+import java.text.NumberFormat
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.google.android.material.textfield.TextInputLayout
-import android.widget.TextView
-import android.util.TypedValue
-import android.view.ViewGroup
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 @AndroidEntryPoint
 class NotaRegisterFragment : Fragment() {
@@ -118,6 +122,9 @@ class NotaRegisterFragment : Fragment() {
     // Foto: exclusão pendente (somente em edição)
     private var isPhotoDeletePending = false
 
+    // IA: contador de tentativas de autofill (reinicia a cada nova foto confirmada)
+    private var autofillAttemptCount = 0
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -140,15 +147,14 @@ class NotaRegisterFragment : Fragment() {
             toolbarNotaReg.setNavigationOnClickListener { handleBackPress() }
 
             etDataNota.setOnClickListener {
-                if (isEdit) {
-                    // abre já marcado com a data atual do campo (dd/MM/yyyy)
-                    showMaterialDatePickerBrWithInitial(
-                        binding.etDataNota.text?.toString()
-                    ) { chosen ->
+                val atual = binding.etDataNota.text?.toString().orEmpty()
+                if (atual.isNotBlank()) {
+                    // Abre já posicionado na data que está no campo (ex.: preenchida pela IA)
+                    showMaterialDatePickerBrWithInitial(atual) { chosen ->
                         applyChosenNotaDate(chosen)
                     }
                 } else {
-                    // novo cadastro: abre em hoje
+                    // Campo vazio → abre em hoje
                     showMaterialDatePickerBrToday { chosen ->
                         applyChosenNotaDate(chosen)
                     }
@@ -200,6 +206,7 @@ class NotaRegisterFragment : Fragment() {
             )
 
             collectOperationState()
+            collectAutoFillState() // Observar o estado da IA e reagir
             validateForm()
             binding.root.post {
                 adjustSectionTopSpacing(
@@ -240,8 +247,8 @@ class NotaRegisterFragment : Fragment() {
 
     /* ────────────────────── Validação & Salvar ────────────────────── */
     private fun onSaveClick() = with(binding) {
-        shouldCloseAfterSave = true   // só fecha depois de salvar
-        isSaving = true               // <── SOMENTE aqui ligamos o loading do botão
+        shouldCloseAfterSave = true   // Só fecha depois de salvar
+        isSaving = true               // Liga o loading do botão
 
         progress(true)
         // Role para o final imediatamente ao salvar para garantir o FAB visível na borda
@@ -384,6 +391,73 @@ class NotaRegisterFragment : Fragment() {
         }
     }
 
+    // Observar o estado da IA e reagir
+    private fun collectAutoFillState() {
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.autoFillState.collect { ai ->
+                    when (ai) {
+                        is NotasViewModel.AutoFillUiState.Idle -> {
+                            hideAutoFillOverlay()
+                        }
+
+                        is NotasViewModel.AutoFillUiState.Running -> {
+                            showAutoFillOverlay()
+                        }
+
+                        is NotasViewModel.AutoFillUiState.Success -> {
+                            hideAutoFillOverlay()
+                            applyAutofillToForm(ai.data)
+                            validateForm()
+                            // sucesso → zera contador
+                            autofillAttemptCount = 0
+                            // rola até o final, como você já faz
+                            binding.notaRegScroll.post {
+                                val child = binding.notaRegScroll.getChildAt(0)
+                                if (child != null) binding.notaRegScroll.smoothScrollTo(
+                                    0,
+                                    child.bottom
+                                )
+                                reevalScrollFab()
+                            }
+                        }
+
+                        is NotasViewModel.AutoFillUiState.Error -> {
+                            hideAutoFillOverlay()
+                            when {
+                                // Houve tentativa iniciada via diálogo e ainda temos até 2 re-tentativas
+                                autofillAttemptCount in 1..2 -> {
+                                    showAutofillRetryDialog()
+                                }
+                                // Estourou o limite (3) → cai no Snackbar de erro padrão e reseta
+                                autofillAttemptCount >= 3 -> {
+                                    autofillAttemptCount = 0
+                                    viewModel.resetAutofillFlow()
+
+                                    showSnackbarFragment(
+                                        type = Constants.SnackType.ERROR.name,
+                                        title = getString(R.string.snack_error),
+                                        msg = getString(R.string.ia_autofill_error_message),
+                                        btnText = getString(R.string.snack_button_ok)
+                                    )
+                                }
+                                // Fallback: erro sem ter vindo do fluxo do diálogo (raro)
+                                else -> {
+                                    showSnackbarFragment(
+                                        type = Constants.SnackType.ERROR.name,
+                                        title = getString(R.string.snack_error),
+                                        msg = getString(R.string.ia_autofill_error_message),
+                                        btnText = getString(R.string.snack_button_ok)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /* ────────────────────── Utilitários de formulário ────────────────────── */
 
     // Preenchimento dos campos em modo de edição
@@ -413,6 +487,65 @@ class NotaRegisterFragment : Fragment() {
         adjustSectionTopSpacing(binding.tilValorNota, binding.tvPhotoTitle, collapsedTopDp = 34)
     }
 
+    // Aplicar os dados da IA no formulário (com saneamento de acordo com as regras)
+    private fun applyAutofillToForm(result: AutoFillResult) = with(binding) {
+        // ---------- Nome do material ----------
+        // Regra: Nunca pode começar com símbolo ou espaço; deve começar com letra.
+        // Removemos qualquer prefixo que não seja letra (inclui espaços e símbolos).
+        val rawNome = result.nomeMaterial
+        val nomeSanitizado = rawNome
+            .replace(
+                Regex("^[^\\p{L}]+"),
+                ""
+            ) // corta tudo até a 1ª letra (qualquer alfabeto/acentos)
+            .trimStart()
+        etNomeMaterial.setText(nomeSanitizado)
+
+        // ---------- Descrição (opcional) ----------
+        etDescricaoMaterial.setText(result.descricao)
+
+        // ---------- Loja ----------
+        // Regra: Somente letras, espaços e acentos (sem símbolos).
+        // Mantemos apenas letras e espaço, colapsamos espaços múltiplos.
+        val rawLoja = result.loja
+        val lojaSanitizada = rawLoja
+            .replace(Regex("[^\\p{L} ]+"), "") // remove tudo que não seja letra ou espaço
+            .replace(Regex("\\s+"), " ")
+            .trim()
+        etLoja.setText(lojaSanitizada)
+
+        // ---------- Tipos ----------
+        val tipos: Set<TipoNota> = result.tipos.toSet()
+        cbPintura.isChecked = TipoNota.PINTURA in tipos
+        cbPedreiro.isChecked = TipoNota.PEDREIRO in tipos
+        cbHidraulica.isChecked = TipoNota.HIDRAULICA in tipos
+        cbEletrica.isChecked = TipoNota.ELETRICA in tipos
+        cbLimpeza.isChecked = TipoNota.LIMPEZA in tipos
+        cbOutros.isChecked = TipoNota.OUTROS in tipos
+
+        // ---------- Data ----------
+        // Regra: Nunca pode ter "-", deve estar exatamente em dd/MM/yyyy.
+        // Extraímos o primeiro match válido; se não houver, deixamos vazio.
+        // O ano sempre será 2025, mesmo que a IA traga outro ano.
+        val rawData = result.data
+        val match = Regex("\\b\\d{2}/\\d{2}/\\d{4}\\b").find(rawData)?.value
+        val dataSanitizada = match?.let {
+            val (dia, mes) = it.split("/").take(2)
+            "$dia/$mes/2025"
+        }.orEmpty()
+        etDataNota.setText(dataSanitizada)
+
+        // ---------- Valor ----------
+        // Regra: Nunca negativo. Se vier negativo, usar o valor absoluto.
+        val valorPositivo = abs(result.valor)
+        val nf = NumberFormat.getNumberInstance(Locale("pt", "BR")).apply {
+            minimumFractionDigits = 2
+            maximumFractionDigits = 2
+            isGroupingUsed = false
+        }
+        etValorNota.setText(nf.format(valorPositivo))
+    }
+
     // Validação
     private fun validateForm(): Boolean = with(binding) {
         // Nome do material
@@ -420,9 +553,7 @@ class NotaRegisterFragment : Fragment() {
         val nomeOk = nome.isNotEmpty()
         tilNomeMaterial.error = if (!nomeOk) getString(R.string.nota_reg_error_nome) else null
 
-        // Loja
-        // val loja = etLoja.text?.toString()?.trim().orEmpty()
-        // Não exibe erro para loja vazia
+        // Loja (Não exibe erro para loja vazia)
         tilLoja.error = null
 
         // Data (formato dd/MM/yyyy)
@@ -544,8 +675,80 @@ class NotaRegisterFragment : Fragment() {
         }
     }
 
+    // Helpers do overlay (mostrar/ocultar)
+    private fun showAutoFillOverlay() {
+        binding.autoFillOverlay.isVisible = true
+        binding.lottieAi.playAnimation()     // <-- inicia a animação
+    }
+
+    private fun hideAutoFillOverlay() {
+        binding.lottieAi.cancelAnimation()    // <-- para a animação
+        binding.autoFillOverlay.isVisible = false
+    }
+
+    /** Diálogo (MaterialAlertDialogBuilder) perguntando se deseja o Preenchimento Automático. */
+    private fun showAutofillConfirmDialog() {
+        val titleView = TextView(requireContext()).apply {
+            text = getString(R.string.ia_autofill_title) // "Preenchimento Automático"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(48, 32, 48, 8) // igual ao Cronograma
+        }
+
+        MaterialAlertDialogBuilder(
+            requireContext(),
+            R.style.ThemeOverlay_ObrasApp_FuncDialog
+        )
+            .setCustomTitle(titleView)
+            .setMessage(getString(R.string.ia_autofill_message))
+            .setNegativeButton(R.string.snack_button_no) { _, _ -> // "Não" (esquerda)
+                autofillAttemptCount = 0
+                viewModel.resetAutofillFlow()
+            }
+            .setPositiveButton(R.string.snack_button_yes) { _, _ -> // "Sim" (direita)
+                // 1ª tentativa
+                autofillAttemptCount = 1
+                viewModel.requestAutofillFromPendingPhoto()
+                showAutoFillOverlay()
+            }
+            .create()
+            .show()
+    }
+
+    /** Diálogo (MaterialAlertDialogBuilder) de re-tentativa em caso de erro (máx. 3x). */
+    private fun showAutofillRetryDialog() {
+        val titleView = TextView(requireContext()).apply {
+            text = getString(R.string.snack_error) // "Erro"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(48, 32, 48, 8) // igual ao Cronograma
+        }
+
+        MaterialAlertDialogBuilder(
+            requireContext(),
+            R.style.ThemeOverlay_ObrasApp_FuncDialog
+        )
+            .setCustomTitle(titleView)
+            .setMessage(getString(R.string.ia_autofill_retry_message))
+            .setNegativeButton(R.string.snack_button_no) { _, _ ->  // "Não" (esquerda)
+                autofillAttemptCount = 0
+                viewModel.resetAutofillFlow()
+            }
+            .setPositiveButton(R.string.snack_button_yes) { _, _ -> // "Sim" (direita)
+                // próxima tentativa
+                autofillAttemptCount += 1
+                viewModel.requestAutofillFromPendingPhoto()
+                showAutoFillOverlay()
+            }
+            .create()
+            .show()
+    }
+
     /* ────────────────────── Foto: ações dos botões ────────────────────── */
     private fun startPickImage() {
+        // Limpa estado anterior de erro e contador
+        viewModel.resetAutofillFlow()
+        autofillAttemptCount = 0
         // Aceita qualquer imagem
         openImagePicker.launch(arrayOf("image/*"))
     }
@@ -561,6 +764,11 @@ class NotaRegisterFragment : Fragment() {
             )
             return
         }
+
+        // Limpa estado anterior de erro e contador
+        viewModel.resetAutofillFlow()
+        autofillAttemptCount = 0
+
         // Checa/solicita permissão de CÂMERA (SDK 23+)
         requestCameraPermission.launch(Manifest.permission.CAMERA)
     }
@@ -582,7 +790,7 @@ class NotaRegisterFragment : Fragment() {
         showSnackbarFragment(
             type = Constants.SnackType.WARNING.name,
             title = getString(R.string.snack_attention),
-            msg = getString(titleRes), // mantenha sua msg atual
+            msg = getString(titleRes),
             btnText = getString(R.string.snack_button_yes),
             onAction = {
                 // guarda no ViewModel como pendente para subir no salvar
@@ -595,17 +803,22 @@ class NotaRegisterFragment : Fragment() {
                 // se havia exclusão pendente, ela deixa de existir (vamos substituir a foto)
                 isPhotoDeletePending = false
 
-                // ➜ Toast com o rótulo CORRETO do botão ("Salvar" na criação, "Alterar" na edição)
-                val actionLabel = binding.btnSaveNota.text.toString()
+                // ➜ Toast "Foto selecionada."
                 Toast.makeText(
                     requireContext(),
-                    getString(R.string.nota_photo_pending_generic_toast, actionLabel),
+                    getString(R.string.nota_photo_pending_generic_toast),
                     Toast.LENGTH_LONG
                 ).show()
+
+                // reset nas tentativas da IA ao confirmar uma nova foto
+                autofillAttemptCount = 0
+                viewModel.resetAutofillFlow()
 
                 updatePhotoUiFromState()
                 reevalScrollFab()
 
+                // ➜ Abre o MaterialAlertDialog
+                binding.root.post { showAutofillConfirmDialog() }
             },
             btnNegativeText = getString(R.string.snack_button_no),
             onNegative = { /* nada: mantém estado anterior */ }
@@ -758,7 +971,8 @@ class NotaRegisterFragment : Fragment() {
         val desc = etDescricaoMaterial.text?.toString()?.trim().orEmpty()
         val loja = etLoja.text?.toString()?.trim().orEmpty()
         val data = etDataNota.text?.toString().orEmpty()
-        val valor = etValorNota.text?.toString()?.replace(',', '.')?.toDoubleOrNull()
+        val valor =
+            etValorNota.text?.toString()?.replace(',', '.')?.toDoubleOrNull()
         val status = if (rbStatusPagar.isChecked) NotaPagerAdapter.STATUS_A_PAGAR
         else NotaPagerAdapter.STATUS_PAGO
 
@@ -860,6 +1074,11 @@ class NotaRegisterFragment : Fragment() {
                 onToggle()
             }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.lottieAi.cancelAnimation()
     }
 
     override fun onDestroyView() {

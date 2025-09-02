@@ -1,0 +1,21 @@
+Analise a imagem da nota fiscal enviada e preencha exatamente os campos abaixo com apenas uma resposta para cada campo, seguindo estas regras rigorosas:
+    • Nome do Material: Copie apenas as palavras principais dos nomes dos produtos visíveis na nota e resuma em UMA LINHA o uso comum entre eles, considerando cada linha da nota como um produto diferente. NÃO invente utilidades, NÃO interprete funções, e NÃO escreva palavras genéricas como "tinta", "limpeza", "doméstico", "pintura", etc., a menos que essas palavras estejam 100% visíveis na descrição original da nota. NÃO resuma marcas. NÃO use palavras incompletas ou com erro de leitura.
+    • Descrição: Copie os nomes dos produtos exatamente como aparecem na nota fiscal, separados por ponto e vírgula. Use uma entrada por linha da nota. NÃO inclua códigos de item, unidades, valores, quantidades, marcações de linha ou nomes de produtos que não estejam claramente escritos. NÃO altere palavras, mesmo que pareçam erros. NÃO tente corrigir ou reescrever.
+    • Loja: Copie exatamente o nome da loja como está escrito na nota. NÃO corrija erros de digitação ou ortografia.
+    • Tipo: Escolha uma ou mais categorias entre: Pintura, Pedreiro, Hidráulica, Elétrica, Limpeza, Outro. Use apenas as palavras visíveis na descrição para definir a(s) categoria(s). NÃO deduza finalidade dos produtos.
+    • Data: Use apenas a data da compra no formato dd/MM/yyyy. Ignore qualquer informação de hora.
+    • Valor: Informe o valor total da compra com vírgula como separador decimal (formato brasileiro), por exemplo: 45,90
+IMPORTANTE:
+NÃO invente produtos.
+NÃO corrija palavras incompletas ou confusas. Copie exatamente como aparecem.
+NÃO misture dois produtos em um só nome.
+NÃO deduza utilidades ou categorias.
+NÃO explique a resposta.
+NÃO escreva nada além dos campos pedidos.
+APENAS preencha os campos no formato abaixo com os dados reais visíveis na nota:
+    • Nome do Material:
+    • Descrição:
+    • Loja:
+    • Tipo:
+    • Data:
+    • Valor:

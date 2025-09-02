@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -10,6 +12,18 @@ plugins {
     id("com.google.devtools.ksp")
     // Parcelize
     id("kotlin-parcelize") // serve para você poder empacotar objetos em Bundle/Intent
+    // Kotlin Serialization plugin
+    id("org.jetbrains.kotlin.plugin.serialization")
+}
+
+// Lê OPENAI_API_KEY do local.properties (ou da env var no CI)
+val openAiKey: String = run {
+    val props = Properties()
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { props.load(it) }
+    props.getProperty("OPENAI_API_KEY")
+        ?: System.getenv("OPENAI_API_KEY")
+        ?: ""
 }
 
 android {
@@ -24,6 +38,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "OPENAI_API_KEY", "\"$openAiKey\"")
     }
 
     buildTypes {
@@ -44,6 +59,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -100,4 +116,18 @@ dependencies {
     // Imagens
     implementation("io.coil-kt:coil:2.6.0")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
+
+    // --- REDE / HTTP ---
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    // Converter de kotlinx-serialization para Retrofit
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+
+    // --- JSON (kotlinx-serialization) ---
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+
+    // Lottie (carregamento)
+    implementation("com.airbnb.android:lottie:6.4.0")
 }

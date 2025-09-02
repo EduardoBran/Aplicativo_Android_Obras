@@ -115,4 +115,7 @@
     <color name="fab_scroll_bg">#DBDBDB</color>         <!-- cinza 300 -->
     <color name="fab_scroll_icon_tint">#282828</color>  <!-- cinza 700 -->
 
+    <color name="purple_robot">#5528B1</color> <!-- Roxo escuro (robô) -->
+    <color name="purple_progress">#9C74DC</color> <!-- Roxo claro (progress bar) -->
+
 </resources>

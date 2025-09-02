@@ -45,13 +45,13 @@ class ResumoNotasFragment : Fragment() {
 
     // Estado das abas (preservado em rotação/processo)
     private var isTotalsExpanded = false
-    private var isTiposExpanded  = false
+    private var isTiposExpanded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         savedInstanceState?.let {
             isTotalsExpanded = it.getBoolean(KEY_TOT_EXPANDED, false)
-            isTiposExpanded  = it.getBoolean(KEY_TIPOS_EXPANDED, false)
+            isTiposExpanded = it.getBoolean(KEY_TIPOS_EXPANDED, false)
         }
     }
 
@@ -116,6 +116,7 @@ class ResumoNotasFragment : Fragment() {
                                 getString(R.string.snack_button_ok)
                             )
                         }
+
                         else -> Unit
                     }
                 }
@@ -142,18 +143,20 @@ class ResumoNotasFragment : Fragment() {
 
         // ---- Totais (valores) ----
         val totalAPagar = list.filter { it.status == "A Pagar" }.sumOf { it.valor }
-        val totalPago   = list.filter { it.status == "Pago" }.sumOf { it.valor }
-        val totalGeral  = totalAPagar + totalPago
+        val totalPago = list.filter { it.status == "Pago" }.sumOf { it.valor }
+        val totalGeral = totalAPagar + totalPago
 
         tvResumoTotalAPagar.text = formatMoneyBR(totalAPagar)
-        tvResumoTotalPago  .text = formatMoneyBR(totalPago)
-        tvResumoTotalGeral .text = formatMoneyBR(totalGeral)
+        tvResumoTotalPago.text = formatMoneyBR(totalPago)
+        tvResumoTotalGeral.text = formatMoneyBR(totalGeral)
 
-        // ---- Totais por tipo: (A Pagar) ----
+        // ---- Totais por combinação de tipos: (A Receber) ----
         containerTiposValoresAPagar.removeAllViews()
-        val porTipoAPagar = mutableMapOf<String, Double>()
+        val porComboAPagar = linkedMapOf<String, Double>()
         list.filter { it.status == "A Pagar" }.forEach { n ->
-            n.tipos.forEach { t -> porTipoAPagar[t] = (porTipoAPagar[t] ?: 0.0) + n.valor }
+            // Combinação EXATA mantida na ordem salva na nota
+            val combo = n.tipos.joinToString(", ")
+            porComboAPagar[combo] = (porComboAPagar[combo] ?: 0.0) + n.valor
         }
         // Se o TOTAL A RECEBER for zero, mostra a mensagem e esconde a lista
         if (totalAPagar == 0.0) {
@@ -163,20 +166,20 @@ class ResumoNotasFragment : Fragment() {
             binding.tvTiposAPagarEmpty.isVisible = false
             binding.containerTiposValoresAPagar.isVisible = true
 
-            porTipoAPagar.forEach { (tipo, v) ->
+            porComboAPagar.forEach { (combo, v) ->
                 val tv = layoutInflater.inflate(
                     R.layout.item_tipo_valor, containerTiposValoresAPagar, false
                 ) as android.widget.TextView
 
                 // Exemplo: "Elétrica: R$ 900,00"
-                val label = "$tipo: ${formatMoneyBR(v)}"
+                val label = "$combo: ${formatMoneyBR(v)}"
 
-                val styled = android.text.SpannableStringBuilder(label).apply {
+                val styled = SpannableStringBuilder(label).apply {
                     setSpan(
-                        android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                        StyleSpan(Typeface.BOLD),
                         0,
-                        tipo.length, // só o nome do tipo em negrito
-                        android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        combo.length, // só o nome do tipo em negrito
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                     )
                 }
 
@@ -186,11 +189,12 @@ class ResumoNotasFragment : Fragment() {
             }
         }
 
-        // ---- Totais por tipo: (Pago) ----
+        // ---- Totais por combinação de tipos: (Pago) ----
         containerTiposValoresPago.removeAllViews()
-        val porTipoPago = mutableMapOf<String, Double>()
+        val porComboPago = linkedMapOf<String, Double>()
         list.filter { it.status == "Pago" }.forEach { n ->
-            n.tipos.forEach { t -> porTipoPago[t] = (porTipoPago[t] ?: 0.0) + n.valor }
+            val combo = n.tipos.joinToString(", ")
+            porComboPago[combo] = (porComboPago[combo] ?: 0.0) + n.valor
         }
         if (totalPago == 0.0) {   // ✅ checa totalPago, não totalAPagar
             tvTiposPagoEmpty.isVisible = true
@@ -199,19 +203,19 @@ class ResumoNotasFragment : Fragment() {
             tvTiposPagoEmpty.isVisible = false
             containerTiposValoresPago.isVisible = true
 
-            porTipoPago.forEach { (tipo, v) ->
+            porComboPago.forEach { (combo, v) ->
                 val tv = layoutInflater.inflate(
                     R.layout.item_tipo_valor, containerTiposValoresPago, false
                 ) as android.widget.TextView
 
                 // Ex.: "Elétrica: R$ 100,00"
-                val label = "$tipo: ${formatMoneyBR(v)}"
+                val label = "$combo: ${formatMoneyBR(v)}"
 
                 val styled = SpannableStringBuilder(label).apply {
                     setSpan(
                         StyleSpan(Typeface.BOLD),
                         0,
-                        tipo.length, // deixa só o nome do tipo em negrito
+                        combo.length, // deixa só o nome do tipo em negrito
                         Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                     )
                 }
@@ -225,7 +229,7 @@ class ResumoNotasFragment : Fragment() {
 
     private fun progress(show: Boolean) = with(binding) {
         progressNotasList.isVisible = show
-        rvNotasResumo.isVisible     = !show
+        rvNotasResumo.isVisible = !show
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -272,7 +276,7 @@ class ResumoNotasFragment : Fragment() {
         NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(value)
 
     companion object {
-        private const val KEY_TOT_EXPANDED   = "isTotalsExpanded"
+        private const val KEY_TOT_EXPANDED = "isTotalsExpanded"
         private const val KEY_TIPOS_EXPANDED = "isTiposExpanded"
     }
 }

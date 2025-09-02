@@ -442,4 +442,35 @@
         </com.google.android.material.card.MaterialCardView>
     </FrameLayout>
 
+    <!-- Overlay do preenchimento automático (IA) -->
+    <FrameLayout
+        android:id="@+id/autoFillOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#99000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
+
+        <!-- Conteúdo central: ícone do robô + progress -->
+        <!-- Lottie central -->
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottieAi"
+            android:layout_width="260dp"
+            android:layout_height="260dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/ia_robot_icon_desc"
+            android:importantForAccessibility="no"
+            app:lottie_rawRes="@raw/ai_powered"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_speed="1.0"
+            app:lottie_renderMode="software" />
+    </FrameLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

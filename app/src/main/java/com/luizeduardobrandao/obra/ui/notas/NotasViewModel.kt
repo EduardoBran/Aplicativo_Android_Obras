@@ -4,8 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.luizeduardobrandao.obra.R
+import com.luizeduardobrandao.obra.data.model.AutoFillResult
 import com.luizeduardobrandao.obra.data.model.Nota
 import com.luizeduardobrandao.obra.data.model.UiState
+import com.luizeduardobrandao.obra.data.repository.AiAutofillRepository
 import com.luizeduardobrandao.obra.data.repository.FuncionarioRepository
 import com.luizeduardobrandao.obra.data.repository.NotaRepository
 import com.luizeduardobrandao.obra.data.repository.ObraRepository
@@ -35,6 +37,7 @@ class NotasViewModel @Inject constructor(
     private val repoNota: NotaRepository,
     private val repoFun: FuncionarioRepository,
     private val repoObra: ObraRepository,
+    private val aiRepo: AiAutofillRepository,
     @IoDispatcher private val io: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -45,6 +48,18 @@ class NotasViewModel @Inject constructor(
 
     private val _state = MutableStateFlow<UiState<List<Nota>>>(UiState.Loading)
     val state: StateFlow<UiState<List<Nota>>> = _state.asStateFlow()
+
+    // Sealed interface e StateFlow do autofill
+    // ⬇️ ADICIONAR AQUI (logo após _state/state)
+    sealed interface AutoFillUiState {
+        data object Idle : AutoFillUiState
+        data object Running : AutoFillUiState
+        data class Success(val data: AutoFillResult) : AutoFillUiState
+        data class Error(val reason: String) : AutoFillUiState
+    }
+
+    private val _autoFillState = MutableStateFlow<AutoFillUiState>(AutoFillUiState.Idle)
+    val autoFillState: StateFlow<AutoFillUiState> = _autoFillState.asStateFlow()
 
     private var loadJob: Job? = null
 
@@ -256,5 +271,32 @@ class NotasViewModel @Inject constructor(
             recalcGastoTotal()
             loadNotas()
         }
+    }
+
+    /** Mét0do que dispara a análise da foto pendente. */
+    fun requestAutofillFromPendingPhoto() {
+        val bytes = pendingPhotoBytes
+        val mime = pendingPhotoMime
+
+        if (bytes == null || mime == null) {
+            _autoFillState.value = AutoFillUiState.Error("Nenhuma imagem pendente para analisar.")
+            return
+        }
+
+        _autoFillState.value = AutoFillUiState.Running
+        viewModelScope.launch(io) {
+            val res = aiRepo.analyze(bytes, mime)
+            res.onSuccess { result ->
+                _autoFillState.value = AutoFillUiState.Success(result)
+            }.onFailure { t ->
+                _autoFillState.value =
+                    AutoFillUiState.Error(t.message ?: "Falha no preenchimento automático.")
+            }
+        }
+    }
+
+    /** Opcional: permite ao Fragment voltar o estado para neutro após consumir o resultado. */
+    fun resetAutofillFlow() {
+        _autoFillState.value = AutoFillUiState.Idle
     }
 }
