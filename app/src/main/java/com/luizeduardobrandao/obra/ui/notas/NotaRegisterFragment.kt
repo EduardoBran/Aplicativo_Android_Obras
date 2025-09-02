@@ -240,15 +240,24 @@ class NotaRegisterFragment : Fragment() {
 
     /* ────────────────────── Validação & Salvar ────────────────────── */
     private fun onSaveClick() = with(binding) {
-        shouldCloseAfterSave = true  // só fecha depois de salvar
+        shouldCloseAfterSave = true   // só fecha depois de salvar
         isSaving = true               // <── SOMENTE aqui ligamos o loading do botão
 
-        progress(true) // ALTERAÇÃO AQUI
+        progress(true)
+        // Role para o final imediatamente ao salvar para garantir o FAB visível na borda
+        binding.notaRegScroll.post {
+            val child = binding.notaRegScroll.getChildAt(0)
+            if (child != null) {
+                binding.notaRegScroll.smoothScrollTo(0, child.bottom)
+            }
+            reevalScrollFab()
+        }
 
         val nome = etNomeMaterial.text.toString().trim()
         val loja = etLoja.text.toString().trim()
         val data = etDataNota.text.toString()
-        val valor = etValorNota.text.toString().replace(',', '.').toDoubleOrNull() ?: -1.0
+        val valor =
+            etValorNota.text.toString().replace(',', '.').toDoubleOrNull() ?: -1.0
         val status = if (rbStatusPagar.isChecked) NotaPagerAdapter.STATUS_A_PAGAR
         else NotaPagerAdapter.STATUS_PAGO
 
@@ -531,11 +540,6 @@ class NotaRegisterFragment : Fragment() {
             // 3) Agora sim, fecha o teclado
             root.hideKeyboard()
 
-            // 4) Garante visibilidade do spinner: rola até ele
-            progressSaveNota.post {
-                notaRegScroll.smoothScrollTo(0, progressSaveNota.bottom)
-            }
-
             reevalScrollFab()
         }
     }
@@ -602,13 +606,6 @@ class NotaRegisterFragment : Fragment() {
                 updatePhotoUiFromState()
                 reevalScrollFab()
 
-                // Rola ao final para garantir visibilidade do cartão de foto
-                binding.notaRegScroll.post {
-                    binding.notaRegScroll.smoothScrollTo(
-                        0,
-                        binding.notaRegScroll.getChildAt(0).bottom
-                    )
-                }
             },
             btnNegativeText = getString(R.string.snack_button_no),
             onNegative = { /* nada: mantém estado anterior */ }
