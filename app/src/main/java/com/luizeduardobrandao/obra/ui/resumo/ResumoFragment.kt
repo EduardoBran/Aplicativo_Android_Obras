@@ -6,9 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.view.ViewGroup as AndroidViewGroup
+import android.view.ViewTreeObserver
 import androidx.core.view.isVisible
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -22,6 +25,7 @@ import com.luizeduardobrandao.obra.databinding.FragmentResumoBinding
 import com.luizeduardobrandao.obra.ui.cronograma.CronogramaViewModel
 import com.luizeduardobrandao.obra.ui.cronograma.adapter.CronogramaPagerAdapter
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.ui.extensions.bindScrollToBottomFabForResumo
 import com.luizeduardobrandao.obra.ui.material.MaterialViewModel
 import com.luizeduardobrandao.obra.ui.material.adapter.MaterialPagerAdapter
 import com.luizeduardobrandao.obra.ui.notas.NotasViewModel
@@ -31,9 +35,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
-import android.view.ViewTreeObserver
-import com.luizeduardobrandao.obra.ui.extensions.bindScrollToBottomFabForResumo
-import androidx.core.content.ContextCompat
 
 @AndroidEntryPoint
 class ResumoFragment : Fragment() {
@@ -109,6 +110,7 @@ class ResumoFragment : Fragment() {
                     )
                     true
                 }
+
                 else -> false
             }
         }
@@ -120,35 +122,51 @@ class ResumoFragment : Fragment() {
             contentAbaFuncionarios,
             ivArrowFuncionarios,
             isFunExpanded
-        ) { isFunExpanded = it }
+        ) {
+            isFunExpanded = it
+            updateHeroVisibility(animate = true)
+        }
         setupExpandable(
             containerResumo,
             headerAbaNotas,
             contentAbaNotas,
             ivArrowNotas,
             isNotasExpanded
-        ) { isNotasExpanded = it }
+        ) {
+            isNotasExpanded = it
+            updateHeroVisibility(animate = true)
+        }
         setupExpandable(
             containerResumo,
             headerAbaCronograma,
             contentAbaCronograma,
             ivArrowCronograma,
             isCronExpanded
-        ) { isCronExpanded = it }
+        ) {
+            isCronExpanded = it
+            updateHeroVisibility(animate = true)
+        }
         setupExpandable(
             containerResumo,
             headerAbaMateriais,
             contentAbaMateriais,
             ivArrowMateriais,
             isMatExpanded
-        ) { isMatExpanded = it }
+        ) {
+            isMatExpanded = it
+            updateHeroVisibility(animate = true)
+        }
         setupExpandable(
             containerResumo,
             headerAbaSaldo,
             contentAbaSaldo,
             ivArrowSaldo,
-            isSaldoExpanded
-        ) { isSaldoExpanded = it }
+            isSaldoExpanded,
+            scrollToEndOnExpand = true   // ⬅️ SOMENTE AQUI
+        ) {
+            isSaldoExpanded = it
+            updateHeroVisibility(animate = true)
+        }
         // ✅ Nova sub-aba: Aportes (dentro de Financeiro)
         setupExpandable(
             containerResumo,
@@ -156,13 +174,24 @@ class ResumoFragment : Fragment() {
             contentAbaAportes,
             ivArrowAportes,
             isAportesExpanded
-        ) { isAportesExpanded = it }
+        ) {
+            isAportesExpanded = it
+            updateHeroVisibility(animate = true)
+        }
+
+        // Anima SEMPRE ao entrar no Resumo
+        runHeroEnterAnimation()
+
+        // Ajusta a visibilidade inicial da imagem conforme o estado restaurado das abas (sem animação de layout aqui)
+        updateHeroVisibility(animate = false)
 
         // FAB de rolagem do Resumo – visível somente quando houver conteúdo rolável
         resumoFabGlobalLayoutListener = bindScrollToBottomFabForResumo(
             fab = binding.fabScrollDownResumo,
             scrollView = binding.scrollResumo
         )
+        binding.fabScrollDownResumo.isVisible = false
+        updateFabForScrollState()
 
         // ── Funcionários → ResumoFuncionarioFragment
         btnAbrirFuncionarios.setOnClickListener {
@@ -609,25 +638,261 @@ class ResumoFragment : Fragment() {
         content: View,
         arrow: ImageView,
         startExpanded: Boolean,
+        scrollToEndOnExpand: Boolean = false,
         onStateChange: (Boolean) -> Unit
     ) {
+
         fun applyState(expanded: Boolean, animate: Boolean) {
+            // 1) Atualiza flags/hero
+            onStateChange(expanded)
+
             if (animate) {
+                // Não deixa piscar durante a transição
+                hideFabStrong(binding.fabScrollDownResumo)
+
+                val transition = androidx.transition.AutoTransition().apply { duration = 180 }
+                transition.addListener(object : androidx.transition.Transition.TransitionListener {
+                    override fun onTransitionEnd(t: androidx.transition.Transition) {
+                        t.removeListener(this)
+
+                        // Mantém seu comportamento de rolar após expandir/contrair
+                        binding.scrollResumo.post {
+                            if (expanded) {
+                                if (scrollToEndOnExpand) {
+                                    val bottom = (binding.scrollResumo.getChildAt(0).height -
+                                            binding.scrollResumo.height + binding.scrollResumo.paddingBottom)
+                                        .coerceAtLeast(0)
+                                    binding.scrollResumo.smoothScrollTo(0, bottom)
+                                } else {
+                                    val rect = android.graphics.Rect()
+                                    content.getDrawingRect(rect)
+                                    binding.scrollResumo.offsetDescendantRectToMyCoords(
+                                        content,
+                                        rect
+                                    )
+
+                                    val rawTargetY =
+                                        rect.bottom - binding.scrollResumo.height + binding.scrollResumo.paddingBottom
+                                    val maxScroll =
+                                        (binding.scrollResumo.getChildAt(0).height - binding.scrollResumo.height).coerceAtLeast(
+                                            0
+                                        )
+                                    binding.scrollResumo.smoothScrollTo(
+                                        0,
+                                        rawTargetY.coerceIn(0, maxScroll)
+                                    )
+                                }
+                            }
+
+                            // Decida FAB só DEPOIS do smoothScrollTo e do layout assentar
+                            updateFabForScrollState()
+                        }
+                    }
+
+                    override fun onTransitionStart(t: androidx.transition.Transition) {}
+                    override fun onTransitionCancel(t: androidx.transition.Transition) {
+                        t.removeListener(this)
+                    }
+
+                    override fun onTransitionPause(t: androidx.transition.Transition) {}
+                    override fun onTransitionResume(t: androidx.transition.Transition) {}
+                })
+
                 androidx.transition.TransitionManager.beginDelayedTransition(
                     containerRoot,
-                    androidx.transition.AutoTransition().apply { duration = 180 }
+                    transition
                 )
             }
+
+            // 3) Visibilidade do conteúdo e seta (inalterado)
             content.isVisible = expanded
             arrow.animate().rotation(if (expanded) 180f else 0f).setDuration(180).start()
-            onStateChange(expanded)
+
+            // 4) Sem animação (estado inicial/restaurado): mantém o comportamento de rolagem original
+            if (!animate) {
+                hideFabStrong(binding.fabScrollDownResumo)
+                content.post {
+                    if (expanded) {
+                        if (scrollToEndOnExpand) {
+                            val bottom = (binding.scrollResumo.getChildAt(0).height -
+                                    binding.scrollResumo.height + binding.scrollResumo.paddingBottom)
+                                .coerceAtLeast(0)
+                            binding.scrollResumo.smoothScrollTo(0, bottom)
+                        } else {
+                            val rect = android.graphics.Rect()
+                            content.getDrawingRect(rect)
+                            binding.scrollResumo.offsetDescendantRectToMyCoords(content, rect)
+
+                            val rawTargetY =
+                                rect.bottom - binding.scrollResumo.height +
+                                        binding.scrollResumo.paddingBottom
+                            val maxScroll =
+                                (
+                                        binding.scrollResumo.getChildAt(0).height
+                                                - binding.scrollResumo.height)
+                                    .coerceAtLeast(0)
+                            binding.scrollResumo.smoothScrollTo(
+                                0,
+                                rawTargetY.coerceIn(0, maxScroll)
+                            )
+                        }
+                    }
+                    // Decide FAB somente depois
+                    updateFabForScrollState()
+                }
+            }
         }
+
         content.post { applyState(startExpanded, animate = false) }
         header.setOnClickListener { applyState(!content.isVisible, animate = true) }
     }
 
+    // Formata saída dos valores
     private fun formatMoneyBR(value: Double): String =
         NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(value)
+
+    // Controla exibição do FAB
+    private fun updateFabForScrollState() {
+        val sv = binding.scrollResumo
+        val fab = binding.fabScrollDownResumo
+
+        // Decide após o próximo frame (layout estabilizado)
+        sv.post {
+            val child = sv.getChildAt(0)
+            val hasOverflow = child != null && child.height > sv.height
+
+            if (!hasOverflow) {
+                // Sem overflow: some com o FAB e DESLIGA todos os listeners
+                fab.isVisible = false
+                sv.setOnScrollChangeListener(
+                    null as androidx.core.widget.NestedScrollView.OnScrollChangeListener?
+                )
+                resumoFabGlobalLayoutListener?.let {
+                    sv.viewTreeObserver.removeOnGlobalLayoutListener(it)
+                    resumoFabGlobalLayoutListener = null
+                }
+            } else {
+                // Com overflow: rebind para resetar qualquer estado anterior
+                sv.setOnScrollChangeListener(
+                    null as androidx.core.widget.NestedScrollView.OnScrollChangeListener?
+                )
+                resumoFabGlobalLayoutListener?.let {
+                    sv.viewTreeObserver.removeOnGlobalLayoutListener(it)
+                    resumoFabGlobalLayoutListener = null
+                }
+                resumoFabGlobalLayoutListener = bindScrollToBottomFabForResumo(
+                    fab = fab,
+                    scrollView = sv
+                )
+
+                // Visibilidade inicial correta: só mostra se dá para rolar PARA BAIXO
+                val shouldShow = sv.canScrollVertically(1)
+                if (shouldShow) {
+                    showFabStrong(fab)
+                } else {
+                    hideFabStrong(fab)
+                }
+            }
+        }
+    }
+
+    private fun showFabStrong(fab: View) {
+        fab.animate().cancel()
+        fab.clearAnimation()
+        // Se for Extended FAB, garanta que volte ao estado "extendido"
+        (fab as? com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton)?.let {
+            it.extend()   // volta do shrink
+            it.show()     // garante visibilidade com animação nativa (estado interno ok)
+        }
+        // Se for FAB normal
+        (fab as? com.google.android.material.floatingactionbutton.FloatingActionButton)?.show()
+        // Se não for nenhum dos dois, faz o fallback "forte"
+        if (fab !is com.google.android.material.floatingactionbutton.FloatingActionButton &&
+            fab !is com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        ) {
+            fab.visibility = View.VISIBLE
+        }
+        // Zera qualquer escala/resíduo de animação
+        fab.scaleX = 1f
+        fab.scaleY = 1f
+        fab.alpha = 1f
+    }
+
+    private fun hideFabStrong(fab: View) {
+        fab.animate().cancel()
+        fab.clearAnimation()
+        // Se for Extended FAB, dá show+shrink ou apenas hide; escolha consistente
+        (fab as? com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton)?.hide()
+        // Se for FAB normal
+        (fab as? com.google.android.material.floatingactionbutton.FloatingActionButton)?.hide()
+        // Fallback
+        if (fab !is com.google.android.material.floatingactionbutton.FloatingActionButton &&
+            fab !is com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        ) {
+            fab.visibility = View.GONE
+        }
+        // Garante que não “volte pequeno” na próxima vez
+        fab.scaleX = 1f
+        fab.scaleY = 1f
+        fab.alpha = 0f
+    }
+
+    // ——— Animação de entrada da imagem ———
+    private fun runHeroEnterAnimation() = with(binding) {
+        val interp = FastOutSlowInInterpolator()
+        val dy = 16f * resources.displayMetrics.density
+
+        imgResumo.alpha = 0f
+        imgResumo.translationY = -dy
+
+        imgResumo.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(220L)
+            .setStartDelay(40L)
+            .setInterpolator(interp)
+            .start()
+    }
+
+    // ——— Controle de visibilidade da hero conforme abas ———
+    private fun updateHeroVisibility(animate: Boolean) = with(binding) {
+        val anyExpanded =
+            isFunExpanded || isNotasExpanded || isCronExpanded ||
+                    isMatExpanded || isSaldoExpanded || isAportesExpanded
+
+        if (anyExpanded) {
+            if (imgResumo.isVisible) {
+                if (animate) {
+                    // Fade-out curto
+                    imgResumo.animate()
+                        .alpha(0f)
+                        .setDuration(120L)
+                        .withEndAction {
+                            imgResumo.alpha = 1f
+                            imgResumo.isVisible = false
+                        }
+                        .start()
+                } else {
+                    // Sem animação (ex.: estado restaurado/inicial)
+                    imgResumo.clearAnimation()
+                    imgResumo.isVisible = false
+                    imgResumo.alpha = 1f
+                }
+            }
+        } else {
+            if (!imgResumo.isVisible) {
+                imgResumo.isVisible = true
+                if (animate) {
+                    // Reaparecendo quando TODAS as abas estão fechadas
+                    runHeroEnterAnimation()
+                }
+            } else {
+                // Ao entrar no fragment, você chamou runHeroEnterAnimation() manualmente.
+                // Só repita aqui se explicitamente pedir animação.
+                if (animate) runHeroEnterAnimation()
+            }
+        }
+    }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)

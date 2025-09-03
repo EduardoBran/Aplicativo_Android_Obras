@@ -542,6 +542,7 @@
     <string name="resumo_balance_header">Financeiro</string>
     <string name="resumo_func_count_mask">Quantidade: %1$s</string>
     <string name="resumo_func_total_mask">Total gasto: %1$s</string>
+    <string name="cd_resumo_illustration">Imagem resumo</string>
 
     <!-- Seções de Notas -->
     <string name="nota_due_title">A Receber</string>

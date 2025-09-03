@@ -19,6 +19,28 @@
         app:title="@string/resumo_title"
         app:titleCentered="true" />
 
+    <!-- Imagem -->
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/imgResumo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/login_logo_top_space"
+        android:layout_marginBottom="@dimen/login_logo_bottom_space"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/cd_login_illustration"
+        android:maxHeight="@dimen/login_logo_max_height"
+        android:padding="@dimen/login_hero_inner_padding"
+        android:scaleType="fitCenter"
+        android:src="@drawable/img_resume"
+        app:contentPadding="@dimen/login_hero_inner_padding"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbarResumoObra"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.ObrasApp.Hero"
+        app:strokeColor="@color/md_theme_light_outline"
+        app:strokeWidth="@dimen/login_hero_stroke" />
+
     <!-- Scroll -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollResumo"
@@ -28,14 +50,13 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbarResumoObra">
+        app:layout_constraintTop_toBottomOf="@id/imgResumo">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="16dp">
 
             <!-- Progress -->
             <ProgressBar
@@ -61,7 +82,7 @@
                     android:id="@+id/cardAbaFuncionarios"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="16dp"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="4dp">
 
@@ -321,7 +342,7 @@
                     android:id="@+id/cardAbaNotas"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="16dp"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="4dp">
 
@@ -592,7 +613,7 @@
                     android:id="@+id/cardAbaCronograma"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="16dp"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="4dp">
 
@@ -858,7 +879,7 @@
                     android:id="@+id/cardAbaMateriais"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="16dp"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="4dp">
 
@@ -1054,6 +1075,7 @@
                     android:id="@+id/cardAbaSaldo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="4dp">
 
@@ -1101,7 +1123,7 @@
                             android:orientation="vertical"
                             android:padding="16dp"
                             android:visibility="gone"
-                            tools:visibility="visible">
+                            tools:visibility="gone">
 
                             <!-- Saldo Inicial -->
                             <androidx.cardview.widget.CardView
