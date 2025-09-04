@@ -283,7 +283,7 @@ class WorkFragment : Fragment() {
         autoObras.setText("", false) // começa vazio (só hint)
         selectedObra = null
         btnContinue.isEnabled = false
-        btnNewWork.isEnabled = false
+        btnNewWork.isEnabled = true
 
         // anima só na primeira vez
         if (!hasAnimatedSelect) {

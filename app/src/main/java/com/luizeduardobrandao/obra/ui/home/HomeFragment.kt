@@ -137,6 +137,13 @@ class HomeFragment : Fragment() {
             )
         }
 
+        // Solução de Problemas (IA)
+        btnSolution.setOnClickListener {
+            findNavController().navigate(
+                HomeFragmentDirections.actionHomeToIa(args.obraId)
+            )
+        }
+
         // Resumo
         btnSummary.setOnClickListener {
             findNavController().navigate(

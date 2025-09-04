@@ -130,4 +130,7 @@ dependencies {
 
     // Lottie (carregamento)
     implementation("com.airbnb.android:lottie:6.4.0")
+
+    // Markdown
+    implementation("io.noties.markwon:core:4.6.2")
 }

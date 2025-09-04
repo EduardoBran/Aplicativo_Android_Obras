@@ -840,4 +840,40 @@
     <!-- 🔹 IA: Texto opcional para overlay de loading -->
     <string name="ia_autofill_loading">Analisando nota…</string>
 
+    <!-- IA / Solução de Problemas -->
+    <string name="home_btn_solution">Solução de Problemas</string>
+    <string name="ia_title">Tirar Dúvidas</string>
+    <string name="ia_hint_problem">Descreva seu problema…</string>
+    <string name="ia_btn_pick_image">Enviar foto (opcional)</string>
+    <string name="ia_photo_loaded">Foto carregada.</string>
+    <string name="ia_btn_send">Enviar</string>
+    <string name="ia_loading_cd">Carregando IA</string>
+    <string name="ia_response_title">Resposta</string>
+    <string name="ia_btn_save">Salvar</string>
+    <string name="ia_btn_new">Nova dúvida</string>
+    <string name="ia_toast_saved">Dúvida salva no histórico.</string>
+    <string name="ia_problem_length_error">A dúvida deve ter entre 8 e 100 caracteres.</string>
+
+    <!-- Prompts -->
+    <string name="ia_prompt_missing">Prompt ausente.</string>
+
+    <!-- Snackbar: Salvar no histórico -->
+    <string name="ia_snack_save_title">Salvar no Histórico</string>
+    <string name="ia_snack_save_msg">Deseja salvar esta dúvida no histórico?</string>
+
+    <!-- Snackbar: Nova dúvida -->
+    <string name="ia_snack_new_title">Nova Dúvida</string>
+    <string name="ia_snack_new_msg">Todos os campos serão apagados. Gostaria de continuar?</string>
+
+    <!-- Histórico -->
+    <string name="history_title">Histórico de Dúvidas</string>
+    <string name="history_empty">Nenhuma dúvida foi salva.</string>
+    <string name="history_delete_title">Excluir dúvida</string>
+    <string name="history_delete_msg">Gostaria de excluir esta dúvida do seu histórico?</string>
+
+    <!-- Detalhe do histórico (overlay) -->
+    <string name="history_detail_close_cd">Fechar</string>
+
+    <string name="scroll_to_top">Rolar para o topo</string>
+
 </resources>

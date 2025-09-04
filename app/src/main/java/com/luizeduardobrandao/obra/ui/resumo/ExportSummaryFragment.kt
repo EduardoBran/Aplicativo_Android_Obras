@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -18,8 +19,6 @@ import com.google.android.material.textview.MaterialTextView
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentExportSummaryBinding
-import com.luizeduardobrandao.obra.ui.extensions.isAtBottom
-import com.luizeduardobrandao.obra.ui.extensions.updateFabVisibilityAnimated
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.utils.Constants
 import com.luizeduardobrandao.obra.utils.savePdfToDownloads
@@ -38,6 +37,8 @@ class ExportSummaryFragment : Fragment() {
 
     private var _binding: FragmentExportSummaryBinding? = null
     private val binding get() = _binding!!
+
+    private var globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
     private val args: ExportSummaryFragmentArgs by navArgs()
     private val viewModel: ExportSummaryViewModel by viewModels()
@@ -59,7 +60,7 @@ class ExportSummaryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupToolbar()
-        setupFabScroll()
+        setupFabBehavior()
         collectStateAndRender()
     }
 
@@ -80,6 +81,7 @@ class ExportSummaryFragment : Fragment() {
                     askSavePdf()
                     true
                 }
+
                 else -> false
             }
         }
@@ -108,11 +110,13 @@ class ExportSummaryFragment : Fragment() {
                             binding.progressExportSummary.isVisible = true
                             binding.scrollExportSummary.isVisible = false
                         }
+
                         is UiState.Success -> {
                             binding.progressExportSummary.isVisible = false
                             binding.scrollExportSummary.isVisible = true
                             render(ui.data)
                         }
+
                         is UiState.ErrorRes -> {
                             binding.progressExportSummary.isVisible = false
                             binding.scrollExportSummary.isVisible = false
@@ -123,6 +127,7 @@ class ExportSummaryFragment : Fragment() {
                                 btnText = getString(R.string.snack_button_ok)
                             )
                         }
+
                         else -> Unit
                     }
                 }
@@ -156,19 +161,31 @@ class ExportSummaryFragment : Fragment() {
             data.funcionariosAtivos.forEach { ft ->
                 addBodyLine(
                     containerFuncAtivos,
-                    getString(R.string.export_func_item_paid_fmt, ft.funcionario.nome, moneyFmt.format(ft.totalPago))
+                    getString(
+                        R.string.export_func_item_paid_fmt,
+                        ft.funcionario.nome,
+                        moneyFmt.format(ft.totalPago)
+                    )
                 )
             }
         }
 
         containerFuncInativos.removeAllViews()
         if (data.funcionariosInativos.isEmpty()) {
-            addBodyLine(containerFuncInativos, getString(R.string.func_none_inactive), italic = true)
+            addBodyLine(
+                containerFuncInativos,
+                getString(R.string.func_none_inactive),
+                italic = true
+            )
         } else {
             data.funcionariosInativos.forEach { ft ->
                 addBodyLine(
                     containerFuncInativos,
-                    getString(R.string.export_func_item_paid_fmt, ft.funcionario.nome, moneyFmt.format(ft.totalPago))
+                    getString(
+                        R.string.export_func_item_paid_fmt,
+                        ft.funcionario.nome,
+                        moneyFmt.format(ft.totalPago)
+                    )
                 )
             }
         }
@@ -186,7 +203,12 @@ class ExportSummaryFragment : Fragment() {
             data.notasAReceber.forEach { n ->
                 addBodyLine(
                     containerNotasReceber,
-                    getString(R.string.export_nota_line, n.nomeMaterial, fmtBr(n.data), moneyFmt.format(n.valor))
+                    getString(
+                        R.string.export_nota_line,
+                        n.nomeMaterial,
+                        fmtBr(n.data),
+                        moneyFmt.format(n.valor)
+                    )
                 )
             }
         }
@@ -197,7 +219,12 @@ class ExportSummaryFragment : Fragment() {
             data.notasPagas.forEach { n ->
                 addBodyLine(
                     containerNotasPagas,
-                    getString(R.string.export_nota_line, n.nomeMaterial, fmtBr(n.data), moneyFmt.format(n.valor))
+                    getString(
+                        R.string.export_nota_line,
+                        n.nomeMaterial,
+                        fmtBr(n.data),
+                        moneyFmt.format(n.valor)
+                    )
                 )
             }
         }
@@ -217,34 +244,61 @@ class ExportSummaryFragment : Fragment() {
         // Cronogramas
         containerCronPendentes.removeAllViews()
         if (data.cronPendentes.isEmpty()) {
-            addBodyLine(containerCronPendentes, getString(R.string.cron_none_pending_summary), italic = true)
+            addBodyLine(
+                containerCronPendentes,
+                getString(R.string.cron_none_pending_summary),
+                italic = true
+            )
         } else {
             data.cronPendentes.forEach { e ->
                 addBodyLine(
                     containerCronPendentes,
-                    getString(R.string.export_cron_line, e.titulo, fmtBr(e.dataInicio), fmtBr(e.dataFim))
+                    getString(
+                        R.string.export_cron_line,
+                        e.titulo,
+                        fmtBr(e.dataInicio),
+                        fmtBr(e.dataFim)
+                    )
                 )
             }
         }
         containerCronAndamento.removeAllViews()
         if (data.cronAndamento.isEmpty()) {
-            addBodyLine(containerCronAndamento, getString(R.string.cron_none_progress_summary), italic = true)
+            addBodyLine(
+                containerCronAndamento,
+                getString(R.string.cron_none_progress_summary),
+                italic = true
+            )
         } else {
             data.cronAndamento.forEach { e ->
                 addBodyLine(
                     containerCronAndamento,
-                    getString(R.string.export_cron_line, e.titulo, fmtBr(e.dataInicio), fmtBr(e.dataFim))
+                    getString(
+                        R.string.export_cron_line,
+                        e.titulo,
+                        fmtBr(e.dataInicio),
+                        fmtBr(e.dataFim)
+                    )
                 )
             }
         }
         containerCronConcluidos.removeAllViews()
         if (data.cronConcluidos.isEmpty()) {
-            addBodyLine(containerCronConcluidos, getString(R.string.cron_none_done_summary), italic = true)
+            addBodyLine(
+                containerCronConcluidos,
+                getString(R.string.cron_none_done_summary),
+                italic = true
+            )
         } else {
             data.cronConcluidos.forEach { e ->
                 addBodyLine(
                     containerCronConcluidos,
-                    getString(R.string.export_cron_line, e.titulo, fmtBr(e.dataInicio), fmtBr(e.dataFim))
+                    getString(
+                        R.string.export_cron_line,
+                        e.titulo,
+                        fmtBr(e.dataInicio),
+                        fmtBr(e.dataFim)
+                    )
                 )
             }
         }
@@ -255,7 +309,11 @@ class ExportSummaryFragment : Fragment() {
         // Materiais
         containerMatAtivos.removeAllViews()
         if (data.materiaisAtivos.isEmpty()) {
-            addBodyLine(containerMatAtivos, getString(R.string.material_empty_summary), italic = true)
+            addBodyLine(
+                containerMatAtivos,
+                getString(R.string.material_empty_summary),
+                italic = true
+            )
         } else {
             data.materiaisAtivos.forEach { m ->
                 addBodyLine(
@@ -266,7 +324,11 @@ class ExportSummaryFragment : Fragment() {
         }
         containerMatInativos.removeAllViews()
         if (data.materiaisInativos.isEmpty()) {
-            addBodyLine(containerMatInativos, getString(R.string.material_empty_summary2), italic = true)
+            addBodyLine(
+                containerMatInativos,
+                getString(R.string.material_empty_summary2),
+                italic = true
+            )
         } else {
             data.materiaisInativos.forEach { m ->
                 addBodyLine(
@@ -275,8 +337,10 @@ class ExportSummaryFragment : Fragment() {
                 )
             }
         }
-        tvTotalMatAtivo.text = getString(R.string.export_total_mat_active, data.totalMateriaisAtivos)
-        tvTotalMatInativo.text = getString(R.string.export_total_mat_inactive, data.totalMateriaisInativos)
+        tvTotalMatAtivo.text =
+            getString(R.string.export_total_mat_active, data.totalMateriaisAtivos)
+        tvTotalMatInativo.text =
+            getString(R.string.export_total_mat_inactive, data.totalMateriaisInativos)
         tvTotalMatGeral.text = getString(R.string.export_total_mat_all, data.totalMateriaisGeral)
 
         // Financeiro / Saldos / Aportes
@@ -338,7 +402,7 @@ class ExportSummaryFragment : Fragment() {
         tvFooterDataHoje.text = getString(R.string.export_footer_today, today)
 
         // Atualiza visibilidade do FAB após render
-        reevalScrollFab()
+        binding.scrollExportSummary.post { updateFabVisibility() }
     }
 
     // ───────────────────────── PDF ─────────────────────────
@@ -361,7 +425,8 @@ class ExportSummaryFragment : Fragment() {
             }
 
             // Nome do arquivo: resumo_obra_{obraId}_{ddMMyyyy}.pdf
-            val today = SimpleDateFormat("ddMMyyyy", Locale.ROOT).format(Calendar.getInstance().time)
+            val today =
+                SimpleDateFormat("ddMMyyyy", Locale.ROOT).format(Calendar.getInstance().time)
             val displayName = getString(R.string.export_summary_doc_name_fmt, args.obraId, today)
 
             val uri = savePdfToDownloads(requireContext(), pdfBytes, displayName)
@@ -412,7 +477,9 @@ class ExportSummaryFragment : Fragment() {
                 val bottom = min(top + pageHeight, contentHeightPx)
                 val actualPageHeight = bottom - top
 
-                val pageInfo = PdfDocument.PageInfo.Builder(pageWidth, actualPageHeight, pageIndex + 1).create()
+                val pageInfo =
+                    PdfDocument.PageInfo.Builder(pageWidth, actualPageHeight, pageIndex + 1)
+                        .create()
                 val page = pdf.startPage(pageInfo)
                 val canvas = page.canvas
 
@@ -434,21 +501,101 @@ class ExportSummaryFragment : Fragment() {
 
     // ───────────────────────── FAB Scroll ─────────────────────────
 
-    private fun setupFabScroll() = with(binding) {
-        fabScrollDown.setOnClickListener {
-            scrollExportSummary.smoothScrollTo(0, containerExportSummary.bottom)
-        }
+    /** Decide qual FAB mostrar:
+     *  - Se há rolagem e NÃO está no fim → mostra FAB de descer
+     *  - Se há rolagem e ESTÁ no fim     → mostra FAB de subir
+     *  - Se não houver rolagem           → esconde ambos
+     */
+    private fun updateFabVisibility() {
+        val b = _binding ?: return  // ← sai se a view já foi destruída
+        with(b) {
+            val child = scrollExportSummary.getChildAt(0)
+            val hasScrollable = child != null && child.height > scrollExportSummary.height
+            val atBottom = !scrollExportSummary.canScrollVertically(1)
 
-        // Atualiza visibilidade ao rolar
-        scrollExportSummary.setOnScrollChangeListener { _, _, _, _, _ ->
-            fabScrollDown.updateFabVisibilityAnimated(!scrollExportSummary.isAtBottom())
+            when {
+                !hasScrollable -> {
+                    swapFabWithAnim(fabScrollDown, show = false)
+                    swapFabWithAnim(fabScrollUp, show = false)
+                }
+                atBottom -> {
+                    swapFabWithAnim(fabScrollDown, show = false)
+                    swapFabWithAnim(fabScrollUp, show = true)
+                }
+                else -> {
+                    swapFabWithAnim(fabScrollUp, show = false)
+                    swapFabWithAnim(fabScrollDown, show = true)
+                }
+            }
         }
     }
 
-    private fun reevalScrollFab() = with(binding) {
-        scrollExportSummary.post {
-            fabScrollDown.updateFabVisibilityAnimated(!scrollExportSummary.isAtBottom())
+    /** Animação simples (fade + leve scale) para trocar visibilidade de FABs. */
+    private fun swapFabWithAnim(fab: View, show: Boolean) {
+        val currentlyVisible = fab.isVisible
+        if (show == currentlyVisible) return
+
+        if (show) {
+            fab.alpha = 0f
+            fab.scaleX = 0.9f
+            fab.scaleY = 0.9f
+            fab.visibility = View.VISIBLE
+            fab.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(150L)
+                .withEndAction { /* no-op */ }
+                .start()
+        } else {
+            fab.animate()
+                .alpha(0f)
+                .scaleX(0.9f)
+                .scaleY(0.9f)
+                .setDuration(150L)
+                .withEndAction {
+                    fab.visibility = View.GONE
+                    fab.alpha = 1f
+                    fab.scaleX = 1f
+                    fab.scaleY = 1f
+                }
+                .start()
         }
+    }
+
+    /** Configura listeners (cliques e rolagem) exatamente como no IaFragment. */
+    private fun setupFabBehavior() = with(binding) {
+        // Ambos começam invisíveis
+        fabScrollDown.visibility = View.GONE
+        fabScrollUp.visibility = View.GONE
+
+        // Clique: descer até o fim → em seguida, a visibilidade será reavaliada (mostra "subir")
+        fabScrollDown.setOnClickListener {
+            scrollExportSummary.post {
+                scrollExportSummary.smoothScrollTo(0, containerExportSummary.bottom)
+                // otimiza a troca visual imediatamente
+                updateFabVisibility()
+            }
+        }
+
+        // Clique: subir ao topo → em seguida, reavalia (volta a mostrar "descer")
+        fabScrollUp.setOnClickListener {
+            scrollExportSummary.post {
+                scrollExportSummary.smoothScrollTo(0, 0)
+                updateFabVisibility()
+            }
+        }
+
+        // Listener de rolagem do usuário: troca FABs conforme posição
+        scrollExportSummary.setOnScrollChangeListener { _, _, _, _, _ ->
+            updateFabVisibility()
+        }
+
+        // Assim que o layout estiver pronto (depois de render), reavaliamos
+        globalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+            updateFabVisibility()
+        }
+        scrollExportSummary.viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
     }
 
     // ───────────────────────── Helpers ─────────────────────────
@@ -478,6 +625,14 @@ class ExportSummaryFragment : Fragment() {
         // limpar listeners explícitos
         binding.scrollExportSummary.setOnScrollChangeListener(null as View.OnScrollChangeListener?)
         binding.fabScrollDown.setOnClickListener(null)
+        binding.fabScrollUp.setOnClickListener(null)
+
+        // REMOVA o OnGlobalLayoutListener registrado
+        globalLayoutListener?.let { l ->
+            binding.scrollExportSummary.viewTreeObserver.removeOnGlobalLayoutListener(l)
+            globalLayoutListener = null
+        }
+
         _binding = null
         super.onDestroyView()
     }

@@ -508,10 +508,8 @@
         android:contentDescription="@string/scroll_to_bottom"
         android:src="@drawable/ic_arrow_downward"
         android:visibility="gone"
-        app:backgroundTint="@color/fab_scroll_bg"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:tint="@color/fab_scroll_icon_tint"
         tools:visibility="visible" />
 
     <View

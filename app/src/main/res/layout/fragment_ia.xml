@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Toolbar: título + seta voltar + ícone de histórico -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarIa"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.ObrasApp.Toolbar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/menu_ia_history"
+        app:navigationIcon="@drawable/ic_back"
+        app:navigationIconTint="@android:color/white"
+        app:title="@string/ia_title"
+        app:titleCentered="true" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/iaScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbarIa">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Ilustração -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imgSolution"
+                android:layout_width="220dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/ia_title"
+                android:src="@drawable/img_solution"
+                app:contentPadding="12dp"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.ObrasApp.Hero"
+                app:strokeColor="@color/md_theme_light_outline"
+                app:strokeWidth="@dimen/login_hero_stroke"
+                tools:maxHeight="260dp" />
+
+            <!-- Botão enviar foto -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPickImageIa"
+                style="@style/Widget.ObrasApp.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/ia_btn_pick_image" />
+
+            <!-- Texto 'Foto carregada.' -->
+            <TextView
+                android:id="@+id/tvPhotoLoaded"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="8dp"
+                android:text="@string/ia_photo_loaded"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/totalOverall_text"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <!-- Campo problema -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilProblem"
+                style="@style/Widget.ObrasApp.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etProblem"
+                    android:layout_width="match_parent"
+                    android:layout_height="96dp"
+                    android:gravity="top|start"
+                    android:hint="@string/ia_hint_problem"
+                    android:inputType="textMultiLine"
+                    android:minHeight="120dp"
+                    android:paddingTop="22dp"
+                    android:paddingBottom="16dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Enviar -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSendIa"
+                style="@style/Widget.ObrasApp.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:enabled="false"
+                android:text="@string/ia_btn_send" />
+
+            <!-- Resposta (rolável) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAnswer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:visibility="gone"
+                app:cardCornerRadius="12dp"
+                app:strokeColor="?attr/colorOutline"
+                app:strokeWidth="1dp"
+                tools:visibility="visible">
+
+                <ScrollView
+                    android:id="@+id/scrollAnswer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fillViewport="true">
+
+                    <TextView
+                        android:id="@+id/tvAnswer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="16dp"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        tools:text="Resposta detalhada da IA…" />
+                </ScrollView>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Ações (Salvar / Nova dúvida) -->
+            <LinearLayout
+                android:id="@+id/rowActionsIa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="end"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSaveHistory"
+                    style="@style/Widget.ObrasApp.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/ia_btn_save" />
+
+                <Space
+                    android:layout_width="12dp"
+                    android:layout_height="1dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnNewQuestion"
+                    style="@style/Widget.ObrasApp.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/ia_btn_new" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Overlay de carregamento IA: cobre a tela inteira -->
+    <FrameLayout
+        android:id="@+id/aiOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#99000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottieIa"
+            android:layout_width="260dp"
+            android:layout_height="260dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/ia_robot_icon_desc"
+            android:importantForAccessibility="no"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/ai_powered"
+            app:lottie_renderMode="software"
+            app:lottie_speed="1.0" />
+    </FrameLayout>
+
+    <!-- FAB: rolar até o final do layout -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabScrollDownIa"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:contentDescription="@string/scroll_to_bottom"
+        android:src="@drawable/ic_arrow_downward"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="gone" />
+
+    <!-- FAB: rolar até o topo do layout -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabScrollUpIa"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:contentDescription="@string/scroll_to_top"
+        android:src="@drawable/ic_up"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

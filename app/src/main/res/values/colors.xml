@@ -107,15 +107,12 @@
     <color name="text_primary_recycler">#212121</color>   <!-- Preto quase puro (Nome + Salário) -->
     <color name="text_secondary_recycler">#616161</color> <!-- Cinza escuro (Função, descrição) -->
     <color name="icon_edit_recycler">#1976D2</color>   <!-- Azul médio (material design) -->
-    <color name="icon_info_recycler">#FB8C00</color>   <!-- Cinza discreto -->
+    <color name="icon_info_recycler">#FB8C00</color>   <!-- Laranja -->
     <color name="icon_delete_recycler">#C62828</color> <!-- Vermelho de perigo -->
 
     <color name="link_text">#2962FF</color>
 
     <color name="fab_scroll_bg">#DBDBDB</color>         <!-- cinza 300 -->
     <color name="fab_scroll_icon_tint">#282828</color>  <!-- cinza 700 -->
-
-    <color name="purple_robot">#5528B1</color> <!-- Roxo escuro (robô) -->
-    <color name="purple_progress">#9C74DC</color> <!-- Roxo claro (progress bar) -->
 
 </resources>

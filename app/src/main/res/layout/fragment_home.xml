@@ -47,7 +47,7 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- Item 1  (Funcionários) -->
+            <!-- Item 1 (Funcionários) -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/btnEmployees"
                 android:layout_width="match_parent"
@@ -81,7 +81,7 @@
                     app:layout_constraintTop_toTopOf="@id/icEmployees" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Item 2  (Notas de Materiais -->
+            <!-- Item 2 (Notas de Materiais -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/btnNotes"
                 android:layout_width="match_parent"
@@ -114,7 +114,7 @@
                     app:layout_constraintTop_toTopOf="@id/icReceipt" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Item 3  (Cronograma) -->
+            <!-- Item 3 (Cronograma) -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/btnSchedule"
                 android:layout_width="match_parent"
@@ -147,7 +147,7 @@
                     app:layout_constraintTop_toTopOf="@id/icSchedule" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Item 4  (Materiais) -->
+            <!-- Item 4 (Materiais) -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/btnMaterials"
                 android:layout_width="match_parent"
@@ -180,7 +180,7 @@
                     app:layout_constraintTop_toTopOf="@id/icMaterials" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Item 5  (Dados da Obra) -->
+            <!-- Item 5 (Dados da Obra) -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/btnProjectData"
                 android:layout_width="match_parent"
@@ -213,7 +213,7 @@
                     app:layout_constraintTop_toTopOf="@id/icBuild" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Item 6  (Fotos da Obra) -->
+            <!-- Item 6 (Fotos da Obra) -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/btnPhotos"
                 android:layout_width="match_parent"
@@ -246,7 +246,40 @@
                     app:layout_constraintTop_toTopOf="@id/icPhoto" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Item 7  (Resumo) -->
+            <!-- Item 7 (Solução de Problemas) -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/btnSolution"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_item_click"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:id="@+id/icSolution"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="16dp"
+                    android:src="@drawable/ic_robo"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:text="@string/home_btn_solution"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    app:layout_constraintBottom_toBottomOf="@id/icSolution"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/icSolution"
+                    app:layout_constraintTop_toTopOf="@id/icSolution" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Item 8 (Resumo) -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/btnSummary"
                 android:layout_width="match_parent"
@@ -279,7 +312,7 @@
                     app:layout_constraintTop_toTopOf="@id/icSummary" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Item 8  (Selecionar Outra Obra) -->
+            <!-- Item 9 (Selecionar Outra Obra) -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/btnChangeWork"
                 android:layout_width="match_parent"
