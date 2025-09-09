@@ -30,8 +30,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/workContent"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="18dp">
+            android:layout_height="wrap_content">
 
             <!-- Guideline para centrar verticalmente -->
             <androidx.constraintlayout.widget.Guideline
@@ -85,6 +84,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="vertical"
+                    android:paddingHorizontal="18dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -105,9 +105,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
+                        android:ellipsize="none"
+                        android:hyphenationFrequency="none"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
                         android:text="@string/work_new_button"
-                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                        android:textStyle="normal" />
+                        android:textAllCaps="false"
+                        android:textStyle="bold"
+                        app:iconPadding="0dp" />
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -117,13 +122,13 @@
                 android:id="@+id/layoutSelect"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:baselineAligned="false"
                 android:orientation="vertical"
                 android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="@id/gCenter"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@id/gCenter"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.5"
                 tools:visibility="visible">
 
                 <!-- HERO (igual ao login) -->
@@ -155,7 +160,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="10dp"
+                    android:paddingHorizontal="18dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -207,9 +212,15 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:ellipsize="none"
+                            android:hyphenationFrequency="none"
+                            android:includeFontPadding="false"
+                            android:maxLines="1"
+                            android:minWidth="0dp"
                             android:text="@string/work_new_button"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
+                            android:textAllCaps="false"
+                            android:textStyle="bold"
+                            app:iconPadding="0dp" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnContinue"
@@ -218,11 +229,27 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
                             android:layout_weight="1"
-                            android:enabled="false"
+                            android:ellipsize="none"
+                            android:enabled="true"
+                            android:hyphenationFrequency="none"
+                            android:includeFontPadding="false"
+                            android:maxLines="1"
+                            android:minWidth="0dp"
                             android:text="@string/generic_continue"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
+                            android:textAllCaps="false"
+                            android:textStyle="bold"
+                            app:iconPadding="0dp" />
                     </LinearLayout>
+
+                    <ProgressBar
+                        android:id="@+id/progressWork"
+                        style="@style/Widget.AppCompat.ProgressBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="16dp"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -382,17 +409,13 @@
                                 android:paddingBottom="16dp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <!-- Espaço entre os campos -->
-                        <Space
-                            android:layout_width="match_parent"
-                            android:layout_height="8dp" />
-
                         <!-- Data de Término -->
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilDataFim"
                             style="@style/Widget.ObrasApp.TextInputLayout"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etDataFim"
@@ -423,9 +446,16 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:enabled="false"
+                            android:ellipsize="none"
+                            android:enabled="true"
+                            android:hyphenationFrequency="none"
+                            android:includeFontPadding="false"
+                            android:maxLines="1"
+                            android:minWidth="0dp"
                             android:text="@string/generic_save"
-                            android:textSize="16sp" />
+                            android:textAllCaps="false"
+                            android:textStyle="bold"
+                            app:iconPadding="0dp" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnCancelWork"
@@ -434,8 +464,16 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="12dp"
                             android:layout_weight="1"
+                            android:ellipsize="none"
+                            android:enabled="true"
+                            android:hyphenationFrequency="none"
+                            android:includeFontPadding="false"
+                            android:maxLines="1"
+                            android:minWidth="0dp"
                             android:text="@string/generic_back"
-                            android:textSize="16sp" />
+                            android:textAllCaps="false"
+                            android:textStyle="bold"
+                            app:iconPadding="0dp" />
                     </LinearLayout>
 
                     <ProgressBar
@@ -449,27 +487,6 @@
                         tools:visibility="gone" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-
-            <!-- depois de todos os seus containers (layoutEmpty, layoutSelect, cardNewWork) -->
-            <androidx.constraintlayout.widget.Barrier
-                android:id="@+id/barrierScenarios"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:barrierDirection="bottom"
-                app:constraint_referenced_ids="layoutEmpty,layoutSelect" />
-
-            <!-- ProgressBar sempre abaixo do barrier -->
-            <ProgressBar
-                android:id="@+id/progressWork"
-                style="@style/Widget.AppCompat.ProgressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:visibility="gone"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/barrierScenarios"
-                tools:visibility="visible" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>

@@ -1,8 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="login_logo_top_space">4dp</dimen>
-    <dimen name="login_logo_bottom_space">16dp</dimen>
-    <dimen name="login_logo_max_height">148dp</dimen>
+    <!-- HERO (compacto para qualquer landscape) -->
+    <dimen name="login_logo_top_space">6dp</dimen>
+    <dimen name="login_logo_bottom_space">6dp</dimen>
+    <dimen name="login_logo_max_height">116dp</dimen>
     <dimen name="login_hero_stroke">2dp</dimen>
-    <dimen name="login_hero_inner_padding">8dp</dimen>
+    <dimen name="login_hero_inner_padding">6dp</dimen>
+
+    <!-- Imagem Solução de Problemas -->
+    <dimen name="img_iafragment">160dp</dimen>
+
+    <!-- Spacings genéricos -->
+    <dimen name="spacing_1">4dp</dimen>
+    <dimen name="spacing_2">8dp</dimen>
+    <dimen name="spacing_3">12dp</dimen>
+    <dimen name="spacing_4">16dp</dimen>
+
+    <dimen name="screen_padding_h">20dp</dimen>
+    <dimen name="screen_padding_v">20dp</dimen>
+
+    <dimen name="login_gap_between">12dp</dimen>
+
+    <dimen name="form_field_gap">12dp</dimen>
+    <dimen name="form_button_top_gap">20dp</dimen>
+    <dimen name="progress_top_gap">16dp</dimen>
+    <dimen name="links_top_gap">20dp</dimen>
+
+    <dimen name="til_edit_min_height">52dp</dimen>
+    <dimen name="til_edit_padding_v">12dp</dimen>
 </resources>

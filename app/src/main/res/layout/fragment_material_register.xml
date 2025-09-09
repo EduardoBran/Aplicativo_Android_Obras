@@ -41,20 +41,34 @@
                 android:id="@+id/tilNomeMaterial"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:hint="@string/material_name_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etNomeMaterial"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_receipt"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/material_name_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionNext"
+                    android:inputType="textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Erro do Nome (fora do TIL, controla o espaçamento) -->
+            <TextView
+                android:id="@+id/tvNomeMaterialError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_error"
+                android:visibility="gone"
+                tools:text="@string/material_hint_name"
+                tools:visibility="visible" />
 
             <!-- Descrição (opcional) -->
             <com.google.android.material.textfield.TextInputLayout
@@ -62,19 +76,19 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="12dp"
+                android:hint="@string/material_hint_description">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDescMaterial"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_summary"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/material_hint_description"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionDone"
+                    android:inputType="textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Quantidade (– / número / +) -->
@@ -159,8 +173,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="@string/material_reg_button_save"
-                android:textSize="18sp" />
+                android:text="@string/generic_add" />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/progressSaveMaterial"

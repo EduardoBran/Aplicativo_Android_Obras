@@ -101,9 +101,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:layout_marginBottom="16dp"
+                android:fontFamily="@font/roboto"
+                android:fontFeatureSettings="tnum"
+                android:letterSpacing="0"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 android:textColor="?attr/colorOnSurface"
-                tools:text="—" />
+                tools:text="11/12/1988" />
 
             <!-- Data Fim -->
             <TextView
@@ -119,9 +122,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:layout_marginBottom="16dp"
+                android:fontFamily="@font/roboto"
+                android:fontFeatureSettings="tnum"
+                android:letterSpacing="0"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 android:textColor="?attr/colorOnSurface"
-                tools:text="—" />
+                tools:text="11/12/1988" />
 
             <!-- Status -->
             <TextView

@@ -41,40 +41,55 @@
                 android:id="@+id/tilTituloEtapa"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:hint="@string/etapa_reg_name_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etTituloEtapa"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_receipt"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/etapa_reg_name_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionNext"
+                    android:inputType="textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Erro do Título (fora do TIL, controla o espaçamento) -->
+            <TextView
+                android:id="@+id/tvTituloError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_error"
+                android:visibility="gone"
+                tools:text="@string/etapa_error_title_required"
+                tools:visibility="visible" />
 
             <!-- Descrição (opcional) -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilDescricaoCronograma"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:layout_marginBottom="4dp">
+                android:layout_marginBottom="4dp"
+                android:hint="@string/etapa_reg_desc_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDescEtapa"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_summary"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/etapa_reg_desc_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionNext"
+                    android:inputType="textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- MaterialAlertDialogBuilder de Funcionários -->
@@ -124,21 +139,33 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp">
+                android:layout_marginTop="24dp"
+                android:hint="@string/etapa_reg_date_start_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDataInicioEtapa"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_schedule"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:focusable="false"
-                    android:hint="@string/etapa_reg_date_start_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:focusable="false" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Erro da Data de Início (fora do TIL, controla o espaçamento) -->
+            <TextView
+                android:id="@+id/tvDataInicioError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_error"
+                android:visibility="gone"
+                tools:text="@string/etapa_error_date_start_required"
+                tools:visibility="visible" />
 
             <!-- Data de Término -->
             <com.google.android.material.textfield.TextInputLayout
@@ -146,24 +173,37 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="12dp"
+                android:hint="@string/etapa_reg_date_end_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDataFimEtapa"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_schedule"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:focusable="false"
-                    android:hint="@string/etapa_reg_date_end_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:focusable="false" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Erro da Data de Término (fora do TIL, controla o espaçamento) -->
+            <TextView
+                android:id="@+id/tvDataFimError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_error"
+                android:visibility="gone"
+                tools:text="@string/etapa_error_date_end_required"
+                tools:visibility="visible" />
 
             <!-- Status -->
             <TextView
+                android:id="@+id/tvStatusTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
@@ -183,21 +223,24 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
-                    android:text="@string/cron_tab_pending" />
+                    android:text="@string/cron_tab_pending"
+                    android:textSize="12sp" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbStatAnd"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:text="@string/cron_tab_progress" />
+                    android:layout_marginStart="2dp"
+                    android:text="@string/cron_tab_progress"
+                    android:textSize="12sp" />
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbStatConcl"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:text="@string/cron_tab_done" />
+                    android:layout_marginStart="2dp"
+                    android:text="@string/cron_tab_done"
+                    android:textSize="12sp" />
             </RadioGroup>
 
             <!-- Botão -->
@@ -207,8 +250,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="@string/cron_reg_button_save"
-                android:textSize="18sp" />
+                android:text="@string/generic_add" />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/progressSaveEtapa"

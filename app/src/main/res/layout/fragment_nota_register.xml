@@ -60,8 +60,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/nota_btn_pick_image"
-                    android:textSize="16sp" />
+                    android:text="@string/nota_btn_pick_image" />
 
                 <Space
                     android:layout_width="12dp"
@@ -73,8 +72,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/nota_btn_take_photo"
-                    android:textSize="16sp" />
+                    android:text="@string/nota_btn_take_photo" />
             </LinearLayout>
 
             <!-- “Chip” informativo: aparece quando houver foto selecionada/capturada -->
@@ -133,39 +131,56 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp">
+                android:layout_marginTop="20dp"
+                android:hint="@string/nota_reg_material_hint"
+                app:errorEnabled="false"
+                app:helperTextEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etNomeMaterial"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_receipt"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/nota_reg_material_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionNext"
+                    android:inputType="textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Erro do Nome (fora do TIL, controla o espaçamento) -->
+            <TextView
+                android:id="@+id/tvNomeError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_error"
+                android:visibility="gone"
+                tools:text="@string/nota_reg_error_nome"
+                tools:visibility="visible" />
 
             <!-- Descrição (opcional) -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilDescricaoMaterial"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="12dp"
+                android:hint="@string/nota_reg_desc_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDescricaoMaterial"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_summary"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/nota_reg_desc_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionNext"
+                    android:inputType="textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Nome da Loja -->
@@ -174,19 +189,19 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="12dp"
+                android:hint="@string/nota_reg_store_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etLoja"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_store"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/nota_reg_store_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionNext"
+                    android:inputType="textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Tipo (CheckBoxes) -->
@@ -264,20 +279,18 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp">
+                android:layout_marginTop="22dp"
+                android:hint="@string/nota_reg_date_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDataNota"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_schedule"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:focusable="false"
-                    android:hint="@string/nota_reg_date_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:focusable="false" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Status -->
@@ -320,21 +333,20 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp">
+                android:layout_marginTop="16dp"
+                android:hint="@string/nota_reg_value_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etValorNota"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:digits="0123456789.,"
                     android:drawableStart="@drawable/ic_money"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/nota_reg_value_hint"
-                    android:inputType="numberDecimal|number"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionDone"
+                    android:inputType="numberDecimal|number" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Botão -->
@@ -345,8 +357,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="8dp"
-                android:text="@string/nota_reg_button_save"
-                android:textSize="18sp" />
+                android:text="@string/generic_add" />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/progressSaveNota"
@@ -464,11 +475,11 @@
             android:layout_gravity="center"
             android:contentDescription="@string/ia_robot_icon_desc"
             android:importantForAccessibility="no"
-            app:lottie_rawRes="@raw/ai_powered"
             app:lottie_autoPlay="true"
             app:lottie_loop="true"
-            app:lottie_speed="1.0"
-            app:lottie_renderMode="software" />
+            app:lottie_rawRes="@raw/ai_powered"
+            app:lottie_renderMode="software"
+            app:lottie_speed="1.0" />
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

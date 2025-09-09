@@ -156,6 +156,9 @@
                                     android:id="@+id/tvResumoTotalAPagar"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:fontFamily="@font/roboto"
+                                    android:fontFeatureSettings="tnum"
+                                    android:letterSpacing="0"
                                     android:text="@string/nota_sum_total"
                                     android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalDue_value"
@@ -189,6 +192,9 @@
                                     android:id="@+id/tvResumoTotalPago"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:fontFamily="@font/roboto"
+                                    android:fontFeatureSettings="tnum"
+                                    android:letterSpacing="0"
                                     android:text="@string/nota_sum_total"
                                     android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalPaid_value"
@@ -222,6 +228,9 @@
                                     android:id="@+id/tvResumoTotalGeral"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:fontFamily="@font/roboto"
+                                    android:fontFeatureSettings="tnum"
+                                    android:letterSpacing="0"
                                     android:text="@string/nota_sum_total"
                                     android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalOverall_value"
@@ -320,8 +329,8 @@
                                     android:textAlignment="center"
                                     android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalDue_text"
-                                    android:textStyle="bold"
-                                    android:textSize="18sp" />
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
 
                                 <LinearLayout
                                     android:id="@+id/containerTiposValoresAPagar"
@@ -339,9 +348,9 @@
                                     android:text="@string/nota_sum_all_paid_msg"
                                     android:textAlignment="center"
                                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                                    android:visibility="gone"
                                     android:textSize="16sp"
-                                    android:textStyle="bold" />
+                                    android:textStyle="bold"
+                                    android:visibility="gone" />
                             </LinearLayout>
 
                             <!-- Espaço -->
@@ -364,8 +373,8 @@
                                     android:textAlignment="center"
                                     android:textAppearance="?attr/textAppearanceBodyLarge"
                                     android:textColor="@color/totalPaid_text"
-                                    android:textStyle="bold"
-                                    android:textSize="18sp" />
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
 
                                 <LinearLayout
                                     android:id="@+id/containerTiposValoresPago"
@@ -383,9 +392,9 @@
                                     android:text="@string/nota_sum_none_paid_msg"
                                     android:textAlignment="center"
                                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                                    android:visibility="gone"
                                     android:textSize="16sp"
-                                    android:textStyle="bold" />
+                                    android:textStyle="bold"
+                                    android:visibility="gone" />
                             </LinearLayout>
 
                         </LinearLayout>

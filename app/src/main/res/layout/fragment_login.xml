@@ -1,161 +1,202 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?><!-- ROOT sem padding -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/loginScroll"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:layout_height="match_parent">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/loginContent"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="24dp">
+    <!-- SCROLL -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/loginScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fadeScrollbars="false"
+        android:fillViewport="true"
+        android:scrollbarStyle="outsideOverlay"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <!-- ILUSTRAÇÃO DO LOGIN (fica mais alta, não “empurra” o centro) -->
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/imgLogin"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/login_logo_top_space"
-            android:layout_marginBottom="@dimen/login_logo_bottom_space"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/cd_login_illustration"
-            android:maxHeight="@dimen/login_logo_max_height"
-            android:padding="@dimen/login_hero_inner_padding"
-            android:scaleType="fitCenter"
-            android:src="@drawable/img_login"
-            app:contentPadding="@dimen/login_hero_inner_padding"
-            app:layout_constraintBottom_toTopOf="@id/formContainer"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.ObrasApp.Hero"
-            app:strokeColor="@color/md_theme_light_outline"
-            app:strokeWidth="@dimen/login_hero_stroke" />
+        <!-- CONTEÚDO: ConstraintLayout para centralizar vertical/horizontal -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/loginContent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-        <!-- FORMULÁRIO (continua exatamente no centro da tela) -->
-        <LinearLayout
-            android:id="@+id/formContainer"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <!-- Email -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilEmail"
-                style="@style/Widget.ObrasApp.TextInputLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etEmail"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:drawableStart="@drawable/ic_login"
-                    android:drawablePadding="12dp"
-                    android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:gravity="start|center_vertical"
-                    android:hint="@string/login_email_hint"
-                    android:inputType="textEmailAddress"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Senha -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilPassword"
-                style="@style/Widget.ObrasApp.TextInputLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:endIconContentDescription="@string/cd_toggle_password_visibility"
-                app:endIconMode="password_toggle"
-                app:endIconTint="@color/md_theme_light_onSurface">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etPassword"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:drawableStart="@drawable/ic_pass"
-                    android:drawablePadding="12dp"
-                    android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:gravity="start|center_vertical"
-                    android:hint="@string/login_password_hint"
-                    android:inputType="textPassword"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Botão Entrar -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLogin"
-                style="@style/Widget.ObrasApp.ButtonLogin"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/login_button"
-                android:textSize="20sp"
-                android:textStyle="normal" />
-
-            <!-- ProgressBar -->
-            <ProgressBar
-                android:id="@+id/progressLogin"
-                style="@style/Widget.AppCompat.ProgressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="18dp"
-                android:visibility="gone"
-                tools:visibility="visible" />
-
-            <!-- Links -->
+            <!-- BLOCO CENTRAL COM PADDING (imagem + formulário + progress + divisor + links) -->
             <LinearLayout
-                android:id="@+id/linksRow"
-                android:layout_width="match_parent"
+                android:id="@+id/centerColumn"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:orientation="horizontal">
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingHorizontal="@dimen/screen_padding_h"
+                android:paddingVertical="@dimen/screen_padding_v"
+                app:layout_constrainedWidth="true"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintWidth_max="@dimen/form_max_width">
 
-                <TextView
-                    android:id="@+id/tvCreateAccount"
-                    android:layout_width="0dp"
+                <!-- IMAGEM (Hero) -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/imgLogin"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="start|center_vertical"
-                    android:minHeight="48dp"
-                    android:paddingVertical="8dp"
-                    android:text="@string/login_create_account"
-                    android:textColor="@color/md_theme_light_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:layout_marginBottom="@dimen/login_gap_between"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/cd_login_illustration"
+                    android:maxHeight="@dimen/login_logo_max_height"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/img_login"
+                    app:contentPadding="@dimen/login_hero_inner_padding"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.ObrasApp.Hero"
+                    app:strokeColor="@color/md_theme_light_outline"
+                    app:strokeWidth="@dimen/login_hero_stroke"
+                    tools:ignore="ContentDescription" />
 
-                <TextView
-                    android:id="@+id/tvForgotPassword"
-                    android:layout_width="0dp"
+                <!-- FORMULÁRIO -->
+                <LinearLayout
+                    android:id="@+id/formContainer"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="end|center_vertical"
-                    android:minHeight="48dp"
-                    android:paddingVertical="8dp"
-                    android:text="@string/login_forgot_password"
-                    android:textColor="@color/md_theme_light_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:orientation="vertical">
+
+                    <!-- Email -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilEmail"
+                        style="@style/Widget.ObrasApp.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/login_email_hint">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etEmail"
+                            style="@style/Widget.ObrasApp.TextInputEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:autofillHints="emailAddress"
+                            android:drawableStart="@drawable/ic_login"
+                            android:drawablePadding="12dp"
+                            android:drawableTint="@color/md_theme_light_onSurfaceVariant"
+                            android:imeOptions="actionNext"
+                            android:importantForAutofill="yes"
+                            android:inputType="textEmailAddress" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Senha -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilPassword"
+                        style="@style/Widget.ObrasApp.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/form_field_gap"
+                        android:hint="@string/login_password_hint"
+                        app:endIconContentDescription="@string/cd_toggle_password_visibility"
+                        app:endIconMode="password_toggle"
+                        app:endIconTint="@color/md_theme_light_onSurface">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etPassword"
+                            style="@style/Widget.ObrasApp.TextInputEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:autofillHints="password"
+                            android:drawableStart="@drawable/ic_pass"
+                            android:drawablePadding="12dp"
+                            android:drawableTint="@color/md_theme_light_onSurfaceVariant"
+                            android:imeOptions="actionDone"
+                            android:importantForAutofill="yes"
+                            android:inputType="textPassword" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Botão Entrar -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnLogin"
+                        style="@style/Widget.ObrasApp.ButtonLogin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/form_button_top_gap"
+                        android:text="@string/login_button"
+                        android:textStyle="normal" />
+
+                    <!-- ProgressBar -->
+                    <ProgressBar
+                        android:id="@+id/progressLogin"
+                        style="@style/Widget.AppCompat.ProgressBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="@dimen/progress_top_gap"
+                        android:visibility="gone"
+                        tools:visibility="gone" />
+
+                    <!-- Divisor -->
+                    <com.google.android.material.divider.MaterialDivider
+                        android:id="@+id/dividerLinks"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="@dimen/links_top_gap"
+                        app:dividerColor="@color/md_theme_light_outline" />
+                </LinearLayout>
+
+                <!-- LINKS (dentro do centerColumn) -->
+                <LinearLayout
+                    android:id="@+id/linksRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <!-- Coluna esquerda (Criar Conta) -->
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:foregroundGravity="center">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/tvCreateAccount"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="48dp"
+                            android:gravity="center"
+                            android:text="@string/login_create_account"
+                            android:textAlignment="center"
+                            android:textAllCaps="false"
+                            app:icon="@drawable/ic_user_plus"
+                            app:iconGravity="textStart"
+                            app:iconPadding="8dp"
+                            app:iconSize="18dp" />
+                    </FrameLayout>
+
+                    <!-- Coluna direita (Esqueceu a senha?) -->
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:foregroundGravity="center">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/tvForgotPassword"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="48dp"
+                            android:gravity="center"
+                            android:text="@string/login_forgot_password"
+                            android:textAlignment="center"
+                            android:textAllCaps="false"
+                            app:icon="@drawable/ic_key_reset"
+                            app:iconGravity="textStart"
+                            app:iconPadding="8dp"
+                            app:iconSize="18dp" />
+                    </FrameLayout>
+                </LinearLayout>
+
             </LinearLayout>
-        </LinearLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</androidx.core.widget.NestedScrollView>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

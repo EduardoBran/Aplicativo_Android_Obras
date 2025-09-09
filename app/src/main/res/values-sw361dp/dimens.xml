@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- HERO (originais) -->
+    <dimen name="login_logo_top_space">8dp</dimen>
+    <dimen name="login_logo_bottom_space">32dp</dimen>
+    <dimen name="login_logo_max_height">200dp</dimen>
+    <dimen name="login_hero_stroke">2dp</dimen>
+    <dimen name="login_hero_inner_padding">12dp</dimen>
+
+    <!-- Imagem Solução de Problemas -->
+    <dimen name="img_iafragment">220dp</dimen>
+
+    <!-- Se quiser, pode repetir spacings aqui; se não, herdará do base -->
+    <dimen name="spacing_1">4dp</dimen>
+    <dimen name="spacing_2">8dp</dimen>
+    <dimen name="spacing_3">12dp</dimen>
+    <dimen name="spacing_4">16dp</dimen>
+
+    <dimen name="screen_padding_h">24dp</dimen>
+    <dimen name="screen_padding_v">28dp</dimen>
+
+    <dimen name="login_gap_between">24dp</dimen>
+
+    <dimen name="form_field_gap">18dp</dimen>
+    <dimen name="form_button_top_gap">26dp</dimen>
+    <dimen name="progress_top_gap">18dp</dimen>
+    <dimen name="links_top_gap">24dp</dimen>
+
+    <dimen name="til_edit_min_height">60dp</dimen>
+    <dimen name="til_edit_padding_v">16dp</dimen>
+
+    <!-- Item Pagamento -->
+    <dimen name="item_tvValorPagamento">19sp</dimen>
+    <dimen name="item_tvDataPagamento">17sp</dimen>
+</resources>

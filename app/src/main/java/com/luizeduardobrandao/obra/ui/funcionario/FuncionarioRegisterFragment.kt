@@ -1,17 +1,24 @@
 package com.luizeduardobrandao.obra.ui.funcionario
 
+import android.animation.ValueAnimator
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.res.Resources
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.widget.RadioGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
+import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -27,20 +34,24 @@ import com.luizeduardobrandao.obra.data.model.Funcionario
 import com.luizeduardobrandao.obra.data.model.Pagamento
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentFuncionarioRegisterBinding
+import com.luizeduardobrandao.obra.ui.extensions.bindScrollToBottomFabBehavior
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
+import com.luizeduardobrandao.obra.ui.extensions.isAtBottom
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.ui.extensions.updateFabVisibilityAnimated
 import com.luizeduardobrandao.obra.ui.funcionario.adapter.PagamentoAdapter
+import com.luizeduardobrandao.obra.utils.alignPagamentoTwoByTwo
+import com.luizeduardobrandao.obra.utils.applyResponsiveButtonSizingGrowShrink
+import com.luizeduardobrandao.obra.utils.applyFullWidthButtonSizingGrowShrink
 import com.luizeduardobrandao.obra.utils.Constants
+import com.luizeduardobrandao.obra.utils.ensureAlignedTwoRowsOrFallbackToThreeRows
+import com.luizeduardobrandao.obra.utils.syncTextSizesGroup
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
-import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
-import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
-import androidx.core.widget.NestedScrollView
-import com.luizeduardobrandao.obra.ui.extensions.bindScrollToBottomFabBehavior
-import com.luizeduardobrandao.obra.ui.extensions.isAtBottom
-import com.luizeduardobrandao.obra.ui.extensions.updateFabVisibilityAnimated
 
 @AndroidEntryPoint
 class FuncionarioRegisterFragment : Fragment() {
@@ -69,6 +80,20 @@ class FuncionarioRegisterFragment : Fragment() {
     // Estado da edição
     private var pagamentoEmEdicao: Pagamento? = null
     private var editDataIso: String? = null
+    private var dataLoaded = false
+    private var watchersSet = false
+    private var lockInitialTitleMargins = false
+
+    // Valores MarginTop
+    private val topErrorDp = 24          // quando há mensagem de erro
+    private val topNoErrorDp = 16        // quando não há erro
+    private val topEditInitialDp = 16    // nascer em edição
+
+    private val Int.dp get() = (this * Resources.getSystem().displayMetrics.density).toInt()
+
+    // Flags de “grudar no 12dp” até a 1ª interação do usuário
+    private var funcaoStickyInitial = false     // depende de etNomeFunc
+    private var pagtoStickyInitial = false      // depende de etSalario
 
     // Houve alterações na lista de pagamentos (add/editar/excluir) desde que a tela abriu?
     private var pagamentosAlterados: Boolean = false
@@ -91,7 +116,33 @@ class FuncionarioRegisterFragment : Fragment() {
 
         binding.toolbarFuncReg.setNavigationOnClickListener { handleBackPress() }
 
-        if (isEdit) prefillFields()
+        // Estado inicial
+        binding.btnSaveFuncionario.isEnabled = false
+
+        // Se for edição, vamos preencher e SÓ DEPOIS liberar validação
+        if (isEdit) {
+            lockInitialTitleMargins = true
+            funcaoStickyInitial = true
+            pagtoStickyInitial = true
+
+            val startTop = topEditInitialDp.dp   // 12dp
+            binding.tvTitleFuncao.runBeforeFirstDraw {
+                binding.tvTitleFuncao.setTopMarginNow(
+                    startTop
+                )
+            }
+            binding.tvTitlePagamento.runBeforeFirstDraw {
+                binding.tvTitlePagamento.setTopMarginNow(
+                    startTop
+                )
+            }
+
+            prefillFields()
+        } else {
+            dataLoaded = true
+            setupTextWatchersOnce()
+            validateForm()
+        }
 
         // FAB de rolagem – visível só quando: edição && !salvando && !no final
         bindScrollToBottomFabBehavior(
@@ -100,55 +151,135 @@ class FuncionarioRegisterFragment : Fragment() {
             isEditProvider = { isEdit },
             isSavingProvider = { isSaving }
         )
-
-        // Reavalia a visibilidade após primeiro layout (caso a tela já abra no fim)
         binding.funcRegScroll.post {
             binding.fabScrollDown.updateFabVisibilityAnimated(
                 isEdit && !isSaving && !binding.funcRegScroll.isAtBottom()
             )
         }
 
+        // + / -
         binding.btnPlus.setOnClickListener { updateDias(+1) }
         binding.btnMinus.setOnClickListener { updateDias(-1) }
 
-        listOf(binding.etNomeFunc, binding.etSalario).forEach { edit ->
-            edit.doAfterTextChanged { validateForm() }
+        // Botão principal
+        binding.btnSaveFuncionario.setOnClickListener { onSave() }
+
+        // ───────── Responsividade dos botões ─────────
+        binding.btnAddPagamento.doOnPreDraw {
+            binding.btnAddPagamento.applyResponsiveButtonSizingGrowShrink()
+        }
+        binding.btnSaveFuncionario.doOnPreDraw {
+            binding.btnSaveFuncionario.applyFullWidthButtonSizingGrowShrink()
         }
 
-        // Checkboxes de função
-        getAllFuncaoCheckboxes().forEach { cb ->
-            cb.setOnCheckedChangeListener { _, _ -> validateForm() }
-        }
+        // ───────── Alinhamento + equalização de texto (Função & Pagamento) ─────────
 
-        // Forma de pagamento (RadioButtons)
-        getAllPagamentoRadios().forEach { rb ->
-            rb.setOnCheckedChangeListener { button, isChecked ->
-                if (isChecked) {
-                    getAllPagamentoRadios().forEach { other ->
-                        if (other != button && other.isChecked) other.isChecked = false
-                    }
-                    updateDiasLabel()
-                    validateForm()
-                }
+        // reduzir espaço entre o check/radio e o texto (Função mais apertado)
+        reduceChoiceInnerPadding(
+            views = listOf(
+                binding.rbPintor, binding.rbPedreiro, binding.rbEletricista,
+                binding.rbEncanador, binding.rbAjudante, binding.rbOutro
+            ),
+            dp = 2
+        )
+        reduceChoiceInnerPadding(
+            views = listOf(
+                binding.rbDiaria,
+                binding.rbSemanal,
+                binding.rbMensal,
+                binding.rbTarefeiro
+            ),
+            dp = 4
+        )
+
+        binding.rgFuncao.updateHorizontalPaddingDp(0)
+        binding.rgFuncao2.updateHorizontalPaddingDp(0)
+        binding.rowPagto1.updateHorizontalPaddingDp(0)
+        binding.rowPagto2.updateHorizontalPaddingDp(0)
+
+        // Gap condicionado à orientação
+        val isLandscape = resources.configuration.orientation ==
+                android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        val funcColGapDp = if (isLandscape) 10 else 2   // Função: 2dp (portrait) → 12dp (landscape)
+        val pagtoColGapDp =
+            if (isLandscape) 16 else 4   // Pagamento: 4dp (portrait) → 16dp (landscape)
+
+        // ——— Bump de tamanho (sp) por bucket de resolução/densidade ———
+        //  • 720×1280 @ 320dpi → sem mudança
+        //  • 1080×2424 @ 420dpi → +2sp
+        //  • acima de 1080×2424 e ≥420dpi → +4sp
+        val dm = resources.displayMetrics
+        val minSide = minOf(dm.widthPixels, dm.heightPixels)
+        val maxSide = maxOf(dm.widthPixels, dm.heightPixels)
+        val dpi = dm.densityDpi
+
+        val bumpSp = when {
+            (minSide == 1080 && maxSide == 2424 && dpi >= 420) -> 1f
+            (maxSide > 2424 && dpi >= 420) -> 4f
+            else -> 0f
+        }
+        // base que os utilitários vão usar (eles reduzem se precisar)
+        val normalSpBase = 20f + bumpSp
+
+        var minSpFunc: Float? = null
+        var minSpPagto: Float? = null
+
+        fun equalizeIfReady() {
+            val f = minSpFunc
+            val p = minSpPagto
+            if (f != null && p != null) {
+                val globalMin = minOf(f, p)
+                listOf(
+                    binding.rbPintor, binding.rbPedreiro, binding.rbEletricista,
+                    binding.rbEncanador, binding.rbAjudante, binding.rbOutro
+                ).forEach { it.setTextSize(TypedValue.COMPLEX_UNIT_SP, globalMin) }
+                listOf(binding.rbDiaria, binding.rbSemanal, binding.rbMensal, binding.rbTarefeiro)
+                    .forEach { it.setTextSize(TypedValue.COMPLEX_UNIT_SP, globalMin) }
             }
         }
 
-        updateDiasLabel()
-        observeSaveState()
+        // 1) Forma de Pagamento (2×2) — UMA ÚNICA CHAMADA, sem flash
+        binding.rowPagto1.runBeforeFirstDraw {
+            minSpPagto = alignPagamentoTwoByTwo(
+                context = requireContext(),
+                rowPagto1 = binding.rowPagto1,
+                rowPagto2 = binding.rowPagto2,
+                radios = listOf(
+                    binding.rbDiaria,
+                    binding.rbSemanal,
+                    binding.rbMensal,
+                    binding.rbTarefeiro
+                ),
+                normalTextSp = normalSpBase,     // ← aplica bump
+                minTextSp = 12f,
+                hGapDp = pagtoColGapDp
+            )
+            equalizeIfReady()
+        }
 
-        binding.btnSaveFuncionario.setOnClickListener { onSave() }
+        // 2) Função (2×3 → fallback 3×2) — sem flash
+        binding.rgFuncao2.runBeforeFirstDraw {
+            minSpFunc = ensureAlignedTwoRowsOrFallbackToThreeRows(
+                context = requireContext(),
+                rgRow1 = binding.rgFuncao,
+                rgRow2 = binding.rgFuncao2,
+                checkBoxes = listOf(
+                    binding.rbPintor, binding.rbPedreiro, binding.rbEletricista,
+                    binding.rbEncanador, binding.rbAjudante, binding.rbOutro
+                ),
+                normalTextSp = normalSpBase,     // ← aplica bump
+                minTextSp = 12f,
+                colGapDp = funcColGapDp
+            )
+            equalizeIfReady()
+        }
 
-        validateForm()
-
-        // Voltar físico/gesto
         // Voltar físico/gesto
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
-            // Se o modal de edição estiver visível, somente fecha o modal.
             if (binding.overlayEditPagamento.isVisible) {
                 fecharModalEdicao()
                 return@addCallback
             }
-            // Fluxo normal de saída (com Snackbar se houver mudanças)
             handleBackPress()
         }
 
@@ -179,42 +310,30 @@ class FuncionarioRegisterFragment : Fragment() {
         binding.tvEmptyPagamentos.isVisible = false
 
         if (isEdit) {
-            // Adapter com deletar + editar
             pagamentoAdapter = PagamentoAdapter(
                 showDelete = true,
                 showEdit = true,
                 onDeleteClick = { pagamento ->
-
-                    // Snackbar de confirmação (SIM / NÃO)
                     showSnackbarFragment(
                         type = Constants.SnackType.WARNING.name,
                         title = getString(R.string.snack_delete_pagamento_title),
                         msg = getString(R.string.snack_delete_pagamento_msg),
                         btnText = getString(R.string.snack_button_yes),
                         onAction = {
-                            // --- CONFIRMADO (SIM) ---
-
-                            // Remove só da lista local/visível
                             cachedPagamentos = cachedPagamentos.filter { it.id != pagamento.id }
                             pagamentoAdapter.submitList(cachedPagamentos) {
                                 val n = cachedPagamentos.size
                                 if (n - 1 >= 0) pagamentoAdapter.notifyItemChanged(n - 1)
                             }
-
-                            // Marca como exclusão pendente (não persiste ainda)
                             pagamentosExcluidosPendentes.add(pagamento)
                             pagamentosAlterados = true
-
-                            // Se ficou vazio: esconder a aba e mostrar a mensagem
                             if (cachedPagamentos.isEmpty()) {
                                 binding.cardAbaHistoricoPagto.isVisible = false
                                 binding.tvEmptyPagamentos.isVisible = true
                             }
                         },
                         btnNegativeText = getString(R.string.snack_button_no),
-                        onNegative = {
-                            // NÃO: nada a fazer
-                        }
+                        onNegative = { }
                     )
                 },
                 onEditClick = { pagamento -> abrirModalEdicao(pagamento) }
@@ -224,20 +343,29 @@ class FuncionarioRegisterFragment : Fragment() {
                 adapter = pagamentoAdapter
             }
 
-            // Observa histórico
             observePagamentos(args.funcionarioId!!)
-
-            // Toggle da aba
             setupExpandableHistorico()
 
-            // Botão "Adicionar" ao lado do campo Pagamento
             binding.btnAddPagamento.setOnClickListener { onAddPagamentoClick() }
-
-            // Listeners do modal de edição
             binding.btnCancelEditPagamento.setOnClickListener { fecharModalEdicao() }
             binding.btnSaveEditPagamento.setOnClickListener { onSaveEditPagamento() }
             binding.etEditData.setOnClickListener { abrirDatePickerEdicao() }
+
+            // Responsividade dos botões do modal
+            binding.cardEditPagamento.doOnPreDraw {
+                binding.btnSaveEditPagamento.applyResponsiveButtonSizingGrowShrink()
+                binding.btnCancelEditPagamento.applyResponsiveButtonSizingGrowShrink()
+                binding.cardEditPagamento.syncTextSizesGroup(
+                    binding.btnSaveEditPagamento, binding.btnCancelEditPagamento
+                )
+            }
         }
+
+        // Label inicial dos dias
+        updateDiasLabel()
+
+        // Estado de salvar
+        observeSaveState()
     }
 
     /* ───────────────────────── Pré-preenchimento (edição) ───────────────────────── */
@@ -270,6 +398,10 @@ class FuncionarioRegisterFragment : Fragment() {
 
                             btnSaveFuncionario.setText(R.string.generic_update)
 
+                            binding.btnSaveFuncionario.doOnPreDraw {
+                                binding.btnSaveFuncionario.applyFullWidthButtonSizingGrowShrink()
+                            }
+
                             val funcoesMarcadas = func.funcao.split("/").map { it.trim() }
                             getAllFuncaoCheckboxes().forEach { cb ->
                                 cb.isChecked = funcoesMarcadas.any {
@@ -281,7 +413,10 @@ class FuncionarioRegisterFragment : Fragment() {
                             selectSingleChoice(binding.rgStatus, func.status)
                             updateDiasLabel()
                         }
-                        validateForm()
+                        dataLoaded = true
+                        setupTextWatchersOnce()
+                        validateForm()   // primeira validação já com tudo preenchido, sem “flash”
+                        lockInitialTitleMargins = false
                         reevalScrollFab()
                     }
             }
@@ -302,30 +437,67 @@ class FuncionarioRegisterFragment : Fragment() {
 
     /* ───────────────────────── Validação geral ───────────────────────── */
     private fun validateForm(): Boolean = with(binding) {
-        val nome = etNomeFunc.text?.toString()?.trim().orEmpty()
-        val nomeOk = nome.length >= Constants.Validation.MIN_NAME
+        if (!dataLoaded) {
+            // limpa erros e não habilita o botão enquanto não estiver pronto
+            tilNomeFunc.error = null
+            tilSalario.error = null
+            tvFuncaoError.visibility = View.GONE
+            tvPagamentoError.visibility = View.GONE
+            btnSaveFuncionario.isEnabled = false
+            return false
+        }
+        // --- validações como já faz ---
+        val nomeOk = etNomeFunc.text?.toString()?.trim().orEmpty()
+            .let { it.length >= Constants.Validation.MIN_NAME }
         tilNomeFunc.error = if (!nomeOk)
             getString(R.string.func_reg_error_nome, Constants.Validation.MIN_NAME)
         else null
 
-        val salario =
-            etSalario.text?.toString()?.replace(',', '.')?.toDoubleOrNull()
-        val salarioOk = salario != null && salario > Constants.Validation.MIN_SALDO
+        val salarioOk = etSalario.text?.toString()
+            ?.replace(',', '.')?.toDoubleOrNull()
+            ?.let { it > Constants.Validation.MIN_SALDO } == true
         tilSalario.error = if (!salarioOk) getString(R.string.func_reg_error_salario) else null
 
-        val funcoes = getCheckedFuncaoTexts()
-        val funcaoOk = funcoes.isNotEmpty()
+        val funcaoOk = getCheckedFuncaoTexts().isNotEmpty()
+        val pagtoOk = getAllPagamentoRadios().any { it.isChecked }
+
         tvFuncaoError.text = if (!funcaoOk) getString(R.string.func_reg_error_role) else null
         tvFuncaoError.visibility = if (!funcaoOk) View.VISIBLE else View.GONE
 
-        val pagtoOk = getAllPagamentoRadios().any { it.isChecked }
         tvPagamentoError.text = if (!pagtoOk) getString(R.string.func_reg_error_pagamento) else null
         tvPagamentoError.visibility = if (!pagtoOk) View.VISIBLE else View.GONE
+
+        // --- AQUI está a mudança importante ---
+        // Evita espaço fantasma do TextInputLayout:
+        tilNomeFunc.isErrorEnabled = !nomeOk
+        tilSalario.isErrorEnabled = !salarioOk
+
+        val hasNomeError = !nomeOk
+        val hasSalarioError = !salarioOk
+
+        val topFunc = when {
+            hasNomeError -> topErrorDp.dp
+            isEdit && funcaoStickyInitial -> topEditInitialDp.dp  // ainda sem interação
+            else -> topNoErrorDp.dp
+        }
+        val topPagto = when {
+            hasSalarioError -> topErrorDp.dp
+            isEdit && pagtoStickyInitial -> topEditInitialDp.dp   // ainda sem interação
+            else -> topNoErrorDp.dp
+        }
+
+        // só anima após o primeiro layout do modo edição
+        if (!isEdit || !lockInitialTitleMargins) {
+            tvTitleFuncao.updateTopMarginAnimated(topFunc)
+            tvTitlePagamento.updateTopMarginAnimated(topPagto)
+        }
+
 
         val formOk = nomeOk && salarioOk && funcaoOk && pagtoOk
         btnSaveFuncionario.isEnabled = formOk
         formOk
     }
+
 
     /* ───────────────────────── Observa estado de salvar ───────────────────────── */
     private fun observeSaveState() {
@@ -464,6 +636,9 @@ class FuncionarioRegisterFragment : Fragment() {
             )
             return@with
         }
+        // 🔒 trava o botão para impedir taps múltiplos
+        btnAddPagamento.isEnabled = false
+
         // Solicita data e, ao escolher, persiste
         showPagamentoDatePicker(valor)
     }
@@ -503,6 +678,7 @@ class FuncionarioRegisterFragment : Fragment() {
                 // limpa campo e mostra a aba
                 binding.etPagamento.setText("")
                 binding.cardAbaHistoricoPagto.isVisible = true
+                binding.btnAddPagamento.isEnabled = true
             }
         }
     }
@@ -685,12 +861,23 @@ class FuncionarioRegisterFragment : Fragment() {
         getAllFuncaoCheckboxes().filter { it.isChecked }.map { it.text.toString() }
 
     private fun getAllFuncaoCheckboxes(): List<MaterialCheckBox> =
-        (0 until binding.rgFuncao.childCount).mapNotNull {
-            binding.rgFuncao.getChildAt(it) as? MaterialCheckBox
-        } +
-                (0 until binding.rgFuncao2.childCount).mapNotNull {
-                    binding.rgFuncao2.getChildAt(it) as? MaterialCheckBox
+        buildList {
+            // Linha 1
+            for (i in 0 until binding.rgFuncao.childCount) {
+                (binding.rgFuncao.getChildAt(i) as? MaterialCheckBox)?.let { add(it) }
+            }
+            // Linha 2
+            for (i in 0 until binding.rgFuncao2.childCount) {
+                (binding.rgFuncao2.getChildAt(i) as? MaterialCheckBox)?.let { add(it) }
+            }
+            // Linha 3 (criada pelo helper, tag = "rgFuncao3")
+            val rg3 = binding.root.findViewWithTag<RadioGroup>("rgFuncao3")
+            if (rg3 != null) {
+                for (i in 0 until rg3.childCount) {
+                    (rg3.getChildAt(i) as? MaterialCheckBox)?.let { add(it) }
                 }
+            }
+        }
 
     private fun updateDiasLabel() = with(binding) {
         val res = when {
@@ -824,6 +1011,89 @@ class FuncionarioRegisterFragment : Fragment() {
             )
         }
     }
+
+    // Helper rápido no Fragment para alterar marginTop com animação
+    private fun View.updateTopMarginAnimated(targetPx: Int, durationMs: Long = 160L) {
+        val lp = layoutParams as? ViewGroup.MarginLayoutParams ?: return
+        val start = lp.topMargin
+        if (start == targetPx) return
+
+        ValueAnimator.ofInt(start, targetPx).apply {
+            duration = durationMs
+            addUpdateListener { anim ->
+                lp.topMargin = anim.animatedValue as Int
+                layoutParams = lp
+                requestLayout()
+            }
+        }.start()
+    }
+
+    // Evita flash de pré carregamento em edição
+    private fun setupTextWatchersOnce() = with(binding) {
+        if (watchersSet) return
+        watchersSet = true
+
+        etNomeFunc.doAfterTextChanged {
+            if (isEdit && funcaoStickyInitial) funcaoStickyInitial = false
+            if (dataLoaded) validateForm()
+        }
+        etSalario.doAfterTextChanged {
+            if (isEdit && pagtoStickyInitial) pagtoStickyInitial = false
+            if (dataLoaded) validateForm()
+        }
+
+        getAllFuncaoCheckboxes().forEach { cb ->
+            cb.setOnCheckedChangeListener { _, _ -> if (dataLoaded) validateForm() }
+        }
+        getAllPagamentoRadios().forEach { rb ->
+            rb.setOnCheckedChangeListener { button, isChecked ->
+                if (isChecked) {
+                    getAllPagamentoRadios().forEach { other ->
+                        if (other != button && other.isChecked) other.isChecked = false
+                    }
+                    updateDiasLabel()
+                    if (dataLoaded) validateForm()
+                }
+            }
+        }
+    }
+
+    private inline fun View.runBeforeFirstDraw(crossinline block: () -> Unit) {
+        val vto = viewTreeObserver
+        vto.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                if (viewTreeObserver.isAlive) viewTreeObserver.removeOnPreDrawListener(this)
+                block()
+                // garante que o novo layout seja aplicado antes do primeiro frame
+                requestLayout()
+                return false // cancela este draw; o próximo já vem ajustado (sem flash)
+            }
+        })
+    }
+
+    private fun View.setTopMarginNow(targetPx: Int) {
+        val lp = layoutParams as? ViewGroup.MarginLayoutParams ?: return
+        if (lp.topMargin != targetPx) {
+            lp.topMargin = targetPx
+            layoutParams = lp
+            requestLayout()
+        }
+    }
+
+    private fun View.updateHorizontalPaddingDp(dp: Int) {
+        val px = (dp * Resources.getSystem().displayMetrics.density).toInt()
+        setPaddingRelative(px, paddingTop, px, paddingBottom)
+    }
+
+    private fun reduceChoiceInnerPadding(views: List<TextView>, dp: Int = 4) {
+        val px = (dp * Resources.getSystem().displayMetrics.density).toInt()
+        views.forEach { tv ->
+            tv.compoundDrawablePadding = px   // ícone ↔ texto
+            // opcional: reduzir padding lateral do próprio item
+            tv.setPaddingRelative(0, tv.paddingTop, 0, tv.paddingBottom)
+        }
+    }
+
 
     override fun onDestroyView() {
         // Remover listeners do scroll e do FAB

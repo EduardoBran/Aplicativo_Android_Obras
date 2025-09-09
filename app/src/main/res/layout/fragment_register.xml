@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Toolbar com ícone e texto visíveis -->
+    <!-- Toolbar -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbarRegister"
         android:layout_width="0dp"
@@ -22,142 +22,155 @@
         app:titleCentered="true"
         app:titleTextColor="@android:color/white" />
 
-    <!-- Conteúdo centralizado em uma scroll view -->
+    <!-- Conteúdo rolável abaixo da toolbar -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/registerScroll"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:fadeScrollbars="false"
         android:fillViewport="true"
+        android:scrollbarStyle="outsideOverlay"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbarRegister">
 
-        <!-- SUBSTITUI O LinearLayout antigo por este ConstraintLayout -->
+        <!-- ÚNICO filho do NSV -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/registerContent"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="24dp">
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/screen_padding_h"
+            android:paddingVertical="@dimen/screen_padding_v">
 
-            <!-- ILUSTRAÇÃO DO REGISTER (id e estilo idênticos ao login) -->
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/imgRegister"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/login_logo_top_space"
-                android:layout_marginBottom="@dimen/login_logo_bottom_space"
-                android:adjustViewBounds="true"
-                android:contentDescription="@string/cd_login_illustration"
-                android:maxHeight="@dimen/login_logo_max_height"
-                android:padding="@dimen/login_hero_inner_padding"
-                android:scaleType="fitCenter"
-                android:src="@drawable/img_register"
-                app:contentPadding="@dimen/login_hero_inner_padding"
-                app:layout_constraintBottom_toTopOf="@id/formContainer"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.ObrasApp.Hero"
-                app:strokeColor="@color/md_theme_light_outline"
-                app:strokeWidth="@dimen/login_hero_stroke" />
-
-            <!-- FORMULÁRIO (fica centralizado como no login) -->
+            <!-- BLOCO CENTRAL: imagem + formulário -->
             <LinearLayout
-                android:id="@+id/formContainer"
+                android:id="@+id/centerColumn"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
                 android:orientation="vertical"
+                app:layout_constrainedWidth="true"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.5"
+                app:layout_constraintWidth_max="@dimen/form_max_width">
 
-                <!-- Nome -->
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.ObrasApp.TextInputLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etName"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:drawableStart="@drawable/ic_person"
-                        android:drawablePadding="12dp"
-                        android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                        android:hint="@string/register_name_hint"
-                        android:minHeight="60dp"
-                        android:paddingTop="22dp"
-                        android:paddingBottom="16dp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- E-mail -->
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.ObrasApp.TextInputLayout"
+                <!-- HERO -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/imgRegister"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp">
+                    android:layout_marginBottom="@dimen/login_gap_between"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/cd_login_illustration"
+                    android:maxHeight="@dimen/login_logo_max_height"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/img_register"
+                    app:contentPadding="@dimen/login_hero_inner_padding"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.ObrasApp.Hero"
+                    app:strokeColor="@color/md_theme_light_outline"
+                    app:strokeWidth="@dimen/login_hero_stroke"
+                    tools:ignore="ContentDescription" />
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etEmailReg"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:drawableStart="@drawable/ic_login"
-                        android:drawablePadding="12dp"
-                        android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                        android:hint="@string/register_email_hint"
-                        android:inputType="textEmailAddress"
-                        android:minHeight="60dp"
-                        android:paddingTop="22dp"
-                        android:paddingBottom="16dp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Senha -->
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.ObrasApp.TextInputLayout"
+                <!-- FORMULÁRIO -->
+                <LinearLayout
+                    android:id="@+id/formContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    app:endIconContentDescription="@string/cd_toggle_password_visibility"
-                    app:endIconMode="password_toggle"
-                    app:endIconTint="@color/md_theme_light_onSurface">
+                    android:orientation="vertical">
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etPasswordReg"
+                    <!-- Nome -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.ObrasApp.TextInputLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:drawableStart="@drawable/ic_pass"
-                        android:drawablePadding="12dp"
-                        android:drawableTint="@color/md_theme_light_onSurfaceVariant"
+                        android:hint="@string/register_name_hint">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etName"
+                            style="@style/Widget.ObrasApp.TextInputEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:drawableStart="@drawable/ic_person"
+                            android:drawablePadding="12dp"
+                            android:drawableTint="@color/md_theme_light_onSurfaceVariant"
+                            android:imeOptions="actionNext"
+                            android:inputType="textPersonName" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- E-mail -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.ObrasApp.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/form_field_gap"
+                        android:hint="@string/register_email_hint">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etEmailReg"
+                            style="@style/Widget.ObrasApp.TextInputEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:autofillHints="emailAddress"
+                            android:drawableStart="@drawable/ic_login"
+                            android:drawablePadding="12dp"
+                            android:drawableTint="@color/md_theme_light_onSurfaceVariant"
+                            android:imeOptions="actionNext"
+                            android:importantForAutofill="yes"
+                            android:inputType="textEmailAddress" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Senha -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.ObrasApp.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/form_field_gap"
                         android:hint="@string/register_password_hint"
-                        android:inputType="textPassword"
-                        android:minHeight="60dp"
-                        android:paddingTop="22dp"
-                        android:paddingBottom="16dp" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        app:endIconContentDescription="@string/cd_toggle_password_visibility"
+                        app:endIconMode="password_toggle"
+                        app:endIconTint="@color/md_theme_light_onSurface">
 
-                <!-- Botão Cadastrar -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnRegister"
-                    style="@style/Widget.ObrasApp.ButtonLogin"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="@string/register_button"
-                    android:textSize="18sp" />
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etPasswordReg"
+                            style="@style/Widget.ObrasApp.TextInputEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:autofillHints="password"
+                            android:drawableStart="@drawable/ic_pass"
+                            android:drawablePadding="12dp"
+                            android:drawableTint="@color/md_theme_light_onSurfaceVariant"
+                            android:imeOptions="actionDone"
+                            android:importantForAutofill="yes"
+                            android:inputType="textPassword" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- ProgressBar -->
-                <ProgressBar
-                    android:id="@+id/progressRegister"
-                    style="@style/Widget.AppCompat.ProgressBar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="16dp"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
+                    <!-- Botão Cadastrar -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRegister"
+                        style="@style/Widget.ObrasApp.ButtonLogin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/form_button_top_gap"
+                        android:text="@string/register_button"
+                        android:textStyle="normal" />
+
+                    <!-- Progress -->
+                    <ProgressBar
+                        android:id="@+id/progressRegister"
+                        style="@style/Widget.AppCompat.ProgressBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="@dimen/progress_top_gap"
+                        android:visibility="gone"
+                        tools:visibility="gone" />
+                </LinearLayout>
             </LinearLayout>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

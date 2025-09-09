@@ -59,6 +59,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
+            android:fontFamily="@font/roboto"
+            android:fontFeatureSettings="tnum"
+            android:letterSpacing="0"
             android:textColor="@color/text_secondary_recycler"
             android:textSize="18sp"
             android:textStyle="italic"
@@ -72,12 +75,12 @@
             android:id="@+id/tvStatusEtapa"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:text="Pendente"
+            android:textColor="@color/md_theme_light_error"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/md_theme_light_error"
             app:layout_constraintBaseline_toBaselineOf="@id/tvTituloEtapa"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Pendente" />
 
         <!-- Divider -->
         <View

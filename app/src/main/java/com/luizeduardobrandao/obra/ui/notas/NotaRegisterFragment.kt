@@ -10,9 +10,10 @@ import android.widget.Toast
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.addCallback
-import androidx.core.view.isVisible
 import androidx.core.content.ContextCompat
+import androidx.core.view.doOnPreDraw
 import androidx.core.text.HtmlCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -37,6 +38,9 @@ import com.luizeduardobrandao.obra.utils.Constants
 import com.luizeduardobrandao.obra.utils.FileUtils
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
+import com.luizeduardobrandao.obra.utils.applyResponsiveButtonSizingGrowShrink
+import com.luizeduardobrandao.obra.utils.applyFullWidthButtonSizingGrowShrink
+import com.luizeduardobrandao.obra.utils.syncTextSizesGroup
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -60,6 +64,10 @@ class NotaRegisterFragment : Fragment() {
 
     private var isEdit = false
     private lateinit var notaOriginal: Nota   // usado em edição
+    private var dataLoaded = false
+    private var watchersSet = false
+
+    private var lastNomeErrorVisible: Boolean? = null
 
     // ─────────────── Foto (galeria/câmera) ───────────────
     private var tempCameraUri: Uri? = null
@@ -149,34 +157,20 @@ class NotaRegisterFragment : Fragment() {
             etDataNota.setOnClickListener {
                 val atual = binding.etDataNota.text?.toString().orEmpty()
                 if (atual.isNotBlank()) {
-                    // Abre já posicionado na data que está no campo (ex.: preenchida pela IA)
                     showMaterialDatePickerBrWithInitial(atual) { chosen ->
                         applyChosenNotaDate(chosen)
                     }
                 } else {
-                    // Campo vazio → abre em hoje
                     showMaterialDatePickerBrToday { chosen ->
                         applyChosenNotaDate(chosen)
                     }
                 }
             }
+
             btnSaveNota.setOnClickListener { onSaveClick() }
 
-            // Form validation
+            // Desabilita o botão inicialmente; nada de validar antes de dataLoaded=true
             btnSaveNota.isEnabled = false
-            etNomeMaterial.doAfterTextChanged { validateForm() }
-            etLoja.doAfterTextChanged { validateForm() }
-            etValorNota.doAfterTextChanged { validateForm() }
-            listOf(
-                cbPintura,
-                cbPedreiro,
-                cbHidraulica,
-                cbEletrica,
-                cbLimpeza,
-                cbOutros
-            ).forEach { cb ->
-                cb.setOnCheckedChangeListener { _, _ -> validateForm() }
-            }
 
             // Foto: cliques dos botões/visualização/exclusão
             btnPickImage.setOnClickListener { startPickImage() }
@@ -191,13 +185,41 @@ class NotaRegisterFragment : Fragment() {
             // Edição?
             args.notaId?.let { notaId ->
                 isEdit = true
+                // Não instale watchers nem valide aqui; o observeNota chamará prefill,
+                // depois marcará dataLoaded = true, instalará watchers e validará sem flash.
                 observeNota(notaId)
             } ?: run {
-                // Não é edição → inicia UI de foto no modo "sem foto"
+                // Modo criação: já podemos preparar a UI e liberar validação
                 updatePhotoUiFromState()
+                dataLoaded = true
+                setupTextWatchersOnce()
+                validateForm()
+
+                // Ajustes de espaçamento iniciais sem animação (evita "pulos")
+                binding.root.post {
+                    adjustSpacingAfterView(
+                        precedingView = binding.tvNomeError,
+                        nextView = binding.tilDescricaoMaterial,
+                        visibleTopDp = 8,
+                        goneTopDp = 12,
+                        animate = false
+                    )
+                    adjustSectionTopSpacing(
+                        binding.tilDataNota,
+                        binding.tvStatusTitle,
+                        collapsedTopDp = 10,
+                        animate = false
+                    )
+                    adjustSectionTopSpacing(
+                        binding.tilValorNota,
+                        binding.tvPhotoTitle,
+                        collapsedTopDp = 34,
+                        animate = false
+                    )
+                }
             }
 
-            // Floating Bottom Rolagem – mostra só quando: edição && !salvando && !no final
+            // FAB de rolagem – visível só quando: edição && !salvando && !no final
             bindScrollToBottomFabBehavior(
                 fab = binding.fabScrollDown,
                 scrollView = binding.notaRegScroll,
@@ -205,25 +227,22 @@ class NotaRegisterFragment : Fragment() {
                 isSavingProvider = { isSaving }
             )
 
-            collectOperationState()
-            collectAutoFillState() // Observar o estado da IA e reagir
-            validateForm()
-            binding.root.post {
-                adjustSectionTopSpacing(
-                    binding.tilDataNota,
-                    binding.tvStatusTitle,
-                    collapsedTopDp = 10,
-                    animate = false
-                )
-                adjustSectionTopSpacing(
-                    binding.tilValorNota,
-                    binding.tvPhotoTitle,
-                    collapsedTopDp = 34,
-                    animate = false
-                )
+            // ───────── Responsividade dos botões ─────────
+            rowPhotoButtons.doOnPreDraw {
+                btnPickImage.applyResponsiveButtonSizingGrowShrink()
+                btnTakePhoto.applyResponsiveButtonSizingGrowShrink()
+                rowPhotoButtons.syncTextSizesGroup(btnPickImage, btnTakePhoto)
             }
+            btnSaveNota.doOnPreDraw {
+                btnSaveNota.applyFullWidthButtonSizingGrowShrink()
+            }
+
+            collectOperationState()
+            collectAutoFillState()
+
             reevalScrollFab()
         }
+
         // Intercepta o botão físico/gesto de voltar
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
             handleBackPress()
@@ -236,10 +255,15 @@ class NotaRegisterFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.observeNota(args.obraId, notaId).collect { nota ->
                     nota ?: return@collect
+
                     notaOriginal = nota
                     prefillFields(nota)
-                    updatePhotoUiFromState()  // ajusta botões/cartão de foto conforme estado
-                    validateForm()            // revalida depois de preencher
+                    updatePhotoUiFromState()
+
+                    // agora sim: dados carregados, instale watchers e valide
+                    dataLoaded = true
+                    setupTextWatchersOnce()
+                    validateForm()   // primeira validação sem “flash”
                 }
             }
         }
@@ -485,6 +509,24 @@ class NotaRegisterFragment : Fragment() {
 
         adjustSectionTopSpacing(binding.tilDataNota, binding.tvStatusTitle, collapsedTopDp = 10)
         adjustSectionTopSpacing(binding.tilValorNota, binding.tvPhotoTitle, collapsedTopDp = 34)
+
+        // Reaplicar sizing após trocar o rótulo do botão (Atualizar)
+        btnSaveNota.doOnPreDraw {
+            btnSaveNota.applyFullWidthButtonSizingGrowShrink()
+        }
+    }
+
+    private fun setupTextWatchersOnce() = with(binding) {
+        if (watchersSet) return
+        watchersSet = true
+
+        etNomeMaterial.doAfterTextChanged { if (dataLoaded) validateForm() }
+        etLoja.doAfterTextChanged { if (dataLoaded) validateForm() }
+        etValorNota.doAfterTextChanged { if (dataLoaded) validateForm() }
+        listOf(cbPintura, cbPedreiro, cbHidraulica, cbEletrica, cbLimpeza, cbOutros)
+            .forEach { cb ->
+                cb.setOnCheckedChangeListener { _, _ -> if (dataLoaded) validateForm() }
+            }
     }
 
     // Aplicar os dados da IA no formulário (com saneamento de acordo com as regras)
@@ -548,10 +590,36 @@ class NotaRegisterFragment : Fragment() {
 
     // Validação
     private fun validateForm(): Boolean = with(binding) {
+        if (!dataLoaded) {
+            // limpe qualquer rastro e não habilite o botão
+            tvNomeError.isVisible = false
+            tilLoja.error = null
+            tilDataNota.error = null
+            tilDataNota.helperText = null
+            tilValorNota.error = null
+            tilValorNota.isErrorEnabled = false
+            tvTipoError.visibility = View.GONE
+            btnSaveNota.isEnabled = false
+            return false
+        }
+
         // Nome do material
         val nome = etNomeMaterial.text?.toString()?.trim().orEmpty()
         val nomeOk = nome.isNotEmpty()
-        tilNomeMaterial.error = if (!nomeOk) getString(R.string.nota_reg_error_nome) else null
+        binding.tvNomeError.isVisible = !nomeOk
+        if (!nomeOk) binding.tvNomeError.text = getString(R.string.nota_reg_error_nome)
+
+        // anime apenas se a visibilidade mudou desde a última chamada
+        val changed = lastNomeErrorVisible != binding.tvNomeError.isVisible
+        lastNomeErrorVisible = binding.tvNomeError.isVisible
+
+        adjustSpacingAfterView(
+            precedingView = binding.tvNomeError,
+            nextView = binding.tilDescricaoMaterial,
+            visibleTopDp = 8,
+            goneTopDp = 12,
+            animate = changed // 🔑 anima só quando troca VISIBLE ↔ GONE
+        )
 
         // Loja (Não exibe erro para loja vazia)
         tilLoja.error = null
@@ -1024,6 +1092,40 @@ class NotaRegisterFragment : Fragment() {
             this.toFloat(),
             resources.displayMetrics
         ).toInt()
+
+    private fun adjustSpacingAfterView(
+        precedingView: View,
+        nextView: View,
+        visibleTopDp: Int,
+        goneTopDp: Int,
+        animate: Boolean = true
+    ) {
+        val parent = nextView.parent as? ViewGroup ?: return
+
+        // 🔑 mata animações/transições em andamento
+        TransitionManager.endTransitions(parent)
+
+        if (animate) {
+            TransitionManager.beginDelayedTransition(
+                parent,
+                AutoTransition().apply { duration = 150 }
+            )
+        }
+
+        (nextView.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+            val newTop = if (precedingView.isVisible) visibleTopDp.dp() else goneTopDp.dp()
+            if (lp.topMargin != newTop) {
+                lp.topMargin = newTop
+                nextView.layoutParams = lp
+                // 🔑 garanta re-layout mesmo em NestedScrollView/LinearLayout
+                parent.requestLayout()
+                parent.invalidate()
+                nextView.requestLayout()
+                nextView.invalidate()
+            }
+        }
+    }
+
 
     /**
      * Ajusta a margem-top do título de seção (ex.: “Status”, “Foto da nota”)

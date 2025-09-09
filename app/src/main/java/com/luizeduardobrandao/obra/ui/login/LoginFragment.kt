@@ -2,13 +2,16 @@ package com.luizeduardobrandao.obra.ui.login
 
 import androidx.fragment.app.viewModels
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.net.ConnectivityManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -18,15 +21,15 @@ import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentLoginBinding
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.utils.applyFullWidthButtonSizingGrowShrink
+import com.luizeduardobrandao.obra.utils.ButtonSizingConfig
 import com.luizeduardobrandao.obra.utils.Constants
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
-import android.net.ConnectivityManager
 import com.luizeduardobrandao.obra.utils.isConnectedToInternet
+import com.luizeduardobrandao.obra.utils.LoginLinksAligner
 import com.luizeduardobrandao.obra.utils.registerConnectivityCallback
 import com.luizeduardobrandao.obra.utils.unregisterConnectivityCallback
-import androidx.core.view.doOnPreDraw
-import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
@@ -41,6 +44,12 @@ class LoginFragment : Fragment() {
 
     // Conexão a internet
     private var netCallback: ConnectivityManager.NetworkCallback? = null
+
+    // Flag desaparecer imagem orientação horizontal
+    private var lastHeroVisible: Boolean = false
+
+    private val enterAnimTime = 2.2f
+    private fun scaled(ms: Long) = (ms * enterAnimTime).toLong()
 
     override fun onStart() {
         super.onStart()
@@ -91,9 +100,32 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        hasPlayedEnterAnim = savedInstanceState?.getBoolean("hasPlayedEnterAnim") ?: false
-        if (!hasPlayedEnterAnim) {
-            // roda depois do layout medir as views (evita flicker)
+        // Config especial para botão "Entrar"
+        val loginButtonConfig = ButtonSizingConfig(
+            minPaddingVdp = 14,   // vertical mínimo maior
+            maxPaddingVdp = 20,   // vertical máximo maior
+            minTextSp = 16,       // fonte mínima maior
+            maxTextSp = 26        // fonte máxima maior
+        )
+
+        binding.btnLogin.applyFullWidthButtonSizingGrowShrink(config = loginButtonConfig)
+
+        // 1) Aplica visibilidade do hero para este contexto (portrait/land, phone/tablet)
+        val showHeroNow = resources.getBoolean(R.bool.show_hero)
+        binding.imgLogin.visibility = if (showHeroNow) View.VISIBLE else View.GONE
+        lastHeroVisible = showHeroNow
+
+        // 2) Recupera flags antigas
+        hasPlayedEnterAnim = savedInstanceState?.getBoolean(KEY_HAS_PLAYED_ENTER_ANIM) ?: false
+        val prevHeroVisible = savedInstanceState?.getBoolean(KEY_PREV_HERO_VISIBLE)
+
+        // 3) Regras de animação:
+        // - Primeira vez: anima (como já era)
+        // - Se antes o hero estava oculto (landscape) e agora ficou visível (portrait), anima de novo
+        val shouldAnimateNow =
+            !hasPlayedEnterAnim || (prevHeroVisible == false && showHeroNow)
+
+        if (shouldAnimateNow) {
             view.doOnPreDraw {
                 runEnterAnimation()
                 hasPlayedEnterAnim = true
@@ -102,18 +134,22 @@ class LoginFragment : Fragment() {
 
         setupListeners()  // cliques e text-changes
         collectUiState()  // estados do ViewModel
+        LoginLinksAligner.applyLandscapeLinkFixes(binding)
+        LoginLinksAligner.applyPortraitMirrorRightGapAsLeftMargin(binding) // só portrait
+
+
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putBoolean("hasPlayedEnterAnim", hasPlayedEnterAnim)
+        outState.putBoolean(KEY_HAS_PLAYED_ENTER_ANIM, hasPlayedEnterAnim)
+        outState.putBoolean(KEY_PREV_HERO_VISIBLE, lastHeroVisible)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null           // evita leaks
     }
-
 
     /* ---------- Setup de listeners ---------- */
     private fun setupListeners() = with(binding) {
@@ -198,34 +234,58 @@ class LoginFragment : Fragment() {
 
     // Fundo de Animação para Imagem
     private fun runEnterAnimation() = with(binding) {
-        val interp = FastOutSlowInInterpolator()
+        val d = resources.displayMetrics.density
 
-        // deslocamento leve em dp
-        val dy = 16f * resources.displayMetrics.density
+        // Distancias maiores para "sentir" o movimento
+        val heroDy = -72f * d    // antes -16dp
+        val formDy = 36f * d     // antes 16dp
 
-        // estado inicial (antes de aparecer)
-        imgLogin.alpha = 0f
-        imgLogin.translationY = -dy
+        // Interpoladores mais "lentos" no final
+        val slowOut = android.view.animation.DecelerateInterpolator(2f)
+        val slowInOut = FastOutSlowInInterpolator()
 
+        // HERO — slide down + fade + leve zoom-in
+        if (imgLogin.isVisible) {
+            imgLogin.alpha = 0f
+            imgLogin.translationY = heroDy
+            imgLogin.scaleX = 0.94f
+            imgLogin.scaleY = 0.94f
+            imgLogin.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(scaled(800L))   // ↑ bem mais devagar
+                .setStartDelay(scaled(100L))
+                .setInterpolator(slowOut)
+                .withLayer()
+                .start()
+        }
+
+        // FORM — entra depois (stagger)
         formContainer.alpha = 0f
-        formContainer.translationY = dy
-
-        // anima "hero" (imagem)
-        imgLogin.animate()
-            .alpha(1f)
-            .translationY(0f)
-            .setDuration(220L)
-            .setStartDelay(40L)
-            .setInterpolator(interp)
-            .start()
-
-        // anima formulário (campos + botão + links)
+        formContainer.translationY = formDy
         formContainer.animate()
             .alpha(1f)
             .translationY(0f)
-            .setDuration(240L)
-            .setStartDelay(80L)
-            .setInterpolator(interp)
+            .setDuration(scaled(650L))
+            .setStartDelay(scaled(350L))    // começa após o hero
+            .setInterpolator(slowInOut)
+            .withLayer()
             .start()
+
+        // LINKS — por último, só fade-in prolongado
+        linksRow.alpha = 0f
+        linksRow.animate()
+            .alpha(1f)
+            .setDuration(scaled(450L))
+            .setStartDelay(scaled(800L))
+            .withLayer()
+            .start()
+    }
+
+    companion object {
+        private const val KEY_HAS_PLAYED_ENTER_ANIM = "hasPlayedEnterAnim"
+        private const val KEY_PREV_HERO_VISIBLE = "prevHeroVisible"
     }
 }

@@ -4,7 +4,8 @@
 
     <!-- GERAL-->
     <string name="generic_save">Salvar</string>
-    <string name="generic_update">Alterar</string>
+    <string name="generic_update">Atualizar</string>
+    <string name="generic_add">Adicionar</string>
     <string name="generic_cancel">Cancelar</string>
     <string name="generic_back">Voltar</string>
     <string name="generic_ok">Ok</string>
@@ -264,7 +265,7 @@
     <string name="nota_toast_removed">Nota removida com sucesso.</string>
     <string name="nota_toast_added">Nota adicionada.</string>
     <string name="nota_toast_updated">Dados da nota atualizados.</string>
-    <string name="nota_reg_button_save">Adicionar nota</string>
+    <string name="nota_reg_button_save">Adicionar Nota</string>
     <string name="nota_reg_button_edit">Editar nota</string>
     <string name="detail">Detalhes</string>
     <string name="generic_delete">Excluir</string>
@@ -442,7 +443,7 @@
     <!-- fragment_material -->
     <string name="material_title">Material da Obra</string>
     <string name="material_reg_button_save">Adicionar Material</string>
-    <string name="material_reg_button_edit">Atualizar Material</string>
+    <string name="material_reg_button_edit">Atualizar</string>
 
     <!-- fragment_material_list -->
     <string name="material_list_title">Materiais</string>
@@ -495,7 +496,7 @@
     <string name="dados_obra_balance_updated">Saldo atualizado.</string>
     <string name="obra_data_error_required">Preencha todos os campos obrigatórios antes de salvar.</string>
     <string name="resumo_button_update_balance">Atualizar Saldo</string>
-    <string name="obra_data_balance_initial_label">Saldo Inicial</string>
+    <string name="obra_data_balance_initial_label">Saldo Inicial:</string>
     <string name="obra_data_balance_updated_hint">Informe o novo saldo.</string>
     <string name="obra_data_balance_with_aportes_label">Saldo total com aporte</string>
 
@@ -510,7 +511,7 @@
     <string name="dados_obra_delete_error">Falha ao excluir obra.</string>
     <string name="date_picker_title">Selecione a data</string>
 
-    <string name="dados_obra_name_error">O nome do cliente deve ter pelo menos 3 caracteres.</string>
+    <string name="dados_obra_name_error">O nome do cliente deve ter pelo menos 3 letras.</string>
     <string name="dados_obra_address_error">Informe o endereço da obra.</string>
     <string name="dados_obra_date_start_error">Informe a data de início.</string>
     <string name="dados_obra_date_end_error">Informe a data de término.</string>
@@ -519,7 +520,8 @@
     <string name="dados_obra_date_end_before_start">A data de término não pode ser anterior à data de início.</string>
 
     <!-- ResumoFragment -->
-    <string name="resumo_title">Resumo da Obra</string>
+    <string name="resumo_title">Resumo</string>
+    <string name="resumo_menu_view_export">Ver resumo</string>
     <string name="resumo_total_workers">Total Funcionários: %1$d</string>
     <string name="resumo_total_worker_cost">Custo com Funcionários: R$ %1$s</string>
     <string name="resumo_total_notes">Total Notas: %1$d</string>
@@ -633,8 +635,8 @@
     </plurals>
 
     <plurals name="title_aportes_header_plural">
-        <item quantity="one">Saldo Total com Aporte</item>
-        <item quantity="other">Saldo Total com Aportes</item>
+        <item quantity="one">Saldo Total com Aporte:</item>
+        <item quantity="other">Saldo Total com Aportes:</item>
     </plurals>
 
     <string name="resumo_aportes_empty">Nenhum aporte cadastrado.</string>
@@ -691,6 +693,8 @@
     <!-- Imagens / Fotos da Obra -->
     <string name="imagens_title">Imagens</string>
     <string name="imagens_empty">Nenhuma imagem cadastrada.</string>
+    <string name="imagens_error_nome_min">Informe pelo menos 3 letras.</string>
+    <string name="imagens_error_data_obrigatoria">Informe a data no formato dd/MM/aaaa</string>
 
     <!-- Filtros -->
     <string name="imagens_filter_all">Todas</string>
@@ -708,7 +712,7 @@
     <string name="imagens_btn_take">Tirar Foto</string>
     <string name="imagens_card_title">Nova Imagem</string>
     <string name="imagens_form_name_hint">Nome da imagem</string>
-    <string name="imagens_form_desc_hint">Detalhes (opcional)</string>
+    <string name="imagens_form_desc_hint">Descrição (opcional)</string>
     <string name="imagens_form_date_hint">Data</string>
     <string name="imagens_form_type_title">Tipo</string>
     <string name="imagens_save_success">Imagem salva com sucesso.</string>
@@ -822,7 +826,7 @@
     <string name="export_pdf_error_toast">Não foi possível salvar o PDF.</string>
 
     <!-- Menu/toolbar do Resumo -->
-    <string name="resumo_menu_export">Exportar</string>
+    <string name="resumo_menu_export">Ver/Exportar resumo</string>
 
     <!-- 🔹 IA: Pergunta de preenchimento automático -->
     <string name="ia_autofill_message">Deseja preenchimento automático?</string>

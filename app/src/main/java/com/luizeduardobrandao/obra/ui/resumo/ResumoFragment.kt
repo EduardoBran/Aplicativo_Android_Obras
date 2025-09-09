@@ -68,6 +68,13 @@ class ResumoFragment : Fragment() {
     // Comportamento do FAB
     private var resumoFabGlobalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
+    // Flag desaperecer imagem modo horizontal
+    private var lastHeroVisible: Boolean = false
+    private var canShowHeroInThisContext: Boolean = true
+
+    // estado do FAB após rotação
+    private var restoreFabVisible: Boolean? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         savedInstanceState?.let {
@@ -91,6 +98,8 @@ class ResumoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) = with(binding) {
         super.onViewCreated(view, savedInstanceState)
 
+        restoreFabVisible = savedInstanceState?.getBoolean(KEY_FAB_VISIBLE)
+
         toolbarResumoObra.setNavigationOnClickListener {
             findNavController().navigateUp()
         }
@@ -113,6 +122,24 @@ class ResumoFragment : Fragment() {
 
                 else -> false
             }
+        }
+
+        // ❶ Decida se o hero deve aparecer neste contexto (portrait/tablet) ou sumir (landscape phone)
+        val showHeroNow = resources.getBoolean(R.bool.show_hero)
+        canShowHeroInThisContext = showHeroNow
+        imgResumo.visibility = if (showHeroNow) View.VISIBLE else View.GONE
+        lastHeroVisible = showHeroNow
+
+        // ❷ Leia o estado anterior para decidir se anima quando voltar de landscape -> portrait
+        val prevHeroVisible = savedInstanceState?.getBoolean(KEY_PREV_HERO_VISIBLE)
+
+        // ❸ Só anima se:
+        //    - for a primeira vez (savedInstanceState == null), e o hero estiver visível
+        //    - OU se antes estava oculto (landscape) e agora ficou visível (portrait)
+        val shouldAnimateHero =
+            showHeroNow && (savedInstanceState == null || prevHeroVisible == false)
+        if (shouldAnimateHero) {
+            runHeroEnterAnimation()
         }
 
         // Abas expansíveis (padrão)
@@ -179,9 +206,6 @@ class ResumoFragment : Fragment() {
             updateHeroVisibility(animate = true)
         }
 
-        // Anima SEMPRE ao entrar no Resumo
-        runHeroEnterAnimation()
-
         // Ajusta a visibilidade inicial da imagem conforme o estado restaurado das abas (sem animação de layout aqui)
         updateHeroVisibility(animate = false)
 
@@ -190,7 +214,7 @@ class ResumoFragment : Fragment() {
             fab = binding.fabScrollDownResumo,
             scrollView = binding.scrollResumo
         )
-        binding.fabScrollDownResumo.isVisible = false
+
         updateFabForScrollState()
 
         // ── Funcionários → ResumoFuncionarioFragment
@@ -714,27 +738,19 @@ class ResumoFragment : Fragment() {
                 content.post {
                     if (expanded) {
                         if (scrollToEndOnExpand) {
-                            val bottom = (binding.scrollResumo.getChildAt(0).height -
-                                    binding.scrollResumo.height + binding.scrollResumo.paddingBottom)
-                                .coerceAtLeast(0)
-                            binding.scrollResumo.smoothScrollTo(0, bottom)
+                            // ⚠️ Restaurando estado (ex.: após rotação) e a aba Financeiro já estava aberta:
+                            // NÃO levar para o final aqui. Só fazemos isso quando o usuário abrir a aba
+                            // (no caminho animate = true). Portanto, intencionalmente não rolamos.
                         } else {
                             val rect = android.graphics.Rect()
                             content.getDrawingRect(rect)
                             binding.scrollResumo.offsetDescendantRectToMyCoords(content, rect)
 
-                            val rawTargetY =
-                                rect.bottom - binding.scrollResumo.height +
-                                        binding.scrollResumo.paddingBottom
-                            val maxScroll =
-                                (
-                                        binding.scrollResumo.getChildAt(0).height
-                                                - binding.scrollResumo.height)
-                                    .coerceAtLeast(0)
-                            binding.scrollResumo.smoothScrollTo(
-                                0,
-                                rawTargetY.coerceIn(0, maxScroll)
-                            )
+                            val rawTargetY = rect.bottom - binding.scrollResumo.height +
+                                    binding.scrollResumo.paddingBottom
+                            val maxScroll = (binding.scrollResumo.getChildAt(0).height -
+                                    binding.scrollResumo.height).coerceAtLeast(0)
+                            binding.scrollResumo.smoothScrollTo(0, rawTargetY.coerceIn(0, maxScroll))
                         }
                     }
                     // Decide FAB somente depois
@@ -786,8 +802,12 @@ class ResumoFragment : Fragment() {
                 )
 
                 // Visibilidade inicial correta: só mostra se dá para rolar PARA BAIXO
-                val shouldShow = sv.canScrollVertically(1)
-                if (shouldShow) {
+                // Se houver um estado salvo da rotação, ele tem prioridade (apenas uma vez).
+                val initialOverride = restoreFabVisible
+                restoreFabVisible = null  // consome o override (só na 1ª vez)
+                val wantShow = initialOverride ?: sv.canScrollVertically(1)
+
+                if (wantShow) {
                     showFabStrong(fab)
                 } else {
                     hideFabStrong(fab)
@@ -839,6 +859,8 @@ class ResumoFragment : Fragment() {
 
     // ——— Animação de entrada da imagem ———
     private fun runHeroEnterAnimation() = with(binding) {
+        if (!imgResumo.isVisible) return@with
+
         val interp = FastOutSlowInInterpolator()
         val dy = 16f * resources.displayMetrics.density
 
@@ -856,6 +878,28 @@ class ResumoFragment : Fragment() {
 
     // ——— Controle de visibilidade da hero conforme abas ———
     private fun updateHeroVisibility(animate: Boolean) = with(binding) {
+
+        // Se neste contexto (ex.: landscape phone) o hero não deve aparecer, garanta GONE e saia
+        if (!canShowHeroInThisContext) {
+            if (imgResumo.isVisible) {
+                if (animate) {
+                    imgResumo.animate()
+                        .alpha(0f)
+                        .setDuration(120L)
+                        .withEndAction {
+                            imgResumo.alpha = 1f
+                            imgResumo.isVisible = false
+                        }
+                        .start()
+                } else {
+                    imgResumo.clearAnimation()
+                    imgResumo.isVisible = false
+                    imgResumo.alpha = 1f
+                }
+            }
+            return@with
+        }
+
         val anyExpanded =
             isFunExpanded || isNotasExpanded || isCronExpanded ||
                     isMatExpanded || isSaldoExpanded || isAportesExpanded
@@ -902,6 +946,9 @@ class ResumoFragment : Fragment() {
         outState.putBoolean(KEY_MAT_EXP, isMatExpanded)
         outState.putBoolean(KEY_SALDO_EXP, isSaldoExpanded)
         outState.putBoolean(KEY_APORTES_EXP, isAportesExpanded)
+
+        outState.putBoolean(KEY_PREV_HERO_VISIBLE, lastHeroVisible)
+        outState.putBoolean(KEY_FAB_VISIBLE, binding.fabScrollDownResumo.isShown)
     }
 
     override fun onDestroyView() {
@@ -926,5 +973,8 @@ class ResumoFragment : Fragment() {
         private const val KEY_MAT_EXP = "mat_expanded"
         private const val KEY_SALDO_EXP = "saldo_expanded"
         private const val KEY_APORTES_EXP = "aportes_expanded"
+
+        private const val KEY_PREV_HERO_VISIBLE = "prevHeroVisible"
+        private const val KEY_FAB_VISIBLE = "fab_visible"
     }
 }

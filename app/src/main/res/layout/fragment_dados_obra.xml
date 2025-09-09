@@ -53,20 +53,33 @@
                 android:id="@+id/tilNomeCliente"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:hint="@string/obra_data_client_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etNomeCliente"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_person"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/obra_data_client_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionNext" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- ERRO externo (nome) -->
+            <TextView
+                android:id="@+id/tvNomeClienteError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_error"
+                android:visibility="gone"
+                tools:text="@string/dados_obra_name_error"
+                tools:visibility="visible" />
 
             <!-- Endereço -->
             <com.google.android.material.textfield.TextInputLayout
@@ -74,20 +87,33 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="12dp"
+                android:hint="@string/obra_data_address_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etEnderecoObra"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_address"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/obra_data_address_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionNext" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- ERRO externo (endereco) -->
+            <TextView
+                android:id="@+id/tvEnderecoObraError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_error"
+                android:visibility="gone"
+                tools:text="@string/dados_obra_address_error"
+                tools:visibility="visible" />
 
             <!-- Contato -->
             <com.google.android.material.textfield.TextInputLayout
@@ -95,21 +121,34 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="12dp"
+                android:hint="@string/obra_data_contact_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etContatoObra"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_contact"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/obra_data_contact_hint"
-                    android:inputType="textEmailAddress|phone"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionNext"
+                    android:inputType="textEmailAddress|phone" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- ERRO externo (contato) -->
+            <TextView
+                android:id="@+id/tvContatoObraError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_error"
+                android:visibility="gone"
+                tools:text="@string/work_error_contato"
+                tools:visibility="visible" />
 
             <!-- Descrição -->
             <com.google.android.material.textfield.TextInputLayout
@@ -117,23 +156,37 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="12dp"
+                android:hint="@string/obra_data_desc_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDescricaoObra"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_summary"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/obra_data_desc_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionDone" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- ERRO externo (descrição) -->
+            <TextView
+                android:id="@+id/tvDescricaoObraError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_error"
+                android:visibility="gone"
+                tools:text="@string/work_error_desc"
+                tools:visibility="visible" />
 
             <!-- Saldo Inicial (só leitura) -->
             <LinearLayout
+                android:id="@+id/llSaldoInicialRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
@@ -152,10 +205,13 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:fontFamily="@font/roboto"
+                    android:letterSpacing="0"
+                    android:fontFeatureSettings="tnum"
                     android:gravity="end"
                     android:textAppearance="?attr/textAppearanceBodyLarge"
                     android:textStyle="bold"
-                    tools:text="R$ 0,00" />
+                    tools:text="R$ 20.000,00" />
             </LinearLayout>
 
             <!-- Saldo com aporte (mostra só se houver aporte) -->
@@ -182,6 +238,9 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
+                    android:fontFamily="@font/roboto"
+                    android:letterSpacing="0"
+                    android:fontFeatureSettings="tnum"
                     android:textAppearance="?attr/textAppearanceBodyLarge"
                     android:textStyle="bold"
                     tools:text="—" />
@@ -196,8 +255,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="@string/aporte_button_add"
-                android:textSize="16sp" />
+                android:text="@string/aporte_button_add" />
 
             <!-- Card de cadastro de aporte (inicia oculto) -->
             <com.google.android.material.card.MaterialCardView
@@ -226,17 +284,30 @@
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etAporteValor"
+                            style="@style/Widget.ObrasApp.TextInputEditText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:digits="0123456789.,"
                             android:drawableStart="@drawable/ic_money"
                             android:drawablePadding="12dp"
                             android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                            android:inputType="numberDecimal|number"
-                            android:minHeight="60dp"
-                            android:paddingTop="22dp"
-                            android:paddingBottom="16dp" />
+                            android:imeOptions="actionDone"
+                            android:inputType="numberDecimal|number" />
                     </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- ERRO externo (aporte valor) -->
+                    <TextView
+                        android:id="@+id/tvAporteValorError"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="0dp"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="@color/md_theme_light_error"
+                        android:visibility="gone"
+                        tools:text="@string/aporte_value_error"
+                        tools:visibility="visible" />
 
                     <!-- Data do aporte (obrigatória) -->
                     <com.google.android.material.textfield.TextInputLayout
@@ -249,16 +320,29 @@
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etAporteData"
+                            style="@style/Widget.ObrasApp.TextInputEditText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:drawableStart="@drawable/ic_schedule"
                             android:drawablePadding="12dp"
                             android:drawableTint="@color/md_theme_light_onSurfaceVariant"
                             android:focusable="false"
-                            android:minHeight="60dp"
-                            android:paddingTop="22dp"
-                            android:paddingBottom="16dp" />
+                            android:imeOptions="actionDone" />
                     </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- ERRO externo (aporte data) -->
+                    <TextView
+                        android:id="@+id/tvAporteDataError"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="0dp"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="@color/md_theme_light_error"
+                        android:visibility="gone"
+                        tools:text="@string/aporte_date_error"
+                        tools:visibility="visible" />
 
                     <!-- Descrição (opcional) -->
                     <com.google.android.material.textfield.TextInputLayout
@@ -271,14 +355,13 @@
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etAporteDescricao"
+                            style="@style/Widget.ObrasApp.TextInputEditText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:drawableStart="@drawable/ic_summary"
                             android:drawablePadding="12dp"
                             android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                            android:minHeight="60dp"
-                            android:paddingTop="22dp"
-                            android:paddingBottom="16dp" />
+                            android:imeOptions="actionDone" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- Ações do card -->
@@ -296,16 +379,14 @@
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="12dp"
                             android:enabled="false"
-                            android:text="@string/adicionar"
-                            android:textSize="16sp" />
+                            android:text="@string/adicionar" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnCancelarAporte"
                             style="@style/Widget.ObrasApp.OutlinedButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/generic_cancel"
-                            android:textSize="16sp" />
+                            android:text="@string/generic_cancel" />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -318,21 +399,34 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp">
+                android:layout_marginTop="16dp"
+                android:hint="@string/obra_data_date_start_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDataInicioObra"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_schedule"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
                     android:focusable="false"
-                    android:hint="@string/obra_data_date_start_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionDone" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- ERRO externo (data início) -->
+            <TextView
+                android:id="@+id/tvDataInicioObraError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_error"
+                android:visibility="gone"
+                tools:text="@string/dados_obra_date_start_error"
+                tools:visibility="visible" />
 
             <!-- Data Término -->
             <com.google.android.material.textfield.TextInputLayout
@@ -340,24 +434,38 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="12dp"
+                android:hint="@string/obra_data_date_end_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDataFimObra"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_schedule"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
                     android:focusable="false"
-                    android:hint="@string/obra_data_date_end_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionDone" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- ERRO externo (data fim) -->
+            <TextView
+                android:id="@+id/tvDataFimObraError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_error"
+                android:visibility="gone"
+                tools:text="@string/dados_obra_date_end_error"
+                tools:visibility="visible" />
 
             <!-- Botões Salvar | Excluir -->
             <LinearLayout
+                android:id="@+id/llBotoesObra"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
@@ -370,8 +478,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/generic_save"
-                    android:textSize="16sp" />
+                    android:text="@string/generic_save" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnExcluirObra"
@@ -380,8 +487,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:layout_weight="1"
-                    android:text="@string/obra_data_button_delete"
-                    android:textSize="16sp" />
+                    android:text="@string/obra_data_button_delete" />
             </LinearLayout>
 
             <com.google.android.material.progressindicator.LinearProgressIndicator

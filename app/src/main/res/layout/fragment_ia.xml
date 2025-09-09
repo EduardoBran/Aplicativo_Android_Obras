@@ -40,7 +40,7 @@
             <!-- Ilustração -->
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/imgSolution"
-                android:layout_width="220dp"
+                android:layout_width="@dimen/img_iafragment"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:adjustViewBounds="true"
@@ -80,14 +80,14 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp">
+                android:layout_marginTop="20dp"
+                android:hint="@string/ia_hint_problem">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etProblem"
                     android:layout_width="match_parent"
                     android:layout_height="96dp"
                     android:gravity="top|start"
-                    android:hint="@string/ia_hint_problem"
                     android:inputType="textMultiLine"
                     android:minHeight="120dp"
                     android:paddingTop="22dp"

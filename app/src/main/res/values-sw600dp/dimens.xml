@@ -5,4 +5,23 @@
     <dimen name="login_logo_max_height">278dp</dimen>
     <dimen name="login_hero_stroke">2dp</dimen>
     <dimen name="login_hero_inner_padding">16dp</dimen>
+
+    <!-- Imagem Solução de Problemas -->
+    <dimen name="img_iafragment">278dp</dimen>
+
+    <dimen name="screen_padding_h">32dp</dimen>
+    <dimen name="screen_padding_v">40dp</dimen>
+
+    <dimen name="login_gap_between">28dp</dimen>
+
+    <dimen name="form_field_gap">20dp</dimen>
+    <dimen name="form_button_top_gap">28dp</dimen>
+    <dimen name="progress_top_gap">20dp</dimen>
+    <dimen name="links_top_gap">28dp</dimen>
+
+    <dimen name="til_edit_min_height">64dp</dimen>
+    <dimen name="til_edit_padding_v">18dp</dimen>
+
+    <dimen name="form_max_width">720dp</dimen>
+
 </resources>

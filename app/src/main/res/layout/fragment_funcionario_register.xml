@@ -41,36 +41,38 @@
                 android:id="@+id/tilNomeFunc"
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:hint="@string/func_reg_name_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etNomeFunc"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_person"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/func_reg_name_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionNext"
+                    android:inputType="textPersonName" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Função -->
             <TextView
+                android:id="@+id/tvTitleFuncao"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="16dp"
                 android:text="@string/func_reg_role"
                 android:textAppearance="?attr/textAppearanceHeadline6" />
 
             <!-- Linha 1 de funções -->
             <RadioGroup
                 android:id="@+id/rgFuncao"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 android:layout_marginTop="8dp"
-                android:gravity="center"
+                android:gravity="center_horizontal"
                 android:orientation="horizontal">
 
                 <com.google.android.material.checkbox.MaterialCheckBox
@@ -100,10 +102,11 @@
             <!-- Linha 2 de funções -->
             <RadioGroup
                 android:id="@+id/rgFuncao2"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 android:layout_marginTop="4dp"
-                android:gravity="center"
+                android:gravity="center_horizontal"
                 android:orientation="horizontal">
 
                 <com.google.android.material.checkbox.MaterialCheckBox
@@ -147,39 +150,40 @@
                 style="@style/Widget.ObrasApp.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp">
+                android:layout_marginTop="18dp"
+                android:hint="@string/func_reg_salary_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etSalario"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:digits="0123456789.,"
                     android:drawableStart="@drawable/ic_money"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/func_reg_salary_hint"
-                    android:inputType="numberDecimal|number"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionNext"
+                    android:inputType="numberDecimal|number" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Forma de Pagamento -->
             <TextView
+                android:id="@+id/tvTitlePagamento"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="16dp"
                 android:text="@string/func_reg_payment"
                 android:textAppearance="?attr/textAppearanceHeadline6" />
 
             <RadioGroup
                 android:id="@+id/rgPagamento"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
                 android:orientation="vertical"> <!-- Linha 1: Diária | Semanal -->
                 <LinearLayout
+                    android:id="@+id/rowPagto1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center"
@@ -202,6 +206,7 @@
                 </LinearLayout>
                 <!-- Linha 2: Mensal | Tarefeiro -->
                 <LinearLayout
+                    android:id="@+id/rowPagto2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
@@ -243,6 +248,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
+                android:hint="@string/func_reg_pix_hint"
                 app:endIconContentDescription="@string/generic_copy"
                 app:endIconDrawable="@drawable/ic_copy"
                 app:endIconMode="custom"
@@ -250,15 +256,13 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPix"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_pix"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:hint="@string/func_reg_pix_hint"
-                    android:minHeight="60dp"
-                    android:paddingTop="22dp"
-                    android:paddingBottom="16dp" />
+                    android:imeOptions="actionNext" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Dias trabalhados -->
@@ -345,28 +349,27 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:visibility="gone"
-                tools:visibility="visible">
+                tools:visibility="gone">
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilPagamento"
                     style="@style/Widget.ObrasApp.TextInputLayout"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1">
+                    android:layout_weight="1"
+                    android:hint="@string/pagamento">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPagamento"
+                        style="@style/Widget.ObrasApp.TextInputEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:digits="0123456789.,"
                         android:drawableStart="@drawable/ic_money"
                         android:drawablePadding="12dp"
                         android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                        android:hint="@string/pagamento"
-                        android:inputType="numberDecimal|number"
-                        android:minHeight="60dp"
-                        android:paddingTop="22dp"
-                        android:paddingBottom="16dp" />
+                        android:imeOptions="actionNext"
+                        android:inputType="numberDecimal|number" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.button.MaterialButton
@@ -400,7 +403,7 @@
                 android:visibility="gone"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
-                tools:visibility="visible">
+                tools:visibility="gone">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -482,8 +485,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="8dp"
-                android:text="@string/func_reg_button_save"
-                android:textSize="18sp" />
+                android:text="@string/generic_add" />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/progressSaveFuncionario"
@@ -536,7 +538,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible">
+        tools:visibility="gone">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardEditPagamento"
@@ -622,21 +624,20 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSaveEditPagamento"
                         style="@style/Widget.ObrasApp.Button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/generic_save" />
-
-                    <!-- espaçador para empurrar o botão Cancelar à direita -->
-                    <View
                         android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:layout_weight="1" />
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="12dp"
+                        android:layout_weight="1"
+                        android:minWidth="0dp"
+                        android:text="@string/generic_save" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnCancelEditPagamento"
                         style="@style/Widget.ObrasApp.Button"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:minWidth="0dp"
                         android:text="@string/generic_cancel" />
                 </LinearLayout>
             </LinearLayout>

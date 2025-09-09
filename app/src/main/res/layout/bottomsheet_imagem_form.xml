@@ -28,18 +28,20 @@
             style="@style/Widget.ObrasApp.TextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="8dp"
+            android:hint="@string/imagens_form_name_hint"
+            app:errorEnabled="false">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etNomeImagem"
+                style="@style/Widget.ObrasApp.TextInputEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:drawableStart="@drawable/ic_image"
                 android:drawablePadding="12dp"
-                android:hint="@string/imagens_form_name_hint"
-                android:minHeight="60dp"
-                android:paddingTop="22dp"
-                android:paddingBottom="16dp" />
+                android:drawableTint="@color/md_theme_light_onSurfaceVariant"
+                android:imeOptions="actionNext"
+                android:inputType="textCapSentences" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Descrição -->
@@ -47,18 +49,19 @@
             style="@style/Widget.ObrasApp.TextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="8dp"
+            android:hint="@string/imagens_form_desc_hint">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDescricaoImagem"
+                style="@style/Widget.ObrasApp.TextInputEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:drawableStart="@drawable/ic_summary"
                 android:drawablePadding="12dp"
-                android:hint="@string/imagens_form_desc_hint"
-                android:minHeight="60dp"
-                android:paddingTop="22dp"
-                android:paddingBottom="16dp" />
+                android:drawableTint="@color/md_theme_light_onSurfaceVariant"
+                android:imeOptions="actionDone"
+                android:inputType="textCapSentences" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Tipo (Radio) -->
@@ -120,19 +123,19 @@
             style="@style/Widget.ObrasApp.TextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp">
+            android:layout_marginTop="12dp"
+            android:hint="@string/imagens_form_date_hint"
+            app:errorEnabled="false">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDataImagem"
+                style="@style/Widget.ObrasApp.TextInputEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:drawableStart="@drawable/ic_schedule"
                 android:drawablePadding="12dp"
-                android:focusable="false"
-                android:hint="@string/imagens_form_date_hint"
-                android:minHeight="60dp"
-                android:paddingTop="22dp"
-                android:paddingBottom="16dp" />
+                android:drawableTint="@color/md_theme_light_onSurfaceVariant"
+                android:focusable="false" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Botões -->

@@ -3,6 +3,7 @@ package com.luizeduardobrandao.obra.ui.work
 import androidx.fragment.app.viewModels
 import android.os.Bundle
 import androidx.fragment.app.Fragment
+import android.net.ConnectivityManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,10 +11,12 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.core.view.doOnPreDraw
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.textfield.TextInputEditText
 import com.luizeduardobrandao.obra.R
@@ -22,7 +25,14 @@ import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentWorkBinding
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.utils.applyResponsiveButtonSizingGrowShrink
+import com.luizeduardobrandao.obra.utils.applySoloNewWorkStyle
 import com.luizeduardobrandao.obra.utils.Constants
+import com.luizeduardobrandao.obra.utils.isConnectedToInternet
+import com.luizeduardobrandao.obra.utils.registerConnectivityCallback
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
+import com.luizeduardobrandao.obra.utils.syncTextSizesGroup
+import com.luizeduardobrandao.obra.utils.unregisterConnectivityCallback
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.ParseException
@@ -30,13 +40,6 @@ import java.text.SimpleDateFormat
 import java.text.NumberFormat
 import java.util.Date
 import java.util.Locale
-import android.net.ConnectivityManager
-import com.luizeduardobrandao.obra.utils.isConnectedToInternet
-import com.luizeduardobrandao.obra.utils.registerConnectivityCallback
-import com.luizeduardobrandao.obra.utils.unregisterConnectivityCallback
-import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
-import androidx.core.view.doOnPreDraw
-import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 
 @AndroidEntryPoint
 class WorkFragment : Fragment() {
@@ -62,6 +65,18 @@ class WorkFragment : Fragment() {
 
     // Conexão a Internet
     private var netCallback: ConnectivityManager.NetworkCallback? = null
+
+    // usado para restaurar a seleção depois que a lista chegar
+    private var pendingSelectedObraId: String? = null
+
+    private var cardVisibleCache = false
+    private var cachedCliente = ""
+    private var cachedEndereco = ""
+    private var cachedContato = ""
+    private var cachedDescricao = ""
+    private var cachedSaldo = ""
+    private var cachedDataIni = ""
+    private var cachedDataFim = ""
 
     override fun onStart() {
         super.onStart()
@@ -106,8 +121,66 @@ class WorkFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        applyHeroVisibility()
         setupListeners()
+
+        // RESTORE: card + campos
+        savedInstanceState?.let { st ->
+            // Restaurar seleção de obra depois que a lista chegar
+            pendingSelectedObraId = st.getString(KEY_SELECTED_OBRA_ID)
+
+            // Se o card estava aberto, reabre e repõe os campos
+            if (st.getBoolean(KEY_CARD_VISIBLE, false)) {
+                toggleNewWorkCard(true) // NÃO limpa (veremos no passo 4)
+                binding.etCliente.setText(st.getString(KEY_ET_CLIENTE, ""))
+                binding.etEndereco.setText(st.getString(KEY_ET_ENDERECO, ""))
+                binding.etContato.setText(st.getString(KEY_ET_CONTATO, ""))
+                binding.etDescricao.setText(st.getString(KEY_ET_DESC, ""))
+                binding.etSaldo.setText(st.getString(KEY_ET_SALDO, ""))
+                binding.etDataInicio.setText(st.getString(KEY_ET_DATA_INI, ""))
+                binding.etDataFim.setText(st.getString(KEY_ET_DATA_FIM, ""))
+                validateCard()
+            }
+        }
+
+        // Responsivdade Botões
+        with(binding) {
+            // Botão SOLO do cenário vazio mantém o preset atual (pílula)
+            btnNewWorkEmpty.applySoloNewWorkStyle()
+
+            // Par "Novo / Continuar" (lado a lado, width=0dp + weight=1)
+            // 1) Deixa cada um crescer/encolher de 12..cap (grow-shrink)
+            // 2) Nivela os dois pelo menor resultado final (mesmo textSize)
+            selectContainer.doOnPreDraw {
+                btnNewWork.applyResponsiveButtonSizingGrowShrink()
+                btnContinue.applyResponsiveButtonSizingGrowShrink()
+                selectContainer.syncTextSizesGroup(btnNewWork, btnContinue)
+            }
+
+            // Par "Salvar / Voltar" (dentro do card)
+            cardNewWork.doOnPreDraw {
+                btnSaveWork.applyResponsiveButtonSizingGrowShrink()
+                btnCancelWork.applyResponsiveButtonSizingGrowShrink()
+                cardNewWork.syncTextSizesGroup(btnSaveWork, btnCancelWork)
+            }
+        }
+
         collectViewModel()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(KEY_SELECTED_OBRA_ID, selectedObra?.obraId)
+        outState.putBoolean(KEY_CARD_VISIBLE, cardVisibleCache)
+        if (cardVisibleCache) {
+            outState.putString(KEY_ET_CLIENTE, cachedCliente)
+            outState.putString(KEY_ET_ENDERECO, cachedEndereco)
+            outState.putString(KEY_ET_CONTATO, cachedContato)
+            outState.putString(KEY_ET_DESC, cachedDescricao)
+            outState.putString(KEY_ET_SALDO, cachedSaldo)
+            outState.putString(KEY_ET_DATA_INI, cachedDataIni)
+            outState.putString(KEY_ET_DATA_FIM, cachedDataFim)
+        }
     }
 
     override fun onDestroyView() {
@@ -138,6 +211,7 @@ class WorkFragment : Fragment() {
             autoObras.clearFocus()                                    // opcional: melhora UX
             tilObras.error = null                                     // opcional: limpa erro
             btnContinue.isEnabled = selectedObra != null
+            selectContainer.syncTextSizesGroup(btnNewWork, btnContinue)
         }
 
         // Continuar → HomeFragment
@@ -169,7 +243,18 @@ class WorkFragment : Fragment() {
 
         // TextWatchers em todos os campos do card
         listOf(etCliente, etEndereco, etContato, etDescricao, etSaldo, etDataInicio, etDataFim)
-            .forEach { it.doAfterTextChanged { validateCard() } }
+            .forEach {
+                it.doAfterTextChanged {
+                    cachedCliente = binding.etCliente.text?.toString().orEmpty()
+                    cachedEndereco = binding.etEndereco.text?.toString().orEmpty()
+                    cachedContato = binding.etContato.text?.toString().orEmpty()
+                    cachedDescricao = binding.etDescricao.text?.toString().orEmpty()
+                    cachedSaldo = binding.etSaldo.text?.toString().orEmpty()
+                    cachedDataIni = binding.etDataInicio.text?.toString().orEmpty()
+                    cachedDataFim = binding.etDataFim.text?.toString().orEmpty()
+                    validateCard()
+                }
+            }
     }
 
     /* ──────────────────────────── collect ViewModel ─────────────────────────── */
@@ -255,6 +340,8 @@ class WorkFragment : Fragment() {
             layoutSelect.isGone = true
             layoutEmpty.isVisible = true
 
+            btnNewWorkEmpty.applySoloNewWorkStyle()
+
             // anima só na primeira vez
             if (!hasAnimatedEmpty) {
                 root.doOnPreDraw {
@@ -269,6 +356,12 @@ class WorkFragment : Fragment() {
         layoutEmpty.isGone = true
         layoutSelect.isVisible = true
 
+        selectContainer.doOnPreDraw {
+            btnNewWork.applyResponsiveButtonSizingGrowShrink()
+            btnContinue.applyResponsiveButtonSizingGrowShrink()
+            selectContainer.syncTextSizesGroup(btnNewWork, btnContinue)
+        }
+
         obrasOrdenadas = lista.sortedBy { it.nomeCliente.lowercase(Locale.ROOT) }
         val nomes = obrasOrdenadas.map { it.nomeCliente }
 
@@ -280,12 +373,30 @@ class WorkFragment : Fragment() {
 
         autoObras.setAdapter(adapter)
 
-        autoObras.setText("", false) // começa vazio (só hint)
-        selectedObra = null
-        btnContinue.isEnabled = false
-        btnNewWork.isEnabled = true
+        // >>> NÃO zere o texto aqui se for restaurar seleção
+        val restoreId = pendingSelectedObraId
+        if (restoreId != null) {
+            val idx = obrasOrdenadas.indexOfFirst { it.obraId == restoreId }
+            if (idx >= 0) {
+                selectedObra = obrasOrdenadas[idx]
+                autoObras.setText(nomes[idx], false)
+                tilObras.error = null
+                btnContinue.isEnabled = true
+            } else {
+                // id não existe mais; reseta
+                selectedObra = null
+                autoObras.setText("", false)
+                btnContinue.isEnabled = false
+            }
+            pendingSelectedObraId = null
+        } else {
+            // fluxo normal sem restauração
+            autoObras.setText("", false)
+            selectedObra = null
+            btnContinue.isEnabled = false
+            btnNewWork.isEnabled = true
+        }
 
-        // anima só na primeira vez
         if (!hasAnimatedSelect) {
             root.doOnPreDraw {
                 animateIn(imgSelect, selectContainer)
@@ -295,8 +406,31 @@ class WorkFragment : Fragment() {
     }
 
     private fun toggleNewWorkCard(show: Boolean) = with(binding) {
+        cardVisibleCache = show
+        // Se estiver FECHANDO, limpamos tudo para garantir que a próxima abertura seja zerada
+        if (!show) {
+            // zerar campos + cache
+            etCliente.text?.clear(); cachedCliente = ""
+            etEndereco.text?.clear(); cachedEndereco = ""
+            etContato.text?.clear(); cachedContato = ""
+            etDescricao.text?.clear();cachedDescricao = ""
+            etSaldo.text?.clear(); cachedSaldo = ""
+            etDataInicio.text?.clear(); cachedDataIni = ""
+            etDataFim.text?.clear(); cachedDataFim = ""
+            tilDataFim.error = null
+            btnSaveWork.isEnabled = false
+        }
+
         cardNewWork.isVisible = show
         workScroll.scrollTo(0, 0)
+
+        if (show) {
+            cardNewWork.doOnPreDraw {
+                btnSaveWork.applyResponsiveButtonSizingGrowShrink()
+                btnCancelWork.applyResponsiveButtonSizingGrowShrink()
+                cardNewWork.syncTextSizesGroup(btnSaveWork, btnCancelWork)
+            }
+        }
     }
 
 
@@ -449,5 +583,25 @@ class WorkFragment : Fragment() {
             .setStartDelay(80L)
             .setInterpolator(interp)
             .start()
+    }
+
+    // Controla exibição da imagem em orientação horizontal
+    private fun applyHeroVisibility() = with(binding) {
+        val showHero = resources.getBoolean(R.bool.show_hero)
+        imgSelect.visibility = if (showHero) View.VISIBLE else View.GONE
+        imgEmpty.visibility = if (showHero) View.VISIBLE else View.GONE
+    }
+
+    // Sobreviver rotações
+    companion object {
+        private const val KEY_SELECTED_OBRA_ID = "selectedObraId"
+        private const val KEY_CARD_VISIBLE = "cardVisible"
+        private const val KEY_ET_CLIENTE = "etCliente"
+        private const val KEY_ET_ENDERECO = "etEndereco"
+        private const val KEY_ET_CONTATO = "etContato"
+        private const val KEY_ET_DESC = "etDescricao"
+        private const val KEY_ET_SALDO = "etSaldo"
+        private const val KEY_ET_DATA_INI = "etDataInicio"
+        private const val KEY_ET_DATA_FIM = "etDataFim"
     }
 }

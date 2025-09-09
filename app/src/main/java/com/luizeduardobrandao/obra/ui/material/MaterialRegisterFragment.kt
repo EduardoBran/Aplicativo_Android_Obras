@@ -1,11 +1,16 @@
 package com.luizeduardobrandao.obra.ui.material
 
 import android.os.Bundle
+import android.text.TextWatcher
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.widget.doAfterTextChanged
+import androidx.activity.addCallback
+import androidx.core.view.doOnPreDraw
+import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -13,6 +18,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import com.google.android.material.radiobutton.MaterialRadioButton
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Material
@@ -20,10 +27,10 @@ import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentMaterialRegisterBinding
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.utils.applyFullWidthButtonSizingGrowShrink
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import androidx.activity.addCallback
 
 @AndroidEntryPoint
 class MaterialRegisterFragment : Fragment() {
@@ -42,6 +49,14 @@ class MaterialRegisterFragment : Fragment() {
     // Controle de loading/navegação
     private var isSaving = false
     private var shouldCloseAfterSave = false
+
+    // Anti-flash e watchers
+    private var dataLoaded = false
+    private var watchersSet = false
+    private var nomeWatcher: TextWatcher? = null
+
+    // Guarda o estado anterior para animar apenas quando mudar
+    private var lastNomeErrorVisible: Boolean? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -63,9 +78,14 @@ class MaterialRegisterFragment : Fragment() {
 
             // Botão salvar / atualizar
             btnSaveMaterial.text = getString(
-                if (isEdit) R.string.material_reg_button_edit else R.string.material_reg_button_save
+                if (isEdit) R.string.material_reg_button_edit else R.string.generic_add
             )
             btnSaveMaterial.isEnabled = false
+
+            // Responsividade do botão (mesmo padrão do cronograma)
+            btnSaveMaterial.doOnPreDraw {
+                btnSaveMaterial.applyFullWidthButtonSizingGrowShrink()
+            }
 
             // Habilita salvar quando a lista carregar (e o form estiver ok)
             viewLifecycleOwner.lifecycleScope.launch {
@@ -79,26 +99,40 @@ class MaterialRegisterFragment : Fragment() {
             }
 
             if (!isEdit) {
+                // Modo criação: evita flash
+                dataLoaded = true
+                setupValidationWatchersOnce()
+
                 quantidade = 1
                 tvQuantidade.text = quantidade.toString()
+
+                // Validação inicial
+                validateForm()
+
+                // Ajuste inicial do espaçamento (sem animação) — erro externo
+                root.post {
+                    adjustSpacingAfterView(
+                        tvNomeMaterialError,
+                        tilDescMaterial,
+                        visibleTopDp = 8,
+                        goneTopDp = 12,
+                        animate = false
+                    )
+                }
+            } else {
+                // Modo edição: só valida e instala watchers após preencher os dados
+                prefillFields()
             }
 
             // Quantidade – / +
             btnPlusQtd.setOnClickListener { updateQuantidade(+1) }
             btnMinusQtd.setOnClickListener { updateQuantidade(-1) }
 
-            // Validação dinâmica do nome
-            etNomeMaterial.doAfterTextChanged { validateForm() }
-
-            // Observa opState e, se edição, faz prefill
+            // Observa opState e navegação/feedback
             collectOperationState()
-            if (isEdit) prefillFields()
 
             // Clique salvar
             btnSaveMaterial.setOnClickListener { onSave() }
-
-            // valida inicial
-            validateForm()
 
             // Interceptar o botão físico/gesto de voltar
             requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
@@ -134,22 +168,69 @@ class MaterialRegisterFragment : Fragment() {
 
                         btnSaveMaterial.text = getString(R.string.material_reg_button_edit)
                     }
+                    // Anti-flash: só agora liberamos validação + watchers
+                    dataLoaded = true
+                    setupValidationWatchersOnce()
+
+                    // Validação inicial
                     validateForm()
+
+                    // Ajuste inicial do espaçamento (sem animação) — erro externo
+                    binding.root.post {
+                        adjustSpacingAfterView(
+                            binding.tvNomeMaterialError,
+                            binding.tilDescMaterial,
+                            animate = false
+                        )
+                    }
                 }
             }
         }
     }
 
+    private fun setupValidationWatchersOnce(): TextWatcher {
+        if (watchersSet && nomeWatcher != null) return nomeWatcher!!
+
+        watchersSet = true
+        // usa o KTX que retorna TextWatcher
+        nomeWatcher = binding.etNomeMaterial.addTextChangedListener(
+            afterTextChanged = {
+                if (dataLoaded) validateForm()
+            }
+        )
+        return nomeWatcher!!
+    }
+
     /*──────────────────── Validação ────────────────────*/
     private fun validateForm(): Boolean = with(binding) {
-        val nome = etNomeMaterial.text?.toString()?.trim().orEmpty()
-        val nomeOk = nome.length >= Constants.Validation.MIN_NAME
+        // Anti-flash: não valide antes de os dados estarem carregados
+        if (!dataLoaded) {
+            btnSaveMaterial.isEnabled = false
+            clearErrors()
+            return false
+        }
 
-        // erro inline (campo obrigatório)
-        tilNomeMaterial.error = if (!nomeOk)
-        // Reaproveita o hint como mensagem amigável de preenchimento
-            getString(R.string.material_hint_name)
-        else null
+        val nome = etNomeMaterial.text?.toString()?.trim().orEmpty()
+        val nomeOk = nome.length >= 2
+
+        // Usar TextView externo (sem caption do TIL)
+        tvNomeMaterialError.isVisible = !nomeOk
+        if (!nomeOk) {
+            // Reaproveita o hint amigável
+            tvNomeMaterialError.text = getString(R.string.material_hint_name)
+        }
+        val changed = lastNomeErrorVisible != tvNomeMaterialError.isVisible
+        lastNomeErrorVisible = tvNomeMaterialError.isVisible
+
+        // Ajusta a margem-top da Descrição conforme erro visível/oculto
+        adjustSpacingAfterView(
+            tvNomeMaterialError,
+            tilDescMaterial,
+            animate = changed
+        )
+
+        // Garante que não usemos o caption interno do TIL
+        tilNomeMaterial.error = null
 
         // Habilita botão (exceto durante salvamento/fechamento)
         if (!isSaving && !shouldCloseAfterSave) {
@@ -157,6 +238,7 @@ class MaterialRegisterFragment : Fragment() {
         }
         return nomeOk
     }
+
 
     /*──────────────────── Salvar ────────────────────*/
     private fun onSave() {
@@ -333,6 +415,54 @@ class MaterialRegisterFragment : Fragment() {
             }
         }
     }
+
+    // ------------- Helpers de espaçamento -------------
+
+    // dp helper
+    private fun Int.dp(): Int =
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            this.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+
+    /** Ajusta a margem-top de nextView conforme a visibilidade de precedingView (erro externo). */
+    private fun adjustSpacingAfterView(
+        precedingView: View,
+        nextView: View,
+        visibleTopDp: Int = 8,
+        goneTopDp: Int = 12,
+        animate: Boolean = true
+    ) {
+        val parent = nextView.parent as? ViewGroup ?: return
+
+        // encerra transições pendentes para evitar "pulos"
+        TransitionManager.endTransitions(parent)
+
+        if (animate) {
+            TransitionManager.beginDelayedTransition(
+                parent,
+                AutoTransition().apply { duration = 150 }
+            )
+        }
+
+        (nextView.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+            val newTop = if (precedingView.isVisible) visibleTopDp.dp() else goneTopDp.dp()
+            if (lp.topMargin != newTop) {
+                lp.topMargin = newTop
+                nextView.layoutParams = lp
+                parent.requestLayout()
+                nextView.requestLayout()
+            }
+        }
+    }
+
+    /** Limpa erros (mantém o padrão anti-flash idêntico ao cronograma). */
+    private fun clearErrors() = with(binding) {
+        tilNomeMaterial.error = null // não usamos caption interno
+        tvNomeMaterialError.isVisible = false
+    }
+
 
     /*──────────────────── Lifecycle ────────────────────*/
     override fun onDestroyView() {

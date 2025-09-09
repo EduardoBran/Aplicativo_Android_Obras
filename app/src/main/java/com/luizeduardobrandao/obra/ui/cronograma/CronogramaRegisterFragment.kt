@@ -1,11 +1,22 @@
 package com.luizeduardobrandao.obra.ui.cronograma
 
+import android.graphics.Typeface
 import android.os.Bundle
+import android.text.Editable
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.TextWatcher
+import android.text.style.StyleSpan
+import android.text.style.ForegroundColorSpan
+import android.util.TypedValue
 import android.view.View
+import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.core.content.ContextCompat
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -14,6 +25,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Etapa
 import com.luizeduardobrandao.obra.data.model.UiState
@@ -22,25 +36,17 @@ import com.luizeduardobrandao.obra.databinding.FragmentCronogramaRegisterBinding
 import com.luizeduardobrandao.obra.ui.cronograma.adapter.CronogramaPagerAdapter
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.utils.applyFullWidthButtonSizingGrowShrink
 import com.luizeduardobrandao.obra.utils.Constants
+import com.luizeduardobrandao.obra.utils.ensureResponsiveStatusEtapa
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import android.text.Editable
-import android.text.TextWatcher
-import android.text.Spannable
-import android.text.SpannableString
-import android.text.style.StyleSpan
-import android.text.style.ForegroundColorSpan
 import java.util.Date
 import java.util.Locale
-import android.util.TypedValue
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import androidx.core.content.ContextCompat
-import android.graphics.Typeface
 
 @AndroidEntryPoint
 class CronogramaRegisterFragment : Fragment() {
@@ -54,6 +60,8 @@ class CronogramaRegisterFragment : Fragment() {
     // Inclusão quando etapaId == null
     private val isEdit get() = args.etapaId != null
     private var etapaOriginal: Etapa? = null
+    private var dataLoaded = false
+    private var watchersSet = false
 
     private val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
         isLenient = false
@@ -77,6 +85,10 @@ class CronogramaRegisterFragment : Fragment() {
     private var shouldReopenPicker: Boolean = false
     private var restoredSelectionFromState: Boolean = false
 
+    private var lastTituloErrorVisible: Boolean? = null
+    private var lastDataInicioErrorVisible: Boolean? = null
+    private var lastDataFimErrorVisible: Boolean? = null
+
     private companion object {
         private const val STATE_FUNC_PICKER_OPEN = "state_func_picker_open"
         private const val STATE_FUNC_SELECTION = "state_func_selection"
@@ -84,7 +96,7 @@ class CronogramaRegisterFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
-        container: android.view.ViewGroup?,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCronogramaRegisterBinding.inflate(inflater, container, false)
@@ -97,7 +109,7 @@ class CronogramaRegisterFragment : Fragment() {
         // se o picker estava aberto antes da rotação, marcamos para reabrir
         shouldReopenPicker = savedInstanceState?.getBoolean(STATE_FUNC_PICKER_OPEN) == true
 
-// restaura a seleção feita no diálogo antes da rotação (se houver)
+        // restaura a seleção feita no diálogo antes da rotação (se houver)
         savedInstanceState?.getStringArrayList(STATE_FUNC_SELECTION)?.let { restored ->
             selecionadosAtual.clear()
             selecionadosAtual.addAll(restored)
@@ -113,18 +125,27 @@ class CronogramaRegisterFragment : Fragment() {
             else
                 getString(R.string.etapa_reg_title)
 
+            // Responsividade do botão salvar (full-width)
+            btnSaveEtapa.doOnPreDraw {
+                btnSaveEtapa.applyFullWidthButtonSizingGrowShrink()
+            }
+
+            // ✅ Responsividade do grupo "Status"
+            rgStatusEtapa.ensureResponsiveStatusEtapa()
+
+
             // Date pickers
             etDataInicioEtapa.setOnClickListener {
                 if (isEdit) {
                     showMaterialDatePickerBrWithInitial(
                         etDataInicioEtapa.text?.toString()
                     ) { chosen ->
-                        binding.etDataInicioEtapa.setText(chosen)
+                        etDataInicioEtapa.setText(chosen)
                         validateForm()
                     }
                 } else {
                     showMaterialDatePickerBrToday { chosen ->
-                        binding.etDataInicioEtapa.setText(chosen)
+                        etDataInicioEtapa.setText(chosen)
                         validateForm()
                     }
                 }
@@ -132,12 +153,12 @@ class CronogramaRegisterFragment : Fragment() {
             etDataFimEtapa.setOnClickListener {
                 if (isEdit) {
                     showMaterialDatePickerBrWithInitial(etDataFimEtapa.text?.toString()) { chosen ->
-                        binding.etDataFimEtapa.setText(chosen)
+                        etDataFimEtapa.setText(chosen)
                         validateForm()
                     }
                 } else {
                     showMaterialDatePickerBrToday { chosen ->
-                        binding.etDataFimEtapa.setText(chosen)
+                        etDataFimEtapa.setText(chosen)
                         validateForm()
                     }
                 }
@@ -145,13 +166,47 @@ class CronogramaRegisterFragment : Fragment() {
 
             // Botão Salvar/Atualizar
             btnSaveEtapa.text = getString(
-                if (isEdit) R.string.generic_update else R.string.generic_save
+                if (isEdit) R.string.generic_update else R.string.generic_add
             )
             btnSaveEtapa.isEnabled = false
             btnSaveEtapa.setOnClickListener { onSaveClicked() }
 
-            // Validação dinâmica
-            setupValidation()
+            // ⚠️ NÃO instale watchers nem valide ainda em modo edição
+            //    (anti-"flash"). Só depois que os dados chegarem.
+            if (isEdit) {
+                viewModel.loadEtapas()
+                observeEtapa() // em observeEtapa(), após preencher, marcamos dataLoaded=true e instalamos os watchers
+            } else {
+                // Modo criação: podemos liberar imediatamente
+                dataLoaded = true
+                setupValidationWatchersOnce()
+                validateForm()
+
+                // Ajustes iniciais baseados nos TextViews de erro (sem animação)
+                root.post {
+                    adjustSpacingAfterView(
+                        tvTituloError,
+                        tilDescricaoCronograma,
+                        visibleTopDp = 8,
+                        goneTopDp = 12,
+                        animate = false
+                    )
+                    adjustSpacingAfterView(
+                        tvDataInicioError,
+                        tilDataFimEtapa,
+                        visibleTopDp = 22,
+                        goneTopDp = 12,
+                        animate = false
+                    )
+                    adjustSpacingAfterView(
+                        tvDataFimError,
+                        tvStatusTitle,
+                        visibleTopDp = 22,
+                        goneTopDp = 10,
+                        animate = false
+                    )
+                }
+            }
 
             // Coleta estado de operação (loading/sucesso/erro)
             collectOperationState()
@@ -175,7 +230,7 @@ class CronogramaRegisterFragment : Fragment() {
                                 // reabrir o diálogo se ele estava aberto antes da rotação
                                 if (shouldReopenPicker) {
                                     shouldReopenPicker = false
-                                    binding.root.post { openFuncionariosPicker() }
+                                    root.post { openFuncionariosPicker() }
                                 }
                             }
 
@@ -190,13 +245,8 @@ class CronogramaRegisterFragment : Fragment() {
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
             handleBackPress()
         }
-
-        // Edição: observar a lista para preencher a etapa
-        if (isEdit) {
-            viewModel.loadEtapas()
-            observeEtapa()
-        }
     }
+
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
@@ -216,6 +266,36 @@ class CronogramaRegisterFragment : Fragment() {
                         val et = ui.data.firstOrNull { it.id == args.etapaId } ?: return@collect
                         etapaOriginal = et
                         fillFields(et)
+
+                        // ✅ evita "flash" de erros
+                        dataLoaded = true
+                        setupValidationWatchersOnce()
+                        validateForm()
+
+                        binding.root.post {
+                            // Inicial: alinhar tudo com base nos TextViews de erro (sem animação)
+                            adjustSpacingAfterView(
+                                binding.tvTituloError,
+                                binding.tilDescricaoCronograma,
+                                visibleTopDp = 8,
+                                goneTopDp = 12,
+                                animate = false
+                            )
+                            adjustSpacingAfterView(
+                                binding.tvDataInicioError,
+                                binding.tilDataFimEtapa,
+                                visibleTopDp = 22,
+                                goneTopDp = 12,
+                                animate = false
+                            )
+                            adjustSpacingAfterView(
+                                binding.tvDataFimError,
+                                binding.tvStatusTitle,
+                                visibleTopDp = 22,
+                                goneTopDp = 10,
+                                animate = false
+                            )
+                        }
                     }
                 }
             }
@@ -291,7 +371,7 @@ class CronogramaRegisterFragment : Fragment() {
             selecionadosAtual.addAll(nomes)
         }
         renderFuncionariosSelecionados()
-        validateForm()
+        // ❌ não chame validateForm() aqui; chamamos após marcar dataLoaded=true em observeEtapa()
     }
 
     /*──────────── Salvar / Validar ───────────*/
@@ -307,7 +387,18 @@ class CronogramaRegisterFragment : Fragment() {
             showError(R.string.etapa_error_dates); return
         }
         if (!isDateOrderValid(dataIni, dataFim)) {
-            binding.tilDataFimEtapa.error = getString(R.string.etapa_error_date_order); return
+            binding.tilDataFimEtapa.error = null // garantimos que não cria caption interno
+            binding.tvDataFimError.isVisible = true
+            binding.tvDataFimError.text = getString(R.string.etapa_error_date_order)
+            // reposiciona "Status" em função do erro visível
+            adjustSpacingAfterView(
+                binding.tvDataFimError,
+                binding.tvStatusTitle,
+                visibleTopDp = 22,
+                goneTopDp = 10,
+                animate = true
+            )
+            return
         }
 
         val status = when (binding.rgStatusEtapa.checkedRadioButtonId) {
@@ -346,12 +437,14 @@ class CronogramaRegisterFragment : Fragment() {
         )
     }
 
-    /*──────────── Habilitação dinâmica do botão ───────────*/
-    private fun setupValidation() = with(binding) {
+    private fun setupValidationWatchersOnce() = with(binding) {
+        if (watchersSet) return
+        watchersSet = true
+
         val watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                validateForm()
+                if (dataLoaded) validateForm()
             }
 
             override fun afterTextChanged(s: Editable?) {}
@@ -361,32 +454,87 @@ class CronogramaRegisterFragment : Fragment() {
         etDataInicioEtapa.addTextChangedListener(watcher)
         etDataFimEtapa.addTextChangedListener(watcher)
 
-        rgStatusEtapa.setOnCheckedChangeListener { _, _ -> validateForm() }
-
-        validateForm()
+        rgStatusEtapa.setOnCheckedChangeListener { _, _ ->
+            if (dataLoaded) validateForm()
+        }
     }
 
     private fun validateForm() = with(binding) {
-        val titulo = etTituloEtapa.text?.toString()?.trim().orEmpty()
-        val tituloOk = titulo.isNotEmpty()
-        tilTituloEtapa.error =
-            if (!tituloOk) getString(R.string.etapa_error_title_required) else null
-
-        val iniStr = etDataInicioEtapa.text?.toString().orEmpty()
-        val fimStr = etDataFimEtapa.text?.toString().orEmpty()
-        val iniOk = iniStr.isNotBlank()
-        val fimOk = fimStr.isNotBlank()
-
-        tilDataInicioEtapa.error =
-            if (!iniOk) getString(R.string.etapa_error_date_start_required) else null
-        tilDataFimEtapa.error =
-            if (!fimOk) getString(R.string.etapa_error_date_end_required) else null
-
-        val ordemOk = if (iniOk && fimOk) isDateOrderValid(iniStr, fimStr) else false
-        if (iniOk && fimOk && !ordemOk) {
-            tilDataFimEtapa.error = getString(R.string.etapa_error_date_order)
+        // Guard anti-"flash": não valide antes de os dados estarem carregados
+        if (!dataLoaded) {
+            btnSaveEtapa.isEnabled = false
+            clearErrors()
+            return@with
         }
 
+        val titulo = etTituloEtapa.text?.toString()?.trim().orEmpty()
+        val iniStr = etDataInicioEtapa.text?.toString().orEmpty()
+        val fimStr = etDataFimEtapa.text?.toString().orEmpty()
+
+        val tituloOk = titulo.isNotEmpty()
+        val iniOk = iniStr.isNotBlank()
+        val fimOk = fimStr.isNotBlank()
+        val ordemOk = if (iniOk && fimOk) isDateOrderValid(iniStr, fimStr) else false
+
+        // ---- Título: usar TextView externo ----
+        tvTituloError.isVisible = !tituloOk
+        if (!tituloOk) tvTituloError.text = getString(R.string.etapa_error_title_required)
+        // anima só quando mudar de estado
+        val tituloChanged = lastTituloErrorVisible != tvTituloError.isVisible
+        lastTituloErrorVisible = tvTituloError.isVisible
+        // ajusta a margem da Descrição conforme erro visível/oculto
+        adjustSpacingAfterView(
+            tvTituloError,
+            tilDescricaoCronograma,
+            visibleTopDp = 8,
+            goneTopDp = 12,
+            animate = tituloChanged
+        )
+        // evita “caption” interno
+        tilTituloEtapa.error = null
+
+        // ---- Data Início: usar TextView externo ----
+        tvDataInicioError.isVisible = !iniOk
+        if (!iniOk) tvDataInicioError.text = getString(R.string.etapa_error_date_start_required)
+        val iniChanged = lastDataInicioErrorVisible != tvDataInicioError.isVisible
+        lastDataInicioErrorVisible = tvDataInicioError.isVisible
+        // ajusta margem de Data Fim conforme erro de Data Início
+        adjustSpacingAfterView(
+            tvDataInicioError,
+            tilDataFimEtapa,
+            visibleTopDp = 22,
+            goneTopDp = 12,
+            animate = iniChanged
+        )
+        // evita “caption” interno
+        tilDataInicioEtapa.error = null
+
+        // ---- Data Fim: usar TextView externo ----
+        val showFimError = when {
+            !fimOk -> true
+            iniOk && fimOk && !ordemOk -> true
+            else -> false
+        }
+        tvDataFimError.isVisible = showFimError
+        if (!fimOk) {
+            tvDataFimError.text = getString(R.string.etapa_error_date_end_required)
+        } else if (iniOk && !ordemOk) {
+            tvDataFimError.text = getString(R.string.etapa_error_date_order)
+        }
+        val fimChanged = lastDataFimErrorVisible != tvDataFimError.isVisible
+        lastDataFimErrorVisible = tvDataFimError.isVisible
+        // ajusta margem do título "Status" conforme erro de Data Fim
+        adjustSpacingAfterView(
+            tvDataFimError,
+            tvStatusTitle,
+            visibleTopDp = 22,
+            goneTopDp = 10,
+            animate = fimChanged
+        )
+        // evita “caption” interno
+        tilDataFimEtapa.error = null
+
+        // habilitação do botão
         val enabled = tituloOk && iniOk && fimOk && ordemOk
         if (!isSaving && !shouldCloseAfterSave) {
             btnSaveEtapa.isEnabled = enabled
@@ -529,7 +677,7 @@ class CronogramaRegisterFragment : Fragment() {
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 renderFuncionariosSelecionados()
             }
-            .setNegativeButton(android.R.string.cancel, null)
+            .setNegativeButton(R.string.generic_cancel, null)
             .create()
 
         // marque que o dialog está aberto e limpe ao fechar
@@ -600,6 +748,62 @@ class CronogramaRegisterFragment : Fragment() {
             .filter { it.isNotEmpty() }
             .toCollection(linkedSetOf())
     }
+
+    // ------------- Helpers de espaçamento -------------
+
+    // dp helper
+    private fun Int.dp(): Int =
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            this.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+
+    private fun adjustSpacingAfterView(
+        precedingView: View,
+        nextView: View,
+        visibleTopDp: Int,
+        goneTopDp: Int,
+        animate: Boolean = true
+    ) {
+        val parent = nextView.parent as? ViewGroup ?: return
+
+        // encerra transições pendentes para evitar “pulos”
+        TransitionManager.endTransitions(parent)
+
+        if (animate) {
+            TransitionManager.beginDelayedTransition(
+                parent,
+                AutoTransition().apply { duration = 150 }
+            )
+        }
+
+        (nextView.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+            val newTop = if (precedingView.isVisible) visibleTopDp.dp() else goneTopDp.dp()
+            if (lp.topMargin != newTop) {
+                lp.topMargin = newTop
+                nextView.layoutParams = lp
+                parent.requestLayout()
+                parent.invalidate()
+                nextView.requestLayout()
+                nextView.invalidate()
+            }
+        }
+    }
+
+    // Limpa erros (para evitar "flash" antes de dataLoaded=true)
+    private fun clearErrors() = with(binding) {
+        // zera erros em TILs (não usamos, mas garante “limpo”)
+        tilTituloEtapa.error = null
+        tilDataInicioEtapa.error = null
+        tilDataFimEtapa.error = null
+
+        // esconde TextViews de erro
+        tvTituloError.isVisible = false
+        tvDataInicioError.isVisible = false
+        tvDataFimError.isVisible = false
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

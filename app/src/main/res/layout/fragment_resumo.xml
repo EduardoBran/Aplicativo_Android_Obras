@@ -298,6 +298,9 @@
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
+                                    android:fontFamily="@font/roboto"
+                                    android:fontFeatureSettings="tnum"
+                                    android:letterSpacing="0"
                                     android:textSize="20sp"
                                     android:textStyle="bold"
                                     tools:text="Total gasto: R$ 24.200,00" />
@@ -462,6 +465,9 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="8dp"
+                                    android:fontFamily="@font/roboto"
+                                    android:fontFeatureSettings="tnum"
+                                    android:letterSpacing="0"
                                     android:textColor="@color/totalDue_value"
                                     android:textSize="18sp"
                                     android:textStyle="bold"
@@ -544,6 +550,9 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="8dp"
+                                    android:fontFamily="@font/roboto"
+                                    android:fontFeatureSettings="tnum"
+                                    android:letterSpacing="0"
                                     android:textColor="@color/totalPaid_value"
                                     android:textSize="18sp"
                                     android:textStyle="bold"
@@ -570,6 +579,9 @@
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
+                                    android:fontFamily="@font/roboto"
+                                    android:fontFeatureSettings="tnum"
+                                    android:letterSpacing="0"
                                     android:textColor="@color/totalOverall_text"
                                     android:textSize="20sp"
                                     android:textStyle="bold"
@@ -1122,7 +1134,7 @@
                             android:orientation="vertical"
                             android:padding="16dp"
                             android:visibility="gone"
-                            tools:visibility="gone">
+                            tools:visibility="visible">
 
                             <!-- Saldo Inicial -->
                             <androidx.cardview.widget.CardView
@@ -1150,8 +1162,11 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="6dp"
+                                        android:fontFamily="@font/roboto"
+                                        android:fontFeatureSettings="tnum"
+                                        android:letterSpacing="0"
                                         android:textSize="18sp"
-                                        android:textStyle="bold|italic"
+                                        android:textStyle="bold"
                                         tools:text="R$ 10.000,00" />
                                 </LinearLayout>
                             </androidx.cardview.widget.CardView>
@@ -1283,6 +1298,9 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="6dp"
+                                        android:fontFamily="@font/roboto"
+                                        android:fontFeatureSettings="tnum"
+                                        android:letterSpacing="0"
                                         android:textSize="18sp"
                                         android:textStyle="bold"
                                         tools:text="R$ 11.000,00" />
@@ -1300,8 +1318,11 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="6dp"
+                                        android:fontFamily="@font/roboto"
+                                        android:fontFeatureSettings="tnum"
+                                        android:letterSpacing="0"
                                         android:textSize="26sp"
-                                        android:textStyle="bold|italic"
+                                        android:textStyle="bold"
                                         tools:text="R$ 6.775,00" />
                                 </LinearLayout>
                             </androidx.cardview.widget.CardView>

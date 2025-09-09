@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doAfterTextChanged
 import androidx.core.content.ContextCompat
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -21,11 +22,15 @@ import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentIaBinding
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.utils.applyResponsiveButtonSizingGrowShrink
+import com.luizeduardobrandao.obra.utils.applyFullWidthButtonSizingGrowShrink
 import com.luizeduardobrandao.obra.utils.Constants
 import com.luizeduardobrandao.obra.utils.FileUtils
+import com.luizeduardobrandao.obra.utils.syncTextSizesGroup
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import io.noties.markwon.Markwon
+import kotlinx.coroutines.launch
+import androidx.core.view.isVisible
 
 @AndroidEntryPoint
 class IaFragment : Fragment() {
@@ -146,6 +151,26 @@ class IaFragment : Fragment() {
             )
         }
 
+        // ── Responsividade inicial dos botões
+        binding.root.doOnPreDraw {
+            // "Enviar" costuma ocupar a largura toda -> usa preset full-width
+            binding.btnSendIa.applyFullWidthButtonSizingGrowShrink()
+
+            // "Escolher imagem" é um botão solo
+            binding.btnPickImageIa.applyResponsiveButtonSizingGrowShrink()
+
+            // Os de ação (Salvar / Nova dúvida) são lado a lado, mas só aparecem depois;
+            // ainda assim, se já estiverem visíveis aqui, nivelamos.
+            if (binding.rowActionsIa.isVisible) {
+                binding.btnSaveHistory.applyResponsiveButtonSizingGrowShrink()
+                binding.btnNewQuestion.applyResponsiveButtonSizingGrowShrink()
+                binding.rowActionsIa.syncTextSizesGroup(
+                    binding.btnSaveHistory,
+                    binding.btnNewQuestion
+                )
+            }
+        }
+
         // Comportamento do FAB
         setupFabBehavior()
 
@@ -176,6 +201,16 @@ class IaFragment : Fragment() {
                             markwon.setMarkdown(binding.tvAnswer, ui.data)
 
                             binding.rowActionsIa.visibility = View.VISIBLE
+
+                            // Responsividade e nivelamento de "Salvar" / "Nova dúvida"
+                            binding.rowActionsIa.doOnPreDraw {
+                                binding.btnSaveHistory.applyResponsiveButtonSizingGrowShrink()
+                                binding.btnNewQuestion.applyResponsiveButtonSizingGrowShrink()
+                                binding.rowActionsIa.syncTextSizesGroup(
+                                    binding.btnSaveHistory,
+                                    binding.btnNewQuestion
+                                )
+                            }
 
                             binding.scrollAnswer.post {
                                 binding.scrollAnswer.scrollTo(0, 0)

@@ -36,16 +36,14 @@
     </style>
 
 
-    <!-- Buttons -->
+    <!-- Buttons principais -->
     <style name="Widget.ObrasApp.Button" parent="Widget.Material3.Button">
         <item name="android:background">@drawable/selector_button_primary</item>
         <item name="android:textColor">@color/md_theme_light_onPrimary</item>
-        <item name="android:insetLeft">16dp</item>
-        <item name="android:insetRight">16dp</item>
-        <item name="android:insetTop">8dp</item>
-        <item name="android:insetBottom">8dp</item>
+
     </style>
 
+    <!-- Botttons outlined -->
     <style name="Widget.ObrasApp.OutlinedButton" parent="Widget.Material3.Button.OutlinedButton">
         <item name="android:strokeColor">@color/md_theme_light_outline</item>
         <item name="android:textColor">@color/md_theme_light_primary</item>
@@ -76,19 +74,26 @@
 
         <item name="textAllCaps">false</item>
         <item name="android:textAllCaps">false</item>
-
-        <item name="android:insetLeft">16dp</item>
-        <item name="android:insetRight">16dp</item>
-        <item name="android:insetTop">8dp</item>
-        <item name="android:insetBottom">8dp</item>
     </style>
 
+    <!-- Link Text Login -->
+    <style name="Widget.ObrasApp.LinkText" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textColor">@color/md_theme_light_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:paddingVertical">8dp</item>
+    </style>
 
     <!-- TextInput -->
     <style name="Widget.ObrasApp.TextInputLayout"
-        parent="Widget.Material3.TextInputLayout.FilledBox.Dense">
+        parent="Widget.Material3.TextInputLayout.OutlinedBox">
         <item name="boxBackgroundColor">@color/md_theme_light_surfaceVariant</item>
         <item name="boxStrokeColor">@color/md_theme_light_primary</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
 
         <!-- cor do erro -->
         <item name="errorTextColor">@color/md_theme_light_error</item>
@@ -109,6 +114,14 @@
     <style name="TextAppearance.ObrasApp.Error" parent="TextAppearance.Material3.BodySmall">
         <item name="android:textSize">14sp</item><item name="fontFamily">@font/inter_family</item>
 
+    </style>
+
+    <!-- TextInputEditText style -->
+    <style name="Widget.ObrasApp.TextInputEditText" parent="Widget.Material3.TextInputEditText.OutlinedBox">
+        <item name="android:minHeight">@dimen/til_edit_min_height</item>
+        <item name="android:paddingVertical">@dimen/til_edit_padding_v</item>
+        <item name="android:gravity">start|center_vertical</item>
+        <item name="android:includeFontPadding">false</item>
     </style>
 
 

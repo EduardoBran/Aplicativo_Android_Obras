@@ -1,10 +1,15 @@
 package com.luizeduardobrandao.obra.ui.dadosobra
 
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.addCallback
+import androidx.core.view.doOnPreDraw
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -13,22 +18,25 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Obra
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentDadosObraBinding
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.utils.applyFullWidthButtonSizingGrowShrink
+import com.luizeduardobrandao.obra.utils.applyResponsiveButtonSizingGrowShrink
 import com.luizeduardobrandao.obra.utils.Constants
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
-import java.util.Locale
-import java.text.NumberFormat
-import java.util.Calendar
-import androidx.activity.addCallback
-import androidx.core.view.isGone
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
+import com.luizeduardobrandao.obra.utils.syncTextSizesGroup
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.Locale
+import java.text.NumberFormat
 
 @AndroidEntryPoint
 class DadosObraFragment : Fragment() {
@@ -51,6 +59,18 @@ class DadosObraFragment : Fragment() {
     private var currentObra: Obra? = null
 
     private var isSavingObra = false   // true enquanto salva OU exclui a obra
+
+    // Guarda estado anterior de visibilidade dos erros p/ animar só quando mudar
+    private var lastNomeErr: Boolean? = null
+    private var lastEndErr: Boolean? = null
+    private var lastContatoErr: Boolean? = null
+    private var lastDescErr: Boolean? = null
+    private var lastIniErr: Boolean? = null
+    private var lastFimErr: Boolean? = null
+
+    // Aportes (card)
+    private var lastAporteValorErr: Boolean? = null
+    private var lastAporteDataErr: Boolean? = null
 
     // Buffer local de aportes ainda NAO persistidos
     private data class AporteDraft(
@@ -89,6 +109,25 @@ class DadosObraFragment : Fragment() {
         binding.btnSalvarObra.isEnabled = false
         // Botão salvar aporte começa desabilitado
         binding.btnSalvarAporte.isEnabled = false
+
+        // ── Responsividade de botões (reaproveitando suas utils)
+        // Botão "Adicionar aporte" é full-width
+        binding.btnAdicionarAporte.doOnPreDraw {
+            binding.btnAdicionarAporte.applyFullWidthButtonSizingGrowShrink()
+        }
+        // "Salvar" e "Excluir" (lado a lado) — responsivos e sincronizados
+        (binding.btnSalvarObra.parent as? View)?.doOnPreDraw {
+            binding.btnSalvarObra.applyResponsiveButtonSizingGrowShrink()
+            binding.btnExcluirObra.applyResponsiveButtonSizingGrowShrink()
+            it.syncTextSizesGroup(binding.btnSalvarObra, binding.btnExcluirObra)
+        }
+        // Botões do card (wrap_content): responsividade suficiente sem criar função nova
+        binding.btnSalvarAporte.doOnPreDraw {
+            binding.btnSalvarAporte.applyResponsiveButtonSizingGrowShrink()
+        }
+        binding.btnCancelarAporte.doOnPreDraw {
+            binding.btnCancelarAporte.applyResponsiveButtonSizingGrowShrink()
+        }
 
         // Intercepta o botão físico/gesto de voltar
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
@@ -362,6 +401,74 @@ class DadosObraFragment : Fragment() {
                                 validateForm()
                                 // ⬇️ Novo:
                                 updateSaldoComAportesUI()
+                                binding.root.post {
+                                    // Nome -> Endereço
+                                    adjustSpacingAfterView(
+                                        binding.tvNomeClienteError,
+                                        binding.tilEnderecoObra,
+                                        8,
+                                        12,
+                                        false
+                                    )
+                                    // Endereço -> Contato
+                                    adjustSpacingAfterView(
+                                        binding.tvEnderecoObraError,
+                                        binding.tilContatoObra,
+                                        8,
+                                        12,
+                                        false
+                                    )
+                                    // Contato -> Descrição
+                                    adjustSpacingAfterView(
+                                        binding.tvContatoObraError,
+                                        binding.tilDescricao,
+                                        8,
+                                        12,
+                                        false
+                                    )
+                                    // Descrição -> Saldo inicial
+                                    adjustSpacingAfterView(
+                                        binding.tvDescricaoObraError,
+                                        binding.llSaldoInicialRow,
+                                        8,
+                                        24,
+                                        false
+                                    )
+
+                                    // Aportes (dentro do card)
+                                    adjustSpacingAfterView(
+                                        binding.tvAporteValorError,
+                                        binding.tilAporteData,
+                                        8,
+                                        12,
+                                        false
+                                    )
+                                    adjustSpacingAfterView(
+                                        binding.tvAporteDataError,
+                                        binding.tilAporteDescricao,
+                                        8,
+                                        12,
+                                        false
+                                    )
+
+                                    // Datas
+                                    adjustSpacingAfterView(
+                                        binding.tvDataInicioObraError,
+                                        binding.tilDataFimObra,
+                                        22,
+                                        12,
+                                        false
+                                    )
+
+                                    // Data fim -> Linha de botões (use o id llBotoesObra; se não criou, use parent de btnSalvarObra)
+                                    adjustSpacingAfterView(
+                                        binding.tvDataFimObraError,
+                                        binding.llBotoesObra,
+                                        22,
+                                        24,
+                                        false
+                                    )
+                                }
                             }
 
                             is UiState.ErrorRes -> {
@@ -571,70 +678,127 @@ class DadosObraFragment : Fragment() {
 
     /* ───────────────── Validações ───────────────── */
     /** Valida somente depois de dataLoaded = true para evitar flash de erros */
-    private fun validateForm(): Boolean {
+    private fun validateForm(): Boolean = with(binding) {
         if (!dataLoaded) {
-            binding.btnSalvarObra.isEnabled = false
+            btnSalvarObra.isEnabled = false
             clearErrors()
             return false
         }
 
         var isValid = true
-        binding.apply {
-            clearErrors()
 
-            if (etNomeCliente.text.isNullOrBlank() ||
-                etNomeCliente.text!!.trim().length < Constants.Validation.MIN_NAME
-            ) {
-                tilNomeCliente.error = getString(R.string.dados_obra_name_error)
-                isValid = false
-            }
-            if (etEnderecoObra.text.isNullOrBlank()) {
-                tilEnderecoObra.error = getString(R.string.dados_obra_address_error)
-                isValid = false
-            }
-            if (etContatoObra.text.isNullOrBlank()) {
-                tilContatoObra.error = getString(R.string.work_error_contato)
-                isValid = false
-            }
-            if (etDataInicioObra.text.isNullOrBlank()) {
-                tilDataInicioObra.error = getString(R.string.dados_obra_date_start_error)
-                isValid = false
-            }
-            if (etDataFimObra.text.isNullOrBlank()) {
-                tilDataFimObra.error = getString(R.string.dados_obra_date_end_error)
-                isValid = false
-            }
+        // Limpa captions internos (só usamos os TextViews externos)
+        tilNomeCliente.error = null
+        tilEnderecoObra.error = null
+        tilContatoObra.error = null
+        tilDescricao.error = null
+        tilDataInicioObra.error = null
+        tilDataFimObra.error = null
 
-            // Impedir data de término > que data de início
-            val start = parseBrDateOrNull(etDataInicioObra.text?.toString())
-            val end = parseBrDateOrNull(etDataFimObra.text?.toString())
-            if (start != null && end != null && end.isBefore(start)) {
-                tilDataFimObra.error = getString(R.string.dados_obra_date_end_before_start)
-                isValid = false
-            }
+        // Nome
+        val nomeOk = !etNomeCliente.text.isNullOrBlank() &&
+                etNomeCliente.text!!.trim().length >= Constants.Validation.MIN_NAME
+        tvNomeClienteError.isVisible = !nomeOk
+        if (!nomeOk) tvNomeClienteError.text = getString(R.string.dados_obra_name_error)
+        val nomeChanged = lastNomeErr != tvNomeClienteError.isVisible
+        lastNomeErr = tvNomeClienteError.isVisible
+        adjustSpacingAfterView(tvNomeClienteError, tilEnderecoObra, 8, 12, nomeChanged)
+        if (!nomeOk) isValid = false
 
-            btnSalvarObra.isEnabled = isValid
+        // Endereço
+        val endOk = !etEnderecoObra.text.isNullOrBlank()
+        tvEnderecoObraError.isVisible = !endOk
+        if (!endOk) tvEnderecoObraError.text = getString(R.string.dados_obra_address_error)
+        val endChanged = lastEndErr != tvEnderecoObraError.isVisible
+        lastEndErr = tvEnderecoObraError.isVisible
+        adjustSpacingAfterView(tvEnderecoObraError, tilContatoObra, 8, 12, endChanged)
+        if (!endOk) isValid = false
+
+        // Contato
+        val contatoOk = !etContatoObra.text.isNullOrBlank()
+        tvContatoObraError.isVisible = !contatoOk
+        if (!contatoOk) tvContatoObraError.text = getString(R.string.work_error_contato)
+        val contatoChanged = lastContatoErr != tvContatoObraError.isVisible
+        lastContatoErr = tvContatoObraError.isVisible
+        adjustSpacingAfterView(tvContatoObraError, tilDescricao, 8, 12, contatoChanged)
+        if (!contatoOk) isValid = false
+
+        // Descrição (agora com erro externo)
+        val descOk = !etDescricaoObra.text.isNullOrBlank()
+        tvDescricaoObraError.isVisible = !descOk
+        if (!descOk) tvDescricaoObraError.text = getString(R.string.work_error_desc)
+        val descChanged = lastDescErr != tvDescricaoObraError.isVisible
+        lastDescErr = tvDescricaoObraError.isVisible
+        adjustSpacingAfterView(tvDescricaoObraError, llSaldoInicialRow, 8, 24, descChanged)
+        if (!descOk) isValid = false
+
+        // Datas
+        val iniOk = !etDataInicioObra.text.isNullOrBlank()
+        tvDataInicioObraError.isVisible = !iniOk
+        if (!iniOk) tvDataInicioObraError.text = getString(R.string.dados_obra_date_start_error)
+        val iniChanged = lastIniErr != tvDataInicioObraError.isVisible
+        lastIniErr = tvDataInicioObraError.isVisible
+        adjustSpacingAfterView(tvDataInicioObraError, tilDataFimObra, 22, 12, iniChanged)
+        if (!iniOk) isValid = false
+
+        val fimOk = !etDataFimObra.text.isNullOrBlank()
+        var fimOkFinal = fimOk
+        var endBeforeStart = false
+        val start = parseBrDateOrNull(etDataInicioObra.text?.toString())
+        val end = parseBrDateOrNull(etDataFimObra.text?.toString())
+        if (start != null && end != null && end.isBefore(start)) {
+            fimOkFinal = false
+            endBeforeStart = true
         }
+
+        tvDataFimObraError.isVisible = !fimOkFinal
+        tvDataFimObraError.text = when {
+            !fimOk -> getString(R.string.dados_obra_date_end_error)
+            endBeforeStart -> getString(R.string.dados_obra_date_end_before_start)
+            else -> null
+        }
+        val fimChanged = lastFimErr != tvDataFimObraError.isVisible
+        lastFimErr = tvDataFimObraError.isVisible
+
+        // Data fim -> Row de botões
+        adjustSpacingAfterView(
+            tvDataFimObraError,
+            llBotoesObra,   // se não criou o id, use: (btnSalvarObra.parent as View)
+            22,
+            24,
+            fimChanged
+        )
+        if (!fimOkFinal) isValid = false
+
+        btnSalvarObra.isEnabled = isValid
         return isValid
     }
 
     private fun validateAporteForm(): Boolean = with(binding) {
         var ok = true
 
+        // Desliga captions internos
         tilAporteValor.error = null
         tilAporteData.error = null
 
-        val valor =
-            etAporteValor.text?.toString()?.replace(',', '.')?.toDoubleOrNull()
-        if (valor == null || valor <= 0.0) {
-            tilAporteValor.error = getString(R.string.aporte_value_error)
-            ok = false
-        }
+        // Valor
+        val valor = etAporteValor.text?.toString()?.replace(',', '.')?.toDoubleOrNull()
+        val valorOk = (valor != null && valor > 0.0)
+        tvAporteValorError.isVisible = !valorOk
+        if (!valorOk) tvAporteValorError.text = getString(R.string.aporte_value_error)
+        val valChanged = lastAporteValorErr != tvAporteValorError.isVisible
+        lastAporteValorErr = tvAporteValorError.isVisible
+        adjustSpacingAfterView(tvAporteValorError, tilAporteData, 8, 12, valChanged)
+        if (!valorOk) ok = false
 
-        if (aporteDateIso.isNullOrBlank()) {
-            tilAporteData.error = getString(R.string.aporte_date_error)
-            ok = false
-        }
+        // Data
+        val dataOk = !aporteDateIso.isNullOrBlank()
+        tvAporteDataError.isVisible = !dataOk
+        if (!dataOk) tvAporteDataError.text = getString(R.string.aporte_date_error)
+        val dataChanged = lastAporteDataErr != tvAporteDataError.isVisible
+        lastAporteDataErr = tvAporteDataError.isVisible
+        adjustSpacingAfterView(tvAporteDataError, tilAporteDescricao, 8, 12, dataChanged)
+        if (!dataOk) ok = false
 
         btnSalvarAporte.isEnabled = ok
         ok
@@ -643,8 +807,20 @@ class DadosObraFragment : Fragment() {
     private fun clearErrors() = with(binding) {
         tilNomeCliente.error = null
         tilEnderecoObra.error = null
+        tilContatoObra.error = null
+        tilDescricao.error = null
         tilDataInicioObra.error = null
         tilDataFimObra.error = null
+
+        tvNomeClienteError.isVisible = false
+        tvEnderecoObraError.isVisible = false
+        tvContatoObraError.isVisible = false
+        tvDescricaoObraError.isVisible = false
+        tvDataInicioObraError.isVisible = false
+        tvDataFimObraError.isVisible = false
+
+        tvAporteValorError.isVisible = false
+        tvAporteDataError.isVisible = false
     }
 
     private fun formatMoneyBR(value: Double): String =
@@ -761,6 +937,48 @@ class DadosObraFragment : Fragment() {
             dataIso = draft.dataIso
         )
     }
+
+    // ------------- Helpers de espaçamento -------------
+
+    // dp helper
+    private fun Int.dp(): Int =
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            this.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+
+    /** Ajusta a margem-top de nextView conforme a visibilidade de precedingView, com animação leve. */
+    private fun adjustSpacingAfterView(
+        precedingView: View,
+        nextView: View,
+        visibleTopDp: Int,
+        goneTopDp: Int,
+        animate: Boolean = true
+    ) {
+        val parent = nextView.parent as? ViewGroup ?: return
+
+        // encerra transições pendentes para evitar "pulos"
+        TransitionManager.endTransitions(parent)
+
+        if (animate) {
+            TransitionManager.beginDelayedTransition(
+                parent,
+                AutoTransition().apply { duration = 150 }
+            )
+        }
+
+        (nextView.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+            val newTop = if (precedingView.isVisible) visibleTopDp.dp() else goneTopDp.dp()
+            if (lp.topMargin != newTop) {
+                lp.topMargin = newTop
+                nextView.layoutParams = lp
+                parent.requestLayout()
+                nextView.requestLayout()
+            }
+        }
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

@@ -4,7 +4,8 @@
 
     <item
         android:id="@+id/action_export_summary"
+        android:icon="@drawable/ic_export"
         android:title="@string/resumo_menu_export"
-        android:icon="@drawable/ic_summary"
+        app:tooltipText="@string/resumo_menu_export"
         app:showAsAction="always" />
 </menu>

@@ -13,10 +13,13 @@
     <!-- Valor (esquerda) -->
     <TextView
         android:id="@+id/tvValorPagamento"
-        android:textSize="20sp"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:fontFamily="@font/roboto"
+        android:fontFeatureSettings="tnum"
+        android:letterSpacing="0"
         android:textColor="?attr/colorOnSurface"
+        android:textSize="@dimen/item_tvValorPagamento"
         android:textStyle="bold"
         app:layout_constrainedWidth="true"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -29,11 +32,14 @@
     <!-- Data (meio) -->
     <TextView
         android:id="@+id/tvDataPagamento"
-        android:textSize="18sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="12dp"
+        android:fontFamily="@font/roboto"
+        android:fontFeatureSettings="tnum"
+        android:letterSpacing="0"
+        android:paddingHorizontal="10dp"
         android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="@dimen/item_tvDataPagamento"
         app:layout_constraintBaseline_toBaselineOf="@id/tvValorPagamento"
         app:layout_constraintEnd_toStartOf="@id/btnEditPagamento"
         app:layout_constraintStart_toEndOf="@id/tvValorPagamento"

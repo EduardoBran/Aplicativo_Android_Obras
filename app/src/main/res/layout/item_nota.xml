@@ -32,6 +32,9 @@
             android:id="@+id/tvValor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/roboto"
+            android:fontFeatureSettings="tnum"
+            android:letterSpacing="0"
             android:textColor="@color/text_primary_recycler"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -50,7 +53,7 @@
             app:layout_constraintEnd_toStartOf="@id/tvStatus"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvNomeMaterial"
-            tools:text="Nome da Loja" />
+            tools:text="Loja: Nome da Loja" />
 
         <!-- Status -->
         <TextView
@@ -58,9 +61,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:textColor="@color/md_theme_light_error"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/md_theme_light_error"
             app:layout_constraintBaseline_toBaselineOf="@id/tvLoja"
             app:layout_constraintEnd_toEndOf="parent"
             tools:text="A Pagar" />
@@ -73,8 +76,8 @@
             android:layout_marginTop="6dp"
             android:textColor="@color/text_secondary_recycler"
             android:textSize="16sp"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/tvData"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvLoja"
             tools:text="Pintura, Elétrica" />
 
@@ -84,11 +87,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
+            android:fontFamily="@font/roboto"
+            android:fontFeatureSettings="tnum"
+            android:letterSpacing="0"
             android:textColor="@color/text_secondary_recycler"
             android:textSize="18sp"
             android:textStyle="italic|bold"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBaseline_toBaselineOf="@id/tvTipos"
+            app:layout_constraintEnd_toEndOf="parent"
             tools:text="12/08/2025" />
 
         <!-- Barrier para posicionar o divisor abaixo da linha Tipos+Data -->

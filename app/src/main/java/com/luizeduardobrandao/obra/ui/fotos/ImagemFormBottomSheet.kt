@@ -7,20 +7,23 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.Toast
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Imagem
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.BottomsheetImagemFormBinding
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.utils.applyResponsiveButtonSizingGrowShrink
 import com.luizeduardobrandao.obra.utils.Constants
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
+import com.luizeduardobrandao.obra.utils.syncTextSizesGroup
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -85,6 +88,14 @@ class ImagemFormBottomSheet : BottomSheetDialogFragment() {
 
         btnCancelarImagem.setOnClickListener { dismissAllowingStateLoss() }
 
+        // ── Responsividade dos botões "Salvar" / "Voltar" (lado a lado)
+        root.doOnPreDraw {
+            btnSalvarImagem.applyResponsiveButtonSizingGrowShrink()
+            btnCancelarImagem.applyResponsiveButtonSizingGrowShrink()
+            // Nivelar os dois pelo menor tamanho final
+            root.syncTextSizesGroup(btnSalvarImagem, btnCancelarImagem)
+        }
+
         // Habilita/Desabilita o botão inicialmente
         validateForm()
     }
@@ -99,13 +110,21 @@ class ImagemFormBottomSheet : BottomSheetDialogFragment() {
         val (bytes, mime) = viewModel.consumePendingPhoto()
         val hasPhoto = bytes != null && mime != null
 
+        // --- NOME: erro no EditText (balão preto + ícone vermelho)
         val nome = etNomeImagem.text?.toString()?.trim().orEmpty()
         val nomeOk = nome.length >= 3
-        tilNomeImagem.error = if (!nomeOk) "Informe pelo menos 3 caracteres" else null
+        etNomeImagem.error = if (!nomeOk) {
+            getString(R.string.imagens_error_nome_min)
+        } else null
 
-        val dataOk = etDataImagem.text?.toString()?.trim().orEmpty()
-            .matches(Regex("""\d{2}/\d{2}/\d{4}"""))
+        // --- DATA: erro no EditText (balão preto + ícone vermelho)
+        val dataStr = etDataImagem.text?.toString()?.trim().orEmpty()
+        val dataOk = dataStr.matches(Regex("""\d{2}/\d{2}/\d{4}"""))
+        etDataImagem.error = if (!dataOk) {
+            getString(R.string.imagens_error_data_obrigatoria)
+        } else null
 
+        // --- TIPO
         val tipoOk = rgTipos.checkedRadioButtonId != View.NO_ID
 
         val ok = hasPhoto && nomeOk && dataOk && tipoOk
@@ -165,6 +184,7 @@ class ImagemFormBottomSheet : BottomSheetDialogFragment() {
                                 btnSalvarImagem.isEnabled = false
                                 btnCancelarImagem.isEnabled = false
                             }
+
                             is UiState.Success -> {
                                 Toast.makeText(
                                     requireContext(),
@@ -174,6 +194,7 @@ class ImagemFormBottomSheet : BottomSheetDialogFragment() {
                                 viewModel.clearPendingPhoto()
                                 dismissAllowingStateLoss()
                             }
+
                             is UiState.ErrorRes -> {
                                 progressSalvarImagem.isVisible = false
                                 btnSalvarImagem.isEnabled = true
@@ -186,6 +207,7 @@ class ImagemFormBottomSheet : BottomSheetDialogFragment() {
                                     getString(R.string.snack_button_ok)
                                 )
                             }
+
                             else -> Unit
                         }
                     }
