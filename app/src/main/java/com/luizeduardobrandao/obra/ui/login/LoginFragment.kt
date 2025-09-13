@@ -7,6 +7,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -16,6 +19,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.airbnb.lottie.LottieDrawable
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentLoginBinding
@@ -48,8 +52,13 @@ class LoginFragment : Fragment() {
     // Flag desaparecer imagem orientação horizontal
     private var lastHeroVisible: Boolean = false
 
+    // Animação Imagem
     private val enterAnimTime = 2.2f
     private fun scaled(ms: Long) = (ms * enterAnimTime).toLong()
+
+    // Animação Lottie
+    private var didNavigateAfterAnim = false
+    private var finalAnimListener: AnimatorListenerAdapter? = null
 
     override fun onStart() {
         super.onStart()
@@ -147,8 +156,10 @@ class LoginFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        binding.lottieLogin.removeAllAnimatorListeners()
+        finalAnimListener = null
+        _binding = null
         super.onDestroyView()
-        _binding = null           // evita leaks
     }
 
     /* ---------- Setup de listeners ---------- */
@@ -190,7 +201,7 @@ class LoginFragment : Fragment() {
                         UiState.Loading -> showLoading()
                         is UiState.ErrorRes -> showError(getString(state.resId))
                         is UiState.Error -> showError(state.message)
-                        is UiState.Success -> navigateToWork()
+                        is UiState.Success -> playFinalAnimThenNavigate()
                     }
                 }
             }
@@ -200,20 +211,34 @@ class LoginFragment : Fragment() {
 
     /* ---------- Helper methods ---------- */
     private fun showIdle() = with(binding) {
-        progressLogin.isGone = true
+        loginOverlay.isGone = true
+        lottieLogin.cancelAnimation()
         btnLogin.isEnabled = true
+        etEmail.isEnabled = true
+        etPassword.isEnabled = true
+        tvCreateAccount.isGone = false
+        tvForgotPassword.isGone = false
     }
 
     private fun showLoading() = with(binding) {
-        progressLogin.isVisible = true
-        btnLogin.isEnabled = false                 // evita múltiplos cliques
+        loginOverlay.isVisible = true
+        lottieLogin.repeatCount = ValueAnimator.INFINITE
+        lottieLogin.repeatMode = LottieDrawable.RESTART
+        lottieLogin.playAnimation()
+
+        btnLogin.isEnabled = false
+        etEmail.isEnabled = false
+        etPassword.isEnabled = false
         tvCreateAccount.isGone = true
         tvForgotPassword.isGone = true
     }
 
     private fun showError(message: String) {
-        binding.progressLogin.isGone = true
+        binding.loginOverlay.isGone = true
+        binding.lottieLogin.cancelAnimation()
         binding.btnLogin.isEnabled = true
+        binding.etEmail.isEnabled = true
+        binding.etPassword.isEnabled = true
         showSnackbarFragment(
             type = Constants.SnackType.ERROR.name,
             title = getString(R.string.snack_error),
@@ -282,6 +307,59 @@ class LoginFragment : Fragment() {
             .setStartDelay(scaled(800L))
             .withLayer()
             .start()
+    }
+
+    // Animação 1 ciclo Lottie
+    private fun playFinalAnimThenNavigate() = with(binding) {
+        if (didNavigateAfterAnim) return@with
+
+        loginOverlay.isVisible = true
+
+        // Remova listeners antigos, mas NÃO cancele nem zere o progresso
+        lottieLogin.removeAllAnimatorListeners()
+
+        // Tira do loop e deixa concluir o ciclo atual até o fim
+        lottieLogin.repeatCount = 0
+        lottieLogin.repeatMode = LottieDrawable.RESTART
+
+        // Garante que vai do frame atual até 1f (sem "pulo" pro começo)
+        val current = lottieLogin.progress.coerceIn(0f, 1f)
+        val start = if (current >= 0.95f) 0.75f else current
+        try {
+            lottieLogin.setMinAndMaxProgress(start, 1f)
+        } catch (_: Throwable) {
+            // Compat com versões antigas do Lottie
+            lottieLogin.setMinProgress(start)
+            lottieLogin.setMaxProgress(1f)
+        }
+
+        // >>> SUBSTITUA seu listener por este <<<
+        finalAnimListener = object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                if (!didNavigateAfterAnim) {
+                    didNavigateAfterAnim = true
+
+                    // (opcional) reset do range para a próxima vez
+                    try { lottieLogin.setMinAndMaxProgress(0f, 1f) } catch (_: Throwable) {}
+
+                    loginOverlay.animate()
+                        .alpha(0f)
+                        .setDuration(180L)
+                        .withEndAction {
+                            loginOverlay.isGone = true
+                            loginOverlay.alpha = 1f
+                            navigateToWork()
+                        }
+                        .start()
+                }
+            }
+        }
+        lottieLogin.addAnimatorListener(finalAnimListener)
+
+        // Se por acaso não estiver animando, inicia
+        if (!lottieLogin.isAnimating) {
+            lottieLogin.playAnimation()
+        }
     }
 
     companion object {

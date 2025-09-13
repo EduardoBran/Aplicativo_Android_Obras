@@ -158,19 +158,37 @@
                         android:text="@string/register_button"
                         android:textStyle="normal" />
 
-                    <!-- Progress -->
-                    <ProgressBar
-                        android:id="@+id/progressRegister"
-                        style="@style/Widget.AppCompat.ProgressBar"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="@dimen/progress_top_gap"
-                        android:visibility="gone"
-                        tools:visibility="gone" />
                 </LinearLayout>
             </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- Overlay de carregamento (igual ao Login) -->
+    <FrameLayout
+        android:id="@+id/registerOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#99000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottieRegister"
+            android:layout_width="260dp"
+            android:layout_height="260dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/ia_robot_icon_desc"
+            android:importantForAccessibility="no"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/loading_construction"
+            app:lottie_renderMode="software"
+            app:lottie_speed="1.0" />
+    </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

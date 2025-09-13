@@ -123,17 +123,6 @@
                         android:text="@string/login_button"
                         android:textStyle="normal" />
 
-                    <!-- ProgressBar -->
-                    <ProgressBar
-                        android:id="@+id/progressLogin"
-                        style="@style/Widget.AppCompat.ProgressBar"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="@dimen/progress_top_gap"
-                        android:visibility="gone"
-                        tools:visibility="gone" />
-
                     <!-- Divisor -->
                     <com.google.android.material.divider.MaterialDivider
                         android:id="@+id/dividerLinks"
@@ -167,10 +156,11 @@
                             android:text="@string/login_create_account"
                             android:textAlignment="center"
                             android:textAllCaps="false"
+                            android:textSize="12sp"
                             app:icon="@drawable/ic_user_plus"
                             app:iconGravity="textStart"
                             app:iconPadding="8dp"
-                            app:iconSize="18dp" />
+                            app:iconSize="17dp" />
                     </FrameLayout>
 
                     <!-- Coluna direita (Esqueceu a senha?) -->
@@ -186,17 +176,45 @@
                             android:layout_width="wrap_content"
                             android:layout_height="48dp"
                             android:gravity="center"
+                            android:textSize="12sp"
                             android:text="@string/login_forgot_password"
                             android:textAlignment="center"
                             android:textAllCaps="false"
                             app:icon="@drawable/ic_key_reset"
                             app:iconGravity="textStart"
                             app:iconPadding="8dp"
-                            app:iconSize="18dp" />
+                            app:iconSize="17dp" />
                     </FrameLayout>
                 </LinearLayout>
 
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <FrameLayout
+        android:id="@+id/loginOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#99000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottieLogin"
+            android:layout_width="260dp"
+            android:layout_height="260dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/ia_robot_icon_desc"
+            android:importantForAccessibility="no"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/loading_construction"
+            app:lottie_renderMode="software"
+            app:lottie_speed="1.0" />
+    </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -41,8 +41,8 @@
     <string name="login_password_hint">Senha</string>
     <string name="login_password_error">Senha deve ter ao menos 6 caracteres.</string>
     <string name="login_button">Entrar</string>
-    <string name="login_create_account">Criar Conta</string>
-    <string name="login_forgot_password">Esqueceu a senha?</string>
+    <string name="login_create_account">Criar conta</string>
+    <string name="login_forgot_password">Recuperar senha</string>
     <string name="login_toast_success">Usuário logado.</string>
     <string name="login_error_user_not_found">Usuário não encontrado.</string>
     <string name="login_error_wrong_password">Senha incorreta.</string>

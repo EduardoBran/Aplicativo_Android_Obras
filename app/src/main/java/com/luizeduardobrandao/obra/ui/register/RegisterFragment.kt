@@ -1,8 +1,10 @@
 package com.luizeduardobrandao.obra.ui.register
 
 import androidx.fragment.app.viewModels
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +12,7 @@ import android.widget.Toast
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -24,8 +27,8 @@ import com.luizeduardobrandao.obra.utils.ButtonSizingConfig
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import com.airbnb.lottie.LottieDrawable
 
 @AndroidEntryPoint
 class RegisterFragment : Fragment() {
@@ -36,8 +39,15 @@ class RegisterFragment : Fragment() {
     private val viewModel: RegisterViewModel by viewModels()
 
     private var hasPlayedEnterAnim = false
-
     private var lastHeroVisible: Boolean = false
+
+    // Animação Imagem
+    private val enterAnimTime = 2.2f
+    private fun scaled(ms: Long) = (ms * enterAnimTime).toLong()
+
+    // Lottie / navegação
+    private var didNavigateAfterAnim = false
+    private var finalAnimListener: AnimatorListenerAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -90,8 +100,10 @@ class RegisterFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
+        binding.lottieRegister.removeAllAnimatorListeners()
+        finalAnimListener = null
         _binding = null
+        super.onDestroyView()
     }
 
 
@@ -107,7 +119,6 @@ class RegisterFragment : Fragment() {
             root.hideKeyboard()
 
             btnRegister.isEnabled = false    // evita duplo-clique
-            progressRegister.isVisible = true
 
             viewModel.register(
                 name = etName.text?.toString().orEmpty(),
@@ -125,24 +136,11 @@ class RegisterFragment : Fragment() {
                 launch {
                     viewModel.state.collect { state ->
                         when (state) {
-                            is UiState.Idle -> resetUi()
-                            is UiState.Loading -> {}
-                            is UiState.Success -> {
-                                resetUi()
-                                Toast.makeText(
-                                    requireContext(),
-                                    getString(R.string.register_toast_success),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-
-                                // navega para WorkFragment
-                                findNavController().navigate(
-                                    RegisterFragmentDirections.actionRegisterToWork()
-                                )
-                            }
-
+                            is UiState.Idle -> showIdle()
+                            is UiState.Loading -> showLoading()
+                            is UiState.Success -> playFinalAnimThenNavigate()
                             is UiState.ErrorRes -> {
-                                resetUi()
+                                showIdle()
                                 showSnackbarFragment(
                                     type = Constants.SnackType.ERROR.name,
                                     title = getString(R.string.snack_error),
@@ -151,8 +149,8 @@ class RegisterFragment : Fragment() {
                                 )
                             }
 
-                            is UiState.Error -> {      // caso use mensagem livre
-                                resetUi()
+                            is UiState.Error -> {
+                                showIdle()
                                 showSnackbarFragment(
                                     type = Constants.SnackType.ERROR.name,
                                     title = getString(R.string.snack_error),
@@ -167,38 +165,120 @@ class RegisterFragment : Fragment() {
         }
     }
 
-    // Restaura botões / progress-bar para estado neutro.
-    private fun resetUi() = with(binding) {
-        progressRegister.isGone = true
+    private fun showIdle() = with(binding) {
+        registerOverlay.isGone = true
+        lottieRegister.cancelAnimation()
         btnRegister.isEnabled = true
+        etName.isEnabled = true
+        etEmailReg.isEnabled = true
+        etPasswordReg.isEnabled = true
+    }
+
+    private fun showLoading() = with(binding) {
+        registerOverlay.isVisible = true
+        lottieRegister.repeatCount = ValueAnimator.INFINITE
+        lottieRegister.repeatMode = LottieDrawable.RESTART
+        lottieRegister.playAnimation()
+
+        btnRegister.isEnabled = false
+        etName.isEnabled = false
+        etEmailReg.isEnabled = false
+        etPasswordReg.isEnabled = false
+    }
+
+    private fun navigateToWork() {
+        Toast.makeText(requireContext(), R.string.register_toast_success, Toast.LENGTH_SHORT).show()
+        findNavController().navigate(
+            RegisterFragmentDirections.actionRegisterToWork()
+        )
     }
 
     // Função Animação da Imagem
     private fun runEnterAnimation() = with(binding) {
-        val interp = FastOutSlowInInterpolator()
-        val dy = 16f * resources.displayMetrics.density
+        val d = resources.displayMetrics.density
+
+        val heroDy = -72f * d
+        val formDy = 36f * d
+
+        val slowOut = android.view.animation.DecelerateInterpolator(2f)
+        val slowInOut = FastOutSlowInInterpolator()
 
         if (imgRegister.isVisible) {
             imgRegister.alpha = 0f
-            imgRegister.translationY = -dy
+            imgRegister.translationY = heroDy
+            imgRegister.scaleX = 0.94f
+            imgRegister.scaleY = 0.94f
             imgRegister.animate()
                 .alpha(1f)
                 .translationY(0f)
-                .setDuration(220L)
-                .setStartDelay(40L)
-                .setInterpolator(interp)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(scaled(800L))
+                .setStartDelay(scaled(100L))
+                .setInterpolator(slowOut)
+                .withLayer()
                 .start()
         }
 
         formContainer.alpha = 0f
-        formContainer.translationY = dy
+        formContainer.translationY = formDy
         formContainer.animate()
             .alpha(1f)
             .translationY(0f)
-            .setDuration(240L)
-            .setStartDelay(80L)
-            .setInterpolator(interp)
+            .setDuration(scaled(650L))
+            .setStartDelay(scaled(350L))
+            .setInterpolator(slowInOut)
+            .withLayer()
             .start()
+    }
+
+    // Lottie
+    private fun playFinalAnimThenNavigate() = with(binding) {
+        if (didNavigateAfterAnim) return@with
+
+        registerOverlay.isVisible = true
+
+        lottieRegister.removeAllAnimatorListeners()
+
+        lottieRegister.repeatCount = 0
+        lottieRegister.repeatMode = LottieDrawable.RESTART
+
+        val current = lottieRegister.progress.coerceIn(0f, 1f)
+        val start = if (current >= 0.95f) 0.75f else current
+        try {
+            lottieRegister.setMinAndMaxProgress(start, 1f)
+        } catch (_: Throwable) {
+            lottieRegister.setMinProgress(start)
+            lottieRegister.setMaxProgress(1f)
+        }
+
+        finalAnimListener = object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                if (!didNavigateAfterAnim) {
+                    didNavigateAfterAnim = true
+
+                    try {
+                        lottieRegister.setMinAndMaxProgress(0f, 1f)
+                    } catch (_: Throwable) {
+                    }
+
+                    registerOverlay.animate()
+                        .alpha(0f)
+                        .setDuration(180L)
+                        .withEndAction {
+                            registerOverlay.isGone = true
+                            registerOverlay.alpha = 1f
+                            navigateToWork()
+                        }
+                        .start()
+                }
+            }
+        }
+        lottieRegister.addAnimatorListener(finalAnimListener)
+
+        if (!lottieRegister.isAnimating) {
+            lottieRegister.playAnimation()
+        }
     }
 
     companion object {
