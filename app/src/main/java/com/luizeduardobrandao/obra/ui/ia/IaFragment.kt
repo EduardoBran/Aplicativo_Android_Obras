@@ -1,14 +1,22 @@
 package com.luizeduardobrandao.obra.ui.ia
 
+import android.annotation.SuppressLint
+import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.widget.doAfterTextChanged
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isGone
+import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
@@ -17,20 +25,29 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.annotation.RequiresPermission
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentIaBinding
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.ui.ia.dialogs.QuestionTypeDialog
+import com.luizeduardobrandao.obra.ui.ia.dialogs.QuestionTypeDialog.Category
+import com.luizeduardobrandao.obra.ui.ia.dialogs.QuestionTypeDialog.CalcSub
+import com.luizeduardobrandao.obra.ui.ia.dialogs.QuestionTypeDialog.Selection
 import com.luizeduardobrandao.obra.utils.applyResponsiveButtonSizingGrowShrink
 import com.luizeduardobrandao.obra.utils.applyFullWidthButtonSizingGrowShrink
 import com.luizeduardobrandao.obra.utils.Constants
 import com.luizeduardobrandao.obra.utils.FileUtils
 import com.luizeduardobrandao.obra.utils.syncTextSizesGroup
+import com.luizeduardobrandao.obra.utils.VoiceInputHelper
 import dagger.hilt.android.AndroidEntryPoint
 import io.noties.markwon.Markwon
 import kotlinx.coroutines.launch
-import androidx.core.view.isVisible
+import androidx.core.net.toUri
+
 
 @AndroidEntryPoint
 class IaFragment : Fragment() {
@@ -47,6 +64,62 @@ class IaFragment : Fragment() {
     private var currentImageMime: String? = null
 
     private lateinit var markwon: Markwon
+
+    // Voz
+    private lateinit var voiceHelper: VoiceInputHelper
+
+    // Controle de visibilidade: só mostra campo/botão após escolher tipo
+    private var hasChosenType = false
+    private var isLoadingIa = false
+
+    // Seleção corrente (para enviar com o ViewModel)
+    private var currentSelection: Selection = Selection(Category.GERAL, null)
+
+    // Permissão de Localização
+    private lateinit var fusedClient: FusedLocationProviderClient
+    private var pendingSelectionForLocation: Selection? = null
+
+    // Origem do pedido de permissão
+    private enum class LocationRequestOrigin { ON_TYPE_SELECTION, ON_SEND_CLICK }
+
+    private var pendingLocationOrigin: LocationRequestOrigin? = null
+
+
+    private val requestLocationPermissions = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { perms ->
+        val granted = perms[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                perms[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+
+        val sel = pendingSelectionForLocation
+        val origin = pendingLocationOrigin
+        pendingSelectionForLocation = null
+        pendingLocationOrigin = null
+
+        if (granted) {
+            // ✅ Permissão concedida
+            if (origin == LocationRequestOrigin.ON_SEND_CLICK && sel != null) {
+                // Somente aqui disparamos o envio (o usuário clicou "Enviar")
+                sendWithLocation(sel)
+            }
+            // Se veio da seleção do tipo, não fazemos nada: o usuário vai digitar e depois clicar "Enviar".
+        } else {
+            // ❌ Permissão negada: mostrar bottom sheet e reiniciar a página ao confirmar
+            showSnackbarFragment(
+                type = Constants.SnackType.ERROR.name,
+                title = getString(R.string.snack_error),
+                msg = getString(R.string.ia_location_permission_denied),
+                btnText = getString(R.string.snack_button_ok),
+                onAction = {
+                    // "Reiniciar a página"
+                    // Opção leve: resetar tudo
+                    resetAll()
+                    // Se quiser recriar a Fragment: requireActivity().recreate()
+                    // (use apenas se realmente precisar recarregar tudo)
+                }
+            )
+        }
+    }
 
     private val pickImageLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -77,11 +150,51 @@ class IaFragment : Fragment() {
 
         markwon = Markwon.create(requireContext())
 
+        // Ditado por voz: conecta o ícone do TextInputLayout
+        voiceHelper = VoiceInputHelper(
+            fragment = this@IaFragment,   // <-- use o Fragment, não o binding
+            etTarget = etProblem,
+            tilContainer = tilProblem,
+            canStartVoiceInput = { hasChosenType },  // <-- passe a lambda nomeada
+            // appendRecognizedText = true            // (opcional, já é default)
+        )
+        voiceHelper.attach()
+
+        // Localização
+        fusedClient = LocationServices.getFusedLocationProviderClient(requireContext())
+
         // Importante: não restaurar automaticamente o texto do EditText após rotação
         etProblem.isSaveEnabled = false
 
+        // Restaura a UI a partir do ViewModel (sobrevive à rotação)
+        hasChosenType = viewModel.hasChosenType.value
+        if (hasChosenType) {
+            // mantenha currentSelection sincronizado
+            currentSelection = viewModel.selection.value
+            applySelectionUi(currentSelection)
+            showProblemSection(true)
+            updateSendButtonVisibility()
+            updateChosenTypeLabel(currentSelection) // <-- ADICIONE ESTA LINHA
+        } else {
+            showProblemSection(false)
+            updateChosenTypeLabel(null) // <-- garante escondido ao iniciar
+        }
+
         // Links clicáveis no Markdown
         tvAnswer.movementMethod = android.text.method.LinkMovementMethod.getInstance()
+
+        // Copiar texto do card
+        btnCopyAnswer.setOnClickListener {
+            val text = tvAnswer.text?.toString().orEmpty()
+            val clipboard = requireContext()
+                .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("IA Answer", text))
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.ia_copy_success),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
 
         // Toolbar
         toolbarIa.setNavigationOnClickListener { findNavController().navigateUp() }
@@ -101,9 +214,57 @@ class IaFragment : Fragment() {
             pickImageLauncher.launch(arrayOf("image/*"))
         }
 
+        btnTipoDuvida.setOnClickListener {
+            QuestionTypeDialog.pick(
+                context = requireContext(),
+                preselected = currentSelection.category
+            ) { selection ->
+                // Guarda a seleção
+                currentSelection = selection
+                viewModel.setSelection(selection)
+                viewModel.setHasChosenType(true)
+
+                // Ajusta UI (hint/instruções quando for cálculo de material)
+                applySelectionUi(selection)
+
+                // Revela seção (campo + botão Enviar)
+                hasChosenType = true
+                showProblemSection(true)
+                updateSendButtonVisibility()
+
+                // Atualiza o rótulo abaixo do "Nova Dúvida"
+                updateChosenTypeLabel(selection)
+
+                // Pedir permissão
+                if (selection.category == Category.PESQUISA_DE_LOJA) {
+                    // Apenas solicita a permissão já na escolha do tipo
+                    // (origem = seleção; NÃO enviamos nada aqui)
+                    val fine = ActivityCompat.checkSelfPermission(
+                        requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+                    val coarse = ActivityCompat.checkSelfPermission(
+                        requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+
+                    if (!fine && !coarse) {
+                        pendingSelectionForLocation = selection
+                        pendingLocationOrigin = LocationRequestOrigin.ON_TYPE_SELECTION
+                        requestLocationPermissions.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            )
+                        )
+                    }
+                    // Se já tem permissão, beleza: só deixa o usuário DIGITAR e depois clicar "Enviar".
+                }
+            }
+        }
+
         // Habilita botão somente com 8..100 caracteres e mostra aviso no EditText
         etProblem.doAfterTextChanged {
             validateProblem()
+            updateSendButtonVisibility()
         }
 
         // Estado inicial: botão desabilitado
@@ -112,7 +273,14 @@ class IaFragment : Fragment() {
         btnSendIa.setOnClickListener {
             root.hideKeyboard()
             val text = etProblem.text?.toString()?.trim().orElseEmpty()
-            viewModel.sendQuestion(text)
+            if (!validateProblem()) return@setOnClickListener
+
+            if (currentSelection.category == Category.PESQUISA_DE_LOJA) {
+                // ✅ Abre o Maps com a consulta digitada
+                openMapsWithQuery(text)
+            } else {
+                viewModel.sendQuestion(text, currentSelection, extraContext = null)
+            }
         }
 
         btnSaveHistory.setOnClickListener {
@@ -155,6 +323,7 @@ class IaFragment : Fragment() {
         binding.root.doOnPreDraw {
             // "Enviar" costuma ocupar a largura toda -> usa preset full-width
             binding.btnSendIa.applyFullWidthButtonSizingGrowShrink()
+            binding.btnTipoDuvida.applyFullWidthButtonSizingGrowShrink()
 
             // "Escolher imagem" é um botão solo
             binding.btnPickImageIa.applyResponsiveButtonSizingGrowShrink()
@@ -250,27 +419,34 @@ class IaFragment : Fragment() {
      *  Em caso de inválido, mostra um "bubble" de erro no EditText.
      */
     private fun validateProblem(): Boolean = with(binding) {
+        // Se ainda não escolheu o tipo, não valida nem exibe erro
+        if (!hasChosenType) {
+            tilProblem.error = null
+            return false
+        }
+
         val len = etProblem.text?.toString()?.trim()?.length ?: 0
         val isValid = len in 8..100
 
-        // Mesmo padrão do WorkFragment: usar a propriedade 'error' do TextInputEditText
-        etProblem.error = if (!isValid) {
+        tilProblem.error = if (!isValid) {
             getString(R.string.ia_problem_length_error)
         } else null
 
-        btnSendIa.isEnabled = isValid
         return isValid
     }
 
     private fun showLoading(show: Boolean) = with(binding) {
         aiOverlay.visibility = if (show) View.VISIBLE else View.GONE
         if (show) lottieIa.playAnimation() else lottieIa.cancelAnimation()
+
         // Desabilita inputs enquanto carrega
         btnPickImageIa.isEnabled = !show
         etProblem.isEnabled = !show
+        btnTipoDuvida.isEnabled = !show
 
-        // Quando sair do loading, revalida o campo para decidir o estado do botão
-        btnSendIa.isEnabled = if (show) false else validateProblem()
+        // Atualiza flag de loading e recalcula visibilidade/habilitação do Enviar
+        isLoadingIa = show
+        updateSendButtonVisibility()
     }
 
     private fun showError(msg: String) {
@@ -291,6 +467,10 @@ class IaFragment : Fragment() {
         cardAnswer.visibility = View.GONE
         rowActionsIa.visibility = View.GONE
         tvPhotoLoaded.visibility = View.GONE
+        tvChosenType.visibility = View.GONE
+        tvChosenType.text = ""
+        binding.tvChosenType.visibility = View.GONE
+        binding.tvChosenType.text = ""
 
         // Limpa dados auxiliares
         currentImageBytes = null
@@ -299,9 +479,16 @@ class IaFragment : Fragment() {
 
         // Zera estado do ViewModel para sobreviver à rotação sem restaurar o card
         viewModel.resetSendState()
+        viewModel.setHasChosenType(false)
 
         // Botão volta desabilitado após "Nova dúvida"
         btnSendIa.isEnabled = false
+
+        // Volta ao estado inicial (campo e botão escondidos até escolher o tipo)
+        hasChosenType = false
+        showProblemSection(false)
+        binding.btnSendIa.isVisible = false
+        binding.btnSendIa.isEnabled = false
 
         iaScroll.scrollTo(0, 0)
         fabScrollDownIa.isGone = true
@@ -364,6 +551,203 @@ class IaFragment : Fragment() {
         }
         iaScroll.viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
     }
+
+    /** Helper para checar permissões **/
+    private fun hasLocationPermission(): Boolean {
+        val ctx = requireContext()
+        val fine = ActivityCompat.checkSelfPermission(
+            ctx,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        val coarse = ActivityCompat.checkSelfPermission(
+            ctx,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        return fine || coarse
+    }
+
+    /** Obtém a última localização conhecida e envia a pergunta com contexto de localização. */
+    private fun sendWithLocation(sel: Selection) {
+        val text = binding.etProblem.text?.toString()?.trim().orEmpty()
+
+        if (!hasLocationPermission()) {
+            // Sem permissão -> segue sem localização
+            val extra = getString(R.string.ia_store_location_unavailable)
+            viewModel.sendQuestion(text, sel, extraContext = extra)
+            return
+        }
+
+        try {
+            // Chama o mét0do interno que realmente usa a localização
+            sendWithLocationInternal(sel, text)
+        } catch (se: SecurityException) {
+            val extra = getString(R.string.ia_store_location_unavailable)
+            viewModel.sendQuestion(text, sel, extraContext = extra)
+        }
+    }
+
+    /** Helper interno que de fato acessa a API de localização, anotado com a permissão **/
+    @RequiresPermission(
+        anyOf = [
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ]
+    )
+    @SuppressLint("MissingPermission") // justificativa: checado no wrapper + try/catch
+    private fun sendWithLocationInternal(sel: Selection, text: String) {
+        fusedClient.lastLocation
+            .addOnSuccessListener { loc ->
+                val extra = if (loc != null) {
+                    getString(R.string.ia_store_location_format, loc.latitude, loc.longitude)
+                } else {
+                    getString(R.string.ia_store_location_unavailable)
+                }
+                viewModel.sendQuestion(text, sel, extraContext = extra)
+            }
+            .addOnFailureListener {
+                val extra = getString(R.string.ia_store_location_unavailable)
+                viewModel.sendQuestion(text, sel, extraContext = extra)
+            }
+    }
+
+    /** Mostra/oculta o bloco de descrição + instruções + botão Enviar */
+    private fun showProblemSection(show: Boolean) = with(binding) {
+        tilProblem.visibility = if (show) View.VISIBLE else View.GONE
+        // As instruções aparecem só para Cálculo de Material (applySelectionUi cuidará disso)
+        if (!show) {
+            tvCalcHelper.visibility = View.GONE
+            tvCalcHelper.text = ""
+        }
+        updateSendButtonVisibility()
+    }
+
+    /** Habilita/mostra o botão Enviar:
+     *  - Invisível até escolher o Tipo de Dúvida
+     *  - Depois: visível; habilita com 8..100 chars e sem loading */
+    private fun updateSendButtonVisibility() {
+        val valid = validateProblem()
+        binding.btnSendIa.isVisible = hasChosenType && !isLoadingIa
+        binding.btnSendIa.isEnabled = hasChosenType && valid && !isLoadingIa
+    }
+
+    /** Ajusta hint e instruções para Cálculo de Material; demais categorias usam hint padrão. */
+    private fun applySelectionUi(sel: Selection) = with(binding) {
+        if (sel.category == Category.CALCULO_MATERIAL) {
+            // se você criou a string específica, use-a; se não, mantenha a genérica
+            tilProblem.hint = getString(R.string.ia_hint_problem_calc)
+            tvCalcHelper.visibility = View.VISIBLE
+            val sub = sel.sub ?: CalcSub.ALVENARIA_E_ESTRUTURA
+            tvCalcHelper.text = when (sub) {
+                CalcSub.ALVENARIA_E_ESTRUTURA -> getString(R.string.ia_calc_hint_alvenaria)
+                CalcSub.ELETRICA -> getString(R.string.ia_calc_hint_eletrica)
+                CalcSub.HIDRAULICA -> getString(R.string.ia_calc_hint_hidraulica)
+                CalcSub.PINTURA -> getString(R.string.ia_calc_hint_pintura)
+                CalcSub.PISO -> getString(R.string.ia_calc_hint_piso)
+            }
+        } else {
+            tilProblem.hint = getString(R.string.ia_hint_problem)
+            tvCalcHelper.visibility = View.GONE
+            tvCalcHelper.text = ""
+        }
+    }
+
+    /** Função para atualizar o texto/visibilidade do rótulo **/
+    private fun updateChosenTypeLabel(sel: Selection?) = with(binding) {
+        if (!hasChosenType || sel == null) {
+            tvChosenType.visibility = View.GONE
+            tvChosenType.text = ""
+            return@with
+        }
+        val text = if (sel.category == Category.CALCULO_MATERIAL) {
+            val sub = sel.sub ?: CalcSub.ALVENARIA_E_ESTRUTURA
+            getString(R.string.ia_chosen_type_calc, subToString(sub))
+        } else {
+            getString(R.string.ia_chosen_type_generic, categoryToString(sel.category))
+        }
+        tvChosenType.text = text
+        tvChosenType.visibility = View.VISIBLE
+    }
+
+    /** Helpers para converter enum → string legível **/
+    private fun categoryToString(cat: Category): String = when (cat) {
+        Category.GERAL -> getString(R.string.ia_cat_duvida_geral)
+        Category.CALCULO_MATERIAL -> getString(R.string.ia_cat_calculo_material)
+        Category.ALVENARIA_E_ESTRUTURA -> getString(R.string.ia_cat_alvenaria_estrutura)
+        Category.INSTALACOES_ELETRICAS -> getString(R.string.ia_cat_instalacoes_eletricas)
+        Category.INSTALACOES_HIDRAULICAS -> getString(R.string.ia_cat_instalacoes_hidraulicas)
+        Category.PINTURA_E_ACABAMENTOS -> getString(R.string.ia_cat_pintura_acabamentos)
+        Category.PLANEJAMENTO_E_CONSTRUCAO -> getString(R.string.ia_cat_planejamento_construcao)
+        Category.LIMPEZA_POS_OBRA -> getString(R.string.ia_cat_limpeza_pos_obra)
+        Category.PESQUISA_DE_LOJA -> getString(R.string.ia_cat_pesquisa_loja)
+    }
+
+    private fun subToString(sub: CalcSub): String = when (sub) {
+        CalcSub.ALVENARIA_E_ESTRUTURA -> getString(R.string.ia_sub_alvenaria_estrutura)
+        CalcSub.ELETRICA -> getString(R.string.ia_sub_eletrica)
+        CalcSub.HIDRAULICA -> getString(R.string.ia_sub_hidraulica)
+        CalcSub.PINTURA -> getString(R.string.ia_sub_pintura)
+        CalcSub.PISO -> getString(R.string.ia_sub_piso)
+    }
+
+    // Helpers para abir Maps
+
+    /** Abre o Google Maps com a busca "perto de mim" usando lat/lon se disponíveis. */
+    private fun openMapsWithQuery(queryRaw: String) {
+        val query = queryRaw.trim().ifEmpty { return }
+        // Tenta usar localização (se tiver permissão); se não, cai no "0,0"
+        if (hasLocationPermission()) {
+            try {
+                fusedClient.lastLocation
+                    .addOnSuccessListener { loc ->
+                        if (loc != null) {
+                            openMapsWithQueryNear(query, loc.latitude, loc.longitude)
+                        } else {
+                            openMapsWithQueryFallback(query)
+                        }
+                    }
+                    .addOnFailureListener {
+                        openMapsWithQueryFallback(query)
+                    }
+            } catch (_: SecurityException) {
+                openMapsWithQueryFallback(query)
+            }
+        } else {
+            openMapsWithQueryFallback(query)
+        }
+    }
+
+    /** Abre Maps ancorando no ponto informado. */
+    private fun openMapsWithQueryNear(queryRaw: String, lat: Double, lon: Double) {
+        val queryEnc = Uri.encode(queryRaw)
+        // Formato: geo:lat,lon?q=consulta
+        val uri = "geo:$lat,$lon?q=$queryEnc".toUri()
+        launchMapsIntent(uri, queryRaw)
+    }
+
+    /** Abre Maps sem coordenadas (o app do Maps usará a localização do dispositivo se puder). */
+    private fun openMapsWithQueryFallback(queryRaw: String) {
+        val queryEnc = Uri.encode(queryRaw)
+        // Formato: geo:0,0?q=consulta   (Maps tenta usar a localização atual do usuário)
+        val uri = "geo:0,0?q=$queryEnc".toUri()
+        launchMapsIntent(uri, queryRaw)
+    }
+
+    /** Dispara o Intent para o Google Maps; se não houver, cai no browser. */
+    private fun launchMapsIntent(geoUri: Uri, originalQuery: String) {
+        val mapsIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, geoUri)
+            .setPackage("com.google.android.apps.maps")
+
+        try {
+            startActivity(mapsIntent)
+        } catch (_: android.content.ActivityNotFoundException) {
+            // Fallback web
+            val webUri =
+                "https://www.google.com/maps/search/?api=1&query=${Uri.encode(originalQuery)}".toUri()
+            val webIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, webUri)
+            startActivity(webIntent)
+        }
+    }
+
 
     // Helper de animação para mostrar/ocultar FAB com fade + scale
     private fun View.toggleFabAnimated(show: Boolean) {

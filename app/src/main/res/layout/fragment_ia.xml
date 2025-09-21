@@ -74,6 +74,27 @@
                 android:visibility="gone"
                 tools:visibility="visible" />
 
+            <!-- Botão Tipo de Dúvida -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTipoDuvida"
+                style="@style/Widget.ObrasApp.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/ia_btn_tipo_duvida" />
+
+            <!-- Tipo de Dúvida escolhida (aparece após escolher o tipo) -->
+            <TextView
+                android:id="@+id/tvChosenType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_onSurfaceVariant"
+                android:visibility="gone"
+                tools:text="@string/ia_chosen_type_sample"
+                tools:visibility="visible" />
+
             <!-- Campo problema -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilProblem"
@@ -81,7 +102,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:hint="@string/ia_hint_problem">
+                android:hint="@string/ia_hint_problem"
+                android:visibility="gone"
+                app:endIconContentDescription="@string/ia_voice_input_desc"
+                app:endIconDrawable="@drawable/ic_mic_28"
+                app:endIconMode="custom"
+                app:endIconTint="@color/md_theme_light_onSurfaceVariant"
+                app:errorIconDrawable="@null"
+                tools:visibility="visible">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etProblem"
@@ -94,15 +122,29 @@
                     android:paddingBottom="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Instruções dinâmicas (exibido só para Cálculo de Material) -->
+            <TextView
+                android:id="@+id/tvCalcHelper"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_onSurfaceVariant"
+                android:visibility="gone"
+                tools:text="@string/ia_calc_hint_pintura"
+                tools:visibility="visible" />
+
             <!-- Enviar -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSendIa"
                 style="@style/Widget.ObrasApp.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="12dp"
                 android:enabled="false"
-                android:text="@string/ia_btn_send" />
+                android:text="@string/ia_btn_send"
+                android:visibility="gone"
+                tools:visibility="visible" />
 
             <!-- Resposta (rolável) -->
             <com.google.android.material.card.MaterialCardView
@@ -116,20 +158,44 @@
                 app:strokeWidth="1dp"
                 tools:visibility="visible">
 
-                <ScrollView
-                    android:id="@+id/scrollAnswer"
+                <!-- NOVO: cabeçalho com ação de copiar -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fillViewport="true">
+                    android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/tvAnswer"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCopyAnswer"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:minHeight="0dp"
+                        android:layout_marginEnd="2dp"
+                        android:layout_marginTop="0dp"
+                        android:textSize="12sp"
+                        android:text="@string/ia_copy_label"
+                        android:textAllCaps="false"
+                        android:contentDescription="@string/ia_copy_label"
+                        app:icon="@drawable/ic_copy"
+                        app:iconGravity="textStart"
+                        app:iconPadding="8dp" />
+
+                    <ScrollView
+                        android:id="@+id/scrollAnswer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:padding="16dp"
-                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                        tools:text="Resposta detalhada da IA…" />
-                </ScrollView>
+                        android:fillViewport="true">
+
+                        <TextView
+                            android:id="@+id/tvAnswer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="16dp"
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            tools:text="Resposta detalhada da IA…" />
+                    </ScrollView>
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Ações (Salvar / Nova dúvida) -->

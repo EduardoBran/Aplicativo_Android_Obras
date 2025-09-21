@@ -858,8 +858,61 @@
     <string name="ia_toast_saved">Dúvida salva no histórico.</string>
     <string name="ia_problem_length_error">A dúvida deve ter entre 8 e 100 caracteres.</string>
 
+    <string name="ia_copy_label">Copiar</string>
+    <string name="ia_copy_success">Copiado para a área de transferência</string>
+
+    <!-- Botões / UI -->
+    <string name="ia_btn_tipo_duvida">Tipo de Dúvida</string>
+    <string name="ia_hint_problem_default">Descreva seu problema…</string>
+    <string name="ia_hint_problem_calc">Informe as medidas</string>
+
+    <!-- Diálogos -->
+    <string name="ia_dialog_choose_type_title">Selecione o tipo da sua dúvida:</string>
+    <string name="ia_dialog_choose_calc_title">Selecione o tipo de cálculo:</string>
+
+    <!-- Categorias -->
+    <string name="ia_cat_duvida_geral">Dúvida Geral</string>
+    <string name="ia_cat_calculo_material">Cálculo de Material</string>
+    <string name="ia_cat_alvenaria_estrutura">Alvenaria e Estrutura</string>
+    <string name="ia_cat_instalacoes_eletricas">Instalações Elétricas</string>
+    <string name="ia_cat_instalacoes_hidraulicas">Instalações Hidráulicas</string>
+    <string name="ia_cat_pintura_acabamentos">Pintura e Acabamentos</string>
+    <string name="ia_cat_planejamento_construcao">Planejamento e Construção</string>
+    <string name="ia_cat_limpeza_pos_obra">Limpeza Pós-Obra</string>
+    <string name="ia_cat_pesquisa_loja">Pesquisa de Loja</string>
+
+    <!-- Subopções de Cálculo -->
+    <string name="ia_sub_alvenaria_estrutura">Alvenaria e Estrutura</string>
+    <string name="ia_sub_eletrica">Elétrica</string>
+    <string name="ia_sub_hidraulica">Hidráulica</string>
+    <string name="ia_sub_pintura">Pintura</string>
+    <string name="ia_sub_piso">Piso</string>
+
+    <!-- Mensagens auxiliares para Cálculo -->
+    <string name="ia_calc_hint_alvenaria">Informe dimensões de paredes, tipo de bloco, pilares e lajes.</string>
+    <string name="ia_calc_hint_eletrica">Informe pontos de luz, tomadas, distâncias e bitolas de fios.</string>
+    <string name="ia_calc_hint_hidraulica">Informe pontos de água, distâncias e diâmetros de tubos.</string>
+    <string name="ia_calc_hint_pintura">Informe medidas de paredes/tetos, número de demãos e tipo de tinta.</string>
+    <string name="ia_calc_hint_piso">Informe área, tamanho das peças, tipo de piso e largura do rejunte.</string>
+
+    <!-- Localização / Pesquisa de Loja -->
+    <string name="ia_store_location_format">Localização atual (lat, lon): %1$.5f, %2$.5f</string>
+    <string name="ia_store_location_unavailable">Localização indisponível. Prossiga com a busca baseada no texto.</string>
+    <string name="ia_location_permission_denied">Permissão de localização negada. Não foi possível usar sua localização atual.</string>
+
+    <string name="ia_chosen_type_generic">Tipo de Dúvida escolhida: %1$s</string>
+    <string name="ia_chosen_type_calc">Tipo de Dúvida escolhida: Cálculo de Material para %1$s</string>
+    <string name="ia_chosen_type_sample">Tipo de Dúvida escolhida: Cálculo de Material para Pintura</string>
+
     <!-- Prompts -->
     <string name="ia_prompt_missing">Prompt ausente.</string>
+
+    <!-- Permissão de Voz -->
+    <string name="ia_voice_input_desc">Ditado por voz</string>
+    <string name="ia_voice_prompt">Fale sua dúvida</string>
+    <string name="ia_voice_not_available">Reconhecimento de voz não disponível neste dispositivo.</string>
+    <string name="ia_voice_perm_denied">Permissão do microfone negada.</string>
+    <string name="ia_voice_choose_type_first">Escolha o tipo de dúvida antes de ditar.</string>
 
     <!-- Snackbar: Salvar no histórico -->
     <string name="ia_snack_save_title">Salvar no Histórico</string>

@@ -133,4 +133,7 @@ dependencies {
 
     // Markdown
     implementation("io.noties.markwon:core:4.6.2")
+
+    // Permissão de Localização
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 }

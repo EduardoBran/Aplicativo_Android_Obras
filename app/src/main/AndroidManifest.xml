@@ -9,6 +9,11 @@
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
+    <!-- Permissões de localização -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <!-- Permissão de Áudio -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- Declare que a câmera não é obrigatória -->
     <uses-feature
