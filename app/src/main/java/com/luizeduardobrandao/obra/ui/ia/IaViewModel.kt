@@ -46,10 +46,20 @@ class IaViewModel @Inject constructor(
     val selection: StateFlow<Selection> = _selection
     fun setSelection(sel: Selection) { _selection.value = sel }
 
-    // --- NOVO: flag para lembrar se o usuário já confirmou um tipo ---
+    // Flag para lembrar se o usuário já confirmou um tipo
     private val _hasChosenType = MutableStateFlow(false)
     val hasChosenType: StateFlow<Boolean> = _hasChosenType
     fun setHasChosenType(value: Boolean) { _hasChosenType.value = value }
+
+    // Rascunho do texto digitado (sobrevive à navegação)
+    private val _problemDraft = MutableStateFlow("")
+    val problemDraft: StateFlow<String> = _problemDraft
+    fun setProblemDraft(text: String) { _problemDraft.value = text }
+
+    // Último texto enviado (para a lógica de desabilitar o "Enviar")
+    private val _lastSentText = MutableStateFlow<String?>(null)
+    val lastSentText: StateFlow<String?> = _lastSentText
+    fun setLastSentText(text: String?) { _lastSentText.value = text }
 
     private var imageBytes: ByteArray? = null
     private var imageMime: String? = null
@@ -165,7 +175,7 @@ class IaViewModel @Inject constructor(
 
             Category.PINTURA_E_ACABAMENTOS -> {
                 // Não há prompts dedicados listados; usamos o "GERAL".
-                if (hasImage) R.raw.prompt_general_image else R.raw.prompt_general_no_image
+                if (hasImage) R.raw.prompt_paint_image else R.raw.prompt_paint_no_image
             }
 
             Category.PLANEJAMENTO_E_CONSTRUCAO ->

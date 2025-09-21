@@ -71,7 +71,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="gone">
+        tools:visibility="visible">
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
@@ -82,60 +82,118 @@
             app:strokeColor="?attr/colorOutline"
             app:strokeWidth="1dp">
 
-            <LinearLayout
+            <!-- WRAP do conteúdo do card para permitir FABs sobrepostos -->
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="wrap_content">
 
-                <RelativeLayout
+                <!-- *** SEU CONTEÚDO ATUAL DO CARD *** -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="12dp">
+                    android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/tvDetailTitle"
+                    <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:paddingEnd="40dp"
-                        android:textAppearance="?attr/textAppearanceHeadline6"
-                        android:textStyle="bold"
-                        tools:text="Título da dúvida" />
+                        android:padding="12dp">
 
-                    <ImageButton
-                        android:id="@+id/btnCloseDetail"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_alignParentEnd="true"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/history_detail_close_cd"
-                        android:src="@drawable/ic_close"
-                        app:tint="?attr/colorOnSurface" />
-                </RelativeLayout>
+                        <TextView
+                            android:id="@+id/tvDetailTitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:paddingEnd="40dp"
+                            android:textAppearance="?attr/textAppearanceHeadline6"
+                            android:textStyle="bold"
+                            tools:text="Título da dúvida" />
 
-                <TextView
-                    android:id="@+id/tvDetailDate"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingHorizontal="16dp"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textColor="@color/md_theme_light_secondary2"
-                    tools:text="12/08/2025" />
+                        <ImageButton
+                            android:id="@+id/btnCloseDetail"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_alignParentEnd="true"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/history_detail_close_cd"
+                            android:src="@drawable/ic_close"
+                            app:tint="?attr/colorOnSurface" />
+                    </RelativeLayout>
 
-                <ScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fillViewport="true">
-
-                    <TextView
-                        android:id="@+id/tvDetailContent"
+                    <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:padding="16dp"
-                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                        tools:text="Conteúdo completo da dúvida..." />
-                </ScrollView>
-            </LinearLayout>
+                        android:paddingStart="16dp"
+                        android:paddingEnd="8dp">
+
+                        <TextView
+                            android:id="@+id/tvDetailDate"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="@color/md_theme_light_secondary2"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@id/btnCopyDetail"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:text="12/08/2025" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCopyDetail"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:contentDescription="@string/ia_copy_label"
+                            android:minHeight="0dp"
+                            android:paddingHorizontal="10dp"
+                            android:text="@string/ia_copy_label"
+                            android:textAllCaps="false"
+                            android:textSize="12sp"
+                            app:icon="@drawable/ic_copy"
+                            app:iconGravity="textStart"
+                            app:iconPadding="8dp"
+                            app:layout_constraintBottom_toBottomOf="@id/tvDetailDate"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="@id/tvDetailDate" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <ScrollView
+                        android:id="@+id/scrollDetail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fillViewport="true">
+
+                        <TextView
+                            android:id="@+id/tvDetailContent"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="16dp"
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            tools:text="Conteúdo completo da dúvida..." />
+                    </ScrollView>
+                </LinearLayout>
+
+                <!-- FABs DENTRO DO CARD -->
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fabScrollDownDetail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="20dp"
+                    android:contentDescription="@string/scroll_to_bottom"
+                    android:src="@drawable/ic_arrow_downward"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fabScrollUpDetail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="20dp"
+                    android:contentDescription="@string/scroll_to_top"
+                    android:src="@drawable/ic_up"
+                    android:visibility="gone" />
+            </FrameLayout>
         </com.google.android.material.card.MaterialCardView>
     </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

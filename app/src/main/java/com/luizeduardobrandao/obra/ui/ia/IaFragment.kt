@@ -1,11 +1,12 @@
 package com.luizeduardobrandao.obra.ui.ia
 
-import android.annotation.SuppressLint
+
 import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
@@ -25,7 +26,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.annotation.RequiresPermission
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.StyleSpan
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.luizeduardobrandao.obra.R
@@ -77,50 +80,23 @@ class IaFragment : Fragment() {
 
     // Permissão de Localização
     private lateinit var fusedClient: FusedLocationProviderClient
-    private var pendingSelectionForLocation: Selection? = null
 
-    // Origem do pedido de permissão
-    private enum class LocationRequestOrigin { ON_TYPE_SELECTION, ON_SEND_CLICK }
-
-    private var pendingLocationOrigin: LocationRequestOrigin? = null
-
-
-    private val requestLocationPermissions = registerForActivityResult(
+    // Permissão rápida só para Pesquisa de Loja
+    private var pendingStoreQuery: String? = null
+    private val requestLocationForStoreLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { perms ->
-        val granted = perms[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                perms[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-
-        val sel = pendingSelectionForLocation
-        val origin = pendingLocationOrigin
-        pendingSelectionForLocation = null
-        pendingLocationOrigin = null
-
-        if (granted) {
-            // ✅ Permissão concedida
-            if (origin == LocationRequestOrigin.ON_SEND_CLICK && sel != null) {
-                // Somente aqui disparamos o envio (o usuário clicou "Enviar")
-                sendWithLocation(sel)
-            }
-            // Se veio da seleção do tipo, não fazemos nada: o usuário vai digitar e depois clicar "Enviar".
-        } else {
-            // ❌ Permissão negada: mostrar bottom sheet e reiniciar a página ao confirmar
-            showSnackbarFragment(
-                type = Constants.SnackType.ERROR.name,
-                title = getString(R.string.snack_error),
-                msg = getString(R.string.ia_location_permission_denied),
-                btnText = getString(R.string.snack_button_ok),
-                onAction = {
-                    // "Reiniciar a página"
-                    // Opção leve: resetar tudo
-                    resetAll()
-                    // Se quiser recriar a Fragment: requireActivity().recreate()
-                    // (use apenas se realmente precisar recarregar tudo)
-                }
-            )
-        }
+    ) { _ ->
+        val q = pendingStoreQuery
+        pendingStoreQuery = null
+        // Abre o Maps de qualquer forma; se a permissão foi concedida,
+        // openMapsWithQuery vai ancorar em lat/lon.
+        if (!q.isNullOrBlank()) openMapsWithQuery(q)
     }
 
+    // Botão Enviar após clicado
+    private var lastSentText: String? = null
+
+    // Imagem
     private val pickImageLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
@@ -136,6 +112,58 @@ class IaFragment : Fragment() {
             getString(R.string.nota_photo_pending_generic_toast),
             Toast.LENGTH_SHORT
         ).show()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Resultado do diálogo de CATEGORIA
+        childFragmentManager.setFragmentResultListener(
+            QuestionTypeDialog.REQ_CATEGORY,
+            this
+        ) { _, b ->
+            val idx = b.getInt(QuestionTypeDialog.KEY_CHECKED)
+            val chosen = QuestionTypeDialog.Category.entries[idx]
+
+            if (chosen == Category.CALCULO_MATERIAL) {
+                // Abre o diálogo de subopções
+                QuestionTypeDialog.showCalc(this@IaFragment)
+            } else {
+                currentSelection = Selection(chosen, null)
+                viewModel.setSelection(currentSelection)
+                viewModel.setHasChosenType(true)
+                hasChosenType = true
+
+                _binding?.let {
+                    applySelectionUi(currentSelection)
+                    showProblemSection(true)
+                    updateSendButtonVisibility()
+                    updateChosenTypeLabel(currentSelection)
+                }
+            }
+        }
+
+        // Resultado do diálogo de SUBTIPO (Cálculo)
+        childFragmentManager.setFragmentResultListener(
+            QuestionTypeDialog.REQ_CALC,
+            this
+        ) { _, b ->
+            val idx = b.getInt(QuestionTypeDialog.KEY_CHECKED)
+            val sub = QuestionTypeDialog.CalcSub.entries[idx]
+            currentSelection = Selection(
+                Category.CALCULO_MATERIAL, sub
+            )
+            viewModel.setSelection(currentSelection)
+            viewModel.setHasChosenType(true)
+            hasChosenType = true
+
+            _binding?.let {
+                applySelectionUi(currentSelection)
+                showProblemSection(true)
+                updateSendButtonVisibility()
+                updateChosenTypeLabel(currentSelection)
+            }
+        }
     }
 
     override fun onCreateView(
@@ -179,6 +207,30 @@ class IaFragment : Fragment() {
             showProblemSection(false)
             updateChosenTypeLabel(null) // <-- garante escondido ao iniciar
         }
+        // Restaura o texto digitado no campo + último texto enviado (sobrevive à rotação/process death)
+        savedInstanceState?.let { st ->
+            lastSentText = st.getString(STATE_LAST_SENT_TEXT)
+            st.getString(STATE_PROBLEM_TEXT)?.let { restored ->
+                etProblem.setText(restored)
+                etProblem.setSelection(restored.length)
+            }
+            validateProblem()
+            updateSendButtonVisibility()
+        }
+        // Se não veio nada do savedInstanceState (navegação), restaura do ViewModel (sobrevive à navegação)
+        if (binding.etProblem.text.isNullOrEmpty()) {
+            val draft = viewModel.problemDraft.value
+            if (draft.isNotEmpty()) {
+                binding.etProblem.setText(draft)
+                binding.etProblem.setSelection(draft.length)
+            }
+        }
+        // Também restaura o lastSentText do ViewModel se necessário
+        if (lastSentText == null) {
+            lastSentText = viewModel.lastSentText.value
+        }
+        validateProblem()
+        updateSendButtonVisibility()
 
         // Links clicáveis no Markdown
         tvAnswer.movementMethod = android.text.method.LinkMovementMethod.getInstance()
@@ -215,56 +267,19 @@ class IaFragment : Fragment() {
         }
 
         btnTipoDuvida.setOnClickListener {
-            QuestionTypeDialog.pick(
-                context = requireContext(),
+            QuestionTypeDialog.showCategory(
+                host = this@IaFragment,
                 preselected = currentSelection.category
-            ) { selection ->
-                // Guarda a seleção
-                currentSelection = selection
-                viewModel.setSelection(selection)
-                viewModel.setHasChosenType(true)
-
-                // Ajusta UI (hint/instruções quando for cálculo de material)
-                applySelectionUi(selection)
-
-                // Revela seção (campo + botão Enviar)
-                hasChosenType = true
-                showProblemSection(true)
-                updateSendButtonVisibility()
-
-                // Atualiza o rótulo abaixo do "Nova Dúvida"
-                updateChosenTypeLabel(selection)
-
-                // Pedir permissão
-                if (selection.category == Category.PESQUISA_DE_LOJA) {
-                    // Apenas solicita a permissão já na escolha do tipo
-                    // (origem = seleção; NÃO enviamos nada aqui)
-                    val fine = ActivityCompat.checkSelfPermission(
-                        requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
-                    ) == PackageManager.PERMISSION_GRANTED
-                    val coarse = ActivityCompat.checkSelfPermission(
-                        requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) == PackageManager.PERMISSION_GRANTED
-
-                    if (!fine && !coarse) {
-                        pendingSelectionForLocation = selection
-                        pendingLocationOrigin = LocationRequestOrigin.ON_TYPE_SELECTION
-                        requestLocationPermissions.launch(
-                            arrayOf(
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.ACCESS_COARSE_LOCATION
-                            )
-                        )
-                    }
-                    // Se já tem permissão, beleza: só deixa o usuário DIGITAR e depois clicar "Enviar".
-                }
-            }
+            )
         }
 
         // Habilita botão somente com 8..100 caracteres e mostra aviso no EditText
         etProblem.doAfterTextChanged {
             validateProblem()
             updateSendButtonVisibility()
+
+            // Persiste o rascunho no ViewModel (sobrevive a navegação)
+            viewModel.setProblemDraft(it?.toString().orEmpty())
         }
 
         // Estado inicial: botão desabilitado
@@ -275,12 +290,32 @@ class IaFragment : Fragment() {
             val text = etProblem.text?.toString()?.trim().orElseEmpty()
             if (!validateProblem()) return@setOnClickListener
 
+            lastSentText = text
+            updateSendButtonVisibility()   // desabilita o Enviar imediatamente
+
+            // Persiste o "último enviado" e o rascunho no ViewModel
+            viewModel.setLastSentText(text)
+            viewModel.setProblemDraft(text) // garante o mesmo texto no campo ao voltar da History
+
             if (currentSelection.category == Category.PESQUISA_DE_LOJA) {
-                // ✅ Abre o Maps com a consulta digitada
-                openMapsWithQuery(text)
-            } else {
-                viewModel.sendQuestion(text, currentSelection, extraContext = null)
+                if (!hasLocationPermission()) {
+                    // Pergunta permissão e, ao devolver, abre o Maps com o mesmo texto
+                    pendingStoreQuery = text
+                    requestLocationForStoreLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                } else {
+                    // Já tem permissão → ancora em lat/lon
+                    openMapsWithQuery(text)
+                }
+                return@setOnClickListener
             }
+
+            // ✅ Para todas as outras categorias, envia normalmente para o ViewModel
+            viewModel.sendQuestion(text, currentSelection, extraContext = null)
         }
 
         btnSaveHistory.setOnClickListener {
@@ -471,6 +506,9 @@ class IaFragment : Fragment() {
         tvChosenType.text = ""
         binding.tvChosenType.visibility = View.GONE
         binding.tvChosenType.text = ""
+        lastSentText = null
+        viewModel.setLastSentText(null)
+        viewModel.setProblemDraft("")
 
         // Limpa dados auxiliares
         currentImageBytes = null
@@ -566,49 +604,6 @@ class IaFragment : Fragment() {
         return fine || coarse
     }
 
-    /** Obtém a última localização conhecida e envia a pergunta com contexto de localização. */
-    private fun sendWithLocation(sel: Selection) {
-        val text = binding.etProblem.text?.toString()?.trim().orEmpty()
-
-        if (!hasLocationPermission()) {
-            // Sem permissão -> segue sem localização
-            val extra = getString(R.string.ia_store_location_unavailable)
-            viewModel.sendQuestion(text, sel, extraContext = extra)
-            return
-        }
-
-        try {
-            // Chama o mét0do interno que realmente usa a localização
-            sendWithLocationInternal(sel, text)
-        } catch (se: SecurityException) {
-            val extra = getString(R.string.ia_store_location_unavailable)
-            viewModel.sendQuestion(text, sel, extraContext = extra)
-        }
-    }
-
-    /** Helper interno que de fato acessa a API de localização, anotado com a permissão **/
-    @RequiresPermission(
-        anyOf = [
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ]
-    )
-    @SuppressLint("MissingPermission") // justificativa: checado no wrapper + try/catch
-    private fun sendWithLocationInternal(sel: Selection, text: String) {
-        fusedClient.lastLocation
-            .addOnSuccessListener { loc ->
-                val extra = if (loc != null) {
-                    getString(R.string.ia_store_location_format, loc.latitude, loc.longitude)
-                } else {
-                    getString(R.string.ia_store_location_unavailable)
-                }
-                viewModel.sendQuestion(text, sel, extraContext = extra)
-            }
-            .addOnFailureListener {
-                val extra = getString(R.string.ia_store_location_unavailable)
-                viewModel.sendQuestion(text, sel, extraContext = extra)
-            }
-    }
 
     /** Mostra/oculta o bloco de descrição + instruções + botão Enviar */
     private fun showProblemSection(show: Boolean) = with(binding) {
@@ -623,11 +618,15 @@ class IaFragment : Fragment() {
 
     /** Habilita/mostra o botão Enviar:
      *  - Invisível até escolher o Tipo de Dúvida
-     *  - Depois: visível; habilita com 8..100 chars e sem loading */
+     *  - Depois: visível; habilita com 8..100 chars e sem loading
+     *  - Verifica se texto mudou */
     private fun updateSendButtonVisibility() {
         val valid = validateProblem()
+        val textNow = binding.etProblem.text?.toString()?.trim()
+        val changedSinceLastSend = textNow != lastSentText?.trim()
+
         binding.btnSendIa.isVisible = hasChosenType && !isLoadingIa
-        binding.btnSendIa.isEnabled = hasChosenType && valid && !isLoadingIa
+        binding.btnSendIa.isEnabled = hasChosenType && valid && !isLoadingIa && changedSinceLastSend
     }
 
     /** Ajusta hint e instruções para Cálculo de Material; demais categorias usam hint padrão. */
@@ -658,13 +657,35 @@ class IaFragment : Fragment() {
             tvChosenType.text = ""
             return@with
         }
-        val text = if (sel.category == Category.CALCULO_MATERIAL) {
+
+        // Texto que será deixado em negrito (apenas o nome da opção)
+        val boldValueText = if (sel.category == Category.CALCULO_MATERIAL) {
             val sub = sel.sub ?: CalcSub.ALVENARIA_E_ESTRUTURA
-            getString(R.string.ia_chosen_type_calc, subToString(sub))
+            subToString(sub)
         } else {
-            getString(R.string.ia_chosen_type_generic, categoryToString(sel.category))
+            categoryToString(sel.category)
         }
-        tvChosenType.text = text
+
+        // Texto completo exibido (mantém seus resources atuais)
+        val fullText = if (sel.category == Category.CALCULO_MATERIAL) {
+            getString(R.string.ia_chosen_type_calc, boldValueText)
+        } else {
+            getString(R.string.ia_chosen_type_generic, boldValueText)
+        }
+
+        // Aplica negrito só no trecho da opção escolhida
+        val spannable = SpannableString(fullText)
+        val start = fullText.indexOf(boldValueText)
+        if (start >= 0) {
+            spannable.setSpan(
+                StyleSpan(Typeface.BOLD),
+                start,
+                start + boldValueText.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+        tvChosenType.text = spannable
         tvChosenType.visibility = View.VISIBLE
     }
 
@@ -782,6 +803,18 @@ class IaFragment : Fragment() {
                 }
                 .start()
         }
+    }
+
+    // Texto escrito na descrição sobreviver a rotação
+    companion object {
+        private const val STATE_PROBLEM_TEXT = "ia_state_problem_text"
+        private const val STATE_LAST_SENT_TEXT = "ia_state_last_sent_text"
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(STATE_PROBLEM_TEXT, _binding?.etProblem?.text?.toString())
+        outState.putString(STATE_LAST_SENT_TEXT, lastSentText)
     }
 
     override fun onDestroyView() {

@@ -2,10 +2,15 @@ package com.luizeduardobrandao.obra.ui.ia
 
 import android.os.Bundle
 import android.view.*
+import android.view.ViewTreeObserver
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -29,6 +34,9 @@ class HistorySolutionFragment : Fragment() {
 
     private val args: HistorySolutionFragmentArgs by navArgs()
     private val viewModel: HistorySolutionViewModel by viewModels()
+
+    // FAB
+    private var detailGlobalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
     private val adapter by lazy {
         HistoryAdapter(
@@ -62,6 +70,25 @@ class HistorySolutionFragment : Fragment() {
 
         collectHistory()
         setupDetailOverlay()
+        setupDetailFabBehavior()
+
+        // Restaura o card aberto (se estava visível) e o scroll/FABs
+        savedInstanceState?.let { st ->
+            if (st.getBoolean(STATE_DETAIL_OPEN, false)) {
+                binding.tvDetailTitle.text = st.getString(STATE_DETAIL_TITLE).orEmpty()
+                binding.tvDetailDate.text = st.getString(STATE_DETAIL_DATE).orEmpty()
+                binding.tvDetailContent.text = st.getString(STATE_DETAIL_CONTENT).orEmpty()
+                binding.detailOverlay.isVisible = true
+
+                val y = st.getInt(STATE_DETAIL_SCROLL_Y, 0)
+                binding.scrollDetail.post {
+                    binding.scrollDetail.scrollTo(0, y)
+                    updateDetailFabVisibility()
+                }
+            }
+        }
+
+        Unit
     }
 
     private fun collectHistory() {
@@ -103,6 +130,27 @@ class HistorySolutionFragment : Fragment() {
     private fun setupDetailOverlay() = with(binding) {
         detailOverlay.setOnClickListener { detailOverlay.isGone = true }
         btnCloseDetail.setOnClickListener { detailOverlay.isGone = true }
+
+        // ✅ Novo: copiar TÍTULO + CONTEÚDO
+        btnCopyDetail.setOnClickListener {
+            val title = tvDetailTitle.text?.toString().orEmpty()
+            val content = tvDetailContent.text?.toString().orEmpty()
+            val toCopy = buildString {
+                appendLine(title)
+                appendLine()
+                append(content)
+            }
+            val clipboard = requireContext()
+                .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(
+                ClipData.newPlainText("IA History", toCopy)
+            )
+            android.widget.Toast.makeText(
+                requireContext(),
+                getString(R.string.ia_copy_success),
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     private fun showDetail(item: SolutionHistory) = with(binding) {
@@ -110,10 +158,136 @@ class HistorySolutionFragment : Fragment() {
         tvDetailDate.text = item.date
         tvDetailContent.text = item.content
         detailOverlay.isVisible = true
+
+        // Sempre abre no topo e recalcula os FABs (como no IaFragment)
+        scrollDetail.post {
+            scrollDetail.scrollTo(0, 0)
+            updateDetailFabVisibility()
+        }
+    }
+
+    /** Comportamento Fab */
+    private fun setupDetailFabBehavior() = with(binding) {
+        // Estado inicial
+        fabScrollDownDetail.isGone = true
+        fabScrollUpDetail.isGone = true
+
+        // Mostra/oculta conforme rolagem do usuário
+        scrollDetail.setOnScrollChangeListener { _, _, _, _, _ ->
+            updateDetailFabVisibility()
+        }
+
+        // Reavalia quando o layout “assentar” (ex.: texto grande)
+        detailGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+            updateDetailFabVisibility()
+        }
+        scrollDetail.viewTreeObserver.addOnGlobalLayoutListener(detailGlobalLayoutListener)
+
+        // Clique: descer até o fim → troca pro FAB de subir
+        fabScrollDownDetail.setOnClickListener {
+            scrollDetail.post {
+                val bottom = scrollDetail.getChildAt(0)?.bottom ?: 0
+                scrollDetail.smoothScrollTo(0, bottom)
+                fabScrollDownDetail.isGone = true
+                scrollDetail.post { updateDetailFabVisibility() }
+            }
+        }
+
+        // Clique: subir ao topo → troca pro FAB de descer
+        fabScrollUpDetail.setOnClickListener {
+            scrollDetail.post {
+                scrollDetail.smoothScrollTo(0, 0)
+                fabScrollUpDetail.isGone = true
+                scrollDetail.post { updateDetailFabVisibility() }
+            }
+        }
+    }
+
+    private fun updateDetailFabVisibility() {
+        val b = _binding ?: return  // view já destruída -> não faz nada
+        with(b) {
+            val child = scrollDetail.getChildAt(0)
+            val hasScrollable = child != null && child.height > scrollDetail.height
+            val atBottom = !scrollDetail.canScrollVertically(1)
+
+            val showDown = hasScrollable && !atBottom
+            val showUp = hasScrollable && atBottom
+
+            fabScrollDownDetail.toggleFabAnimated(showDown)
+            fabScrollUpDetail.toggleFabAnimated(showUp)
+        }
+    }
+
+    // Mesma animação do IaFragment, para manter a aparência
+    private fun View.toggleFabAnimated(show: Boolean) {
+        val interp = FastOutSlowInInterpolator()
+        if (show && isGone) {
+            isGone = false
+            alpha = 0f
+            scaleX = 0.85f
+            scaleY = 0.85f
+            animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(160L)
+                .setInterpolator(interp)
+                .start()
+        } else if (!show && !isGone) {
+            animate()
+                .alpha(0f)
+                .scaleX(0.85f)
+                .scaleY(0.85f)
+                .setDuration(140L)
+                .setInterpolator(interp)
+                .withEndAction {
+                    isGone = true
+                    alpha = 1f
+                    scaleX = 1f
+                    scaleY = 1f
+                }
+                .start()
+        }
+    }
+
+    // --- Estado do overlay para sobreviver à rotação
+    companion object {
+        private const val STATE_DETAIL_OPEN = "history_detail_open"
+        private const val STATE_DETAIL_TITLE = "history_detail_title"
+        private const val STATE_DETAIL_DATE = "history_detail_date"
+        private const val STATE_DETAIL_CONTENT = "history_detail_content"
+        private const val STATE_DETAIL_SCROLL_Y = "history_detail_scroll_y"
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        val open = binding.detailOverlay.isVisible
+        outState.putBoolean(STATE_DETAIL_OPEN, open)
+        if (open) {
+            outState.putString(STATE_DETAIL_TITLE, binding.tvDetailTitle.text?.toString())
+            outState.putString(STATE_DETAIL_DATE, binding.tvDetailDate.text?.toString())
+            outState.putString(STATE_DETAIL_CONTENT, binding.tvDetailContent.text?.toString())
+            outState.putInt(STATE_DETAIL_SCROLL_Y, binding.scrollDetail.scrollY)
+        }
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
+        // Remover listeners associados à view para evitar callbacks após destruir a view
+        _binding?.let { b ->
+            // 2.1) Remover listener de rolagem
+            b.scrollDetail.setOnScrollChangeListener(null as View.OnScrollChangeListener?)
+
+            // 2.2) Remover o GlobalLayoutListener com segurança
+            detailGlobalLayoutListener?.let { gl ->
+                val vto = b.scrollDetail.viewTreeObserver
+                if (vto.isAlive) {
+                    vto.removeOnGlobalLayoutListener(gl)
+                }
+            }
+        }
+        detailGlobalLayoutListener = null
+
         _binding = null
+        super.onDestroyView()
     }
 }

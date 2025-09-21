@@ -1,21 +1,18 @@
 package com.luizeduardobrandao.obra.ui.ia.dialogs
 
-import android.content.Context
+import android.app.Dialog
+import android.os.Bundle
+import androidx.core.os.bundleOf
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.luizeduardobrandao.obra.R
 
 /**
- * Fluxo de seleção do tipo de dúvida (e subtipo quando for Cálculo de Material).
- *
- * Uso:
- * QuestionTypeDialog.pick(
- *   context = requireContext(),
- *   onConfirm = { selection -> /* usar selection */ }
- * )
+ * Dialogs como DialogFragment + FragmentResult (sobrevive à rotação).
  */
 object QuestionTypeDialog {
 
-    /** Categorias disponíveis (apenas uma pode ser selecionada) */
     enum class Category {
         GERAL,
         CALCULO_MATERIAL,
@@ -28,112 +25,135 @@ object QuestionTypeDialog {
         PESQUISA_DE_LOJA
     }
 
-    /** Subopções apenas para CÁLCULO DE MATERIAL */
-    enum class CalcSub {
-        ALVENARIA_E_ESTRUTURA,
-        ELETRICA,
-        HIDRAULICA,
-        PINTURA,
-        PISO
+    enum class CalcSub { ALVENARIA_E_ESTRUTURA, ELETRICA, HIDRAULICA, PINTURA, PISO }
+
+    data class Selection(val category: Category, val sub: CalcSub? = null)
+
+    // Keys para FragmentResult
+    const val REQ_CATEGORY = "ia_req_category"
+    const val REQ_CALC = "ia_req_calc"
+    const val KEY_CHECKED = "key_checked"
+
+    // APIs para mostrar os diálogos
+    fun showCategory(host: Fragment, preselected: Category) {
+        CategoryDialog.newInstance(preselected.ordinal)
+            .show(host.childFragmentManager, "ia_dialog_category")
     }
 
-    data class Selection(
-        val category: Category,
-        val sub: CalcSub? = null
-    )
+    fun showCalc(host: Fragment, preselected: CalcSub? = null) {
+        CalcDialog.newInstance(preselected?.ordinal ?: 0)
+            .show(host.childFragmentManager, "ia_dialog_calc")
+    }
 
-    /** Abre o 1º diálogo (categorias). Se usuário escolher CÁLCULO → abre o 2º (subopções). */
-    fun pick(
-        context: Context,
-        preselected: Category = Category.GERAL,
-        onConfirm: (Selection) -> Unit
-    ) {
-        val entries = arrayOf(
-            context.getString(R.string.ia_cat_duvida_geral),
-            context.getString(R.string.ia_cat_calculo_material),
-            context.getString(R.string.ia_cat_alvenaria_estrutura),
-            context.getString(R.string.ia_cat_instalacoes_eletricas),
-            context.getString(R.string.ia_cat_instalacoes_hidraulicas),
-            context.getString(R.string.ia_cat_pintura_acabamentos),
-            context.getString(R.string.ia_cat_planejamento_construcao),
-            context.getString(R.string.ia_cat_limpeza_pos_obra),
-            context.getString(R.string.ia_cat_pesquisa_loja)
-        )
-        var checked = preselected.ordinal
-        //
-        // Título customizado
-        val titleView = android.widget.TextView(context).apply {
-            text = context.getString(R.string.ia_dialog_choose_type_title) // seu string
-            setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 18f)
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
-            setPadding(48, 32, 48, 8) // px, exatamente como você pediu
-            // (opcional) cor do título seguindo o tema:
-            // setTextColor(com.google.android.material.color.MaterialColors.getColor(
-            //     context, com.google.android.material.R.attr.colorOnSurface, 0
-            // ))
+    // -------- Dialog 1: Categoria
+    class CategoryDialog : DialogFragment() {
+
+        private var checkedIndex: Int = 0
+
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            checkedIndex = savedInstanceState?.getInt(KEY_CHECKED)
+                ?: requireArguments().getInt(KEY_CHECKED, 0)
+
+            isCancelable = false // <-- BLOQUEIA back e cancelamento padrão
         }
 
-        val dlg = MaterialAlertDialogBuilder(
-            context,
-            R.style.ThemeOverlay_ObrasApp_FuncDialog   // <-- aplica o style do seu tema
-        )
-            .setCustomTitle(titleView)                  // <-- usa o título customizado
-            .setSingleChoiceItems(entries, checked) { _, which ->
-                checked = which
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val chosen = Category.entries[checked]
-                if (chosen == Category.CALCULO_MATERIAL) {
-                    pickCalcSub(context) { sub ->
-                        onConfirm(Selection(category = chosen, sub = sub))
-                    }
-                } else {
-                    onConfirm(Selection(category = chosen, sub = null))
-                }
-            }
-            .create()
+        override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+            val entries = arrayOf(
+                getString(R.string.ia_cat_duvida_geral),
+                getString(R.string.ia_cat_calculo_material),
+                getString(R.string.ia_cat_alvenaria_estrutura),
+                getString(R.string.ia_cat_instalacoes_eletricas),
+                getString(R.string.ia_cat_instalacoes_hidraulicas),
+                getString(R.string.ia_cat_pintura_acabamentos),
+                getString(R.string.ia_cat_planejamento_construcao),
+                getString(R.string.ia_cat_limpeza_pos_obra),
+                getString(R.string.ia_cat_pesquisa_loja)
+            )
 
-        dlg.show()
+            val dlg = MaterialAlertDialogBuilder(
+                requireContext(),
+                R.style.ThemeOverlay_ObrasApp_FuncDialog
+            )
+                .setTitle(R.string.ia_dialog_choose_type_title)
+                .setSingleChoiceItems(entries, checkedIndex) { _, which -> checkedIndex = which }
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    parentFragmentManager.setFragmentResult(
+                        REQ_CATEGORY, bundleOf(KEY_CHECKED to checkedIndex)
+                    )
+                }
+                .create()
+
+            dlg.setCanceledOnTouchOutside(false) // <-- BLOQUEIA toque fora
+            return dlg
+        }
+
+        override fun onSaveInstanceState(outState: Bundle) {
+            super.onSaveInstanceState(outState)
+            outState.putInt(KEY_CHECKED, checkedIndex)
+        }
+
+        companion object {
+            fun newInstance(checked: Int) = CategoryDialog().apply {
+                arguments = bundleOf(KEY_CHECKED to checked)
+            }
+        }
     }
 
-    /** Abre o 2º diálogo (subopções de CÁLCULO DE MATERIAL). “Alvenaria e Estrutura” já marcada. */
-    private fun pickCalcSub(
-        context: Context,
-        onConfirm: (CalcSub) -> Unit
-    ) {
-        val entries = arrayOf(
-            context.getString(R.string.ia_sub_alvenaria_estrutura),
-            context.getString(R.string.ia_sub_eletrica),
-            context.getString(R.string.ia_sub_hidraulica),
-            context.getString(R.string.ia_sub_pintura),
-            context.getString(R.string.ia_sub_piso)
-        )
-        var checked = 0 // “Alvenaria e Estrutura” default
+    // -------- Dialog 2: Subtipo (Cálculo de material)
+    class CalcDialog : DialogFragment() {
 
-        // IMPORTANTE: se o usuário tocar em “Cancelar”, voltamos ao primeiro diálogo.
-        val dlg = MaterialAlertDialogBuilder(
-            context,
-            R.style.ThemeOverlay_ObrasApp_FuncDialog
-        )
-            .setCustomTitle(
-                android.widget.TextView(context).apply {
-                    text = context.getString(R.string.ia_dialog_choose_calc_title)
-                    setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 18f)
-                    setTypeface(typeface, android.graphics.Typeface.BOLD)
-                    setPadding(48, 32, 48, 8)
-                }
+        private var checkedIndex: Int = 0
+
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            checkedIndex = savedInstanceState?.getInt(KEY_CHECKED)
+                ?: requireArguments().getInt(KEY_CHECKED, 0)
+
+            isCancelable = false // <-- BLOQUEIA back e cancelamento padrão
+        }
+
+        override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+            val entries = arrayOf(
+                getString(R.string.ia_sub_alvenaria_estrutura),
+                getString(R.string.ia_sub_eletrica),
+                getString(R.string.ia_sub_hidraulica),
+                getString(R.string.ia_sub_pintura),
+                getString(R.string.ia_sub_piso)
             )
-            .setSingleChoiceItems(entries, checked) { _, which -> checked = which }
-            .setNegativeButton(android.R.string.cancel) { d, _ ->
-                d.dismiss()
-                pick(context, Category.CALCULO_MATERIAL, onConfirm = { /* reabre o 1º */ })
-            }
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                onConfirm(CalcSub.entries[checked])
-            }
-            .create()
 
-        dlg.show()
+            val dlg = MaterialAlertDialogBuilder(
+                requireContext(),
+                R.style.ThemeOverlay_ObrasApp_FuncDialog
+            )
+                .setTitle(R.string.ia_dialog_choose_calc_title)
+                .setSingleChoiceItems(entries, checkedIndex) { _, which -> checkedIndex = which }
+                .setNegativeButton(android.R.string.cancel) { _, _ ->
+                    // volta para o diálogo de categorias com "Cálculo de Material" já focado
+                    dismissAllowingStateLoss()
+                    parentFragment?.let { host -> showCategory(host, Category.CALCULO_MATERIAL) }
+                }
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    parentFragmentManager.setFragmentResult(
+                        REQ_CALC, bundleOf(KEY_CHECKED to checkedIndex)
+                    )
+                }
+                .create()
+
+            dlg.setCanceledOnTouchOutside(false) // <-- BLOQUEIA toque fora
+            return dlg
+        }
+
+        override fun onSaveInstanceState(outState: Bundle) {
+            super.onSaveInstanceState(outState)
+            outState.putInt(KEY_CHECKED, checkedIndex)
+        }
+
+        companion object {
+            fun newInstance(checked: Int) = CalcDialog().apply {
+                arguments = bundleOf(KEY_CHECKED to checked)
+            }
+        }
     }
 }

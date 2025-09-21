@@ -1,13 +1,10 @@
 package com.luizeduardobrandao.obra.ui.ia.adapter
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.SolutionHistory
 import com.luizeduardobrandao.obra.databinding.ItemHistoryBinding
 
@@ -30,9 +27,6 @@ class HistoryAdapter(
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         holder.bind(getItem(position))
-        // Esconde divider no último item
-        holder.itemView.findViewById<View>(R.id.dividerHistory).isVisible =
-            position != currentList.lastIndex
     }
 
     companion object {
