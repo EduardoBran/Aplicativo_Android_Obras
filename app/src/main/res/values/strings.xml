@@ -930,7 +930,19 @@
 
     <!-- Detalhe do histórico (overlay) -->
     <string name="history_detail_close_cd">Fechar</string>
-
     <string name="scroll_to_top">Rolar para o topo</string>
+
+    <!-- Nível a Laser -->
+    <string name="home_btn_level_meter">Nível de Laser</string>
+
+    <string name="level_camera_perm_denied">Permissão de câmera negada</string>
+    <string name="level_locked">Ângulo travado</string>
+    <string name="level_unlocked">Ângulo destravado</string>
+    <string name="level_lock">Travar/destravar ângulo</string>
+    <string name="level_shot">Capturar print</string>
+    <string name="level_screenshot_saved">Imagem salva na galeria.</string>
+    <string name="level_screenshot_fail">Falha ao salvar captura</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

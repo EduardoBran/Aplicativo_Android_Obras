@@ -123,6 +123,10 @@
             android:id="@+id/action_home_to_ia"
             app:destination="@id/iaFragment" />
 
+        <action
+            android:id="@+id/action_home_to_levelMeter"
+            app:destination="@id/levelMeterFragment" />
+
         <!-- logout: volta diretamente ao Login limpando pilha -->
         <action
             android:id="@+id/action_home_logout"
@@ -562,5 +566,12 @@
             android:name="obraId"
             app:argType="string" />
     </fragment>
+
+    <!-- ──────────────────────────  ►  Nível de Laser  ◄  ────────────────────────── -->
+    <fragment
+        android:id="@+id/levelMeterFragment"
+        android:name="com.luizeduardobrandao.obra.ui.levelmeter.LevelMeterFragment"
+        android:label="Nível / Inclinômetro"
+        tools:layout="@layout/fragment_level_meter" />
 
 </navigation>

@@ -151,6 +151,13 @@ class HomeFragment : Fragment() {
             )
         }
 
+        // Nível de Laser
+        btnLevelMeter.setOnClickListener {
+            findNavController().navigate(
+                R.id.action_home_to_levelMeter
+            )
+        }
+
         // Trocar Obra (confirmar antes de voltar para Work)
         btnChangeWork.setOnClickListener {
             showSnackbarFragment(

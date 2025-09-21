@@ -312,7 +312,41 @@
                     app:layout_constraintTop_toTopOf="@id/icSummary" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Item 9 (Selecionar Outra Obra) -->
+            <!-- Item 9 (Nível de Laser) -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/btnLevelMeter"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_item_click"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:id="@+id/icLevel"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="16dp"
+                    android:src="@drawable/ic_level_laser"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvLevel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="12dp"
+                    android:text="@string/home_btn_level_meter"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    app:layout_constraintBottom_toBottomOf="@id/icLevel"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/icLevel"
+                    app:layout_constraintTop_toTopOf="@id/icLevel" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Item 10 (Selecionar Outra Obra) -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/btnChangeWork"
                 android:layout_width="match_parent"
