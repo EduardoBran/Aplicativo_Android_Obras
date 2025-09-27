@@ -9,6 +9,8 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.LayoutInflater
+import android.view.OrientationEventListener
+import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -45,6 +47,19 @@ class LevelMeterFragment : Fragment(), SensorEventListener {
     private val gravity = FloatArray(3) // [gx, gy, gz] no referencial da tela
     private val accel = FloatArray(3)
     private val alpha = 0.12f // low-pass para estabilizar quando usar ACCEL
+
+    // Orientação
+    private var currentRotation: Int = Surface.ROTATION_0
+    private var orientationListener: OrientationEventListener? = null
+    private var cameraPreview: Preview? = null
+
+    // Debounce para trocar de orientação sem "piscar" próximo aos 90°/270°
+    private var lastRotSetAt = 0L
+    private val rotDebounceMs = 120L
+
+    // controle de transição / estabilidade do preview
+    private var isOrientationTransition = false
+    private var awaitingLayoutApply = false
 
     // ==== Runtime permissions ====
     private val requestCameraPerm = registerForActivityResult(
@@ -92,6 +107,7 @@ class LevelMeterFragment : Fragment(), SensorEventListener {
         }
 
         binding.previewView.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        binding.previewView.scaleType = PreviewView.ScaleType.FILL_CENTER
 
         // Botão screenshot -> salva em Pictures/LevelMeter
         btnScreenshot.setOnClickListener {
@@ -116,6 +132,38 @@ class LevelMeterFragment : Fragment(), SensorEventListener {
             // Se o HomeFragment está imediatamente abaixo na back stack, navigateUp() já resolve:
             findNavController().navigateUp()
         }
+
+        // Quando o root relayouta durante a animação de rotação, garanta repaint do overlay
+        binding.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            binding.overlay.postInvalidateOnAnimation()
+        }
+        orientationListener = object : OrientationEventListener(requireContext()) {
+            override fun onOrientationChanged(orientation: Int) {
+                // Converte graus do sensor para uma das 4 rotações do Surface
+                val newRot = when (orientation) {
+                    in 45..134 -> Surface.ROTATION_270   // deitado ccw
+                    in 135..224 -> Surface.ROTATION_180   // de cabeça p/ baixo
+                    in 225..314 -> Surface.ROTATION_90    // deitado cw
+                    else -> Surface.ROTATION_0     // retrato normal
+                }
+
+                // Debounce/histerese: evita alternâncias rápidas perto dos limiares
+                val now = System.currentTimeMillis()
+                if (newRot != currentRotation && now - lastRotSetAt > rotDebounceMs) {
+                    // >>> NOVO: pausa ângulo e esconde HUD até estabilizar
+                    isOrientationTransition = true
+                    awaitingLayoutApply = true
+                    binding.overlay.visibility = View.INVISIBLE
+                    binding.bottomRightTools.visibility = View.INVISIBLE
+
+                    currentRotation = newRot
+                    lastRotSetAt = now
+                    cameraPreview?.targetRotation = newRot
+                    binding.overlay.postInvalidateOnAnimation()
+                }
+            }
+        }
+
     }
 
     // ==== Lifecycle ====
@@ -123,11 +171,13 @@ class LevelMeterFragment : Fragment(), SensorEventListener {
         super.onResume()
         ensureCameraPermissionThenStart()
         registerSensors()
+        orientationListener?.enable()
     }
 
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(this)
+        orientationListener?.disable()
     }
 
     // ==== CameraX ====
@@ -143,19 +193,53 @@ class LevelMeterFragment : Fragment(), SensorEventListener {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
-            val preview = Preview.Builder().build()
+
+            // Pegue a rotação atual como ponto de partida
+            currentRotation = binding.previewView.display?.rotation ?: Surface.ROTATION_0
+
+            val preview = Preview.Builder()
+                .setTargetRotation(currentRotation)   // usa a rotação única
+                .build()
+            cameraPreview = preview                   // <<< guarde a referência
+
+            // Provider do PreviewView
             preview.setSurfaceProvider(binding.previewView.surfaceProvider)
 
-            val selector = CameraSelector.DEFAULT_BACK_CAMERA
+            // Esconde HUD até o Preview confirmar o 1º layout
+            binding.overlay.visibility = View.INVISIBLE
+            binding.bottomRightTools.visibility = View.INVISIBLE
+            awaitingLayoutApply = true
+            isOrientationTransition = true
 
+            // >>> ADIÇÃO IMPORTANTE <<<
+            // Quando o PreviewView muda (rotação/orientação), atualizamos a rotação alvo
+            // SEM rebind e pedimos um redraw do overlay no MESMO frame.
+            binding.previewView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+                val r = binding.previewView.display?.rotation ?: Surface.ROTATION_0
+                if (preview.targetRotation != r) {
+                    preview.targetRotation = r
+                    binding.overlay.postInvalidateOnAnimation()
+                }
+                // Se estávamos aguardando a aplicação da rotação, e a rotação do display
+                // já bate com o targetRotation, podemos mostrar a UI.
+                if (awaitingLayoutApply && preview.targetRotation == r) {
+                    awaitingLayoutApply = false
+                    isOrientationTransition = false
+                    binding.overlay.visibility = View.VISIBLE
+                    binding.bottomRightTools.visibility = View.VISIBLE
+                    binding.overlay.postInvalidateOnAnimation()
+                }
+            }
+
+            val selector = CameraSelector.DEFAULT_BACK_CAMERA
             try {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(viewLifecycleOwner, selector, preview)
-            } catch (e: Exception) {
-                // silencioso
+            } catch (_: Exception) {
             }
         }, ContextCompat.getMainExecutor(requireContext()))
     }
+
 
     // ==== Sensores ====
     private fun registerSensors() {
@@ -168,7 +252,7 @@ class LevelMeterFragment : Fragment(), SensorEventListener {
             sensorManager.registerListener(
                 this,
                 sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY),
-                SensorManager.SENSOR_DELAY_UI
+                SensorManager.SENSOR_DELAY_GAME
             )
         } else {
             // fallback: vamos filtrar o ACCEL como “gravidade”
@@ -176,7 +260,7 @@ class LevelMeterFragment : Fragment(), SensorEventListener {
                 sensorManager.registerListener(
                     this,
                     sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                    SensorManager.SENSOR_DELAY_UI
+                    SensorManager.SENSOR_DELAY_GAME
                 )
             }
         }
@@ -203,24 +287,32 @@ class LevelMeterFragment : Fragment(), SensorEventListener {
             else -> return
         }
 
-        // Projeção da gravidade no plano da tela = (gx, gy).
-        // O vetor de “nível” (linha) é perpendicular a essa gravidade projetada.
-        // Ângulo da linha (em graus) = atan2(gx, gy) * (180/π).
-        val gx = gravity[0]
-        val gy = gravity[1]
+        // Enquanto a orientação não estabilizar, não atualizamos o overlay
+        if (isOrientationTransition || awaitingLayoutApply) return
 
-        // evita instabilidade quando o aparelho está perfeitamente deitado (gx≈gy≈0)
+        // 1) Mapeia a gravidade para o referencial da TELA conforme a rotação atual
+        val rot = currentRotation
+        val gxRaw = gravity[0]
+        val gyRaw = gravity[1]
+
+        // gx, gy em coordenadas de TELA (não do aparelho)
+        val (gx, gy) = when (rot) {
+            Surface.ROTATION_0 -> gxRaw to gyRaw          // portrait "normal"
+            Surface.ROTATION_90 -> (-gyRaw) to gxRaw      // landscape cw
+            Surface.ROTATION_180 -> (-gxRaw) to (-gyRaw)  // portrait invertido
+            Surface.ROTATION_270 -> gyRaw to (-gxRaw)     // landscape ccw
+            else -> gxRaw to gyRaw
+        }
+
+        // 2) Cálculo do ângulo
         if (abs(gx) < 1e-3 && abs(gy) < 1e-3) return
 
         val angleRad = atan2(gx.toDouble(), gy.toDouble())
         var angleDeg = Math.toDegrees(angleRad).toFloat()
 
-        // Normaliza para [-90, 90] para combinar com sua UI
+        // Normaliza para [-90, 90]
         if (angleDeg > 90f) angleDeg -= 180f
         if (angleDeg < -90f) angleDeg += 180f
-
-        // Se preferir inverter o sentido, troque o sinal:
-        // angleDeg = -angleDeg
 
         binding.overlay.rollDeg = angleDeg
     }
@@ -335,7 +427,7 @@ class LevelMeterFragment : Fragment(), SensorEventListener {
             Toast.makeText(
                 requireContext(),
                 getString(R.string.level_screenshot_saved),
-                Toast.LENGTH_SHORT
+                Toast.LENGTH_LONG
             ).show()
         } catch (e: Exception) {
             resolver.delete(uri, null, null)
