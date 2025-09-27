@@ -64,8 +64,9 @@ class CronogramaRepositoryImpl @Inject constructor(
         obraId: String,
         etapa: Etapa
     ): Result<Unit> = withContext(io) {
-        kotlin.runCatching { etapaRef(obraId).child(etapa.id).setValue(etapa).await()
-        Unit
+        kotlin.runCatching {
+            etapaRef(obraId).child(etapa.id).setValue(etapa).await()
+            Unit
         }
     }
 
@@ -73,8 +74,23 @@ class CronogramaRepositoryImpl @Inject constructor(
         obraId: String,
         etapaId: String
     ): Result<Unit> = withContext(io) {
-        kotlin.runCatching { etapaRef(obraId).child(etapaId).removeValue().await()
-        Unit
+        kotlin.runCatching {
+            etapaRef(obraId).child(etapaId).removeValue().await()
+            Unit
+        }
+    }
+
+    override suspend fun updateEtapaCampos(
+        obraId: String,
+        etapaId: String,
+        campos: Map<String, Any?>
+    ): Result<Unit> = withContext(io) {
+        kotlin.runCatching {
+            etapaRef(obraId)
+                .child(etapaId)
+                .updateChildren(campos)
+                .await()
+            Unit
         }
     }
 }

@@ -24,4 +24,12 @@ interface CronogramaRepository {
 
     // Exclui etapa.
     suspend fun deleteEtapa(obraId: String, etapaId: String): Result<Unit>
+
+
+    /** Atualiza apenas campos específicos da etapa (merge no nó). */
+    suspend fun updateEtapaCampos(
+        obraId: String,
+        etapaId: String,
+        campos: Map<String, Any?>
+    ): Result<Unit>
 }

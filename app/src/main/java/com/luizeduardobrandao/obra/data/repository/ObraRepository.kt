@@ -47,4 +47,7 @@ interface ObraRepository {
 
     /** Remove um aporte pelo id. */
     suspend fun deleteAporte(obraId: String, aporteId: String): Result<Unit>
+
+    /** Observa a obra específica em tempo real (ou null se não existir). */
+    fun observeObra(obraId: String): Flow<Obra?>
 }

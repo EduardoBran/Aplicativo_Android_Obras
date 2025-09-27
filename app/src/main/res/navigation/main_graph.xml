@@ -319,6 +319,10 @@
             android:id="@+id/action_cronograma_to_detail"
             app:destination="@id/detalheCronogramaFragment" />
 
+        <action
+            android:id="@+id/action_cronograma_to_gantt"
+            app:destination="@id/cronogramaGanttFragment" />
+
     </fragment>
 
     <fragment
@@ -350,6 +354,18 @@
             android:name="etapaId"
             app:argType="string" />
 
+    </fragment>
+
+    <!-- ────────────────────────────  ►  CRONOGRAMA GANTT  ◄  ───────────────────── -->
+    <fragment
+        android:id="@+id/cronogramaGanttFragment"
+        android:name="com.luizeduardobrandao.obra.ui.cronograma.gantt.CronogramaGanttFragment"
+        android:label="@string/gantt_title"
+        tools:layout="@layout/fragment_cronograma_gantt">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
     </fragment>
 
 

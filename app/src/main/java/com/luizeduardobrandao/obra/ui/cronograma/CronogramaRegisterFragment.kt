@@ -33,12 +33,10 @@ import com.luizeduardobrandao.obra.data.model.Etapa
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.ui.funcionario.FuncionarioViewModel
 import com.luizeduardobrandao.obra.databinding.FragmentCronogramaRegisterBinding
-import com.luizeduardobrandao.obra.ui.cronograma.adapter.CronogramaPagerAdapter
 import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.utils.applyFullWidthButtonSizingGrowShrink
 import com.luizeduardobrandao.obra.utils.Constants
-import com.luizeduardobrandao.obra.utils.ensureResponsiveStatusEtapa
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
 import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
 import dagger.hilt.android.AndroidEntryPoint
@@ -130,10 +128,6 @@ class CronogramaRegisterFragment : Fragment() {
                 btnSaveEtapa.applyFullWidthButtonSizingGrowShrink()
             }
 
-            // ✅ Responsividade do grupo "Status"
-            rgStatusEtapa.ensureResponsiveStatusEtapa()
-
-
             // Date pickers
             etDataInicioEtapa.setOnClickListener {
                 if (isEdit) {
@@ -196,13 +190,6 @@ class CronogramaRegisterFragment : Fragment() {
                         tilDataFimEtapa,
                         visibleTopDp = 22,
                         goneTopDp = 12,
-                        animate = false
-                    )
-                    adjustSpacingAfterView(
-                        tvDataFimError,
-                        tvStatusTitle,
-                        visibleTopDp = 22,
-                        goneTopDp = 10,
                         animate = false
                     )
                 }
@@ -288,13 +275,6 @@ class CronogramaRegisterFragment : Fragment() {
                                 goneTopDp = 12,
                                 animate = false
                             )
-                            adjustSpacingAfterView(
-                                binding.tvDataFimError,
-                                binding.tvStatusTitle,
-                                visibleTopDp = 22,
-                                goneTopDp = 10,
-                                animate = false
-                            )
                         }
                     }
                 }
@@ -358,12 +338,6 @@ class CronogramaRegisterFragment : Fragment() {
         etDataInicioEtapa.setText(e.dataInicio)
         etDataFimEtapa.setText(e.dataFim)
 
-        when (e.status) {
-            CronogramaPagerAdapter.STATUS_PENDENTE -> rbStatPend.isChecked = true
-            CronogramaPagerAdapter.STATUS_ANDAMENTO -> rbStatAnd.isChecked = true
-            else -> rbStatConcl.isChecked = true
-        }
-
         // Seleção inicial (parse do CSV salvo)
         if (!restoredSelectionFromState) {
             val nomes = parseCsvNomes(e.funcionarios)
@@ -390,22 +364,10 @@ class CronogramaRegisterFragment : Fragment() {
             binding.tilDataFimEtapa.error = null // garantimos que não cria caption interno
             binding.tvDataFimError.isVisible = true
             binding.tvDataFimError.text = getString(R.string.etapa_error_date_order)
-            // reposiciona "Status" em função do erro visível
-            adjustSpacingAfterView(
-                binding.tvDataFimError,
-                binding.tvStatusTitle,
-                visibleTopDp = 22,
-                goneTopDp = 10,
-                animate = true
-            )
             return
         }
 
-        val status = when (binding.rgStatusEtapa.checkedRadioButtonId) {
-            R.id.rbStatAnd -> CronogramaPagerAdapter.STATUS_ANDAMENTO
-            R.id.rbStatConcl -> CronogramaPagerAdapter.STATUS_CONCLUIDO
-            else -> CronogramaPagerAdapter.STATUS_PENDENTE
-        }
+        val status = CronStatus.PENDENTE
 
         val etapa = Etapa(
             id = etapaOriginal?.id ?: "",
@@ -453,10 +415,6 @@ class CronogramaRegisterFragment : Fragment() {
         etTituloEtapa.addTextChangedListener(watcher)
         etDataInicioEtapa.addTextChangedListener(watcher)
         etDataFimEtapa.addTextChangedListener(watcher)
-
-        rgStatusEtapa.setOnCheckedChangeListener { _, _ ->
-            if (dataLoaded) validateForm()
-        }
     }
 
     private fun validateForm() = with(binding) {
@@ -577,19 +535,11 @@ class CronogramaRegisterFragment : Fragment() {
         val ini = etDataInicioEtapa.text?.toString()?.trim().orEmpty()
         val fim = etDataFimEtapa.text?.toString()?.trim().orEmpty()
 
-        val statusAtual = when (rgStatusEtapa.checkedRadioButtonId) {
-            R.id.rbStatAnd -> CronogramaPagerAdapter.STATUS_ANDAMENTO
-            R.id.rbStatConcl -> CronogramaPagerAdapter.STATUS_CONCLUIDO
-            else -> CronogramaPagerAdapter.STATUS_PENDENTE
-        }
-
         if (!isEdit) {
-            val statusDefault = CronogramaPagerAdapter.STATUS_PENDENTE
             return@with titulo.isNotEmpty()
                     || desc.isNotEmpty()
                     || ini.isNotEmpty()
                     || fim.isNotEmpty()
-                    || statusAtual != statusDefault
                     || selecionadosAtual.isNotEmpty()
         }
 
@@ -598,9 +548,8 @@ class CronogramaRegisterFragment : Fragment() {
 
         return@with titulo != orig.titulo
                 || desc != (orig.descricao ?: "")
-                || ini != (orig.dataInicio)
-                || fim != (orig.dataFim)
-                || statusAtual != (orig.status)
+                || ini != orig.dataInicio
+                || fim != orig.dataFim
                 || selecionadosAtual != nomesOrig
     }
 

@@ -3,6 +3,7 @@ package com.luizeduardobrandao.obra.ui.cronograma.adapter
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.luizeduardobrandao.obra.ui.cronograma.CronogramaListFragment
+import com.luizeduardobrandao.obra.ui.cronograma.CronStatus
 
 /**
  * Pager com 3 abas (Pendente, Andamento, Concluído).
@@ -20,16 +21,16 @@ class CronogramaPagerAdapter(
 
     override fun createFragment(position: Int): Fragment {
         val status = when (position) {
-            0    -> STATUS_PENDENTE
-            1    -> STATUS_ANDAMENTO
-            else -> STATUS_CONCLUIDO
+            0 -> CronStatus.PENDENTE
+            1 -> CronStatus.ANDAMENTO
+            else -> CronStatus.CONCLUIDO
         }
         return CronogramaListFragment.newInstance(obraId, status)
     }
 
     companion object {
-        const val STATUS_PENDENTE   = "Pendente"
-        const val STATUS_ANDAMENTO  = "Andamento"
-        const val STATUS_CONCLUIDO  = "Concluído"
+        const val STATUS_PENDENTE = CronStatus.PENDENTE
+        const val STATUS_ANDAMENTO = CronStatus.ANDAMENTO
+        const val STATUS_CONCLUIDO = CronStatus.CONCLUIDO
     }
 }

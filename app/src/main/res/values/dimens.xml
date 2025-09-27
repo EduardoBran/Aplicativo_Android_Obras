@@ -38,4 +38,6 @@
     <dimen name="item_tvValorPagamento">17sp</dimen>
     <dimen name="item_tvDataPagamento">15sp</dimen>
 
+    <dimen name="gantt_header_start_inset">16dp</dimen>
+
 </resources>

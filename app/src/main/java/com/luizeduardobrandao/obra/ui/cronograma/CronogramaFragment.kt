@@ -55,6 +55,17 @@ class CronogramaFragment : Fragment(), EtapaActions {
             toolbarCronograma.setNavigationOnClickListener {
                 findNavController().navigateUp()
             }
+            toolbarCronograma.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.action_open_gantt -> {
+                        findNavController().navigate(
+                            CronogramaFragmentDirections.actionCronogramaToGantt(args.obraId)
+                        )
+                        true
+                    }
+                    else -> false
+                }
+            }
 
             // pager + tabs
             pagerAdapter = CronogramaPagerAdapter(this@CronogramaFragment, args.obraId)

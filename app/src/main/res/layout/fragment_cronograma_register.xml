@@ -208,7 +208,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="@string/etapa_reg_status"
-                android:textAppearance="?attr/textAppearanceHeadline6" />
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:visibility="gone" />
 
             <RadioGroup
                 android:id="@+id/rgStatusEtapa"
@@ -216,7 +217,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:visibility="gone">
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbStatPend"

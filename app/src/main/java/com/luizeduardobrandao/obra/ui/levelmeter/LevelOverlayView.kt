@@ -89,11 +89,16 @@ class LevelOverlayView @JvmOverloads constructor(
         c.drawLine(0f, cy, wF, cy, pGreen)
         c.drawLine(cx, 0f, cx, hF, pGreen)
 
-        // Linha vermelha rotacionada
+        // Linhas vermelhas rotacionadas
         c.withTranslation(cx, cy) {
             rotate(displayDeg)
             val len = maxOf(wF, hF)
+
+            // Linha vermelha horizontal
             drawLine(-len, 0f, len, 0f, pRed)
+
+            // Linha vermelha vertical
+            drawLine(0f, -len, 0f, len, pRed)
         }
 
         // Texto: % de inclinação (sem String.format para evitar alocação)

@@ -250,7 +250,7 @@ class LoginFragment : Fragment() {
 
     // Navega para WorkFragment e mostra Toast.
     private fun navigateToWork() {
-        Toast.makeText(requireContext(), R.string.login_toast_success, Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), R.string.login_toast_success, Toast.LENGTH_LONG).show()
 
         // direção gerada pelo Safe-Args
         val directions = LoginFragmentDirections.actionLoginToWork()
@@ -340,7 +340,10 @@ class LoginFragment : Fragment() {
                     didNavigateAfterAnim = true
 
                     // (opcional) reset do range para a próxima vez
-                    try { lottieLogin.setMinAndMaxProgress(0f, 1f) } catch (_: Throwable) {}
+                    try {
+                        lottieLogin.setMinAndMaxProgress(0f, 1f)
+                    } catch (_: Throwable) {
+                    }
 
                     loginOverlay.animate()
                         .alpha(0f)

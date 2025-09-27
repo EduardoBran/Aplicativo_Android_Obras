@@ -7,6 +7,7 @@ import com.luizeduardobrandao.obra.data.model.Obra
 import com.luizeduardobrandao.obra.data.repository.AuthRepository
 import com.luizeduardobrandao.obra.data.repository.ObraRepository
 import com.luizeduardobrandao.obra.di.IoDispatcher
+import com.luizeduardobrandao.obra.utils.valueEventListener
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +16,6 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.withContext
-import com.luizeduardobrandao.obra.utils.valueEventListener
 
 /**
  * Implementação de [ObraRepository] usando Firebase Realtime Database.
@@ -134,36 +134,52 @@ class ObraRepositoryImpl @Inject constructor(
         awaitClose { ref.removeEventListener(listener) }
     }
 
-    override suspend fun addAporte(obraId: String, aporte: Aporte): Result<String> = withContext(io) {
-        runCatching {
-            val key = aportesRef(obraId).push().key
-                ?: error("Não foi possível gerar key para novo aporte")
-            aportesRef(obraId)
-                .child(key)
-                .setValue(aporte.copy(aporteId = key))
-                .await()
-            key
+    override suspend fun addAporte(obraId: String, aporte: Aporte): Result<String> =
+        withContext(io) {
+            runCatching {
+                val key = aportesRef(obraId).push().key
+                    ?: error("Não foi possível gerar key para novo aporte")
+                aportesRef(obraId)
+                    .child(key)
+                    .setValue(aporte.copy(aporteId = key))
+                    .await()
+                key
+            }
         }
-    }
 
-    override suspend fun updateAporte(obraId: String, aporte: Aporte): Result<Unit> = withContext(io) {
-        runCatching {
-            require(aporte.aporteId.isNotBlank()) { "aporteId obrigatório para update" }
-            aportesRef(obraId)
-                .child(aporte.aporteId)
-                .setValue(aporte)
-                .await()
-            Unit
+    override suspend fun updateAporte(obraId: String, aporte: Aporte): Result<Unit> =
+        withContext(io) {
+            runCatching {
+                require(aporte.aporteId.isNotBlank()) { "aporteId obrigatório para update" }
+                aportesRef(obraId)
+                    .child(aporte.aporteId)
+                    .setValue(aporte)
+                    .await()
+                Unit
+            }
         }
-    }
 
-    override suspend fun deleteAporte(obraId: String, aporteId: String): Result<Unit> = withContext(io) {
-        runCatching {
-            aportesRef(obraId)
-                .child(aporteId)
-                .removeValue()
-                .await()
-            Unit
+    override suspend fun deleteAporte(obraId: String, aporteId: String): Result<Unit> =
+        withContext(io) {
+            runCatching {
+                aportesRef(obraId)
+                    .child(aporteId)
+                    .removeValue()
+                    .await()
+                Unit
+            }
         }
+
+    override fun observeObra(obraId: String): Flow<Obra?> = callbackFlow {
+        val ref = userRef().child(obraId)
+
+        val listener = valueEventListener { snapshot ->
+            // Lê a obra (ou null se não existir)
+            val obra = snapshot.getValue<Obra>()
+            trySend(obra).isSuccess
+        }
+
+        ref.addValueEventListener(listener)
+        awaitClose { ref.removeEventListener(listener) }
     }
 }

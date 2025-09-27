@@ -397,6 +397,39 @@
     <string name="cronograma_funcionario_prefix">Funcionário:</string>
     <string name="cronograma_funcionarios_prefix">Funcionários:</string>
 
+
+    <!-- ► Gantt / Visualização do Cronograma -->
+    <string name="gantt_title">Cronograma – Visualização Semanal</string>
+    <string name="gantt_menu_open">Visualização do Cronograma</string>
+    <string name="gantt_menu_export">Exportar PDF</string>
+    <string name="gantt_empty">Sem etapas no período</string>
+
+    <!-- Cabeçalho/colunas da tabela/linha -->
+    <string name="gantt_col_tarefa">Tarefa</string>
+    <string name="gantt_col_responsavel">Responsável</string>
+    <string name="gantt_col_progresso">Progresso</string>
+    <string name="gantt_col_inicio">Início</string>
+    <string name="gantt_col_termino">Término</string>
+    <string name="gantt_today">Hoje</string>
+
+    <!-- Formatos -->
+    <string name="gantt_week_header_fmt">Semana de %1$s</string> <!-- ex.: Semana de 01/09/2025 -->
+    <string name="gantt_progress_fmt">%1$d%%</string>
+
+    <!-- Feedback exportação -->
+    <string name="gantt_export_success">PDF gerado com sucesso.</string>
+    <string name="gantt_export_error">Não foi possível gerar o PDF.</string>
+
+    <!-- Acessibilidade / descrições -->
+    <string name="gantt_row_a11y">Tarefa %1$s, %2$s até %3$s, %4$d%% concluído</string>
+
+    <!-- Plurals úteis -->
+    <plurals name="gantt_days_selected">
+        <item quantity="one">%d dia selecionado</item>
+        <item quantity="other">%d dias selecionados</item>
+    </plurals>
+
+
     <!-- CronogramaRegisterFragment -->
     <string name="etapa_reg_title">Cadastro de Etapa</string>
     <string name="etapa_reg_title_edit">Editar Etapa</string>
