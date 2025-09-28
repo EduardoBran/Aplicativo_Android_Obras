@@ -1,5 +1,6 @@
 package com.luizeduardobrandao.obra.ui.cronograma
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.view.*
@@ -13,11 +14,14 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.luizeduardobrandao.obra.R
+import com.luizeduardobrandao.obra.data.model.Funcionario
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentCronogramaListBinding
 import com.luizeduardobrandao.obra.ui.cronograma.adapter.EtapaAdapter
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.ui.funcionario.FuncionarioViewModel
 import com.luizeduardobrandao.obra.utils.Constants
+import com.luizeduardobrandao.obra.utils.GanttUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -33,6 +37,9 @@ class CronogramaListFragment : Fragment() {
 
     private val viewModel: CronogramaViewModel by viewModels({ requireParentFragment() })
 
+    private val viewModelFuncionario: FuncionarioViewModel by viewModels()
+    private val funcionariosCache = mutableListOf<Funcionario>()
+
     private lateinit var obraId: String
     private lateinit var status: String
 
@@ -41,6 +48,7 @@ class CronogramaListFragment : Fragment() {
 
     private val adapter by lazy {
         EtapaAdapter(
+            getFuncionarios = { funcionariosCache.toList() },
             onEdit = { actions?.onEdit(it) },
             onDetail = { actions?.onDetail(it) },
             onDelete = { actions?.onDelete(it) }
@@ -56,8 +64,8 @@ class CronogramaListFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            obraId  = it.getString(ARG_OBRA)   ?: error("obraId ausente")
-            status  = it.getString(ARG_STATUS) ?: error("status ausente")
+            obraId = it.getString(ARG_OBRA) ?: error("obraId ausente")
+            status = it.getString(ARG_STATUS) ?: error("status ausente")
         }
     }
 
@@ -72,10 +80,10 @@ class CronogramaListFragment : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // configura o adapter dentro do binding
         binding.rvEtapas.apply {
             layoutManager = LinearLayoutManager(requireContext())
             setHasFixedSize(true)
@@ -83,7 +91,24 @@ class CronogramaListFragment : Fragment() {
             adapter = this@CronogramaListFragment.adapter
         }
 
-        // inicia o collector de estado
+        // Carrega/escuta funcionários (opcionalmente apenas Ativos)
+        viewModelFuncionario.loadFuncionarios()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModelFuncionario.state.collect { ui ->
+                    if (ui is UiState.Success) {
+                        funcionariosCache.clear()
+                        funcionariosCache.addAll(
+                            ui.data.filter { it.status.equals("Ativo", ignoreCase = true) }
+                        )
+                        // Se quiser re-render imediatamente quando os funcionários chegarem:
+                        adapter.notifyDataSetChanged()
+                    }
+                }
+            }
+        }
+
+        // inicia o collector de etapas
         observeState()
     }
 
@@ -97,12 +122,18 @@ class CronogramaListFragment : Fragment() {
                         is UiState.Loading -> progress(true)
                         is UiState.Success -> {
                             progress(false)
-                            val list = ui.data.filter { it.status == status }
+                            val list = ui.data
+                                .filter { it.status == status }
+                                .sortedBy {
+                                    GanttUtils.brToLocalDateOrNull(it.dataInicio)?.toEpochDay()
+                                        ?: Long.MAX_VALUE
+                                }
                             adapter.submitList(list)
 
-                            rvEtapas.isVisible     = list.isNotEmpty()
+                            rvEtapas.isVisible = list.isNotEmpty()
                             tvEmptyEtapas.isVisible = list.isEmpty()
                         }
+
                         is UiState.ErrorRes -> {
                             progress(false)
                             showSnackbarFragment(
@@ -112,6 +143,7 @@ class CronogramaListFragment : Fragment() {
                                 getString(R.string.snack_button_ok)
                             )
                         }
+
                         else -> Unit
                     }
                 }
@@ -121,7 +153,7 @@ class CronogramaListFragment : Fragment() {
 
     private fun progress(show: Boolean) = with(binding) {
         progressEtapas.isVisible = show
-        rvEtapas.isVisible       = !show
+        rvEtapas.isVisible = !show
     }
 
     override fun onDestroyView() {
@@ -131,25 +163,15 @@ class CronogramaListFragment : Fragment() {
 
     /*──────────── Companion / Factory ────────────*/
     companion object {
-        private const val ARG_OBRA   = "obraId"
+        private const val ARG_OBRA = "obraId"
         private const val ARG_STATUS = "status"
 
         fun newInstance(obraId: String, status: String) =
             CronogramaListFragment().apply {
                 arguments = bundleOf(
-                    ARG_OBRA   to obraId,
+                    ARG_OBRA to obraId,
                     ARG_STATUS to status
                 )
             }
     }
 }
-
-///* Interface para que CronogramaFragment receba eventos do Adapter */
-//interface EtapaActions {
-//    fun onEdit(etapa: Etapa)
-//    fun onDetail(etapa: Etapa)
-//    fun onDelete(etapa: Etapa)
-//
-//}
-
-

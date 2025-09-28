@@ -400,10 +400,11 @@
 
 
     <!-- ► Gantt / Visualização do Cronograma -->
-    <string name="gantt_title">Cronograma – Visualização Semanal</string>
+    <string name="gantt_title">Cronogramas</string>
     <string name="gantt_menu_open">Visualização do Cronograma</string>
     <string name="gantt_menu_export">Exportar PDF</string>
     <string name="gantt_empty">Sem etapas no período</string>
+    <string name="gantt_valor_prefix">Valor: %1$s</string>
 
     <!-- Cabeçalho/colunas da tabela/linha -->
     <string name="gantt_col_tarefa">Tarefa</string>
@@ -496,6 +497,7 @@
     <string name="cron_reg_func_hint">Funcionário(s)</string>
     <string name="cronograma_funcionarios_title">Funcionários</string>
     <string name="det_empresa_label">Nome da Empresa</string>
+    <string name="det_valor_label">Valor</string>
 
     <!-- fragment_material -->
     <string name="material_title">Material da Obra</string>

@@ -15,9 +15,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.luizeduardobrandao.obra.R
+import com.luizeduardobrandao.obra.data.model.Funcionario
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentCronogramaGanttBinding
 import com.luizeduardobrandao.obra.ui.cronograma.CronogramaViewModel
+import com.luizeduardobrandao.obra.ui.funcionario.FuncionarioViewModel
 import com.luizeduardobrandao.obra.ui.cronograma.gantt.adapter.GanttRowAdapter
 import com.luizeduardobrandao.obra.utils.GanttUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,6 +37,10 @@ class CronogramaGanttFragment : Fragment() {
 
     private lateinit var adapter: GanttRowAdapter
 
+    private val viewModelFuncionario: FuncionarioViewModel by viewModels()
+    private var funcionariosCache: List<Funcionario> =
+        emptyList()
+
     // Cabeçalho/timeline global (mínimo comum entre todas as etapas carregadas)
     private var headerDays: List<LocalDate> = emptyList()
 
@@ -46,6 +52,7 @@ class CronogramaGanttFragment : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) = with(binding) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -60,7 +67,8 @@ class CronogramaGanttFragment : Fragment() {
                 // Persistir alteração via ViewModel (recalcula % + status)
                 viewModel.commitDias(etapa, newSetUtc)
             },
-            requestHeaderDays = { headerDays } // fornece o cabeçalho para cada linha
+            requestHeaderDays = { headerDays },
+            getFuncionarios = { funcionariosCache } // << NOVO
         )
 
         // aqui você conecta o callback ANTES de setar o adapter no RecyclerView
@@ -77,6 +85,24 @@ class CronogramaGanttFragment : Fragment() {
         }
 
         rvGantt.adapter = adapter
+
+        // Carrega e observa funcionários para cálculo de valores
+        viewModelFuncionario.loadFuncionarios()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModelFuncionario.state.collect { ui ->
+                    when (ui) {
+                        is UiState.Success -> {
+                            funcionariosCache = ui.data
+                            // Rebind para recalcular os valores quando a lista mudar
+                            adapter.notifyDataSetChanged()
+                        }
+
+                        else -> Unit
+                    }
+                }
+            }
+        }
 
         // carrega as etapas
         collectState()
@@ -123,7 +149,13 @@ class CronogramaGanttFragment : Fragment() {
                             }
 
                             is UiState.Success -> {
+                                // Ordene por data de início (mais recente primeiro). Datas inválidas vão para o fim.
                                 val lista = etapasUi.data
+                                    .sortedBy {
+                                        GanttUtils.brToLocalDateOrNull(it.dataInicio)?.toEpochDay()
+                                            ?: Long.MAX_VALUE
+                                    }
+
                                 // Se o header NÃO estiver pronto ainda, aguarde (loading)
                                 if (!hasHeader) {
                                     renderLoading(true)

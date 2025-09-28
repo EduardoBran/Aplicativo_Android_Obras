@@ -82,6 +82,21 @@
             app:layout_constraintTop_toBottomOf="@id/tvFuncsEtapa"
             tools:text="01/08 → 10/08" />
 
+        <!-- NOVO: Valor -->
+        <TextView
+            android:id="@+id/tvValorEtapa"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/text_secondary_recycler"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toStartOf="@id/tvStatusEtapa"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvDatasEtapa"
+            tools:text="Valor: R$ 1.234,56" />
+
         <!-- Status -->
         <TextView
             android:id="@+id/tvStatusEtapa"
@@ -94,7 +109,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:text="Pendente" />
 
-        <!-- Divider -->
+        <!-- Divider (AJUSTADO: agora abaixo do tvValorEtapa) -->
         <View
             android:layout_width="0dp"
             android:layout_height="1dp"
@@ -102,7 +117,7 @@
             android:background="?attr/colorOutline"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvDatasEtapa" />
+            app:layout_constraintTop_toBottomOf="@id/tvValorEtapa" />
 
         <!-- Ícones de ação -->
         <LinearLayout
@@ -114,7 +129,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvDatasEtapa">
+            app:layout_constraintTop_toBottomOf="@id/tvValorEtapa">
 
             <ImageButton
                 android:id="@+id/btnEditEtapa"

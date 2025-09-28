@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Etapa
+import com.luizeduardobrandao.obra.data.model.Funcionario
 import com.luizeduardobrandao.obra.databinding.ItemGanttRowBinding
 import com.luizeduardobrandao.obra.utils.GanttUtils
 import java.lang.ref.WeakReference
@@ -17,7 +18,8 @@ import java.time.format.DateTimeFormatter
 
 class GanttRowAdapter(
     private val onToggleDay: (Etapa, Set<String>) -> Unit,
-    private val requestHeaderDays: () -> List<LocalDate>
+    private val requestHeaderDays: () -> List<LocalDate>,
+    private val getFuncionarios: () -> List<Funcionario> // << NOVO
 ) : ListAdapter<Etapa, GanttRowAdapter.VH>(DIFF) {
 
     init {
@@ -76,6 +78,79 @@ class GanttRowAdapter(
         rowScrolls.clear()
     }
 
+    // ---- Helpers de funcionários/valor ----
+    private fun parseCsvNomes(csv: String?): List<String> =
+        csv?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
+
+    private val nfBR: java.text.NumberFormat =
+        java.text.NumberFormat.getCurrencyInstance(java.util.Locale("pt", "BR"))
+
+    private fun formatMoneyBR(v: Double?): String =
+        if (v == null) "-" else nfBR.format(v)
+
+    /**
+     * Regras (NÃO conta domingos):
+     * - Diária: diasUteis * salario
+     * - Semanal: ceil(diasUteis / 7.0) * salario
+     * - Mensal:  ceil(diasUteis / 30.0) * salario
+     * - Tarefeiro: salario (uma vez)
+     * diasUteis = dias entre início e fim (INCLUSIVO) excluindo domingos.
+     */
+    private fun computeValorTotal(etapa: Etapa): Double? {
+        // Empresa → usa o valor informado (pode ser null)
+        if (etapa.responsavelTipo == "EMPRESA") {
+            return etapa.empresaValor
+        }
+
+        // Funcionários precisam estar selecionados
+        val nomes = parseCsvNomes(etapa.funcionarios)
+        if (etapa.responsavelTipo != "FUNCIONARIOS" || nomes.isEmpty()) return null
+
+        val ini = GanttUtils.brToLocalDateOrNull(etapa.dataInicio)
+        val fim = GanttUtils.brToLocalDateOrNull(etapa.dataFim)
+        if (ini == null || fim == null || fim.isBefore(ini)) return null
+
+        // conta EXCLUINDO domingos
+        val diasUteis = GanttUtils.daysBetween(ini, fim).count { !GanttUtils.isSunday(it) }
+        if (diasUteis <= 0) return 0.0
+
+        val funcionarios = getFuncionarios()
+        if (funcionarios.isEmpty()) return null
+
+        var total = 0.0
+        nomes.forEach { nomeSel ->
+            val f = funcionarios.firstOrNull { it.nome.trim().equals(nomeSel, ignoreCase = true) }
+            if (f != null) {
+                val salario = f.salario.coerceAtLeast(0.0)
+                val tipo = f.formaPagamento.trim().lowercase()
+
+                total += when {
+                    tipo.contains("diária") || tipo.contains("diaria")
+                            || tipo.contains("Diária") || tipo.contains("Diaria") -> {
+                        diasUteis * salario
+                    }
+
+                    tipo.contains("semanal") || tipo.contains("Semanal") -> {
+                        kotlin.math.ceil(diasUteis / 7.0).toInt() * salario
+                    }
+
+                    tipo.contains("mensal") || tipo.contains("Mensal") -> {
+                        kotlin.math.ceil(diasUteis / 30.0).toInt() * salario
+                    }
+
+                    tipo.contains("tarefeiro") || tipo.contains("tarefa")
+                            || tipo.contains("Terefeiro") -> {
+                        salario
+                    }
+
+                    else -> 0.0
+                }
+            }
+        }
+        return total
+    }
+
+
     override fun getItemId(position: Int): Long = getItem(position).id.hashCode().toLong()
 
     inner class VH(private val b: ItemGanttRowBinding) : RecyclerView.ViewHolder(b.root) {
@@ -122,6 +197,13 @@ class GanttRowAdapter(
                     b.tvResponsavel.text = ""
                 }
             }
+
+            // Valor total do cronograma conforme regras (sem domingos)
+            val valorTotal = computeValorTotal(etapa)
+            b.tvValor.text = itemView.context.getString(
+                R.string.gantt_valor_prefix,
+                if (valorTotal == null) "-" else formatMoneyBR(valorTotal)
+            )
 
             // Progresso (sempre recalculado na UI ignorando domingos)
             val pctBind = GanttUtils.calcularProgresso(

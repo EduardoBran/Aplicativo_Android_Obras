@@ -8,7 +8,6 @@ import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
-import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -130,11 +129,6 @@ object FileUtils {
         val pm = context.packageManager
         return captureIntent.resolveActivity(pm) != null
     }
-
-    // PRECISO PEDIR WRITE_EXTERNAL_STORAGE? (APIs <= 28)
-    fun shouldRequestLegacyWrite(): Boolean {
-        return android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.P
-    }
 }
 
 // ───────────────────────────── PDF Utils ─────────────────────────────
@@ -211,22 +205,5 @@ fun savePdfToDownloads(context: Context, bytes: ByteArray, displayName: String):
     } catch (e: Exception) {
         e.printStackTrace()
         null
-    }
-}
-
-/**
- * Escreve bytes em uma Uri arbitrária (útil se você criou a Uri antes).
- * Retorna true em caso de sucesso.
- */
-fun writeBytesToUri(context: Context, target: Uri, bytes: ByteArray): Boolean {
-    return try {
-        context.contentResolver.openOutputStream(target)?.use { out ->
-            out.write(bytes)
-            out.flush()
-        }
-        true
-    } catch (e: Exception) {
-        e.printStackTrace()
-        false
     }
 }

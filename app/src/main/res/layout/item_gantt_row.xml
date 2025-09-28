@@ -48,19 +48,33 @@
                 android:textAlignment="center"
                 android:textColor="@color/text_secondary_recycler"
                 android:textSize="14sp"
-                tools:text="21/09/2025 — 30/09/2025" />
+                tools:text="21/09/25 — 30/09/25" />
 
             <TextView
                 android:id="@+id/tvResponsavel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:maxLines="2"
                 android:textAlignment="center"
                 android:textColor="@color/text_secondary_recycler"
                 android:textSize="14sp"
                 tools:text="Funcionários" />
+
+            <TextView
+                android:id="@+id/tvValor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="2"
+                android:textAlignment="center"
+                android:textColor="@color/md_theme_light_onSurface"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="Valor: R$ 1.200,00" />
 
             <TextView
                 android:id="@+id/tvProgresso"
