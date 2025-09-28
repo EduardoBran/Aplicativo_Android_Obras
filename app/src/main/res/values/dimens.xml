@@ -38,6 +38,19 @@
     <dimen name="item_tvValorPagamento">17sp</dimen>
     <dimen name="item_tvDataPagamento">15sp</dimen>
 
-    <dimen name="gantt_header_start_inset">16dp</dimen>
+    <!-- Gantt Cronogranama -->
+    <!-- rv padding (8dp) + CardView margin (4dp) + padding interno do item (12dp) -->
+    <dimen name="gantt_header_start_inset">24dp</dimen>
+
+    <!-- novo “respiro” entre a coluna de texto e o primeiro quadrado -->
+    <dimen name="gantt_first_cell_margin_start">16dp</dimen>
+
+    <!-- NOVOS/UNIFICADOS p/ largura e gap de cada dia -->
+    <dimen name="gantt_day_width">32dp</dimen>
+    <!-- AQUI você controla o espaçamento entre quadrados e datas -->
+    <dimen name="gantt_day_gap">6dp</dimen>
+
+    <dimen name="gantt_day_text_size">12sp</dimen>
+    <dimen name="gantt_day_text_size_sunday">16sp</dimen> <!-- ajuste se quiser -->
 
 </resources>

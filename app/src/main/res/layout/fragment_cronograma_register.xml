@@ -30,6 +30,7 @@
         app:layout_constraintTop_toBottomOf="@id/toolbarEtapaReg">
 
         <LinearLayout
+            android:id="@+id/formContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -92,6 +93,53 @@
                     android:inputType="textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Título "Responsável" -->
+            <TextView
+                android:id="@+id/tvResponsavelTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/etapa_reg_responsavel_title"
+                android:textAppearance="?attr/textAppearanceHeadline6" />
+
+            <!-- RadioGroup Responsável -->
+            <RadioGroup
+                android:id="@+id/rgResponsavel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/rbRespFuncs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/etapa_reg_responsavel_func"
+                    android:textSize="16sp" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/rbRespEmpresa"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/etapa_reg_responsavel_empresa"
+                    android:textSize="16sp" />
+            </RadioGroup>
+
+            <!-- Erro do Responsável (fora do TIL) -->
+            <TextView
+                android:id="@+id/tvResponsavelError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_error"
+                android:visibility="gone"
+                tools:text="@string/etapa_error_responsavel_required"
+                tools:visibility="gone" />
+
             <!-- MaterialAlertDialogBuilder de Funcionários -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilFuncionarios"
@@ -100,6 +148,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:hint="@string/cron_func_dropdown_hint"
+                android:visibility="gone"
                 app:endIconContentDescription="@string/cron_func_dropdown_hint"
                 app:endIconDrawable="@drawable/ic_checklist"
                 app:endIconMode="custom"
@@ -131,6 +180,81 @@
                 android:textColor="@color/md_theme_light_onSurface"
                 android:visibility="gone"
                 tools:text="Funcionários: João, Maria."
+                tools:visibility="gone" />
+
+            <!-- Campo Empresa (visível apenas quando Responsável = Empresa) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilEmpresa"
+                style="@style/Widget.ObrasApp.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="@string/etapa_reg_empresa_hint"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmpresa"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_business"
+                    android:drawablePadding="12dp"
+                    android:drawableTint="@color/md_theme_light_onSurfaceVariant"
+                    android:imeOptions="actionNext"
+                    android:inputType="textCapWords" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Erro da Empresa (fora do TIL) -->
+            <TextView
+                android:id="@+id/tvEmpresaError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_error"
+                android:visibility="gone"
+                tools:text="@string/etapa_error_empresa_required"
+                tools:visibility="gone" />
+
+            <!-- Valor da Empresa (opcional) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilEmpresaValor"
+                style="@style/Widget.ObrasApp.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="@string/etapa_reg_empresa_valor_hint"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmpresaValor"
+                    style="@style/Widget.ObrasApp.TextInputEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:digits="0123456789.,"
+                    android:drawableStart="@drawable/ic_money"
+                    android:drawablePadding="12dp"
+                    android:drawableTint="@color/md_theme_light_onSurfaceVariant"
+                    android:imeOptions="actionNext"
+                    android:inputType="numberDecimal"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Informação sobre o valor (negrito em Resumo e Notas) -->
+            <TextView
+                android:id="@+id/tvEmpresaValorInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/md_theme_light_onSurfaceVariant"
+                android:visibility="gone"
+                tools:text="@string/etapa_reg_empresa_valor_info"
                 tools:visibility="visible" />
 
             <!-- Data de Início -->

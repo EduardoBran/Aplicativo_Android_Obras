@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Etapa
 import com.luizeduardobrandao.obra.databinding.ItemCronogramaBinding
+import com.luizeduardobrandao.obra.utils.GanttUtils
+import java.time.format.DateTimeFormatter
 
 /**
  * Adapter para a lista de etapas do cronograma.
@@ -39,7 +41,7 @@ class EtapaAdapter(
             val ctx = b.root.context
 
             // ① Título
-            b.tvTituloEtapa.text = e.titulo.orEmpty()
+            b.tvTituloEtapa.text = e.titulo
 
             // ② Descrição (limite 15 chars + "…") com "Descrição:" em negrito
             val desc = e.descricao.orEmpty().trim()
@@ -58,40 +60,62 @@ class EtapaAdapter(
                 )
             }
 
-            // ③ Funcionários com "Funcionário:" ou "Funcionários:" em negrito + limite de 25 chars
-            val funcionarios = e.funcionarios.orEmpty().trim()
-            val funcPrefix = if (funcionarios.contains(",")) {
-                ctx.getString(R.string.cronograma_funcionarios_prefix) // "Funcionários:"
+            // ③ Responsável (Funcionários OU Empresa)
+            if (e.responsavelTipo == "EMPRESA") {
+                val prefix = ctx.getString(R.string.cronograma_empresa_prefix) // "Empresa:"
+                val nome = e.empresaNome.orEmpty().trim()
+                val shown = if (nome.isBlank()) "—" else {
+                    if (nome.length > 20) nome.take(20) + " ..." else nome
+                }
+
+                b.tvFuncsEtapa.text = SpannableStringBuilder("$prefix $shown").apply {
+                    setSpan(
+                        android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                        0,
+                        prefix.length,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
             } else {
-                ctx.getString(R.string.cronograma_funcionario_prefix)  // "Funcionário:"
-            }
+                // Mantém comportamento anterior (Funcionário(s))
+                val funcionarios = e.funcionarios.orEmpty().trim()
+                val funcPrefix = if (funcionarios.contains(",")) {
+                    ctx.getString(R.string.cronograma_funcionarios_prefix) // "Funcionários:"
+                } else {
+                    ctx.getString(R.string.cronograma_funcionario_prefix)  // "Funcionário:"
+                }
 
-            // Aplica limite de 25 caracteres no texto
-            val funcText = when {
-                funcionarios.isBlank() -> "—"
-                funcionarios.length > 20 -> funcionarios.take(20) + " ..."
-                else -> funcionarios
-            }
+                val funcText = when {
+                    funcionarios.isBlank() -> "—"
+                    funcionarios.length > 20 -> funcionarios.take(20) + " ..."
+                    else -> funcionarios
+                }
 
-            b.tvFuncsEtapa.text = SpannableStringBuilder("$funcPrefix $funcText").apply {
-                setSpan(
-                    android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
-                    0,
-                    funcPrefix.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
+                b.tvFuncsEtapa.text = SpannableStringBuilder("$funcPrefix $funcText").apply {
+                    setSpan(
+                        android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                        0,
+                        funcPrefix.length,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
             }
 
             // ④ Datas
+            val ini = GanttUtils.brToLocalDateOrNull(e.dataInicio)
+            val fim = GanttUtils.brToLocalDateOrNull(e.dataFim)
+            val fmtIni = ini?.format(DateTimeFormatter.ofPattern("dd/MM/yy")) ?: "—"
+            val fmtFim = fim?.format(DateTimeFormatter.ofPattern("dd/MM/yy")) ?: "—"
+
             b.tvDatasEtapa.text = ctx.getString(
                 R.string.cronograma_date_range,
-                e.dataInicio.orEmpty(),
-                e.dataFim.orEmpty()
+                fmtIni,
+                fmtFim
             )
 
             // ⑤ Status com cor
             b.tvStatusEtapa.apply {
-                text = e.status.orEmpty()
+                text = e.status
                 val colorRes = when (e.status) {
                     CronogramaPagerAdapter.STATUS_PENDENTE -> R.color.md_theme_light_error
                     CronogramaPagerAdapter.STATUS_ANDAMENTO -> R.color.warning

@@ -37,8 +37,7 @@ import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.utils.applyFullWidthButtonSizingGrowShrink
 import com.luizeduardobrandao.obra.utils.Constants
-import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
-import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrInRange
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.ParseException
@@ -68,6 +67,17 @@ class CronogramaRegisterFragment : Fragment() {
     // Controle de loading/navegação (mesmo padrão de Nota/Funcionário)
     private var isSaving = false
     private var shouldCloseAfterSave = false
+
+    // Responsável
+    private enum class RespTipo { FUNCIONARIOS, EMPRESA }
+
+    private var responsavelSelecionado: RespTipo? = null
+    private var lastRespErrorVisible: Boolean? = null
+    private var lastEmpresaErrorVisible: Boolean? = null
+
+    // Datas da Obra (BR dd/MM/uuuu) para limitar o DatePicker
+    private var obraDataInicioBr: String? = null
+    private var obraDataFimBr: String? = null
 
     // ViewModel de Funcionários (pega obraId via Safe-Args / SavedStateHandle)
     private val viewModelFuncionario: FuncionarioViewModel by viewModels()
@@ -117,6 +127,9 @@ class CronogramaRegisterFragment : Fragment() {
 
         with(binding) {
             // Toolbar back & title
+            toolbarEtapaReg.menu.findItem(R.id.action_open_gantt)?.icon?.setTint(
+                ContextCompat.getColor(requireContext(), android.R.color.white)
+            )
             toolbarEtapaReg.setNavigationOnClickListener { handleBackPress() }
             toolbarEtapaReg.title = if (isEdit)
                 getString(R.string.etapa_reg_title_edit)
@@ -128,34 +141,100 @@ class CronogramaRegisterFragment : Fragment() {
                 btnSaveEtapa.applyFullWidthButtonSizingGrowShrink()
             }
 
+            // Negrito em "Resumo" e "Notas" via HTML
+            tvEmpresaValorInfo.text = androidx.core.text.HtmlCompat.fromHtml(
+                getString(R.string.etapa_reg_empresa_valor_info),
+                androidx.core.text.HtmlCompat.FROM_HTML_MODE_LEGACY
+            )
+
             // Date pickers
             etDataInicioEtapa.setOnClickListener {
-                if (isEdit) {
-                    showMaterialDatePickerBrWithInitial(
-                        etDataInicioEtapa.text?.toString()
-                    ) { chosen ->
-                        etDataInicioEtapa.setText(chosen)
-                        validateForm()
-                    }
-                } else {
-                    showMaterialDatePickerBrToday { chosen ->
-                        etDataInicioEtapa.setText(chosen)
-                        validateForm()
-                    }
+                // initial = valor atual do campo (se houver), limitado ao intervalo da Obra
+                val initial = etDataInicioEtapa.text?.toString()
+                showMaterialDatePickerBrInRange(
+                    initialBr = initial,
+                    startBr = obraDataInicioBr,
+                    endBr = obraDataFimBr
+                ) { chosen ->
+                    etDataInicioEtapa.setText(chosen)
+                    validateForm()
                 }
             }
             etDataFimEtapa.setOnClickListener {
-                if (isEdit) {
-                    showMaterialDatePickerBrWithInitial(etDataFimEtapa.text?.toString()) { chosen ->
-                        etDataFimEtapa.setText(chosen)
-                        validateForm()
+                val initial = etDataFimEtapa.text?.toString()
+                showMaterialDatePickerBrInRange(
+                    initialBr = initial,
+                    startBr = obraDataInicioBr,
+                    endBr = obraDataFimBr
+                ) { chosen ->
+                    etDataFimEtapa.setText(chosen)
+                    validateForm()
+                }
+            }
+
+            // Responsável - listeners
+            rgResponsavel.setOnCheckedChangeListener { _, checkedId ->
+                // scene root correto é o LinearLayout que contém os views que mudam
+                val sceneRoot = formContainer
+                TransitionManager.beginDelayedTransition(
+                    sceneRoot,
+                    AutoTransition().apply { duration = 150 }
+                )
+
+                when (checkedId) {
+                    R.id.rbRespFuncs -> {
+                        responsavelSelecionado = RespTipo.FUNCIONARIOS
+
+                        // Funcionários visíveis
+                        tilFuncionarios.visibility = View.VISIBLE
+                        tvFuncionariosSelecionados.visibility =
+                            if (selecionadosAtual.isEmpty()) View.GONE else View.VISIBLE
+
+                        // Empresa invisível
+                        tilEmpresa.visibility = View.GONE
+                        tvEmpresaError.visibility = View.GONE
+                        etEmpresa.setText("")
+
+                        // Valor Empresa invisível
+                        tilEmpresaValor.visibility = View.GONE
+                        tvEmpresaValorInfo.visibility = View.GONE
+                        etEmpresaValor.setText("")
                     }
-                } else {
-                    showMaterialDatePickerBrToday { chosen ->
-                        etDataFimEtapa.setText(chosen)
-                        validateForm()
+
+                    R.id.rbRespEmpresa -> {
+                        responsavelSelecionado = RespTipo.EMPRESA
+
+                        // Funcionários invisível
+                        tilFuncionarios.visibility = View.GONE
+                        tvFuncionariosSelecionados.visibility = View.GONE
+                        tvFuncionariosSelecionados.text = ""
+                        dropdownFuncionarios.setText("", false)
+
+                        // Empresa visível
+                        tilEmpresa.visibility = View.VISIBLE
+                        // Valor Empresa visível
+                        tilEmpresaValor.visibility = View.VISIBLE
+                        tvEmpresaValorInfo.visibility = View.VISIBLE
+                    }
+
+                    else -> {
+                        responsavelSelecionado = null
+
+                        tilFuncionarios.visibility = View.GONE
+                        tvFuncionariosSelecionados.visibility = View.GONE
+                        tvFuncionariosSelecionados.text = ""
+
+                        tilEmpresa.visibility = View.GONE
+                        tvEmpresaError.visibility = View.GONE
+                        etEmpresa.setText("")
+
+                        tilEmpresaValor.visibility = View.GONE
+                        tvEmpresaValorInfo.visibility = View.GONE
+                        etEmpresaValor.setText("")
                     }
                 }
+
+                validateForm()
             }
 
             // Botão Salvar/Atualizar
@@ -197,6 +276,16 @@ class CronogramaRegisterFragment : Fragment() {
 
             // Coleta estado de operação (loading/sucesso/erro)
             collectOperationState()
+
+            // Limites de datas da Obra para o DatePicker
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    viewModel.obraState.collect { obra ->
+                        obraDataInicioBr = obra?.dataInicio
+                        obraDataFimBr = obra?.dataFim
+                    }
+                }
+            }
 
             // ▼ Funcionários (dropdown multi-seleção)
             setupFuncionariosDropdown()                       // configura listeners/adapter
@@ -338,15 +427,141 @@ class CronogramaRegisterFragment : Fragment() {
         etDataInicioEtapa.setText(e.dataInicio)
         etDataFimEtapa.setText(e.dataFim)
 
-        // Seleção inicial (parse do CSV salvo)
+        // Parse da seleção salva (CSV) – apenas prepara a estrutura
         if (!restoredSelectionFromState) {
             val nomes = parseCsvNomes(e.funcionarios)
             selecionadosAtual.clear()
             selecionadosAtual.addAll(nomes)
         }
-        renderFuncionariosSelecionados()
-        // ❌ não chame validateForm() aqui; chamamos após marcar dataLoaded=true em observeEtapa()
+
+        // 1) Evita disparar transições/listeners enquanto ajustamos a UI programaticamente
+        rgResponsavel.setOnCheckedChangeListener(null)
+
+        // 2) Ajusta UI de acordo com o tipo salvo
+        when (e.responsavelTipo) {
+            "FUNCIONARIOS" -> {
+                rbRespFuncs.isChecked = true
+                responsavelSelecionado = RespTipo.FUNCIONARIOS
+
+                tilFuncionarios.visibility = View.VISIBLE
+                tilEmpresa.visibility = View.GONE
+                tvEmpresaError.visibility = View.GONE
+                etEmpresa.setText("")
+                tilEmpresaValor.visibility = View.GONE
+                tvEmpresaValorInfo.visibility = View.GONE
+                etEmpresaValor.setText("")
+            }
+
+            "EMPRESA" -> {
+                rbRespEmpresa.isChecked = true
+                responsavelSelecionado = RespTipo.EMPRESA
+
+                tilFuncionarios.visibility = View.GONE
+                tvFuncionariosSelecionados.visibility = View.GONE
+                tvFuncionariosSelecionados.text = ""
+
+                tilEmpresa.visibility = View.VISIBLE
+                etEmpresa.setText(e.empresaNome.orEmpty())
+                // Mostrar campo de valor e info
+                tilEmpresaValor.visibility = View.VISIBLE
+                tvEmpresaValorInfo.visibility = View.VISIBLE
+                // Preenche valor salvo (se houver)
+                if (e.empresaValor != null) {
+                    // formata simples (use seu helper de currency se tiver)
+                    val str = e.empresaValor.toString()
+                    etEmpresaValor.setText(str)
+                } else {
+                    etEmpresaValor.setText("")
+                }
+            }
+
+            else -> {
+                // legado: nenhum selecionado
+                rgResponsavel.clearCheck()
+                responsavelSelecionado = null
+
+                tilFuncionarios.visibility = View.GONE
+                tvFuncionariosSelecionados.visibility = View.GONE
+                tvFuncionariosSelecionados.text = ""
+
+                tilEmpresa.visibility = View.GONE
+                tvEmpresaError.visibility = View.GONE
+                etEmpresa.setText("")
+                tilEmpresaValor.visibility = View.GONE
+                tvEmpresaValorInfo.visibility = View.GONE
+                etEmpresaValor.setText("")
+            }
+        }
+
+        // 3) Só agora renderize Funcionários, SE esse for o tipo escolhido
+        if (responsavelSelecionado == RespTipo.FUNCIONARIOS) {
+            renderFuncionariosSelecionados()
+        }
+
+        // 4) Reata o listener após o setup programático
+        rgResponsavel.setOnCheckedChangeListener { _, checkedId ->
+            val sceneRoot = formContainer
+            TransitionManager.beginDelayedTransition(
+                sceneRoot, AutoTransition().apply { duration = 150 }
+            )
+            when (checkedId) {
+                R.id.rbRespFuncs -> {
+                    responsavelSelecionado = RespTipo.FUNCIONARIOS
+
+                    // Funcionários visíveis
+                    tilFuncionarios.visibility = View.VISIBLE
+                    tvFuncionariosSelecionados.visibility =
+                        if (selecionadosAtual.isEmpty()) View.GONE else View.VISIBLE
+
+                    // Empresa invisível
+                    tilEmpresa.visibility = View.GONE
+                    tvEmpresaError.visibility = View.GONE
+                    etEmpresa.setText("")
+
+                    // Valor da empresa invisível + limpar
+                    tilEmpresaValor.visibility = View.GONE
+                    tvEmpresaValorInfo.visibility = View.GONE
+                    etEmpresaValor.setText("")
+                }
+
+                R.id.rbRespEmpresa -> {
+                    responsavelSelecionado = RespTipo.EMPRESA
+
+                    // Funcionários invisível
+                    tilFuncionarios.visibility = View.GONE
+                    tvFuncionariosSelecionados.visibility = View.GONE
+                    tvFuncionariosSelecionados.text = ""
+                    dropdownFuncionarios.setText("", false)
+
+                    // Empresa visível
+                    tilEmpresa.visibility = View.VISIBLE
+
+                    // Valor da empresa visível
+                    tilEmpresaValor.visibility = View.VISIBLE
+                    tvEmpresaValorInfo.visibility = View.VISIBLE
+                }
+
+                else -> {
+                    responsavelSelecionado = null
+
+                    // Esconde tudo e limpa
+                    tilFuncionarios.visibility = View.GONE
+                    tvFuncionariosSelecionados.visibility = View.GONE
+                    tvFuncionariosSelecionados.text = ""
+
+                    tilEmpresa.visibility = View.GONE
+                    tvEmpresaError.visibility = View.GONE
+                    etEmpresa.setText("")
+
+                    tilEmpresaValor.visibility = View.GONE
+                    tvEmpresaValorInfo.visibility = View.GONE
+                    etEmpresaValor.setText("")
+                }
+            }
+            validateForm()
+        }
     }
+
 
     /*──────────── Salvar / Validar ───────────*/
     private fun onSaveClicked() {
@@ -366,22 +581,69 @@ class CronogramaRegisterFragment : Fragment() {
             binding.tvDataFimError.text = getString(R.string.etapa_error_date_order)
             return
         }
+        val empresaValorParsed: Double? = if (responsavelSelecionado == RespTipo.EMPRESA) {
+            parseEmpresaValorOrNull(binding.etEmpresaValor.text?.toString()) {
+                binding.etEmpresaValor.setText("")
+            }
+        } else null
 
-        val status = CronStatus.PENDENTE
-
-        val etapa = Etapa(
-            id = etapaOriginal?.id ?: "",
-            titulo = titulo,
-            descricao = binding.etDescEtapa.text.toString().trim(),
-            // salva como CSV "João, Maria" (sem ponto final)
-            funcionarios = selecionadosAtual
-                .toList()
-                .sortedBy { it.lowercase(Locale.getDefault()) }
-                .joinToString(", "),
-            dataInicio = dataIni,
-            dataFim = dataFim,
-            status = status
-        )
+        val etapa =
+            if (isEdit) {
+                // ✅ Preserva status, progresso e diasConcluidos (e quaisquer demais campos)
+                val base = etapaOriginal ?: return
+                base.copy(
+                    titulo = titulo,
+                    descricao = binding.etDescEtapa.text.toString().trim(),
+                    funcionarios = selecionadosAtual
+                        .toList()
+                        .sortedBy { it.lowercase(Locale.getDefault()) }
+                        .joinToString(", ")
+                        .ifBlank { null },
+                    dataInicio = dataIni,
+                    dataFim = dataFim,
+                    responsavelTipo = when (responsavelSelecionado) {
+                        RespTipo.FUNCIONARIOS -> "FUNCIONARIOS"
+                        RespTipo.EMPRESA -> "EMPRESA"
+                        else -> null
+                    },
+                    empresaNome = when (responsavelSelecionado) {
+                        RespTipo.EMPRESA -> binding.etEmpresa.text?.toString()?.trim().orEmpty()
+                        else -> null
+                    },
+                    empresaValor = when (responsavelSelecionado) {
+                        RespTipo.EMPRESA -> empresaValorParsed
+                        else -> null
+                    }
+                )
+            } else {
+                // Inclusão nova mantém PENDENTE (default do modelo) e não tem diasConcluidos
+                Etapa(
+                    id = "",
+                    titulo = titulo,
+                    descricao = binding.etDescEtapa.text.toString().trim(),
+                    funcionarios = selecionadosAtual
+                        .toList()
+                        .sortedBy { it.lowercase(Locale.getDefault()) }
+                        .joinToString(", ")
+                        .ifBlank { null },
+                    dataInicio = dataIni,
+                    dataFim = dataFim,
+                    // status: usa default PENDENTE do data class
+                    responsavelTipo = when (responsavelSelecionado) {
+                        RespTipo.FUNCIONARIOS -> "FUNCIONARIOS"
+                        RespTipo.EMPRESA -> "EMPRESA"
+                        else -> null
+                    },
+                    empresaNome = when (responsavelSelecionado) {
+                        RespTipo.EMPRESA -> binding.etEmpresa.text?.toString()?.trim().orEmpty()
+                        else -> null
+                    },
+                    empresaValor = when (responsavelSelecionado) {
+                        RespTipo.EMPRESA -> empresaValorParsed
+                        else -> null
+                    }
+                )
+            }
 
         shouldCloseAfterSave = true
         isSaving = true
@@ -413,6 +675,21 @@ class CronogramaRegisterFragment : Fragment() {
         }
 
         etTituloEtapa.addTextChangedListener(watcher)
+        etEmpresa.addTextChangedListener(watcher) // validação dinâmica do nome da empresa
+        // Valor Empresa (opcional, mas sem permitir negativo)
+        etEmpresaValor.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (!dataLoaded) return
+                // se negativo, limpar silenciosamente
+                parseEmpresaValorOrNull(s?.toString()) {
+                    etEmpresaValor.setText("")
+                }
+                validateForm()
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
         etDataInicioEtapa.addTextChangedListener(watcher)
         etDataFimEtapa.addTextChangedListener(watcher)
     }
@@ -492,8 +769,57 @@ class CronogramaRegisterFragment : Fragment() {
         // evita “caption” interno
         tilDataFimEtapa.error = null
 
+        // Responsável (obrigatório)
+        val respOk = responsavelSelecionado != null
+        tvResponsavelError.isVisible = !respOk
+        if (!respOk) tvResponsavelError.text = getString(R.string.etapa_error_responsavel_required)
+        val respChanged = lastRespErrorVisible != tvResponsavelError.isVisible
+        lastRespErrorVisible = tvResponsavelError.isVisible
+        // ajustar espaçamento do próximo bloco (tilFuncionarios ou tilEmpresa) conforme erro
+        adjustSpacingAfterView(
+            tvResponsavelError,
+            if (responsavelSelecionado == RespTipo.EMPRESA) tilEmpresa else tilFuncionarios,
+            visibleTopDp = 8,
+            goneTopDp = 12,
+            animate = respChanged
+        )
+
+        // Se Empresa → campo obrigatório 3..18
+        var empresaOk = true
+        if (responsavelSelecionado == RespTipo.EMPRESA) {
+            val nome = etEmpresa.text?.toString()?.trim().orEmpty()
+            empresaOk = nome.isNotEmpty()
+            tvEmpresaError.isVisible = !empresaOk
+            if (!empresaOk) tvEmpresaError.text = getString(R.string.etapa_error_empresa_required)
+
+            val sizeOk = nome.length in 3..18
+            if (empresaOk && !sizeOk) {
+                tvEmpresaError.isVisible = true
+                tvEmpresaError.text = getString(R.string.etapa_error_empresa_size)
+            }
+            empresaOk = empresaOk && sizeOk
+
+            val empChanged = lastEmpresaErrorVisible != tvEmpresaError.isVisible
+            lastEmpresaErrorVisible = tvEmpresaError.isVisible
+            // Ajusta margem antes do bloco Data Início
+            adjustSpacingAfterView(
+                tvEmpresaError,
+                tilDataInicioEtapa,
+                visibleTopDp = 8,
+                goneTopDp = 24,
+                animate = empChanged
+            )
+            // evita caption interno
+            tilEmpresa.error = null
+        } else {
+            // quando não é empresa, apagar erro/estado visual
+            tvEmpresaError.isVisible = false
+            tilEmpresa.error = null
+        }
+
         // habilitação do botão
-        val enabled = tituloOk && iniOk && fimOk && ordemOk
+        val enabled = tituloOk && iniOk && fimOk && ordemOk && respOk &&
+                (responsavelSelecionado != RespTipo.EMPRESA || empresaOk)
         if (!isSaving && !shouldCloseAfterSave) {
             btnSaveEtapa.isEnabled = enabled
         }
@@ -529,11 +855,23 @@ class CronogramaRegisterFragment : Fragment() {
         }
     }
 
+    @Suppress("KotlinConstantConditions")
     private fun hasUnsavedChanges(): Boolean = with(binding) {
         val titulo = etTituloEtapa.text?.toString()?.trim().orEmpty()
         val desc = etDescEtapa.text?.toString()?.trim().orEmpty()
         val ini = etDataInicioEtapa.text?.toString()?.trim().orEmpty()
         val fim = etDataFimEtapa.text?.toString()?.trim().orEmpty()
+
+        val respAtual: String? = when {
+            rbRespFuncs.isChecked -> "FUNCIONARIOS"
+            rbRespEmpresa.isChecked -> "EMPRESA"
+            else -> null
+        }
+        val empresaAtual = etEmpresa.text?.toString()?.trim().orEmpty()
+
+        // ✅ use o mesmo parser do onSaveClicked
+        val empresaValorAtual: Double? =
+            parseEmpresaValorOrNull(etEmpresaValor.text?.toString())
 
         if (!isEdit) {
             return@with titulo.isNotEmpty()
@@ -541,16 +879,38 @@ class CronogramaRegisterFragment : Fragment() {
                     || ini.isNotEmpty()
                     || fim.isNotEmpty()
                     || selecionadosAtual.isNotEmpty()
+                    || respAtual != null
+                    || (respAtual == "EMPRESA" && (
+                    empresaAtual.isNotEmpty() || empresaValorAtual != null
+                    ))
         }
 
         val orig = etapaOriginal ?: return@with false
         val nomesOrig = parseCsvNomes(orig.funcionarios)
+        val respOrig = orig.responsavelTipo
+        val empresaOrig = orig.empresaNome.orEmpty()
+        val empresaValorOrig = orig.empresaValor   // Double?
 
-        return@with titulo != orig.titulo
-                || desc != (orig.descricao ?: "")
-                || ini != orig.dataInicio
-                || fim != orig.dataFim
-                || selecionadosAtual != nomesOrig
+        var alterou = false
+        alterou = alterou || (titulo != orig.titulo)
+        alterou = alterou || (desc != (orig.descricao ?: ""))
+        alterou = alterou || (ini != orig.dataInicio)
+        alterou = alterou || (fim != orig.dataFim)
+        alterou = alterou || (selecionadosAtual != nomesOrig)
+
+        alterou = alterou || (respAtual != respOrig)
+        if (respAtual == "EMPRESA") {
+            alterou = alterou || (empresaAtual != empresaOrig)
+            val changedValor = when {
+                empresaValorOrig == null && empresaValorAtual == null -> false
+                empresaValorOrig == null && empresaValorAtual != null -> true
+                empresaValorOrig != null && empresaValorAtual == null -> true
+                else -> kotlin.math.abs(empresaValorOrig!! - empresaValorAtual!!) > 1e-6
+            }
+            alterou = alterou || changedValor
+        }
+
+        return@with alterou
     }
 
     /*──────────── Progress control (spinner + UX) ───────────*/
@@ -696,6 +1056,21 @@ class CronogramaRegisterFragment : Fragment() {
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .toCollection(linkedSetOf())
+    }
+
+    /** Converte "1.234,56" ou "1234.56" para Double (>= 0). Retorna null se vazio/ inválido.
+     *  Se negativo for digitado (ex.: colar), limpa o campo silenciosamente e retorna null. */
+    private fun parseEmpresaValorOrNull(raw: String?, onNegative: (() -> Unit)? = null): Double? {
+        val s = raw?.trim().orEmpty()
+        if (s.isBlank()) return null
+        // normaliza vírgula para ponto
+        val norm = s.replace(',', '.')
+        val v = norm.toDoubleOrNull() ?: return null
+        if (v < 0.0) {
+            onNegative?.invoke()  // regra: não permitir negativo (sem aviso)
+            return null
+        }
+        return v
     }
 
     // ------------- Helpers de espaçamento -------------

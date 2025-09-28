@@ -69,8 +69,9 @@
                 android:textColor="?attr/colorOnSurface"
                 tools:text="—" />
 
-            <!-- Funcionários -->
+            <!-- Funcionários / Nome da Empresa (título será definido em runtime) -->
             <TextView
+                android:id="@+id/tvDetFuncLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/cron_reg_func_hint"

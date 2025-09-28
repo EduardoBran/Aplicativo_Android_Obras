@@ -47,8 +47,20 @@
                 android:gravity="center"
                 android:textAlignment="center"
                 android:textColor="@color/text_secondary_recycler"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 tools:text="21/09/2025 — 30/09/2025" />
+
+            <TextView
+                android:id="@+id/tvResponsavel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:gravity="center"
+                android:maxLines="2"
+                android:textAlignment="center"
+                android:textColor="@color/text_secondary_recycler"
+                android:textSize="14sp"
+                tools:text="Funcionários" />
 
             <TextView
                 android:id="@+id/tvProgresso"
@@ -58,17 +70,17 @@
                 android:gravity="center"
                 android:textAlignment="center"
                 android:textColor="@color/success"
-                android:textSize="12sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 tools:text="30%" />
         </LinearLayout>
-
 
         <!-- Timeline (direita) rolável horizontal -->
         <com.luizeduardobrandao.obra.utils.AccessibleHorizontalScrollView
             android:id="@+id/rowScroll"
             android:layout_width="0dp"
             android:layout_height="64dp"
+            android:layout_marginStart="@dimen/gantt_first_cell_margin_start"
             android:fillViewport="false"
             android:overScrollMode="never"
             app:layout_constraintBottom_toBottomOf="parent"

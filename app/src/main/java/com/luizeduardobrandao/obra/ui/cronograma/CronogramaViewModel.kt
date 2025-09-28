@@ -146,18 +146,23 @@ class CronogramaViewModel @Inject constructor(
      */
     fun commitDias(etapa: Etapa, novoSetUtc: Set<String>) = viewModelScope.launch(io) {
         // Range planejado em LocalDate
-        val range: List<LocalDate> = GanttUtils.diasPlanejados(etapa.dataInicio, etapa.dataFim)
-        val total = range.size
-        val rangeSet = range.toSet()
+        val ini = GanttUtils.brToLocalDateOrNull(etapa.dataInicio)
+        val fim = GanttUtils.brToLocalDateOrNull(etapa.dataFim)
+        val range: List<LocalDate> =
+            if (ini != null && fim != null && !fim.isBefore(ini)) {
+                GanttUtils.daysBetween(ini, fim).filter { d -> !GanttUtils.isSunday(d) }
+            } else emptyList()
 
-        // Normaliza: mantém apenas dias dentro do range planejado
+        val rangeSet = range.toSet()
+        val total = range.size
+
+        // Normaliza: mantém apenas dias dentro do range útil (sem domingos)
         val normalizadoUtc: Set<String> = novoSetUtc
             .mapNotNull { GanttUtils.utcStringToLocalDate(it) }
             .filter { it in rangeSet }
             .map { GanttUtils.localDateToUtcString(it) }
             .toSet()
 
-        // Recalcula progresso e status
         val done = normalizadoUtc
             .mapNotNull { GanttUtils.utcStringToLocalDate(it) }
             .count { it in rangeSet }
@@ -167,9 +172,10 @@ class CronogramaViewModel @Inject constructor(
 
         // Update parcial (seguro contra sobrescrever outros campos)
         val campos: Map<String, Any?> = mapOf(
-            "diasConcluidos" to normalizadoUtc.toList().ifEmpty { null }, // << troquei para .toList()
-            "progresso"      to progresso,
-            "status"         to CronStatus.statusAuto(done, total)        // << usa CronStatus
+            "diasConcluidos" to normalizadoUtc.toList()
+                .ifEmpty { null }, // << troquei para .toList()
+            "progresso" to progresso,
+            "status" to CronStatus.statusAuto(done, total)        // << usa CronStatus
         )
 
         // Prefira update parcial para evitar condições de corrida.

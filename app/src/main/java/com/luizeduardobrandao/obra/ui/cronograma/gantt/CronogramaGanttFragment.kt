@@ -2,6 +2,7 @@ package com.luizeduardobrandao.obra.ui.cronograma.gantt
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,12 +15,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.luizeduardobrandao.obra.R
-import com.luizeduardobrandao.obra.data.model.Etapa
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentCronogramaGanttBinding
 import com.luizeduardobrandao.obra.ui.cronograma.CronogramaViewModel
 import com.luizeduardobrandao.obra.ui.cronograma.gantt.adapter.GanttRowAdapter
-import com.luizeduardobrandao.obra.ui.cronograma.gantt.view.GanttTimelineView
 import com.luizeduardobrandao.obra.utils.GanttUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -37,8 +36,6 @@ class CronogramaGanttFragment : Fragment() {
     private lateinit var adapter: GanttRowAdapter
 
     // Cabeçalho/timeline global (mínimo comum entre todas as etapas carregadas)
-    private var headerStart: LocalDate? = null
-    private var headerEnd: LocalDate? = null
     private var headerDays: List<LocalDate> = emptyList()
 
     override fun onCreateView(
@@ -70,7 +67,13 @@ class CronogramaGanttFragment : Fragment() {
         adapter.onFirstLeftWidth = { leftWidth ->
             val row = binding.headerRow
             val inset = resources.getDimensionPixelSize(R.dimen.gantt_header_start_inset)
-            row.setPadding(leftWidth + inset, row.paddingTop, row.paddingRight, row.paddingBottom)
+            val startGap = resources.getDimensionPixelSize(R.dimen.gantt_first_cell_margin_start)
+            row.setPadding(
+                leftWidth + inset + startGap,
+                row.paddingTop,
+                row.paddingRight,
+                row.paddingBottom
+            )
         }
 
         rvGantt.adapter = adapter
@@ -87,52 +90,69 @@ class CronogramaGanttFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
 
-                // 1) Obra (datas do cabeçalho)
-                launch {
-                    viewModel.obraState.collect { obra ->
+                // Combine obra + etapas para controlarmos um único "loading"
+                kotlinx.coroutines.flow.combine(
+                    viewModel.obraState,
+                    viewModel.state
+                ) { obra, etapasUi -> obra to etapasUi }
+                    .collect { (obra, etapasUi) ->
+
+                        // 1) Monte/valide o cabeçalho da obra
                         val ini = GanttUtils.brToLocalDateOrNull(obra?.dataInicio)
                         val fim = GanttUtils.brToLocalDateOrNull(obra?.dataFim)
-                        headerDays = if (ini != null && fim != null && !fim.isBefore(ini)) {
-                            GanttUtils.daysBetween(ini, fim) // TODAS as datas da obra
-                        } else emptyList()
+                        val hasHeader = (ini != null && fim != null && !fim.isBefore(ini))
+                        headerDays =
+                            if (hasHeader) GanttUtils.daysBetween(ini!!, fim!!) else emptyList()
 
-                        // (re)constrói o cabeçalho sempre que a obra mudar (ex.: alterou término)
-                        buildHeaderViews()
-
-                        // pede rebind para alinhar as timelines ao novo cabeçalho
-                        adapter.notifyDataSetChanged()
-                    }
-                }
-
-                // 2) Etapas
-                launch {
-                    viewModel.state.collect { ui ->
-                        when (ui) {
-                            is UiState.Loading -> renderLoading(true)
-                            is UiState.Success -> {
-                                renderLoading(false)
-                                // só preenche lista; header é controlado pela obra
-                                adapter.submitList(ui.data)
-                                binding.textEmpty.isVisible = ui.data.isEmpty()
-                                if (ui.data.isEmpty()) binding.textEmpty.setText(R.string.gantt_empty)
+                        // 2) Estado da lista de etapas
+                        when (etapasUi) {
+                            is UiState.Loading -> {
+                                // Enquanto qualquer lado não estiver pronto → loading
+                                renderLoading(true)
+                                return@collect
                             }
+
                             is UiState.ErrorRes -> {
+                                // Erro: esconde conteúdo e mostra mensagem
                                 renderLoading(false)
+                                binding.headerContainer.isVisible = false
+                                binding.rvGantt.isVisible = false
                                 binding.textEmpty.isVisible = true
-                                binding.textEmpty.setText(ui.resId)
-                                adapter.submitList(emptyList())
+                                binding.textEmpty.setText(etapasUi.resId)
+                                return@collect
                             }
+
+                            is UiState.Success -> {
+                                val lista = etapasUi.data
+                                // Se o header NÃO estiver pronto ainda, aguarde (loading)
+                                if (!hasHeader) {
+                                    renderLoading(true)
+                                    return@collect
+                                }
+
+                                // 3) Já temos header + etapas → renderiza TUDO de uma vez
+                                buildHeaderViews() // monta as datas do topo (sem mexer em visibilidade)
+                                adapter.submitList(lista) {
+                                    // Mostrar tudo só depois que a lista aplicar o diff
+                                    renderLoading(false)
+                                    binding.textEmpty.isVisible = lista.isEmpty()
+                                    if (lista.isEmpty()) binding.textEmpty.setText(R.string.gantt_empty)
+
+                                    binding.headerContainer.isVisible = lista.isNotEmpty()
+                                    binding.rvGantt.isVisible = lista.isNotEmpty()
+                                }
+                            }
+
                             else -> Unit
                         }
                     }
-                }
             }
         }
     }
 
-
     private fun renderLoading(show: Boolean) = with(binding) {
         progressGantt.isVisible = show
+        // Conteúdo some enquanto carrega
         rvGantt.isVisible = !show
         headerContainer.isVisible = !show
         textEmpty.isVisible = false
@@ -140,22 +160,25 @@ class CronogramaGanttFragment : Fragment() {
 
     private fun buildHeaderViews() = with(binding) {
         headerRow.removeAllViews()
-
-        if (headerDays.isEmpty()) {
-            headerContainer.isVisible = false
-            return@with
-        }
-        headerContainer.isVisible = true
+        if (headerDays.isEmpty()) return@with
 
         val inflater = LayoutInflater.from(root.context)
         headerDays.forEach { d ->
             val tv = inflater.inflate(R.layout.item_gantt_header_day, headerRow, false) as ViewGroup
             val label = tv.findViewById<android.widget.TextView>(R.id.tvDayLabel)
-            // Domingos ficam em branco e são "não marcáveis" (o View cuidará disso)
-            label.text = if (GanttUtils.isSunday(d)) "" else GanttUtils.formatDayForHeader(d)
+            label.text = if (GanttUtils.isSunday(d))
+                getString(R.string.gantt_sunday_short)      // "D"
+            else
+                GanttUtils.formatDayForHeader(d)
+            if (GanttUtils.isSunday(d)) {
+                val big = resources.getDimension(R.dimen.gantt_day_text_size_sunday)
+                label.setTextSize(TypedValue.COMPLEX_UNIT_PX, big)
+            } else {
+                val normal = resources.getDimension(R.dimen.gantt_day_text_size)
+                label.setTextSize(TypedValue.COMPLEX_UNIT_PX, normal)
+            }
             headerRow.addView(tv)
         }
-
         adapter.attachHeaderScroll(binding.headerScroll)
     }
 

@@ -106,6 +106,7 @@
     <string name="home_toast_logout">Usuário deslogado.</string>
     <string name="home_btn_funcionarios">Funcionários</string>
     <string name="home_btn_notas">Notas de Materiais</string>
+    <string name="home_btn_notas2">Notas</string>
     <string name="home_btn_cronograma">Cronograma da Obra</string>
     <string name="home_btn_dados_obra">Dados da Obra</string>
     <string name="home_btn_resumo">Resumo</string>
@@ -451,6 +452,11 @@
     <string name="etapa_save_error">Erro ao salvar o cronograma.</string>
     <string name="etapa_update_error">Erro ao atualizar o cronograma.</string>
     <string name="etapa_delete_error">Erro ao deletar o cronograma.</string>
+    <string name="etapa_reg_empresa_valor_hint">Valor (opcional)</string>
+    <string name="etapa_reg_empresa_valor_info">
+    Este valor não será descontado no menu &lt;b&gt;Resumo&lt;/b&gt;. Para isso adicione o valor no menu &lt;b&gt;Notas&lt;/b&gt;.
+</string>
+
     <!-- Cronograma: Dropdown de Funcionários -->
     <string name="cron_func_dropdown_hint">Funcionário(s) – opcional</string>
     <string name="cron_func_no_employees">Sem funcionários cadastrados.</string>
@@ -459,6 +465,22 @@
         <item quantity="one">Funcionário nesta etapa: %1$s.</item>
         <item quantity="other">Funcionários nesta etapa: %1$s.</item>
     </plurals>
+
+    <!-- Cronograma - Responsável -->
+    <string name="etapa_reg_responsavel_title">Responsável</string>
+    <string name="etapa_reg_responsavel_func">Funcionários</string>
+    <string name="etapa_reg_responsavel_empresa">Empresa</string>
+    <string name="etapa_reg_empresa_hint">Nome da empresa</string>
+    <string name="cronograma_empresa_fmt">Empresa: %1$s</string>
+    <string name="gantt_sunday_short">D</string>
+
+    <!-- Erros/validações -->
+    <string name="etapa_error_responsavel_required">Selecione o tipo de responsável.</string>
+    <string name="etapa_error_empresa_required">Informe o nome da empresa.</string>
+    <string name="etapa_error_empresa_size">O nome da empresa deve ter entre 3 e 16 caracteres.</string>
+
+    <!-- Lista -->
+    <string name="cronograma_empresa_prefix">Empresa:</string>
 
     <!-- Erros de validação -->
     <string name="etapa_error_title">Título da etapa muito curto.</string>
@@ -472,6 +494,8 @@
     <string name="etapa_detail_title">Etapa %1$s</string>
     <string name="cron_reg_desc_hint">Descrição</string>
     <string name="cron_reg_func_hint">Funcionário(s)</string>
+    <string name="cronograma_funcionarios_title">Funcionários</string>
+    <string name="det_empresa_label">Nome da Empresa</string>
 
     <!-- fragment_material -->
     <string name="material_title">Material da Obra</string>
@@ -975,7 +999,5 @@
     <string name="level_shot">Capturar print</string>
     <string name="level_screenshot_saved">Imagem salva na galeria.</string>
     <string name="level_screenshot_fail">Falha ao salvar captura</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

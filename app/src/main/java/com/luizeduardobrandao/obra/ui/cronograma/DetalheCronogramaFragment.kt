@@ -49,18 +49,30 @@ class DetalheCronogramaFragment : Fragment() {
                     viewModel.state.collect { ui ->
                         when (ui) {
                             is UiState.Success -> {
-                                val et = ui.data.firstOrNull { it.id == args.etapaId } ?: return@collect
+                                val et =
+                                    ui.data.firstOrNull { it.id == args.etapaId } ?: return@collect
 
-                                toolbarDetEtapa.title = et.titulo.orEmpty()
-                                tvDetTitulo.text = et.titulo.orEmpty()
+                                toolbarDetEtapa.title = et.titulo
+
+                                tvDetTitulo.text = et.titulo
 
                                 tvDetDescricao.text = et.descricao?.ifBlank { "—" } ?: "—"
-                                tvDetFunc.text      = et.funcionarios?.ifBlank { "—" } ?: "—"
 
-                                tvDetDataIni.text = et.dataInicio.orEmpty()
-                                tvDetDataFim.text = et.dataFim.orEmpty()
-                                tvDetStatus.text  = et.status.orEmpty()
+                                /* ► Se foi salvo como EMPRESA: troca o rótulo e exibe o nome da empresa.
+                                   ► Caso contrário, mantém Funcionário(s) + CSV já existente. */
+                                if (et.responsavelTipo == "EMPRESA") {
+                                    tvDetFuncLabel.setText(R.string.det_empresa_label)  // "Nome da empresa"
+                                    tvDetFunc.text = et.empresaNome?.ifBlank { "—" } ?: "—"
+                                } else {
+                                    tvDetFuncLabel.setText(R.string.cron_reg_func_hint) // "Funcionário(s)"
+                                    tvDetFunc.text = et.funcionarios?.ifBlank { "—" } ?: "—"
+                                }
+
+                                tvDetDataIni.text = et.dataInicio
+                                tvDetDataFim.text = et.dataFim
+                                tvDetStatus.text = et.status
                             }
+
                             is UiState.ErrorRes -> {
                                 showSnackbarFragment(
                                     Constants.SnackType.ERROR.name,
@@ -69,6 +81,7 @@ class DetalheCronogramaFragment : Fragment() {
                                     getString(R.string.snack_button_ok)
                                 )
                             }
+
                             else -> Unit
                         }
                     }

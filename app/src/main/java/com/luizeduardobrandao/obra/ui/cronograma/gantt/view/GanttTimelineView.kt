@@ -27,8 +27,8 @@ class GanttTimelineView @JvmOverloads constructor(
 ) : View(context, attrs) {
 
     // Config
-    private val dayWidthPx = resources.displayMetrics.density * 32f
-    private val dayGapPx = resources.displayMetrics.density * 2f
+    private val dayWidthPx = resources.getDimension(R.dimen.gantt_day_width)
+    private val dayGapPx = resources.getDimension(R.dimen.gantt_day_gap)
     private val radiusPx = resources.displayMetrics.density * 6f
 
     private val tmpRect = RectF()
@@ -37,14 +37,14 @@ class GanttTimelineView @JvmOverloads constructor(
 
     // Desenha as bordas/grade de cada “quadradinho” (célula do dia).
     private val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = ContextCompat.getColor(context, R.color.md_theme_light_surfaceVariant)
+        color = ContextCompat.getColor(context, R.color.md_theme_light_outline)
         style = Paint.Style.STROKE
         strokeWidth = resources.displayMetrics.density // 1dp
     }
 
     // Preenche as células que estão dentro do período planejado da etapa (de dataInicio a dataFim).
     private val plannedPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = ContextCompat.getColor(context, R.color.md_theme_light_secondaryContainer)
+        color = ContextCompat.getColor(context, R.color.warning)
         style = Paint.Style.FILL
     }
 
@@ -59,6 +59,20 @@ class GanttTimelineView @JvmOverloads constructor(
         color = ContextCompat.getColor(context, R.color.warning)
         style = Paint.Style.STROKE
         strokeWidth = resources.displayMetrics.density * 1.5f
+    }
+
+    // Fundo translúcido para domingos (célula desabilitada)
+    private val sundayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.text_secondary_recycler)
+        style = Paint.Style.FILL
+        alpha = 90  // ~35% (ajuste fino se quiser mais/menos)
+    }
+
+    // Contorno do "hoje" (apenas borda, sem fundo)
+    private val todayStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.fab_scroll_icon_tint)
+        style = Paint.Style.STROKE
+        strokeWidth = resources.displayMetrics.density * 2f
     }
 
     // Dados
@@ -122,6 +136,11 @@ class GanttTimelineView @JvmOverloads constructor(
 
             val isSunday = GanttUtils.isSunday(day)
 
+            // Domingos: preenche com cinza translúcido
+            if (isSunday) {
+                canvas.drawRoundRect(tmpRect, radiusPx, radiusPx, sundayPaint)
+            }
+
             val inPlanned = (!isSunday && etapaStart != null && etapaEnd != null &&
                     !day.isBefore(etapaStart) && !day.isAfter(etapaEnd))
             if (inPlanned) canvas.drawRoundRect(tmpRect, radiusPx, radiusPx, plannedPaint)
@@ -137,8 +156,12 @@ class GanttTimelineView @JvmOverloads constructor(
 
         val todayIdx = headerDays.indexOf(today)
         if (todayIdx >= 0) {
-            val lx = todayIdx * (dayWidthPx + dayGapPx) + dayWidthPx * 0.5f
-            canvas.drawLine(lx, 0f, lx, h, todayPaint)
+            val left = todayIdx * (dayWidthPx + dayGapPx)
+            val right = left + dayWidthPx
+            tmpRect.set(left, top, right, bottom)
+
+            // desenha apenas o contorno azul
+            canvas.drawRoundRect(tmpRect, radiusPx, radiusPx, todayStrokePaint)
         }
     }
 
