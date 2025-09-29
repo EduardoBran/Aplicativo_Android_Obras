@@ -76,9 +76,8 @@
     <!-- WorkFragment -->
     <string name="work_title">Obras</string>
     <string name="work_no_items">Sem obras cadastradas.</string>
-    <string name="work_select_prompt">Selecione a obra</string>
+    <string name="work_select_prompt">Selecione a Obra</string>
     <string name="work_new_button">Nova Obra</string>
-    <string name="work_spinner_default">Selecione a obra</string>
     <string name="work_dropdown_hint">Obras Cadastradas</string>
     <string name="work_toast_selected">Obra %1$s selecionada.</string>
     <string name="work_toast_saved">Informações da obra salvas.</string>
@@ -430,6 +429,20 @@
         <item quantity="one">%d dia selecionado</item>
         <item quantity="other">%d dias selecionados</item>
     </plurals>
+
+    <!-- Cronograma Gantt - Resumo no rodapé -->
+    <string name="crg_footer_title">Resumo Cronogramas</string>
+    <string name="crg_footer_andamento_title">Andamento da Obra</string>
+    <string name="crg_footer_status_placeholder">Status: -</string>
+    <string name="crg_footer_status_value">Status: %1$d%% / 100%%</string>
+
+    <string name="crg_footer_values_title">Financeiro</string>
+    <string name="crg_footer_saldo_inicial_placeholder">Saldo Inicial: -</string>
+    <string name="crg_footer_saldo_inicial_mask">Saldo Inicial: %1$s</string>
+    <string name="crg_footer_financeiro_title">Financeiro</string>
+    <string name="crg_footer_saldo_aporte_mask">Saldo com Aportes: %1$s</string>
+    <string name="crg_footer_valor_total_mask">Valor Total: %1$s</string>
+    <string name="crg_footer_saldo_restante_mask">Saldo Restante: %1$s</string>
 
     <!-- Gantt export -->
     <string name="gantt_export_csv">Salvar em CSV</string>

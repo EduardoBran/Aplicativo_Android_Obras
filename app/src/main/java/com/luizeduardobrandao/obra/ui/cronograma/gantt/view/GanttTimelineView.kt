@@ -54,18 +54,27 @@ class GanttTimelineView @JvmOverloads constructor(
         style = Paint.Style.FILL
     }
 
-    // Desenha a linha vertical de “hoje” por cima da grade, quando a data atual está no cabeçalho.
-    private val todayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = ContextCompat.getColor(context, R.color.warning)
-        style = Paint.Style.STROKE
-        strokeWidth = resources.displayMetrics.density * 1.5f
-    }
+//    // Desenha a linha vertical de “hoje” por cima da grade, quando a data atual está no cabeçalho.
+//    private val todayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+//        color = ContextCompat.getColor(context, R.color.warning)
+//        style = Paint.Style.STROKE
+//        strokeWidth = resources.displayMetrics.density * 1.5f
+//    }
 
     // Fundo translúcido para domingos (célula desabilitada)
     private val sundayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = ContextCompat.getColor(context, R.color.text_secondary_recycler)
         style = Paint.Style.FILL
         alpha = 90  // ~35% (ajuste fino se quiser mais/menos)
+    }
+
+    // "X" sutil para domingos
+    private val sundayXPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, android.R.color.black)
+        style = Paint.Style.STROKE
+        strokeWidth = resources.displayMetrics.density // 1dp
+        alpha = 110 // ~43% de opacidade (sutil)
+        strokeCap = Paint.Cap.ROUND
     }
 
     // Contorno do "hoje" (apenas borda, sem fundo)
@@ -136,9 +145,19 @@ class GanttTimelineView @JvmOverloads constructor(
 
             val isSunday = GanttUtils.isSunday(day)
 
-            // Domingos: preenche com cinza translúcido
+            // Domingos: preenche com cinza translúcido e X
             if (isSunday) {
+                // fundo translúcido
                 canvas.drawRoundRect(tmpRect, radiusPx, radiusPx, sundayPaint)
+
+                // "X" sutil dentro do quadrado do domingo
+                val inset = resources.displayMetrics.density * 6f // margem interna (~6dp)
+                val l = tmpRect.left + inset
+                val t = tmpRect.top + inset
+                val r = tmpRect.right - inset
+                val b = tmpRect.bottom - inset
+                canvas.drawLine(l, t, r, b, sundayXPaint)
+                canvas.drawLine(l, b, r, t, sundayXPaint)
             }
 
             val inPlanned = (!isSunday && etapaStart != null && etapaEnd != null &&

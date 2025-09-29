@@ -9,8 +9,11 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import android.widget.ImageView
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -25,9 +28,10 @@ import com.luizeduardobrandao.obra.data.model.Funcionario
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentCronogramaGanttBinding
 import com.luizeduardobrandao.obra.ui.cronograma.CronogramaViewModel
-import com.luizeduardobrandao.obra.ui.funcionario.FuncionarioViewModel
 import com.luizeduardobrandao.obra.ui.cronograma.gantt.adapter.GanttRowAdapter
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
+import com.luizeduardobrandao.obra.ui.funcionario.FuncionarioViewModel
+import com.luizeduardobrandao.obra.ui.resumo.ResumoViewModel
 import com.luizeduardobrandao.obra.utils.GanttUtils
 import com.luizeduardobrandao.obra.utils.savePdfToDownloads
 import com.luizeduardobrandao.obra.ui.snackbar.SnackbarFragment
@@ -51,13 +55,25 @@ class CronogramaGanttFragment : Fragment() {
     private lateinit var adapter: GanttRowAdapter
 
     private val viewModelFuncionario: FuncionarioViewModel by viewModels()
-    private var funcionariosCache: List<Funcionario> =
-        emptyList()
+    private var funcionariosCache: List<Funcionario> = emptyList()
 
     // Cabeçalho/timeline global (mínimo comum entre todas as etapas carregadas)
     private var headerDays: List<LocalDate> = emptyList()
 
     private var currentEtapas: List<Etapa> = emptyList()
+
+    // VM só para obter saldo/aportes (reaproveita a lógica do Resumo)
+    private val resumoViewModel: ResumoViewModel by viewModels()
+
+    // Cache p/ resumo do rodapé
+    private var saldoInicialObra: Double = 0.0
+    private var totalAportesObra: Double = 0.0
+    private var hasAportes: Boolean = false
+
+    // Controle de padding dinâmico do Recycler sob o card fixo
+    private var baseRvPaddingBottom: Int = 0
+    private var footerGlobalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -103,6 +119,15 @@ class CronogramaGanttFragment : Fragment() {
             popup.show()
         }
 
+        // ----- Resumo Cronogramas (aba fixa) -----
+        // Colapsada por padrão; alterna visibilidade com animação de transição leve
+        setupExpandableFooter(
+            header = binding.headerResumoGantt,
+            content = binding.contentResumoGantt,
+            arrow = binding.ivArrowResumoGantt,
+            startCollapsed = true
+        )
+
         // recycler
         rvGantt.layoutManager = LinearLayoutManager(requireContext())
         adapter = GanttRowAdapter(
@@ -129,6 +154,18 @@ class CronogramaGanttFragment : Fragment() {
 
         rvGantt.adapter = adapter
 
+        // Guarda o padding original do Recycler (para somar com a altura do footer)
+        baseRvPaddingBottom = rvGantt.paddingBottom
+
+        // Observa mudanças de tamanho do card (expande/colapsa) para atualizar o padding do Recycler
+        footerGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+            updateRecyclerBottomInsetForFooter()
+        }
+        binding.cardResumoGantt.viewTreeObserver.addOnGlobalLayoutListener(
+            footerGlobalLayoutListener
+        )
+
+
         // Carrega e observa funcionários para cálculo de valores
         viewModelFuncionario.loadFuncionarios()
         viewLifecycleOwner.lifecycleScope.launch {
@@ -149,6 +186,25 @@ class CronogramaGanttFragment : Fragment() {
 
         // carrega as etapas
         collectState()
+
+        // Observa saldo inicial + aportes para preencher o rodapé
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                resumoViewModel.state.collect { ui ->
+                    when (ui) {
+                        is UiState.Success -> {
+                            val data = ui.data
+                            saldoInicialObra = data.saldoInicial
+                            totalAportesObra = data.totalAportes
+                            hasAportes = data.aportes.isNotEmpty()
+                            updateResumoFooter() // recalcula textos quando chegarem os dados financeiros
+                        }
+
+                        else -> Unit
+                    }
+                }
+            }
+        }
 
         // dispara primeira carga (se ainda não)
         viewModel.loadEtapas()
@@ -217,6 +273,12 @@ class CronogramaGanttFragment : Fragment() {
 
                                     binding.headerContainer.isVisible = lista.isNotEmpty()
                                     binding.rvGantt.isVisible = lista.isNotEmpty()
+
+                                    binding.headerContainer.isVisible = lista.isNotEmpty()
+                                    binding.rvGantt.isVisible = lista.isNotEmpty()
+
+                                    // >>> Recalcula o resumo do rodapé sempre que as etapas mudarem
+                                    updateResumoFooter()
                                 }
                             }
 
@@ -259,7 +321,7 @@ class CronogramaGanttFragment : Fragment() {
         adapter.attachHeaderScroll(binding.headerScroll)
     }
 
-    // -------------- Helpers comuns (CSV/PDF) --------------
+    // -------------- Helpers comuns (PDF) --------------
     private val nfBR: NumberFormat = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
 
     private fun formatMoneyBR(v: Double?): String =
@@ -313,6 +375,115 @@ class CronogramaGanttFragment : Fragment() {
         }
         return total
     }
+
+    /** Aba Expansível */
+    // ——— Acordeão simples (mesma ideia do ResumoFragment) ———
+    @Suppress("SameParameterValue")
+    private fun setupExpandableFooter(
+        header: View,
+        content: View,
+        arrow: ImageView,
+        startCollapsed: Boolean
+    ) {
+        fun apply(expanded: Boolean, animate: Boolean) {
+            if (animate) {
+                val t = androidx.transition.AutoTransition().apply { duration = 180 }
+                androidx.transition.TransitionManager.beginDelayedTransition(
+                    binding.root as ViewGroup, t
+                )
+            }
+            content.isVisible = expanded
+            arrow.animate().rotation(if (expanded) 180f else 0f).setDuration(180).start()
+
+            // Recalcula o padding do Recycler para nada ficar escondido
+            // (post para aguardar o novo tamanho do card)
+            content.post { updateRecyclerBottomInsetForFooter() }
+        }
+
+        // estado inicial (colapsado)
+        content.post { apply(expanded = !startCollapsed, animate = false) }
+        header.setOnClickListener {
+            val willExpand = !content.isVisible
+            apply(willExpand, animate = true)
+        }
+    }
+
+    // ——— Recalcula e preenche os textos do rodapé ———
+    private fun updateResumoFooter() = with(binding) {
+        // 1) Andamento da obra: média dos percentuais de todas as etapas
+        val avgPct: Int = if (currentEtapas.isEmpty()) {
+            0
+        } else {
+            val sum = currentEtapas.sumOf { e ->
+                GanttUtils.calcularProgresso(
+                    e.diasConcluidos?.toSet() ?: emptySet(),
+                    e.dataInicio,
+                    e.dataFim
+                )
+            }
+            kotlin.math.round(sum.toDouble() / currentEtapas.size).toInt()
+        }
+        tvAndamentoObraGantt.text = getString(R.string.crg_footer_status_value, avgPct)
+
+        // 2) Financeiro: Saldo Inicial / Saldo com Aportes (mesmos valores do Resumo)
+        tvSaldoInicialGantt.text = getString(
+            R.string.crg_footer_saldo_inicial_mask,
+            formatMoneyBR(saldoInicialObra)
+        )
+
+        val saldoComAportes: Double? =
+            if (hasAportes) saldoInicialObra + totalAportesObra else null
+
+        tvSaldoComAportesGantt.text = getString(
+            R.string.crg_footer_saldo_aporte_mask,
+            saldoComAportes?.let { formatMoneyBR(it) } ?: "-"
+        )
+
+        // 3) Valor Total: somatório dos valores cadastrados em cada etapa (ignora etapas sem valor)
+        val valorTotalCronogramas: Double = currentEtapas
+            .mapNotNull { computeValorTotal(it) }
+            .sum()
+        tvValorTotalGantt.text = getString(
+            R.string.crg_footer_valor_total_mask,
+            formatMoneyBR(valorTotalCronogramas)
+        )
+
+        // 4) Saldo Restante (regra DESTA tela):
+        //    (Saldo Inicial + Aportes(se houver)) − (somatório dos valores das etapas)
+        val base = saldoComAportes ?: saldoInicialObra
+        val saldoRestante = base - valorTotalCronogramas
+        tvSaldoRestanteGantt.text = getString(
+            R.string.crg_footer_saldo_restante_mask,
+            formatMoneyBR(saldoRestante)
+        )
+
+        // Vermelho quando negativo; cor padrão caso contrário
+        val normalColor = ContextCompat.getColor(
+            requireContext(), R.color.md_theme_light_onSurfaceVariant
+        )
+        val errorColor = ContextCompat.getColor(
+            requireContext(), R.color.md_theme_light_error
+        )
+        tvSaldoRestanteGantt.setTextColor(if (saldoRestante < 0) errorColor else normalColor)
+    }
+
+    /** Aplica o paddingBottom no Recycler igual à altura atual do card fixo do rodapé */
+    private fun updateRecyclerBottomInsetForFooter() {
+        // Se a view já foi destruída, simplesmente saia
+        val b = _binding ?: return
+
+        val lp = b.cardResumoGantt.layoutParams as ViewGroup.MarginLayoutParams
+        val visibleFooterHeight =
+            if (b.cardResumoGantt.isShown) b.cardResumoGantt.height + lp.bottomMargin else 0
+
+        b.rvGantt.setPadding(
+            b.rvGantt.paddingLeft,
+            b.rvGantt.paddingTop,
+            b.rvGantt.paddingRight,
+            baseRvPaddingBottom + visibleFooterHeight
+        )
+    }
+
 
     /** --- Helper de texto para PDF --- */
 
@@ -552,6 +723,15 @@ class CronogramaGanttFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         adapter.detachHeaderScroll()
+
+        // Remova o listener com segurança (o VTO pode não estar "alive")
+        footerGlobalLayoutListener?.let { l ->
+            _binding?.cardResumoGantt?.viewTreeObserver?.let { vto ->
+                if (vto.isAlive) vto.removeOnGlobalLayoutListener(l)
+            }
+            footerGlobalLayoutListener = null
+        }
+
         _binding = null
     }
 }
