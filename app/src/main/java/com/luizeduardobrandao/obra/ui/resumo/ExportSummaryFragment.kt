@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -65,16 +64,16 @@ class ExportSummaryFragment : Fragment() {
     }
 
     // ───────────────────────── Toolbar & Menu ─────────────────────────
-
     private fun setupToolbar() = with(binding.toolbarExportSummary) {
         setNavigationOnClickListener { findNavController().navigateUp() }
         inflateMenu(R.menu.menu_export_summary)
 
-        // garante ícone branco (caso o tema não cubra)
-        menu.findItem(R.id.action_save_pdf)?.icon?.setTint(
-            ContextCompat.getColor(requireContext(), android.R.color.white)
-        )
+        // Anchor do botão custom
+        val saveItem = menu.findItem(R.id.action_save_pdf)
+        val btnSave = saveItem.actionView?.findViewById<View>(R.id.btnSavePdf)
+        btnSave?.setOnClickListener { askSavePdf() }
 
+        // (opcional) fallback via listener tradicional
         setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_save_pdf -> {
@@ -518,10 +517,12 @@ class ExportSummaryFragment : Fragment() {
                     swapFabWithAnim(fabScrollDown, show = false)
                     swapFabWithAnim(fabScrollUp, show = false)
                 }
+
                 atBottom -> {
                     swapFabWithAnim(fabScrollDown, show = false)
                     swapFabWithAnim(fabScrollUp, show = true)
                 }
+
                 else -> {
                     swapFabWithAnim(fabScrollUp, show = false)
                     swapFabWithAnim(fabScrollDown, show = true)

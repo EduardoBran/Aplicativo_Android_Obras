@@ -4,9 +4,7 @@
 
     <item
         android:id="@+id/action_open_gantt"
-        android:icon="@drawable/ic_export"
         android:title="@string/resumo_menu_export"
-        app:tooltipText="@string/resumo_menu_export"
-        app:iconTint="@android:color/white"
+        app:actionLayout="@layout/action_menu_summary_button"
         app:showAsAction="always" />
 </menu>

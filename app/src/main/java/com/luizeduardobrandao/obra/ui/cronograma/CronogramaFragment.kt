@@ -55,16 +55,16 @@ class CronogramaFragment : Fragment(), EtapaActions {
             toolbarCronograma.setNavigationOnClickListener {
                 findNavController().navigateUp()
             }
-            toolbarCronograma.setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    R.id.action_open_gantt -> {
-                        findNavController().navigate(
-                            CronogramaFragmentDirections.actionCronogramaToGantt(args.obraId)
-                        )
-                        true
-                    }
-                    else -> false
-                }
+
+            // Pega o actionView do item de menu e registra o clique no botão interno
+            val menuItem = toolbarCronograma.menu.findItem(R.id.action_open_gantt)
+            val anchor = menuItem.actionView?.findViewById<View>(R.id.btnSummaryMenu)
+
+            // Clique no botão custom da action view
+            anchor?.setOnClickListener {
+                findNavController().navigate(
+                    CronogramaFragmentDirections.actionCronogramaToGantt(args.obraId)
+                )
             }
 
             // pager + tabs

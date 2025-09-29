@@ -1,11 +1,16 @@
 package com.luizeduardobrandao.obra.ui.cronograma.gantt
 
 import android.annotation.SuppressLint
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
 import android.os.Bundle
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.view.ContextThemeWrapper
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -15,15 +20,23 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.luizeduardobrandao.obra.R
+import com.luizeduardobrandao.obra.data.model.Etapa
 import com.luizeduardobrandao.obra.data.model.Funcionario
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentCronogramaGanttBinding
 import com.luizeduardobrandao.obra.ui.cronograma.CronogramaViewModel
 import com.luizeduardobrandao.obra.ui.funcionario.FuncionarioViewModel
 import com.luizeduardobrandao.obra.ui.cronograma.gantt.adapter.GanttRowAdapter
+import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.utils.GanttUtils
+import com.luizeduardobrandao.obra.utils.savePdfToDownloads
+import com.luizeduardobrandao.obra.ui.snackbar.SnackbarFragment
+import com.luizeduardobrandao.obra.utils.Constants
+import com.luizeduardobrandao.obra.utils.syncEndInsetSymmetric
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 import java.time.LocalDate
 
 @AndroidEntryPoint
@@ -44,6 +57,8 @@ class CronogramaGanttFragment : Fragment() {
     // Cabeçalho/timeline global (mínimo comum entre todas as etapas carregadas)
     private var headerDays: List<LocalDate> = emptyList()
 
+    private var currentEtapas: List<Etapa> = emptyList()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -57,8 +72,36 @@ class CronogramaGanttFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // toolbar
-        toolbarGantt.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
+        toolbarGantt.setNavigationOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
         toolbarGantt.title = getString(R.string.gantt_title)
+
+        // aplica a simetria de padding depois de o menu estar pronto
+        toolbarGantt.syncEndInsetSymmetric()
+
+        // Botão de download (actionView) -> popup com PDF
+        val menuItem = toolbarGantt.menu.findItem(R.id.action_gantt_export)
+        val anchor = menuItem.actionView?.findViewById<View>(R.id.btnDownloadMenu)
+
+        anchor?.setOnClickListener {
+            val themed = ContextThemeWrapper(requireContext(), R.style.PopupMenu_WhiteBg_BlackText)
+            val popup = PopupMenu(themed, anchor, Gravity.END).apply {
+                menuInflater.inflate(R.menu.menu_gantt_export_popup, menu)
+                setOnMenuItemClickListener { item ->
+                    when (item.itemId) {
+
+                        R.id.action_export_pdf -> {
+                            askSavePdf()
+                            true
+                        }
+
+                        else -> false
+                    }
+                }
+            }
+            popup.show()
+        }
 
         // recycler
         rvGantt.layoutManager = LinearLayoutManager(requireContext())
@@ -156,6 +199,8 @@ class CronogramaGanttFragment : Fragment() {
                                             ?: Long.MAX_VALUE
                                     }
 
+                                currentEtapas = lista // << guardar para exportações
+
                                 // Se o header NÃO estiver pronto ainda, aguarde (loading)
                                 if (!hasHeader) {
                                     renderLoading(true)
@@ -214,9 +259,391 @@ class CronogramaGanttFragment : Fragment() {
         adapter.attachHeaderScroll(binding.headerScroll)
     }
 
+    // -------------- Helpers comuns (CSV/PDF) --------------
+    private val nfBR: NumberFormat = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+
+    private fun formatMoneyBR(v: Double?): String =
+        if (v == null) "-" else nfBR.format(v)
+
+    private fun parseCsvNomes(csv: String?): List<String> =
+        csv?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
+
+    /** Mesmo cálculo já usado no Adapter: NÃO conta domingos. */
+    private fun computeValorTotal(etapa: Etapa): Double? {
+        if (etapa.responsavelTipo == "EMPRESA") return etapa.empresaValor
+
+        val nomes = parseCsvNomes(etapa.funcionarios)
+        if (etapa.responsavelTipo != "FUNCIONARIOS" || nomes.isEmpty()) return null
+
+        val ini = GanttUtils.brToLocalDateOrNull(etapa.dataInicio)
+        val fim = GanttUtils.brToLocalDateOrNull(etapa.dataFim)
+        if (ini == null || fim == null || fim.isBefore(ini)) return null
+
+        val diasUteis = GanttUtils.daysBetween(ini, fim).count { !GanttUtils.isSunday(it) }
+        if (diasUteis <= 0) return 0.0
+        if (funcionariosCache.isEmpty()) return null
+
+        var total = 0.0
+        nomes.forEach { nomeSel ->
+            val f =
+                funcionariosCache.firstOrNull { it.nome.trim().equals(nomeSel, ignoreCase = true) }
+                    ?: return@forEach
+            val salario = f.salario.coerceAtLeast(0.0)
+            val tipo = f.formaPagamento.trim().lowercase(Locale.getDefault())
+            total += when {
+                tipo.contains("diária") ||
+                        tipo.contains("diaria") ||
+                        tipo.contains("Diária") ||
+                        tipo.contains("Diaria") -> diasUteis * salario
+
+                tipo.contains("semanal") ||
+                        tipo.contains("Semanal") ->
+                    kotlin.math.ceil(diasUteis / 7.0).toInt() * salario
+
+                tipo.contains("mensal") ||
+                        tipo.contains("Mensal") ->
+                    kotlin.math.ceil(diasUteis / 30.0).toInt() * salario
+
+                tipo.contains("tarefeiro") ||
+                        tipo.contains("tarefa") ||
+                        tipo.contains("Tarefeiro ") -> salario
+
+                else -> 0.0
+            }
+        }
+        return total
+    }
+
+    /** --- Helper de texto para PDF --- */
+
+    /** Elipsa o texto para caber na largura especificada (em px). */
+    private fun ellipsizeToWidth(text: String, paint: Paint, maxWidthPx: Float): String {
+        if (text.isEmpty()) return ""
+        if (paint.measureText(text) <= maxWidthPx) return text
+
+        val ellipsis = "…"
+        val ellW = paint.measureText(ellipsis)
+        var end = text.length
+        while (end > 0 && paint.measureText(text, 0, end) > maxWidthPx - ellW) {
+            end--
+        }
+        return if (end <= 0) ellipsis else text.substring(0, end) + ellipsis
+    }
+
+    /** Desenha texto elipsado para caber entre esta coluna e a próxima. */
+    @Suppress("SameParameterValue")
+    private fun drawCell(
+        canvas: android.graphics.Canvas,
+        paint: Paint,
+        raw: String,
+        colStartX: Int,
+        nextColStartX: Int,
+        paddingEndPx: Int = 8,
+        baselineY: Float
+    ) {
+        val maxW = (nextColStartX - colStartX - paddingEndPx).coerceAtLeast(0)
+        val safe = ellipsizeToWidth(raw, paint, maxW.toFloat())
+        canvas.drawText(safe, colStartX.toFloat(), baselineY, paint)
+    }
+
+    /** Desenha texto até a borda direita (sem “próxima coluna”). */
+    @Suppress("SameParameterValue")
+    private fun drawCellToRightEdge(
+        canvas: android.graphics.Canvas,
+        paint: Paint,
+        raw: String,
+        colStartX: Int,
+        rightEdgeX: Int,
+        paddingEndPx: Int = 0,
+        baselineY: Float
+    ) {
+        val maxW = (rightEdgeX - colStartX - paddingEndPx).coerceAtLeast(0)
+        val safe = ellipsizeToWidth(raw, paint, maxW.toFloat())
+        canvas.drawText(safe, colStartX.toFloat(), baselineY, paint)
+    }
+
+    /** Snackbar perguntando se deseja salvar */
+    private fun askSavePdf() {
+        showSnackbarFragment(
+            type = Constants.SnackType.WARNING.name,
+            title = getString(R.string.export_summary_snack_title),
+            msg = getString(R.string.export_summary_snack_msg),
+            btnText = getString(R.string.export_summary_snack_yes),
+            onAction = { exportToPdf() },
+            btnNegativeText = getString(R.string.export_summary_snack_no),
+            onNegative = { /* fica na página */ }
+        )
+    }
+
+    /** Exportar PDF */
+    private fun exportToPdf() {
+        try {
+            val pageWidth = 595  // ~A4 em pontos (72 dpi)
+            val pageHeight = 842
+            val left = 40
+            val top = 40
+            val right = pageWidth - 40
+            val bottom = pageHeight - 40
+
+            val titlePaint = Paint().apply {
+                isAntiAlias = true
+                textSize = 18f
+                typeface = android.graphics.Typeface.create(
+                    android.graphics.Typeface.DEFAULT,
+                    android.graphics.Typeface.BOLD
+                )
+            }
+            val headPaint = Paint().apply {
+                isAntiAlias = true
+                textSize = 12f
+                typeface = android.graphics.Typeface.create(
+                    android.graphics.Typeface.DEFAULT,
+                    android.graphics.Typeface.BOLD
+                )
+            }
+            val textPaint = Paint().apply {
+                isAntiAlias = true
+                textSize = 11f
+            }
+            val linePaint = Paint().apply { strokeWidth = 1.2f }
+
+            val doc = PdfDocument()
+            var pageNumber = 0
+            fun newPage(): PdfDocument.Page {
+                pageNumber += 1
+                val pageInfo =
+                    PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
+                return doc.startPage(pageInfo)
+            }
+
+            var page = newPage()
+            var canvas = page.canvas
+            var y = top.toFloat()
+
+            // Título
+            canvas.drawText(getString(R.string.gantt_title), left.toFloat(), y, titlePaint)
+            y += 18f + 12f
+
+            // Colunas (um pouco mais enxutas para sobrar espaço ao "Progresso")
+            val colTitulo = left
+            val colPeriodo = colTitulo + 170
+            val colResp = colPeriodo + 130
+            val colValor = colResp + 100
+            val colProg = colValor + 70   // agora sobra ~45px até 'right'
+
+            fun drawHeaderRow() {
+                canvas.drawText(
+                    getString(R.string.etapa_reg_name_hint),
+                    colTitulo.toFloat(),
+                    y,
+                    headPaint
+                )
+                canvas.drawText(
+                    getString(R.string.cronograma_date_range, "Ini", "Fim"),
+                    colPeriodo.toFloat(), y, headPaint
+                )
+                canvas.drawText(
+                    getString(R.string.cron_reg_responsavel_title),
+                    colResp.toFloat(),
+                    y,
+                    headPaint
+                )
+                canvas.drawText(
+                    getString(R.string.gantt_valor_col),
+                    colValor.toFloat(),
+                    y,
+                    headPaint
+                )
+                canvas.drawText(
+                    getString(R.string.gantt_progress_col),
+                    colProg.toFloat(),
+                    y,
+                    headPaint
+                )
+                y += 10f
+                canvas.drawLine(left.toFloat(), y, right.toFloat(), y, linePaint)
+                y += 12f
+            }
+
+            drawHeaderRow()
+
+            // Linhas
+            currentEtapas.forEach { e ->
+                val ini = GanttUtils.brToLocalDateOrNull(e.dataInicio)
+                val fim = GanttUtils.brToLocalDateOrNull(e.dataFim)
+                val fmtIni =
+                    ini?.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy")) ?: "—"
+                val fmtFim =
+                    fim?.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy")) ?: "—"
+                val periodoRaw = "$fmtIni — $fmtFim"
+
+                val respRaw = when (e.responsavelTipo) {
+                    "EMPRESA" -> (e.empresaNome?.ifBlank { "—" } ?: "—")
+                    "FUNCIONARIOS" -> getString(R.string.cronograma_funcionarios_title)
+                    else -> "—"
+                }
+                val valorRaw = formatMoneyBR(computeValorTotal(e))
+                val progressoRaw = GanttUtils
+                    .calcularProgresso(
+                        e.diasConcluidos?.toSet() ?: emptySet(),
+                        e.dataInicio,
+                        e.dataFim
+                    )
+                    .toString() + "%"
+
+                // Quebra de página ANTES de desenhar a próxima linha
+                if (y > (bottom - 40)) {
+                    doc.finishPage(page)
+                    page = newPage()
+                    canvas = page.canvas
+                    y = top.toFloat()
+
+                    // título da nova página
+                    canvas.drawText(getString(R.string.gantt_title), left.toFloat(), y, titlePaint)
+                    y += 18f + 12f
+                    // cabeçalho da tabela
+                    drawHeaderRow()
+                }
+
+                // Desenha cada célula elipsando para caber até a próxima coluna
+                drawCell(canvas, textPaint, e.titulo, colTitulo, colPeriodo, 8, y)
+                drawCell(canvas, textPaint, periodoRaw, colPeriodo, colResp, 8, y)
+                drawCell(canvas, textPaint, respRaw, colResp, colValor, 8, y)
+                drawCell(canvas, textPaint, valorRaw, colValor, colProg, 8, y)
+                drawCellToRightEdge(canvas, textPaint, progressoRaw, colProg, right, 0, y)
+
+                y += 16f
+            }
+
+            doc.finishPage(page)
+
+            val name = "gantt_${args.obraId}_${System.currentTimeMillis()}.pdf"
+            val baos = java.io.ByteArrayOutputStream()
+            doc.writeTo(baos)
+            doc.close()
+
+            val uri = savePdfToDownloads(requireContext(), baos.toByteArray(), name)
+            if (uri != null) {
+                SnackbarFragment.newInstance(
+                    type = com.luizeduardobrandao.obra.utils.Constants.SnackType.SUCCESS.name,
+                    title = getString(R.string.snack_success),
+                    msg = getString(R.string.gantt_export_pdf_ok),
+                    btnText = getString(R.string.snack_button_ok)
+                ).show(childFragmentManager, SnackbarFragment.TAG)
+            } else {
+                SnackbarFragment.newInstance(
+                    type = com.luizeduardobrandao.obra.utils.Constants.SnackType.ERROR.name,
+                    title = getString(R.string.snack_error),
+                    msg = getString(R.string.gantt_export_error),
+                    btnText = getString(R.string.snack_button_ok)
+                ).show(childFragmentManager, SnackbarFragment.TAG)
+            }
+        } catch (t: Throwable) {
+            t.printStackTrace()
+            SnackbarFragment.newInstance(
+                type = com.luizeduardobrandao.obra.utils.Constants.SnackType.ERROR.name,
+                title = getString(R.string.snack_error),
+                msg = getString(R.string.gantt_export_error),
+                btnText = getString(R.string.snack_button_ok)
+            ).show(childFragmentManager, SnackbarFragment.TAG)
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         adapter.detachHeaderScroll()
         _binding = null
     }
 }
+
+/** Sanitiza campo para CSV: remove quebras de linha e escapa aspas. */
+//private fun sanitizeCsvField(s: String?): String =
+//    s.orEmpty()
+//        .replace("\r", " ")
+//        .replace("\n", " ")
+//        .trim()
+//        .replace("\"", "\"\"")
+
+/** Cabeçalho global da timeline (dias) já está em headerDays. */
+//private fun workingHeaderDays(): List<LocalDate> =
+//    headerDays.filter { !GanttUtils.isSunday(it) }
+
+/** Exportar CSV */
+//private fun exportToCsv() {
+//    try {
+//        val dias = workingHeaderDays()
+//        val sb = StringBuilder()
+//
+//        // Cabeçalho
+//        sb.append(
+//            listOf(
+//                "id", "titulo", "data_inicio", "data_fim",
+//                "responsavel_tipo", "funcionarios", "empresa_nome", "empresa_valor",
+//                "valor_calculado", "progresso_percent"
+//            ).plus(dias.map { it.toString() }).joinToString(",")
+//        ).append("\n")
+//
+//        currentEtapas.forEach { e ->
+//            val ini = GanttUtils.brToLocalDateOrNull(e.dataInicio)
+//            val fim = GanttUtils.brToLocalDateOrNull(e.dataFim)
+//            val progresso = GanttUtils.calcularProgresso(
+//                e.diasConcluidos?.toSet() ?: emptySet(),
+//                e.dataInicio,
+//                e.dataFim
+//            )
+//            val valor = computeValorTotal(e)
+//
+//            val fixas = listOf(
+//                sanitizeCsvField(e.id),
+//                sanitizeCsvField(e.titulo),
+//                sanitizeCsvField(e.dataInicio),
+//                sanitizeCsvField(e.dataFim),
+//                sanitizeCsvField(e.responsavelTipo),
+//                sanitizeCsvField(e.funcionarios),
+//                sanitizeCsvField(e.empresaNome),
+//                sanitizeCsvField(e.empresaValor?.toString()),
+//                sanitizeCsvField(valor?.toString()),
+//                sanitizeCsvField(progresso.toString())
+//            ).joinToString(",") { "\"$it\"" }
+//
+//            val rangeOk = (ini != null && fim != null && !fim.isBefore(ini))
+//            val done = e.diasConcluidos?.toSet() ?: emptySet()
+//            val porDia = dias.joinToString(",") { d ->
+//                val inRange = rangeOk && !d.isBefore(ini) && !d.isAfter(fim)
+//                val mark =
+//                    if (inRange && done.contains(GanttUtils.localDateToUtcString(d))) 1 else 0
+//                mark.toString()
+//            }
+//
+//            sb.append(fixas).append(",").append(porDia).append("\n")
+//        }
+//
+//        val name = "gantt_${args.obraId}_${System.currentTimeMillis()}.csv"
+//        val bytes = sb.toString().toByteArray(Charsets.UTF_8)
+//        val uri = saveCsvToDownloads(requireContext(), bytes, name)
+//
+//        if (uri != null) {
+//            SnackbarFragment.newInstance(
+//                type = com.luizeduardobrandao.obra.utils.Constants.SnackType.SUCCESS.name,
+//                title = getString(R.string.snack_success),
+//                msg = getString(R.string.gantt_export_csv_ok),
+//                btnText = getString(R.string.snack_button_ok)
+//            ).show(childFragmentManager, SnackbarFragment.TAG)
+//        } else {
+//            SnackbarFragment.newInstance(
+//                type = com.luizeduardobrandao.obra.utils.Constants.SnackType.ERROR.name,
+//                title = getString(R.string.snack_error),
+//                msg = getString(R.string.gantt_export_error),
+//                btnText = getString(R.string.snack_button_ok)
+//            ).show(childFragmentManager, SnackbarFragment.TAG)
+//        }
+//    } catch (t: Throwable) {
+//        t.printStackTrace()
+//        SnackbarFragment.newInstance(
+//            type = com.luizeduardobrandao.obra.utils.Constants.SnackType.ERROR.name,
+//            title = getString(R.string.snack_error),
+//            msg = getString(R.string.gantt_export_error),
+//            btnText = getString(R.string.snack_button_ok)
+//        ).show(childFragmentManager, SnackbarFragment.TAG)
+//    }
+//}

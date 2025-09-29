@@ -100,20 +100,22 @@ class ResumoFragment : Fragment() {
 
         restoreFabVisible = savedInstanceState?.getBoolean(KEY_FAB_VISIBLE)
 
-        toolbarResumoObra.setNavigationOnClickListener {
-            findNavController().navigateUp()
+        toolbarResumoObra.setNavigationOnClickListener { findNavController().navigateUp() }
+
+        // Anchor do botão custom (actionView)
+        val exportItem = toolbarResumoObra.menu.findItem(R.id.action_export_summary)
+        val btnExport = exportItem.actionView?.findViewById<View>(R.id.btnExportSummary)
+        btnExport?.setOnClickListener {
+            // Safe Args: navega passando o obraId atual
+            findNavController().navigate(
+                ResumoFragmentDirections.actionResumoToExport(args.obraId)
+            )
         }
 
-        // Garante ícone branco no menu (Exportar)
-        toolbarResumoObra.menu.findItem(R.id.action_export_summary)?.icon?.setTint(
-            ContextCompat.getColor(requireContext(), android.R.color.white)
-        )
-
-        // ► Novo: item de menu "Exportar"
+        // (opcional) fallback via listener tradicional
         toolbarResumoObra.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_export_summary -> {
-                    // Safe Args: navega passando o obraId atual
                     findNavController().navigate(
                         ResumoFragmentDirections.actionResumoToExport(args.obraId)
                     )
@@ -750,7 +752,10 @@ class ResumoFragment : Fragment() {
                                     binding.scrollResumo.paddingBottom
                             val maxScroll = (binding.scrollResumo.getChildAt(0).height -
                                     binding.scrollResumo.height).coerceAtLeast(0)
-                            binding.scrollResumo.smoothScrollTo(0, rawTargetY.coerceIn(0, maxScroll))
+                            binding.scrollResumo.smoothScrollTo(
+                                0,
+                                rawTargetY.coerceIn(0, maxScroll)
+                            )
                         }
                     }
                     // Decide FAB somente depois

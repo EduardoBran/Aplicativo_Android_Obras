@@ -53,4 +53,6 @@
     <dimen name="gantt_day_text_size">12sp</dimen>
     <dimen name="gantt_day_text_size_sunday">16sp</dimen> <!-- ajuste se quiser -->
 
+    <dimen name="toolbar_end_inset_16dp">16dp</dimen>
+
 </resources>

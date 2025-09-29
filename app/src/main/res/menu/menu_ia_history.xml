@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/action_open_history"
-        android:icon="@drawable/ic_history"
         android:title="@string/history_title"
+        app:actionLayout="@layout/action_menu_history_button"
         app:showAsAction="always" />
 </menu>

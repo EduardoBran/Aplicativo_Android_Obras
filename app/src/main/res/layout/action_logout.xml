@@ -9,8 +9,8 @@
     android:foreground="?attr/selectableItemBackgroundBorderless"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingStart="4dp"
-    android:paddingEnd="4dp">
+    android:paddingStart="6dp"
+    android:paddingEnd="6dp">
 
     <ImageView
         android:layout_width="24dp"

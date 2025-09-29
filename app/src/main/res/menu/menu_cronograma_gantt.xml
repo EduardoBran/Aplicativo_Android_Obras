@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_export_summary"
-        android:title="@string/resumo_menu_export"
-        app:actionLayout="@layout/action_menu_export_button"
+        android:id="@+id/action_gantt_export"
+        android:title="@string/gantt_menu_export"
+        app:actionLayout="@layout/action_menu_download_button"
         app:showAsAction="always" />
 </menu>

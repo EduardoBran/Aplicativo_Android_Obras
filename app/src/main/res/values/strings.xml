@@ -431,6 +431,17 @@
         <item quantity="other">%d dias selecionados</item>
     </plurals>
 
+    <!-- Gantt export -->
+    <string name="gantt_export_csv">Salvar em CSV</string>
+    <string name="gantt_export_pdf">Salvar em PDF</string>
+    <string name="gantt_export_csv_ok">CSV salvo em Download/ObraApp.</string>
+    <string name="gantt_export_pdf_ok">PDF salvo em Download/ObraApp.</string>
+
+    <!-- Colunas do PDF -->
+    <string name="gantt_valor_col">Valor</string>
+    <string name="gantt_progress_col">Progresso</string>
+    <string name="cron_reg_responsavel_title">Responsável</string>
+
 
     <!-- CronogramaRegisterFragment -->
     <string name="etapa_reg_title">Cadastro de Etapa</string>

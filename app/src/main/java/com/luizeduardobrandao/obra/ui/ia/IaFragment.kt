@@ -13,7 +13,6 @@ import android.view.*
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -250,9 +249,17 @@ class IaFragment : Fragment() {
 
         // Toolbar
         toolbarIa.setNavigationOnClickListener { findNavController().navigateUp() }
-        toolbarIa.menu.findItem(R.id.action_open_history)?.icon?.setTint(
-            ContextCompat.getColor(requireContext(), android.R.color.white)
-        )
+
+        // Obtém o anchor do actionView e pluga a navegação
+        val historyItem = toolbarIa.menu.findItem(R.id.action_open_history)
+        val btnHistory = historyItem.actionView?.findViewById<View>(R.id.btnOpenHistory)
+        btnHistory?.setOnClickListener {
+            findNavController().navigate(
+                IaFragmentDirections.actionIaToHistory(args.obraId)
+            )
+        }
+
+        // (opcional) manter o listener para “fallback” (não será chamado com actionView)
         toolbarIa.setOnMenuItemClickListener {
             if (it.itemId == R.id.action_open_history) {
                 findNavController().navigate(

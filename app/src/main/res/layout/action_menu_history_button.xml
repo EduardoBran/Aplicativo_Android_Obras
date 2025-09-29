@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ImageButton xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/btnSummaryMenu"
+    android:id="@+id/btnOpenHistory"
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
     android:background="?attr/selectableItemBackgroundBorderless"
-    android:contentDescription="@string/func_menu_summary"
+    android:contentDescription="@string/history_title"
     android:padding="16dp"
-    android:src="@drawable/ic_summary"
+    android:src="@drawable/ic_history"
     app:tint="@android:color/white" />
