@@ -12,6 +12,8 @@ import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.view.LayoutInflater
+import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
@@ -28,8 +30,10 @@ import androidx.navigation.fragment.navArgs
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.checkbox.MaterialCheckBox
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Etapa
+import com.luizeduardobrandao.obra.data.model.Funcionario
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.ui.funcionario.FuncionarioViewModel
 import com.luizeduardobrandao.obra.databinding.FragmentCronogramaRegisterBinding
@@ -84,6 +88,9 @@ class CronogramaRegisterFragment : Fragment() {
 
     // Lista (ordenada) de funcionários ATIVOS por nome
     private val funcionariosAtivos: MutableList<String> = mutableListOf()
+
+    // Manter funcionários completos para o novo diálogo de edição
+    private val funcionariosAll: MutableList<Funcionario> = mutableListOf()
 
     // Seleção atual (exibida e salva)
     private val selecionadosAtual: LinkedHashSet<String> = linkedSetOf()
@@ -295,6 +302,11 @@ class CronogramaRegisterFragment : Fragment() {
                     viewModelFuncionario.state.collect { ui ->
                         when (ui) {
                             is UiState.Success -> {
+                                // mantém um cache completo (ativos + inativos)
+                                funcionariosAll.clear()
+                                funcionariosAll.addAll(ui.data)
+
+                                // cache de nomes ATIVOS para o autocompletar antigo e compatibilidade
                                 val ativos = ui.data
                                     .filter { it.status.equals("Ativo", ignoreCase = true) }
                                     .map { it.nome.trim() }
@@ -303,10 +315,11 @@ class CronogramaRegisterFragment : Fragment() {
 
                                 funcionariosAtivos.clear()
                                 funcionariosAtivos.addAll(ativos)
+
                                 // reabrir o diálogo se ele estava aberto antes da rotação
                                 if (shouldReopenPicker) {
                                     shouldReopenPicker = false
-                                    root.post { openFuncionariosPicker() }
+                                    binding.root.post { openFuncionariosPicker() }
                                 }
                             }
 
@@ -784,7 +797,7 @@ class CronogramaRegisterFragment : Fragment() {
             animate = respChanged
         )
 
-        // Se Empresa → campo obrigatório 3..18
+        // Se Empresa → campo obrigatório 2..20
         var empresaOk = true
         if (responsavelSelecionado == RespTipo.EMPRESA) {
             val nome = etEmpresa.text?.toString()?.trim().orEmpty()
@@ -792,7 +805,7 @@ class CronogramaRegisterFragment : Fragment() {
             tvEmpresaError.isVisible = !empresaOk
             if (!empresaOk) tvEmpresaError.text = getString(R.string.etapa_error_empresa_required)
 
-            val sizeOk = nome.length in 3..18
+            val sizeOk = nome.length in 2..20
             if (empresaOk && !sizeOk) {
                 tvEmpresaError.isVisible = true
                 tvEmpresaError.text = getString(R.string.etapa_error_empresa_size)
@@ -947,15 +960,27 @@ class CronogramaRegisterFragment : Fragment() {
     }
 
     private fun openFuncionariosPicker() {
-        // lista = ativos + selecionados inativos
-        val itens = buildList {
-            addAll(funcionariosAtivos)
-            addAll(selecionadosAtual.filter { it !in funcionariosAtivos })
-        }
-            .distinct()
-            .sortedBy { it.lowercase(Locale.getDefault()) }
+        // 1) Ativos
+        val ativos = funcionariosAll.filter { it.status.equals("Ativo", ignoreCase = true) }
 
-        if (itens.isEmpty()) {
+        // 2) Inativos que JÁ estavam selecionados na etapa (para poder desmarcar)
+        val inativosSelecionados = funcionariosAll.filter { func ->
+            !func.status.equals("Ativo", ignoreCase = true) &&
+                    selecionadosAtual.contains(func.nome)
+        }
+
+        // 3) Conjunto final “visível” no diálogo
+        val visiveis = (ativos + inativosSelecionados)
+            .distinctBy { it.id } // segurança
+            .sortedWith(
+                compareBy(
+                    { it.funcao.lowercase(Locale.getDefault()) },
+                    { it.nome.lowercase(Locale.getDefault()) }
+                ))
+
+        // Se não há NINGUÉM para mostrar, manter seu comportamento:
+        if (visiveis.isEmpty()) {
+            // aqui você já mostra o snackbar "Sem funcionários cadastrados" e retorna
             showSnackbarFragment(
                 type = Constants.SnackType.WARNING.name,
                 title = getString(R.string.snack_attention),
@@ -965,35 +990,116 @@ class CronogramaRegisterFragment : Fragment() {
             return
         }
 
-        val checked = itens.map { selecionadosAtual.contains(it) }.toBooleanArray()
+        // Versão AGRUPADA do diálogo (função nova)
+        showFuncionariosDialogGrouped(visiveis)
+    }
 
-        val titleView = TextView(requireContext()).apply {
-            text = getString(R.string.cron_func_material_title)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f) // Aumenta título
-            setTypeface(typeface, Typeface.BOLD)
-            setPadding(48, 32, 48, 8) // Ajuste conforme layout
+    private fun showFuncionariosDialogGrouped(lista: List<Funcionario>) {
+        // Agrupa por função (apenas com quem está “visível”: ativos + inativos selecionados)
+        val grupos = lista
+            .groupBy { it.funcao.trim() }
+            .toSortedMap(compareBy(String.CASE_INSENSITIVE_ORDER) { it })
+
+        // Constrói um layout custom no Dialog (ScrollView -> LinearLayout vertical)
+        val container = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 8, 48, 16)
+        }
+        val scroll = ScrollView(requireContext()).apply {
+            isFillViewport = true
+            addView(container)
         }
 
+        // Cabeçalho customizado (mantém seu título existente)
+        val titleView = TextView(requireContext()).apply {
+            text = getString(R.string.cron_func_material_title) // "Selecione os Funcionários:"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(48, 32, 48, 8)
+        }
+
+        // Para cada função (ordenadas), adiciona header + checkboxes dessa função (ordenados por nome)
+        val roleKeys = grupos.keys.toList()
+        roleKeys.forEachIndexed { indexRole, role ->
+            // Header sublinhado da função
+            val header = TextView(requireContext()).apply {
+                // texto via string resource (evita concatenação manual)
+                text = getString(R.string.cron_func_role_header_underline, role)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+                paint.isUnderlineText = true
+                setPadding(0, if (indexRole == 0) 4 else 16, 0, 6)
+            }
+            container.addView(header)
+
+            // Pessoas dessa função, ordenadas por nome (case-insensitive)
+            val pessoas = grupos[role]!!.sortedBy { it.nome.lowercase(Locale.getDefault()) }
+
+            pessoas.forEach { f ->
+                val check =
+                    MaterialCheckBox(requireContext()).apply {
+                        val salarioFmt = formatMoneyBr(f.salario)
+                        val pagamento = f.formaPagamento.ifBlank { "-" }
+
+                        // NÃO concatenar: usa string com placeholders
+                        text = getString(
+                            R.string.cron_func_item_line,  // "%1$s (%2$s / %3$s)"
+                            f.nome,
+                            salarioFmt,
+                            pagamento.lowercase(Locale.getDefault())
+                        )
+
+                        isChecked = selecionadosAtual.contains(f.nome)
+                        setPadding(0, 4, 0, 4)
+                        setOnCheckedChangeListener { _, marcado ->
+                            if (marcado) selecionadosAtual.add(f.nome) else selecionadosAtual.remove(
+                                f.nome
+                            )
+                        }
+                    }
+                container.addView(check)
+            }
+
+            // Divider de largura total entre grupos (exceto no último)
+            if (indexRole < roleKeys.lastIndex) {
+                val divider = View(requireContext()).apply {
+                    setBackgroundColor(
+                        ContextCompat.getColor(
+                            requireContext(), R.color.md_theme_light_outline
+                        )
+                    )
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        (resources.displayMetrics.density).toInt() // 1dp
+                    )
+                }
+                container.addView(divider)
+            }
+        }
+
+        // Constrói e mostra o diálogo
         val dlg = MaterialAlertDialogBuilder(
             requireContext(),
             R.style.ThemeOverlay_ObrasApp_FuncDialog
         )
             .setCustomTitle(titleView)
-            .setMultiChoiceItems(itens.toTypedArray(), checked) { _, which, isChecked ->
-                val nome = itens[which]
-                if (isChecked) selecionadosAtual.add(nome) else selecionadosAtual.remove(nome)
-            }
+            .setView(scroll)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                renderFuncionariosSelecionados()
+                renderFuncionariosSelecionados() // mantém seu resumo abaixo do campo
             }
             .setNegativeButton(R.string.generic_cancel, null)
             .create()
 
-        // marque que o dialog está aberto e limpe ao fechar
         isFuncPickerOpen = true
         dlg.setOnDismissListener { isFuncPickerOpen = false }
         dlg.show()
     }
+
+    // Helper de formatação monetária (BR) — coloque no mesmo arquivo
+    private fun formatMoneyBr(valor: Double): String {
+        val nf = java.text.NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        return nf.format(valor)
+    }
+
 
     /** Atualiza o TextView abaixo do MaterialAlertDialogBuilder com os nomes selecionados (singular/plural). */
     private fun renderFuncionariosSelecionados() = with(binding) {

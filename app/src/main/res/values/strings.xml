@@ -482,6 +482,15 @@
     Este valor não será descontado no menu &lt;b&gt;Resumo&lt;/b&gt;. Para isso adicione o valor no menu &lt;b&gt;Notas&lt;/b&gt;.
 </string>
 
+    <!-- Cabeçalho da função (sublinhado via paint flag) -->
+    <string name="cron_func_role_header_underline">%1$s</string>
+
+    <!-- Linha do funcionário: Nome (R$ X / forma) -->
+    <string name="cron_func_item_line">%1$s (%2$s / %3$s)</string>
+
+    <!-- Nenhum funcionário ativo -->
+    <string name="cron_func_none">Sem funcionários cadastrados.</string>
+
     <!-- Cronograma: Dropdown de Funcionários -->
     <string name="cron_func_dropdown_hint">Funcionário(s) – opcional</string>
     <string name="cron_func_no_employees">Sem funcionários cadastrados.</string>
@@ -502,7 +511,7 @@
     <!-- Erros/validações -->
     <string name="etapa_error_responsavel_required">Selecione o tipo de responsável.</string>
     <string name="etapa_error_empresa_required">Informe o nome da empresa.</string>
-    <string name="etapa_error_empresa_size">O nome da empresa deve ter entre 3 e 16 caracteres.</string>
+    <string name="etapa_error_empresa_size">O nome da empresa deve ter entre 2 e 20 caracteres.</string>
 
     <!-- Lista -->
     <string name="cronograma_empresa_prefix">Empresa:</string>
