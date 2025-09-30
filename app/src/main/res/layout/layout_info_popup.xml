@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:background="?attr/colorSurface"
+    android:padding="16dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="6dp"
+    app:useCompatPadding="true">
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <!-- Conteúdo original em LinearLayout (mantém a medição correta) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="18dp">
+
+            <TextView
+                android:id="@+id/tvInfoText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:lineSpacingExtra="2dp"
+                android:maxWidth="260dp"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Botão X sobreposto no canto superior direito -->
+        <ImageView
+            android:id="@+id/btnClose"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="end|top"
+            android:layout_margin="8dp"
+            android:clickable="true"
+            android:contentDescription="@string/history_detail_close_cd"
+            android:focusable="true"
+            android:src="@drawable/ic_close_small" />
+    </FrameLayout>
+</com.google.android.material.card.MaterialCardView>

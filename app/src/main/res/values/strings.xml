@@ -438,10 +438,9 @@
 
     <string name="crg_footer_values_title">Financeiro</string>
     <string name="crg_footer_saldo_inicial_placeholder">Saldo Inicial: -</string>
-    <string name="crg_footer_saldo_inicial_mask">Saldo Inicial: %1$s</string>
+    <string name="crg_footer_saldo_inicial_mask"><![CDATA[Saldo Inicial: <b>%1$s</b>]]></string>
     <string name="crg_footer_financeiro_title">Financeiro</string>
-    <string name="crg_footer_saldo_aporte_mask">Saldo com Aportes: %1$s</string>
-    <string name="crg_footer_valor_total_mask">Valor Total: %1$s</string>
+    <string name="crg_footer_saldo_aporte_mask"><![CDATA[Saldo com Aporte(s): <b>%1$s</b>]]></string>
     <string name="crg_footer_saldo_restante_mask">Saldo Restante: %1$s</string>
 
     <!-- Gantt export -->
@@ -450,11 +449,18 @@
     <string name="gantt_export_csv_ok">CSV salvo em Download/ObraApp.</string>
     <string name="gantt_export_pdf_ok">PDF salvo em Download/ObraApp.</string>
 
-    <!-- Colunas do PDF -->
+    <!-- Arquivo PDF -->
     <string name="gantt_valor_col">Valor</string>
     <string name="gantt_progress_col">Progresso</string>
     <string name="cron_reg_responsavel_title">Responsável</string>
-
+    <!-- === Cronograma Gantt - PDF === -->
+    <string name="crg_pdf_finance_header">Resumo Financeiro</string>
+    <string name="crg_pdf_saldo_inicial_mask">Saldo Inicial: %1$s</string>
+    <string name="crg_pdf_saldo_aporte_mask">Saldo com Aportes: %1$s</string>
+    <string name="crg_pdf_valor_total_sem_dup_mask">Valor Total (Sem Duplicatas): %1$s</string>
+    <string name="crg_pdf_saldo_restante_mask">Saldo Restante: %1$s</string>
+    <string name="crg_pdf_saldo_restante_exp">O valor exibido considera o somatório de Saldo Inicial + Saldo com Aportes (se houver) − Valor Total (Sem Duplicatas). Não inclui valores de Notas cadastradas. Para visualizar o saldo consolidado, acesse o menu Resumo.
+</string>
 
     <!-- CronogramaRegisterFragment -->
     <string name="etapa_reg_title">Cadastro de Etapa</string>
@@ -490,6 +496,27 @@
 
     <!-- Nenhum funcionário ativo -->
     <string name="cron_func_none">Sem funcionários cadastrados.</string>
+
+    <!-- Financeiro: Valor Total -->
+    <string name="crg_footer_valor_total_integral_mask"><![CDATA[Total (Integral): <b>%1$s</b>]]></string>
+    <string name="crg_footer_valor_total_integral_exp">
+    Soma integral de todas as etapas, sem remover funcionários duplicados no mesmo dia.
+</string>
+
+    <string name="crg_footer_valor_total_sem_dupla_mask"><![CDATA[Total (Sem Duplicatas): <b>%1$s</b>]]></string>
+    <string name="crg_footer_valor_total_sem_dupla_exp">
+    Considera apenas um pagamento por funcionário no mesmo dia, mesmo que ele trabalhe em várias etapas.
+</string>
+
+    <string name="crg_footer_saldo_restante_exp">
+    <![CDATA[
+        O valor exibido considera o somatório de <b>Saldo Inicial</b> + <b>Saldo com Aportes (se houver)</b> − <b>Valor Total (Sem Duplicatas)</b>.<br/><br/>
+        Não inclui valores de <b>Notas</b> cadastradas.<br/>
+        Para visualizar o saldo consolidado, acesse o menu <b>Resumo</b>.
+    ]]>
+</string>
+
+    <string name="info">Informações</string>
 
     <!-- Cronograma: Dropdown de Funcionários -->
     <string name="cron_func_dropdown_hint">Funcionário(s) – opcional</string>

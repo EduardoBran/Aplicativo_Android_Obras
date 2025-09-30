@@ -11,9 +11,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.ImageView
+import android.widget.PopupWindow
+import android.widget.TextView
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
+import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -42,6 +45,7 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 import java.time.LocalDate
+import androidx.core.graphics.drawable.toDrawable
 
 @AndroidEntryPoint
 class CronogramaGanttFragment : Fragment() {
@@ -74,6 +78,19 @@ class CronogramaGanttFragment : Fragment() {
     private var baseRvPaddingBottom: Int = 0
     private var footerGlobalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
+    // Estado Popup Informação e Aba Expansível
+    private var popupIntegralVisible = false
+    private var popupSemDuplaVisible = false
+    private var popupSaldoVisible = false
+    private var resumoExpanded = false
+
+    // Manter referência dos popups (para fechar ao colapsar a aba)
+    private var popupIntegral: PopupWindow? = null
+    private var popupSemDupla: PopupWindow? = null
+    private var popupSaldo: PopupWindow? = null
+
+    // Evitar que a inicialização padrão da aba sobrescreva o estado restaurado
+    private var stateRestored = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -128,6 +145,46 @@ class CronogramaGanttFragment : Fragment() {
             startCollapsed = true
         )
 
+        // ▼▼ Listeners dos ícones de informação (mini-card ancorado) ▼▼
+        ivInfoIntegral.setOnClickListener { a ->
+            if (!popupIntegralVisible) {
+                popupIntegral = showInfoPopup(
+                    anchor = a,
+                    text = getString(R.string.crg_footer_valor_total_integral_exp)
+                ) {
+                    popupIntegralVisible = false
+                    popupIntegral = null
+                }
+                popupIntegralVisible = true
+            }
+        }
+
+        ivInfoSemDupla.setOnClickListener { a ->
+            if (!popupSemDuplaVisible) {
+                popupSemDupla = showInfoPopup(
+                    anchor = a,
+                    text = getString(R.string.crg_footer_valor_total_sem_dupla_exp)
+                ) {
+                    popupSemDuplaVisible = false
+                    popupSemDupla = null
+                }
+                popupSemDuplaVisible = true
+            }
+        }
+
+        ivInfoSaldo.setOnClickListener { a ->
+            if (!popupSaldoVisible) {
+                popupSaldo = showInfoPopup(
+                    anchor = a,
+                    text = getString(R.string.crg_footer_saldo_restante_exp)
+                ) {
+                    popupSaldoVisible = false
+                    popupSaldo = null
+                }
+                popupSaldoVisible = true
+            }
+        }
+
         // recycler
         rvGantt.layoutManager = LinearLayoutManager(requireContext())
         adapter = GanttRowAdapter(
@@ -164,7 +221,6 @@ class CronogramaGanttFragment : Fragment() {
         binding.cardResumoGantt.viewTreeObserver.addOnGlobalLayoutListener(
             footerGlobalLayoutListener
         )
-
 
         // Carrega e observa funcionários para cálculo de valores
         viewModelFuncionario.loadFuncionarios()
@@ -208,6 +264,9 @@ class CronogramaGanttFragment : Fragment() {
 
         // dispara primeira carga (se ainda não)
         viewModel.loadEtapas()
+
+        // Garante nested scrolling ativado sem risco de NPE na inflação
+        binding.contentResumoGantt.isNestedScrollingEnabled = true
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -304,7 +363,7 @@ class CronogramaGanttFragment : Fragment() {
         val inflater = LayoutInflater.from(root.context)
         headerDays.forEach { d ->
             val tv = inflater.inflate(R.layout.item_gantt_header_day, headerRow, false) as ViewGroup
-            val label = tv.findViewById<android.widget.TextView>(R.id.tvDayLabel)
+            val label = tv.findViewById<TextView>(R.id.tvDayLabel)
             label.text = if (GanttUtils.isSunday(d))
                 getString(R.string.gantt_sunday_short)      // "D"
             else
@@ -320,15 +379,6 @@ class CronogramaGanttFragment : Fragment() {
         }
         adapter.attachHeaderScroll(binding.headerScroll)
     }
-
-    // -------------- Helpers comuns (PDF) --------------
-    private val nfBR: NumberFormat = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-
-    private fun formatMoneyBR(v: Double?): String =
-        if (v == null) "-" else nfBR.format(v)
-
-    private fun parseCsvNomes(csv: String?): List<String> =
-        csv?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
 
     /** Mesmo cálculo já usado no Adapter: NÃO conta domingos. */
     private fun computeValorTotal(etapa: Etapa): Double? {
@@ -376,8 +426,125 @@ class CronogramaGanttFragment : Fragment() {
         return total
     }
 
+    /**
+     * Cenário A: Valor Total Integral
+     * - Soma todos os valores das etapas como estão.
+     * - Empresas: soma direta de empresaValor.
+     * - Funcionários: soma todos os salários por etapa,
+     *   sem deduplicar funcionários que trabalhem em mais de uma etapa no mesmo dia.
+     */
+    private fun computeValorTotalIntegral(
+        etapas: List<Etapa>
+    ): Double {
+        var total = 0.0
+
+        etapas.forEach { etapa ->
+            when (etapa.responsavelTipo) {
+                "EMPRESA" -> {
+                    total += etapa.empresaValor ?: 0.0
+                }
+
+                "FUNCIONARIOS" -> {
+                    val valorEtapa = computeValorTotal(etapa) ?: 0.0
+                    total += valorEtapa
+                }
+            }
+        }
+        return total
+    }
+
+    /**
+     * Cenário B: Valor Total sem dupla contagem
+     * - Empresas: soma direta de empresaValor.
+     * - Funcionários: considera apenas 1 salário por funcionário no mesmo dia,
+     *   mesmo que ele esteja em mais de uma etapa no mesmo dia.
+     */
+    private fun computeValorTotalSemOverlapInclusiveEmpresas(
+        etapas: List<Etapa>,
+        funcionarios: List<Funcionario>
+    ): Double {
+        val totalEmpresas: Double = etapas
+            .asSequence()
+            .filter { it.responsavelTipo == "EMPRESA" }
+            .mapNotNull { it.empresaValor }
+            .sum()
+
+        val etapasFunc = etapas.filter { it.responsavelTipo == "FUNCIONARIOS" }
+        if (etapasFunc.isEmpty() || funcionarios.isEmpty()) return totalEmpresas
+
+        // 1) Dias únicos por funcionário (sem domingo) E número de etapas por funcionário
+        val diasPorFuncionario = mutableMapOf<String, MutableSet<LocalDate>>()
+        val etapasPorFuncionario = mutableMapOf<String, Int>()
+
+        etapasFunc.forEach { e ->
+            val ini = GanttUtils.brToLocalDateOrNull(e.dataInicio)
+            val fim = GanttUtils.brToLocalDateOrNull(e.dataFim)
+            if (ini == null || fim == null || fim.isBefore(ini)) return@forEach
+
+            val diasValidos = GanttUtils.daysBetween(ini, fim).filter { !GanttUtils.isSunday(it) }
+            if (diasValidos.isEmpty()) return@forEach
+
+            val nomes = parseCsvNomes(e.funcionarios)
+            nomes.forEach { nome ->
+                val key = nome.trim().lowercase(Locale.getDefault())
+                val set = diasPorFuncionario.getOrPut(key) { mutableSetOf() }
+                set.addAll(diasValidos)
+                // conta 1 por etapa em que o funcionário aparece
+                etapasPorFuncionario[key] = (etapasPorFuncionario[key] ?: 0) + 1
+            }
+        }
+
+        // 2) Converte para quantidade a pagar conforme forma de pagamento
+        var totalFuncs = 0.0
+        val weekFields = java.time.temporal.WeekFields.ISO
+
+        diasPorFuncionario.forEach { (nomeLower, diasUnicos) ->
+            if (diasUnicos.isEmpty()) return@forEach
+
+            val f = funcionarios.firstOrNull { it.nome.trim().equals(nomeLower, ignoreCase = true) }
+                ?: funcionarios.firstOrNull {
+                    it.nome.trim().lowercase(Locale.getDefault()) == nomeLower
+                }
+                ?: return@forEach
+
+            val salario = f.salario.coerceAtLeast(0.0)
+            val tipo = f.formaPagamento.trim().lowercase(Locale.getDefault())
+
+            val qtd = when {
+                // diária → 1 por DIA único
+                tipo.contains("diária") ||
+                        tipo.contains("diaria") ||
+                        tipo.contains("Diária") ||
+                        tipo.contains("Diaria") -> diasUnicos.size
+
+                // semanal → 1 por semana ISO única (ano/semana)
+                tipo.contains("semanal") || tipo.contains("Semanal") -> diasUnicos
+                    .map { it.get(weekFields.weekBasedYear()) to it.get(weekFields.weekOfWeekBasedYear()) }
+                    .toSet().size
+
+                // mensal → 1 por (ano,mês) único
+                tipo.contains("mensal") || tipo.contains("Mensal") -> diasUnicos
+                    .map { it.year to it.monthValue }
+                    .toSet().size
+
+                // tarefeiro → sem sobrepor no mesmo dia, mas NÃO vira “por dia”
+                // conta no máx. o nº de etapas em que ele aparece
+                tipo.contains("tarefeiro") || tipo.contains("tarefa") ||
+                        tipo.contains("Tarefeiro") -> {
+                    val etapasCount = etapasPorFuncionario[nomeLower] ?: 0
+                    kotlin.math.min(diasUnicos.size, etapasCount)
+                }
+
+                else -> 0
+            }
+
+            if (qtd > 0) totalFuncs += qtd * salario
+        }
+
+        return totalEmpresas + totalFuncs
+    }
+
     /** Aba Expansível */
-    // ——— Acordeão simples (mesma ideia do ResumoFragment) ———
     @Suppress("SameParameterValue")
     private fun setupExpandableFooter(
         header: View,
@@ -386,22 +553,44 @@ class CronogramaGanttFragment : Fragment() {
         startCollapsed: Boolean
     ) {
         fun apply(expanded: Boolean, animate: Boolean) {
+            // estado global (salva/recupera em rotação)
+            resumoExpanded = expanded
+
             if (animate) {
                 val t = androidx.transition.AutoTransition().apply { duration = 180 }
                 androidx.transition.TransitionManager.beginDelayedTransition(
                     binding.root as ViewGroup, t
                 )
             }
-            content.isVisible = expanded
-            arrow.animate().rotation(if (expanded) 180f else 0f).setDuration(180).start()
 
-            // Recalcula o padding do Recycler para nada ficar escondido
-            // (post para aguardar o novo tamanho do card)
+            content.isVisible = expanded
+
+            // se colapsar, feche quaisquer popups abertos
+            if (!expanded) {
+                popupIntegral?.dismiss()
+                popupSemDupla?.dismiss()
+                popupSaldo?.dismiss()
+            }
+
+            arrow.animate()
+                .rotation(if (expanded) 180f else 0f)
+                .setDuration(180)
+                .start()
+
+            // Ajusta o inset do Recycler após a mudança de altura
             content.post { updateRecyclerBottomInsetForFooter() }
         }
 
-        // estado inicial (colapsado)
-        content.post { apply(expanded = !startCollapsed, animate = false) }
+        // Estado inicial:
+        // - se já restauramos de rotação, respeita resumoExpanded;
+        // - caso contrário, usa o startCollapsed (expandido = !startCollapsed).
+        if (stateRestored) {
+            apply(expanded = resumoExpanded, animate = false)
+        } else {
+            apply(expanded = !startCollapsed, animate = false)
+        }
+
+        // Toggle ao tocar no cabeçalho
         header.setOnClickListener {
             val willExpand = !content.isVisible
             apply(willExpand, animate = true)
@@ -410,7 +599,7 @@ class CronogramaGanttFragment : Fragment() {
 
     // ——— Recalcula e preenche os textos do rodapé ———
     private fun updateResumoFooter() = with(binding) {
-        // 1) Andamento da obra: média dos percentuais de todas as etapas
+        // 1) Andamento da obra
         val avgPct: Int = if (currentEtapas.isEmpty()) {
             0
         } else {
@@ -425,46 +614,52 @@ class CronogramaGanttFragment : Fragment() {
         }
         tvAndamentoObraGantt.text = getString(R.string.crg_footer_status_value, avgPct)
 
-        // 2) Financeiro: Saldo Inicial / Saldo com Aportes (mesmos valores do Resumo)
-        tvSaldoInicialGantt.text = getString(
-            R.string.crg_footer_saldo_inicial_mask,
-            formatMoneyBR(saldoInicialObra)
+        // 2) Financeiro: Saldo Inicial / Aportes
+        tvSaldoInicialGantt.text = HtmlCompat.fromHtml(
+            getString(R.string.crg_footer_saldo_inicial_mask, formatMoneyBR(saldoInicialObra)),
+            HtmlCompat.FROM_HTML_MODE_LEGACY
+        )
+        val saldoComAportes: Double? = if (hasAportes) saldoInicialObra + totalAportesObra else null
+        tvSaldoComAportesGantt.text = HtmlCompat.fromHtml(
+            getString(
+                R.string.crg_footer_saldo_aporte_mask,
+                saldoComAportes?.let { formatMoneyBR(it) } ?: "-"
+            ),
+            HtmlCompat.FROM_HTML_MODE_LEGACY
         )
 
-        val saldoComAportes: Double? =
-            if (hasAportes) saldoInicialObra + totalAportesObra else null
-
-        tvSaldoComAportesGantt.text = getString(
-            R.string.crg_footer_saldo_aporte_mask,
-            saldoComAportes?.let { formatMoneyBR(it) } ?: "-"
+        // 3) Valor Total (Integral)  – soma como no Recycler (sem deduplicar)
+        val valorIntegral = computeValorTotalIntegral(currentEtapas)
+        tvValorTotalIntegralGantt.text = HtmlCompat.fromHtml(
+            getString(R.string.crg_footer_valor_total_integral_mask, formatMoneyBR(valorIntegral)),
+            HtmlCompat.FROM_HTML_MODE_LEGACY
         )
 
-        // 3) Valor Total: somatório dos valores cadastrados em cada etapa (ignora etapas sem valor)
-        val valorTotalCronogramas: Double = currentEtapas
-            .mapNotNull { computeValorTotal(it) }
-            .sum()
-        tvValorTotalGantt.text = getString(
-            R.string.crg_footer_valor_total_mask,
-            formatMoneyBR(valorTotalCronogramas)
+        // 4) Valor Total (Sem Duplicadas) – não duplica funcionário no mesmo dia
+        val valorSemDupla =
+            computeValorTotalSemOverlapInclusiveEmpresas(currentEtapas, funcionariosCache)
+        tvValorTotalSemDuplaGantt.text = HtmlCompat.fromHtml(
+            getString(R.string.crg_footer_valor_total_sem_dupla_mask, formatMoneyBR(valorSemDupla)),
+            HtmlCompat.FROM_HTML_MODE_LEGACY
         )
 
-        // 4) Saldo Restante (regra DESTA tela):
-        //    (Saldo Inicial + Aportes(se houver)) − (somatório dos valores das etapas)
+        // 5) Saldo Restante = (Saldo Inicial + Aportes se houver) − Valor Total (Sem Duplicadas)
         val base = saldoComAportes ?: saldoInicialObra
-        val saldoRestante = base - valorTotalCronogramas
+        val saldoRestante = base - valorSemDupla
         tvSaldoRestanteGantt.text = getString(
             R.string.crg_footer_saldo_restante_mask,
             formatMoneyBR(saldoRestante)
         )
 
-        // Vermelho quando negativo; cor padrão caso contrário
-        val normalColor = ContextCompat.getColor(
-            requireContext(), R.color.md_theme_light_onSurfaceVariant
-        )
-        val errorColor = ContextCompat.getColor(
-            requireContext(), R.color.md_theme_light_error
-        )
+        val normalColor =
+            ContextCompat.getColor(requireContext(), R.color.md_theme_light_onSurfaceVariant)
+        val errorColor = ContextCompat.getColor(requireContext(), R.color.md_theme_light_error)
         tvSaldoRestanteGantt.setTextColor(if (saldoRestante < 0) errorColor else normalColor)
+
+        binding.tvSaldoRestanteExpGantt.text = HtmlCompat.fromHtml(
+            getString(R.string.crg_footer_saldo_restante_exp),
+            HtmlCompat.FROM_HTML_MODE_LEGACY
+        )
     }
 
     /** Aplica o paddingBottom no Recycler igual à altura atual do card fixo do rodapé */
@@ -484,8 +679,103 @@ class CronogramaGanttFragment : Fragment() {
         )
     }
 
+    /** Helper para abrir o popup */
+    @SuppressLint("InflateParams")
+    private fun showInfoPopup(anchor: View, text: String, onDismiss: () -> Unit): PopupWindow {
+        val inflater = LayoutInflater.from(requireContext())
+        val popupView = inflater.inflate(R.layout.layout_info_popup, null)
+
+        val textView = popupView.findViewById<TextView>(R.id.tvInfoText)
+        val closeBtn = popupView.findViewById<ImageView>(R.id.btnClose)
+
+        // Renderiza <b> e <br/>
+        textView.text = HtmlCompat.fromHtml(text, HtmlCompat.FROM_HTML_MODE_LEGACY)
+
+        val popupWindow = PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        ).apply {
+            elevation = 12f
+            setBackgroundDrawable(android.graphics.Color.TRANSPARENT.toDrawable())
+            isOutsideTouchable = true
+            isClippingEnabled = true // não deixa desenhar fora da tela
+            setOnDismissListener { onDismiss() }
+        }
+
+        // botão X
+        closeBtn.setOnClickListener { popupWindow.dismiss() }
+
+        // --- MEDIR tamanho do popup para reposicionamento inteligente ---
+        popupView.measure(
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+        val popW = popupView.measuredWidth
+        val popH = popupView.measuredHeight
+
+        // Área visível da janela (exclui status bar / gesture area)
+        val screen = android.graphics.Rect()
+        requireActivity().window.decorView.getWindowVisibleDisplayFrame(screen)
+
+        // Posição do anchor na tela
+        val loc = IntArray(2)
+        anchor.getLocationOnScreen(loc)
+        val anchorLeft = loc[0]
+        val anchorTop = loc[1]
+        val anchorBottom = anchorTop + anchor.height
+
+        // Posição "padrão": à direita e levemente acima
+        var xOff = 16
+        var yOff = -anchor.height
+
+        // Coordenadas absolutas resultantes do showAsDropDown (rel. ao anchor)
+        var desiredLeft = anchorLeft + xOff
+        var desiredTop = anchorBottom + yOff
+
+        // Se ultrapassar a borda direita, empurre para a esquerda
+        val overflowRight = (desiredLeft + popW) - screen.right
+        if (overflowRight > 0) {
+            xOff -= (overflowRight + 16)
+            desiredLeft -= (overflowRight + 16)
+        }
+
+        // Se ultrapassar a borda esquerda, puxe para dentro
+        val overflowLeft = screen.left - desiredLeft
+        if (overflowLeft > 0) {
+            xOff += (overflowLeft + 16)
+            desiredLeft += (overflowLeft + 16)
+        }
+
+        // Se ultrapassar a borda inferior, suba o popup
+        val overflowBottom = (desiredTop + popH) - screen.bottom
+        if (overflowBottom > 0) {
+            yOff -= (overflowBottom + 16)
+            desiredTop -= (overflowBottom + 16)
+        }
+
+        // Se ainda ficar acima do topo, prenda logo abaixo do header
+        val overflowTop = screen.top - desiredTop
+        if (overflowTop > 0) {
+            // tenta exibir acima do anchor (tipo tooltip invertido)
+            val tryAbove = popH + anchor.height + 16
+            yOff += (overflowTop + tryAbove)
+        }
+
+        // Exibe ancorado, já com offsets corrigidos para caber na tela
+        popupWindow.showAsDropDown(anchor, xOff, yOff, Gravity.START)
+        return popupWindow
+    }
 
     /** --- Helper de texto para PDF --- */
+    private val nfBR: NumberFormat = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+
+    private fun formatMoneyBR(v: Double?): String =
+        if (v == null) "-" else nfBR.format(v)
+
+    private fun parseCsvNomes(csv: String?): List<String> =
+        csv?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
 
     /** Elipsa o texto para caber na largura especificada (em px). */
     private fun ellipsizeToWidth(text: String, paint: Paint, maxWidthPx: Float): String {
@@ -544,6 +834,61 @@ class CronogramaGanttFragment : Fragment() {
             btnNegativeText = getString(R.string.export_summary_snack_no),
             onNegative = { /* fica na página */ }
         )
+    }
+
+    /** Desenha um parágrafo com quebra automática de linha até a borda direita.
+     *  Retorna o novo Y (baseline) após a última linha desenhada.
+     */
+    @Suppress("SameParameterValue")
+    private fun drawWrappedText(
+        canvas: android.graphics.Canvas,
+        paint: Paint,
+        text: String,
+        leftX: Int,
+        rightX: Int,
+        startY: Float,
+        lineSpacingPx: Float = 4f
+    ): Float {
+        if (text.isBlank()) return startY
+        val words = text.trim().split(Regex("\\s+"))
+        val maxWidth = (rightX - leftX).toFloat()
+        val fm = paint.fontMetrics
+        val lineHeight = (fm.descent - fm.ascent)
+
+        var y = startY
+        var line = StringBuilder()
+
+        fun flushLine() {
+            if (line.isNotEmpty()) {
+                canvas.drawText(line.toString(), leftX.toFloat(), y, paint)
+                y += lineHeight + lineSpacingPx
+                line = StringBuilder()
+            }
+        }
+
+        for (w in words) {
+            val test = if (line.isEmpty()) w else "$line $w"
+            if (paint.measureText(test) <= maxWidth) {
+                line.clear(); line.append(test)
+            } else {
+                flushLine()
+                // Se a palavra sozinha excede a largura, corta com reticências
+                if (paint.measureText(w) > maxWidth) {
+                    var cut = w
+                    while (cut.isNotEmpty() && paint.measureText("$cut…") > maxWidth) {
+                        cut = cut.dropLast(1)
+                    }
+                    if (cut.isNotEmpty()) {
+                        canvas.drawText("$cut…", leftX.toFloat(), y, paint)
+                        y += lineHeight + lineSpacingPx
+                    }
+                } else {
+                    line.append(w)
+                }
+            }
+        }
+        flushLine()
+        return y
     }
 
     /** Exportar PDF */
@@ -686,6 +1031,100 @@ class CronogramaGanttFragment : Fragment() {
                 y += 16f
             }
 
+            // --------------------- RESUMO FINANCEIRO (PDF) ---------------------
+            run {
+                // 1) Calcula os mesmos números que a tela exibe
+                val valorTotalSemDuplicatas =
+                    computeValorTotalSemOverlapInclusiveEmpresas(currentEtapas, funcionariosCache)
+
+                val saldoComAportes: Double? =
+                    if (hasAportes) saldoInicialObra + totalAportesObra else null
+
+                val baseSaldo = saldoComAportes ?: saldoInicialObra
+                val saldoRestante = baseSaldo - valorTotalSemDuplicatas
+
+                // 2) Espaço antes do bloco
+                val fmTitle = headPaint.fontMetrics
+                val titleHeight = (fmTitle.descent - fmTitle.ascent)
+                val blockTopExtra = 18f
+
+                // Quebra de página se faltar espaço
+                if (y > (bottom - (blockTopExtra + titleHeight + 80f))) {
+                    doc.finishPage(page)
+                    page = newPage()
+                    canvas = page.canvas
+                    y = top.toFloat()
+                }
+
+                y += blockTopExtra
+
+                // 3) Cabeçalho do bloco
+                canvas.drawText(
+                    getString(R.string.crg_pdf_finance_header),
+                    left.toFloat(),
+                    y,
+                    headPaint
+                )
+                y += 12f
+
+                // 4) Linhas (usar o mesmo formatMoneyBR da tela)
+                val linhaSaldoInicial =
+                    getString(R.string.crg_pdf_saldo_inicial_mask, formatMoneyBR(saldoInicialObra))
+                val linhaSaldoComAportes = getString(
+                    R.string.crg_pdf_saldo_aporte_mask,
+                    saldoComAportes?.let { formatMoneyBR(it) } ?: "-"
+                )
+                val linhaValorTotalSemDup = getString(
+                    R.string.crg_pdf_valor_total_sem_dup_mask,
+                    formatMoneyBR(valorTotalSemDuplicatas)
+                )
+                val linhaSaldoRestante =
+                    getString(R.string.crg_pdf_saldo_restante_mask, formatMoneyBR(saldoRestante))
+
+                val textGap = 4f
+                canvas.drawText(linhaSaldoInicial, left.toFloat(), y, textPaint)
+                y += 11f + textGap
+                canvas.drawText(linhaSaldoComAportes, left.toFloat(), y, textPaint)
+                y += 11f + textGap
+                canvas.drawText(linhaValorTotalSemDup, left.toFloat(), y, textPaint)
+                y += 11f + textGap
+
+                // Saldo Restante em vermelho quando negativo (mesma lógica da tela)
+                val normalColor = ContextCompat.getColor(
+                    requireContext(),
+                    R.color.md_theme_light_onSurfaceVariant
+                )
+                val errorColor =
+                    ContextCompat.getColor(requireContext(), R.color.md_theme_light_error)
+
+                val oldTextColor = textPaint.color
+                textPaint.color = if (saldoRestante < 0) errorColor else normalColor
+                canvas.drawText(linhaSaldoRestante, left.toFloat(), y, textPaint)
+                textPaint.color = oldTextColor
+                y += 14f
+
+                // 5) Parágrafo explicativo (wrap automático)
+                val exp = getString(R.string.crg_pdf_saldo_restante_exp)
+
+                // Quebra de página se faltar espaço para o parágrafo
+                if (y > (bottom - 60f)) {
+                    doc.finishPage(page)
+                    page = newPage()
+                    canvas = page.canvas
+                    y = top.toFloat()
+                }
+
+                y = drawWrappedText(
+                    canvas = canvas,
+                    paint = textPaint,
+                    text = exp,
+                    leftX = left,
+                    rightX = right,
+                    startY = y,
+                    lineSpacingPx = 2f
+                )
+            }
+
             doc.finishPage(page)
 
             val name = "gantt_${args.obraId}_${System.currentTimeMillis()}.pdf"
@@ -720,6 +1159,56 @@ class CronogramaGanttFragment : Fragment() {
         }
     }
 
+    // Salvar/Restaurar estado de rotação
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean("popup_integral", popupIntegralVisible)
+        outState.putBoolean("popup_sem_dupla", popupSemDuplaVisible)
+        outState.putBoolean("popup_saldo", popupSaldoVisible)
+        outState.putBoolean("resumo_expanded", resumoExpanded)
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        savedInstanceState?.let {
+            // 1) Restaura a aba antes de qualquer popup
+            resumoExpanded = it.getBoolean("resumo_expanded", false)
+            binding.contentResumoGantt.isVisible = resumoExpanded
+            binding.ivArrowResumoGantt.rotation = if (resumoExpanded) 180f else 0f
+            binding.contentResumoGantt.post { updateRecyclerBottomInsetForFooter() }
+
+            // marca que já restauramos estado para não sobrescrever na inicialização
+            stateRestored = true
+
+            // 2) Restaura flags dos popups
+            popupIntegralVisible = it.getBoolean("popup_integral", false)
+            popupSemDuplaVisible = it.getBoolean("popup_sem_dupla", false)
+            popupSaldoVisible = it.getBoolean("popup_saldo", false)
+
+            // 3) Reabre popups (se a aba está visível)
+            binding.root.post {
+                if (resumoExpanded && popupIntegralVisible) {
+                    popupIntegral = showInfoPopup(
+                        binding.ivInfoIntegral,
+                        getString(R.string.crg_footer_valor_total_integral_exp)
+                    ) { popupIntegralVisible = false; popupIntegral = null }
+                }
+                if (resumoExpanded && popupSemDuplaVisible) {
+                    popupSemDupla = showInfoPopup(
+                        binding.ivInfoSemDupla,
+                        getString(R.string.crg_footer_valor_total_sem_dupla_exp)
+                    ) { popupSemDuplaVisible = false; popupSemDupla = null }
+                }
+                if (resumoExpanded && popupSaldoVisible) {
+                    popupSaldo = showInfoPopup(
+                        binding.ivInfoSaldo,
+                        getString(R.string.crg_footer_saldo_restante_exp)
+                    ) { popupSaldoVisible = false; popupSaldo = null }
+                }
+            }
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         adapter.detachHeaderScroll()
@@ -735,95 +1224,3 @@ class CronogramaGanttFragment : Fragment() {
         _binding = null
     }
 }
-
-/** Sanitiza campo para CSV: remove quebras de linha e escapa aspas. */
-//private fun sanitizeCsvField(s: String?): String =
-//    s.orEmpty()
-//        .replace("\r", " ")
-//        .replace("\n", " ")
-//        .trim()
-//        .replace("\"", "\"\"")
-
-/** Cabeçalho global da timeline (dias) já está em headerDays. */
-//private fun workingHeaderDays(): List<LocalDate> =
-//    headerDays.filter { !GanttUtils.isSunday(it) }
-
-/** Exportar CSV */
-//private fun exportToCsv() {
-//    try {
-//        val dias = workingHeaderDays()
-//        val sb = StringBuilder()
-//
-//        // Cabeçalho
-//        sb.append(
-//            listOf(
-//                "id", "titulo", "data_inicio", "data_fim",
-//                "responsavel_tipo", "funcionarios", "empresa_nome", "empresa_valor",
-//                "valor_calculado", "progresso_percent"
-//            ).plus(dias.map { it.toString() }).joinToString(",")
-//        ).append("\n")
-//
-//        currentEtapas.forEach { e ->
-//            val ini = GanttUtils.brToLocalDateOrNull(e.dataInicio)
-//            val fim = GanttUtils.brToLocalDateOrNull(e.dataFim)
-//            val progresso = GanttUtils.calcularProgresso(
-//                e.diasConcluidos?.toSet() ?: emptySet(),
-//                e.dataInicio,
-//                e.dataFim
-//            )
-//            val valor = computeValorTotal(e)
-//
-//            val fixas = listOf(
-//                sanitizeCsvField(e.id),
-//                sanitizeCsvField(e.titulo),
-//                sanitizeCsvField(e.dataInicio),
-//                sanitizeCsvField(e.dataFim),
-//                sanitizeCsvField(e.responsavelTipo),
-//                sanitizeCsvField(e.funcionarios),
-//                sanitizeCsvField(e.empresaNome),
-//                sanitizeCsvField(e.empresaValor?.toString()),
-//                sanitizeCsvField(valor?.toString()),
-//                sanitizeCsvField(progresso.toString())
-//            ).joinToString(",") { "\"$it\"" }
-//
-//            val rangeOk = (ini != null && fim != null && !fim.isBefore(ini))
-//            val done = e.diasConcluidos?.toSet() ?: emptySet()
-//            val porDia = dias.joinToString(",") { d ->
-//                val inRange = rangeOk && !d.isBefore(ini) && !d.isAfter(fim)
-//                val mark =
-//                    if (inRange && done.contains(GanttUtils.localDateToUtcString(d))) 1 else 0
-//                mark.toString()
-//            }
-//
-//            sb.append(fixas).append(",").append(porDia).append("\n")
-//        }
-//
-//        val name = "gantt_${args.obraId}_${System.currentTimeMillis()}.csv"
-//        val bytes = sb.toString().toByteArray(Charsets.UTF_8)
-//        val uri = saveCsvToDownloads(requireContext(), bytes, name)
-//
-//        if (uri != null) {
-//            SnackbarFragment.newInstance(
-//                type = com.luizeduardobrandao.obra.utils.Constants.SnackType.SUCCESS.name,
-//                title = getString(R.string.snack_success),
-//                msg = getString(R.string.gantt_export_csv_ok),
-//                btnText = getString(R.string.snack_button_ok)
-//            ).show(childFragmentManager, SnackbarFragment.TAG)
-//        } else {
-//            SnackbarFragment.newInstance(
-//                type = com.luizeduardobrandao.obra.utils.Constants.SnackType.ERROR.name,
-//                title = getString(R.string.snack_error),
-//                msg = getString(R.string.gantt_export_error),
-//                btnText = getString(R.string.snack_button_ok)
-//            ).show(childFragmentManager, SnackbarFragment.TAG)
-//        }
-//    } catch (t: Throwable) {
-//        t.printStackTrace()
-//        SnackbarFragment.newInstance(
-//            type = com.luizeduardobrandao.obra.utils.Constants.SnackType.ERROR.name,
-//            title = getString(R.string.snack_error),
-//            msg = getString(R.string.gantt_export_error),
-//            btnText = getString(R.string.snack_button_ok)
-//        ).show(childFragmentManager, SnackbarFragment.TAG)
-//    }
-//}
