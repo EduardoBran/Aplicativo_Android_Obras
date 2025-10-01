@@ -457,9 +457,10 @@
     <string name="crg_pdf_finance_header">Resumo Financeiro</string>
     <string name="crg_pdf_saldo_inicial_mask">Saldo Inicial: %1$s</string>
     <string name="crg_pdf_saldo_aporte_mask">Saldo com Aportes: %1$s</string>
-    <string name="crg_pdf_valor_total_sem_dup_mask">Valor Total (Sem Duplicatas): %1$s</string>
+    <string name="crg_pdf_valor_total_integral_mask">Total (Integral): %1$s</string>
+    <string name="crg_pdf_valor_total_sem_dup_mask">Total (Único/Dia): %1$s</string>
     <string name="crg_pdf_saldo_restante_mask">Saldo Restante: %1$s</string>
-    <string name="crg_pdf_saldo_restante_exp">O valor exibido considera o somatório de Saldo Inicial + Saldo com Aportes (se houver) − Valor Total (Sem Duplicatas). Não inclui valores de Notas cadastradas. Para visualizar o saldo consolidado, acesse o menu Resumo.
+    <string name="crg_pdf_saldo_restante_exp">O valor exibido considera o somatório de Saldo Inicial + Saldo com Aportes (se houver) − Valor Total (Único/Dia). Não inclui valores de Notas cadastradas. Para visualizar o saldo consolidado, acesse o menu Resumo.
 </string>
 
     <!-- CronogramaRegisterFragment -->
@@ -503,14 +504,14 @@
     Soma integral de todas as etapas, sem remover funcionários duplicados no mesmo dia.
 </string>
 
-    <string name="crg_footer_valor_total_sem_dupla_mask"><![CDATA[Total (Sem Duplicatas): <b>%1$s</b>]]></string>
+    <string name="crg_footer_valor_total_sem_dupla_mask"><![CDATA[Total (Único/Dia): <b>%1$s</b>]]></string>
     <string name="crg_footer_valor_total_sem_dupla_exp">
     Considera apenas um pagamento por funcionário no mesmo dia, mesmo que ele trabalhe em várias etapas.
 </string>
 
     <string name="crg_footer_saldo_restante_exp">
     <![CDATA[
-        O valor exibido considera o somatório de <b>Saldo Inicial</b> + <b>Saldo com Aportes (se houver)</b> − <b>Valor Total (Sem Duplicatas)</b>.<br/><br/>
+        O valor exibido considera o somatório de <b>Saldo Inicial</b> + <b>Saldo com Aportes (se houver)</b> − <b>Valor Total (Único/Dia)</b>.<br/><br/>
         Não inclui valores de <b>Notas</b> cadastradas.<br/>
         Para visualizar o saldo consolidado, acesse o menu <b>Resumo</b>.
     ]]>

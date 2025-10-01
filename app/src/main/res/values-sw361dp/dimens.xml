@@ -32,4 +32,12 @@
     <!-- Item Pagamento -->
     <dimen name="item_tvValorPagamento">19sp</dimen>
     <dimen name="item_tvDataPagamento">17sp</dimen>
+
+    <!-- NOVOS/UNIFICADOS p/ largura e gap de cada dia -->
+    <dimen name="gantt_day_width">32dp</dimen>
+    <!-- AQUI você controla o espaçamento entre quadrados e datas -->
+    <dimen name="gantt_day_gap">10dp</dimen>
+
+    <dimen name="gantt_day_text_size">14sp</dimen>
+    <dimen name="gantt_day_text_size_sunday">17sp</dimen> <!-- Letra "D" de Domingo -->
 </resources>

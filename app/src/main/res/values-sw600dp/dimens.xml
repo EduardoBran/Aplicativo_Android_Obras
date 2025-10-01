@@ -6,6 +6,10 @@
     <dimen name="login_hero_stroke">2dp</dimen>
     <dimen name="login_hero_inner_padding">16dp</dimen>
 
+    <!-- Login "Criar Conta" e "Recuperar Senha -->
+    <dimen name="text_size_login">16sp</dimen>
+    <dimen name="icon_size">20dp</dimen>
+
     <!-- Imagem Solução de Problemas -->
     <dimen name="img_iafragment">278dp</dimen>
 
@@ -23,5 +27,13 @@
     <dimen name="til_edit_padding_v">18dp</dimen>
 
     <dimen name="form_max_width">720dp</dimen>
+
+    <!-- NOVOS/UNIFICADOS p/ largura e gap de cada dia -->
+    <dimen name="gantt_day_width">32dp</dimen>
+    <!-- AQUI você controla o espaçamento entre quadrados e datas -->
+    <dimen name="gantt_day_gap">12dp</dimen>
+
+    <dimen name="gantt_day_text_size">16sp</dimen>
+    <dimen name="gantt_day_text_size_sunday">20sp</dimen> <!-- Letra "D" de Domingo -->
 
 </resources>

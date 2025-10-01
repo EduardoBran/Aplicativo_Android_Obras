@@ -366,6 +366,10 @@
         <argument
             android:name="obraId"
             app:argType="string" />
+
+        <action
+            android:id="@+id/action_gantt_to_register"
+            app:destination="@id/cronogramaRegisterFragment" />
     </fragment>
 
 

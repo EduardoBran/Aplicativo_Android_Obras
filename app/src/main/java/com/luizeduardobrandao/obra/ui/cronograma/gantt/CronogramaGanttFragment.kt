@@ -23,8 +23,10 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.SimpleItemAnimator
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Etapa
 import com.luizeduardobrandao.obra.data.model.Funcionario
@@ -64,6 +66,8 @@ class CronogramaGanttFragment : Fragment() {
     // Cabeçalho/timeline global (mínimo comum entre todas as etapas carregadas)
     private var headerDays: List<LocalDate> = emptyList()
 
+    private var lastBuiltHeaderDays: List<LocalDate>? = null
+
     private var currentEtapas: List<Etapa> = emptyList()
 
     // VM só para obter saldo/aportes (reaproveita a lógica do Resumo)
@@ -92,11 +96,16 @@ class CronogramaGanttFragment : Fragment() {
     // Evitar que a inicialização padrão da aba sobrescreva o estado restaurado
     private var stateRestored = false
 
+    // Reposicionar Recycler ao retornar de CronogramaRegister
+    private var savedScrollX: Int = 0
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCronogramaGanttBinding.inflate(inflater, container, false)
+        // >>> força rebuild do header quando a View é recriada
+        lastBuiltHeaderDays = null
         return binding.root
     }
 
@@ -187,29 +196,74 @@ class CronogramaGanttFragment : Fragment() {
 
         // recycler
         rvGantt.layoutManager = LinearLayoutManager(requireContext())
+        // Cria o adapter com o Context e os callbacks
         adapter = GanttRowAdapter(
             onToggleDay = { etapa, newSetUtc ->
-                // Persistir alteração via ViewModel (recalcula % + status)
+                // Persistir alteração (já existia)
                 viewModel.commitDias(etapa, newSetUtc)
             },
-            requestHeaderDays = { headerDays },
-            getFuncionarios = { funcionariosCache } // << NOVO
+            requestHeaderDays = { headerDays }, // Ainda usado no bind, mas pode ser refatorado
+            getFuncionarios = { funcionariosCache },
+            onEditEtapa = { etapa ->
+                // Navegar para edição da etapa a partir do Gantt
+                val dir = CronogramaGanttFragmentDirections
+                    .actionGanttToRegister(args.obraId, etapa.id)
+                findNavController().navigate(dir)
+            }
         )
 
-        // aqui você conecta o callback ANTES de setar o adapter no RecyclerView
+        // Injetar o X salvo
+        adapter.setInitialScrollX(savedScrollX)
+
+        // Conecta o callback ANTES de setar o adapter no RecyclerView
         adapter.onFirstLeftWidth = { leftWidth ->
             val row = binding.headerRow
-            val inset = resources.getDimensionPixelSize(R.dimen.gantt_header_start_inset)
-            val startGap = resources.getDimensionPixelSize(R.dimen.gantt_first_cell_margin_start)
+
+            // Paddings/margens reais que existem ANTES do HSV de cada linha
+            val listStartPad = binding.rvGantt.paddingLeft
+            val firstGap = resources.getDimensionPixelSize(R.dimen.gantt_first_cell_margin_start)
+            val endPadMin = resources.getDimensionPixelSize(R.dimen.gantt_header_end_pad)
+            val dayWidth = resources.getDimensionPixelSize(R.dimen.gantt_day_width)
+            val dayGap = resources.getDimensionPixelSize(R.dimen.gantt_day_gap)
+
+            val cardMarginStart = resources.getDimensionPixelSize(R.dimen.gantt_card_margin_h)
+            val rowInnerPadStart = resources.getDimensionPixelSize(R.dimen.gantt_row_content_pad)
+
+            // largura total dos dias (quadrados + gaps) + firstGap
+            val daysWidth = if (headerDays.isNotEmpty()) {
+                (dayWidth * headerDays.size + dayGap * (headerDays.size - 1)) + firstGap
+            } else 0
+
+            // offset EXATO até o início do 1º quadrado da 1ª linha
+            val startOffset =
+                cardMarginStart + listStartPad + rowInnerPadStart + leftWidth + firstGap
+
+            // paddingEnd que garante que o ÚLTIMO quadrado apareça quando rolar até o fim
+            val computedEndPad = maxOf(
+                endPadMin,
+                binding.root.width - (startOffset - firstGap + daysWidth)
+            )
+
+            // Header usa o mesmo endPad das linhas
             row.setPadding(
-                leftWidth + inset + startGap,
+                startOffset,                 // paddingStart alinha com o 1º quadrado
                 row.paddingTop,
-                row.paddingRight,
+                computedEndPad,              // paddingEnd idêntico ao das timelines
                 row.paddingBottom
             )
+
+            // Linhas: manda o mesmo endPad para o adapter (ele aplica no GanttTimelineView)
+            adapter.setTimelineEndPad(computedEndPad)
+            adapter.freezeLeftWidth(leftWidth)
         }
 
         rvGantt.adapter = adapter
+
+        // elimina cross-fade/merge que causava blink
+        (rvGantt.itemAnimator as? SimpleItemAnimator)?.apply {
+            supportsChangeAnimations = false
+            changeDuration = 0
+        }
 
         // Guarda o padding original do Recycler (para somar com a altura do footer)
         baseRvPaddingBottom = rvGantt.paddingBottom
@@ -287,6 +341,7 @@ class CronogramaGanttFragment : Fragment() {
                         val hasHeader = (ini != null && fim != null && !fim.isBefore(ini))
                         headerDays =
                             if (hasHeader) GanttUtils.daysBetween(ini!!, fim!!) else emptyList()
+                        adapter.updateHeaderDays(headerDays) // Sincroniza o adapter com headerDays
 
                         // 2) Estado da lista de etapas
                         when (etapasUi) {
@@ -357,17 +412,26 @@ class CronogramaGanttFragment : Fragment() {
     }
 
     private fun buildHeaderViews() = with(binding) {
-        headerRow.removeAllViews()
         if (headerDays.isEmpty()) return@with
+
+        // se os dias não mudaram desde a última vez → não refaz
+        if (lastBuiltHeaderDays == headerDays) return@with
+
+        headerRow.removeAllViews()
 
         val inflater = LayoutInflater.from(root.context)
         headerDays.forEach { d ->
             val tv = inflater.inflate(R.layout.item_gantt_header_day, headerRow, false) as ViewGroup
             val label = tv.findViewById<TextView>(R.id.tvDayLabel)
-            label.text = if (GanttUtils.isSunday(d))
-                getString(R.string.gantt_sunday_short)      // "D"
-            else
+
+            // Texto
+            label.text = if (GanttUtils.isSunday(d)) {
+                getString(R.string.gantt_sunday_short)
+            } else {
                 GanttUtils.formatDayForHeader(d)
+            }
+
+            // Tamanho diferenciado para domingo
             if (GanttUtils.isSunday(d)) {
                 val big = resources.getDimension(R.dimen.gantt_day_text_size_sunday)
                 label.setTextSize(TypedValue.COMPLEX_UNIT_PX, big)
@@ -375,9 +439,20 @@ class CronogramaGanttFragment : Fragment() {
                 val normal = resources.getDimension(R.dimen.gantt_day_text_size)
                 label.setTextSize(TypedValue.COMPLEX_UNIT_PX, normal)
             }
+
             headerRow.addView(tv)
         }
-        adapter.attachHeaderScroll(binding.headerScroll)
+
+        // sincroniza adapter ↔ header
+        adapter.attachHeaderScroll(headerScroll)
+
+        // restaura posição do scroll
+        headerScroll.post {
+            headerScroll.scrollTo(savedScrollX, 0)
+        }
+
+        // cache atualizado
+        lastBuiltHeaderDays = headerDays
     }
 
     /** Mesmo cálculo já usado no Adapter: NÃO conta domingos. */
@@ -1034,6 +1109,7 @@ class CronogramaGanttFragment : Fragment() {
             // --------------------- RESUMO FINANCEIRO (PDF) ---------------------
             run {
                 // 1) Calcula os mesmos números que a tela exibe
+                val valorTotalIntegral = computeValorTotalIntegral(currentEtapas)
                 val valorTotalSemDuplicatas =
                     computeValorTotalSemOverlapInclusiveEmpresas(currentEtapas, funcionariosCache)
 
@@ -1074,6 +1150,10 @@ class CronogramaGanttFragment : Fragment() {
                     R.string.crg_pdf_saldo_aporte_mask,
                     saldoComAportes?.let { formatMoneyBR(it) } ?: "-"
                 )
+                val linhaValorTotalIntegral = getString(
+                    R.string.crg_pdf_valor_total_integral_mask,
+                    formatMoneyBR(valorTotalIntegral)
+                )
                 val linhaValorTotalSemDup = getString(
                     R.string.crg_pdf_valor_total_sem_dup_mask,
                     formatMoneyBR(valorTotalSemDuplicatas)
@@ -1085,6 +1165,9 @@ class CronogramaGanttFragment : Fragment() {
                 canvas.drawText(linhaSaldoInicial, left.toFloat(), y, textPaint)
                 y += 11f + textGap
                 canvas.drawText(linhaSaldoComAportes, left.toFloat(), y, textPaint)
+                y += 11f + textGap
+                // >>> NOVO: Total (Integral)
+                canvas.drawText(linhaValorTotalIntegral, left.toFloat(), y, textPaint)
                 y += 11f + textGap
                 canvas.drawText(linhaValorTotalSemDup, left.toFloat(), y, textPaint)
                 y += 11f + textGap
@@ -1162,30 +1245,39 @@ class CronogramaGanttFragment : Fragment() {
     // Salvar/Restaurar estado de rotação
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+
+        // Estado da aba + popups
         outState.putBoolean("popup_integral", popupIntegralVisible)
         outState.putBoolean("popup_sem_dupla", popupSemDuplaVisible)
         outState.putBoolean("popup_saldo", popupSaldoVisible)
         outState.putBoolean("resumo_expanded", resumoExpanded)
+
+        // Scroll horizontal atual do Gantt (se adapter já existe) senão usa último salvo
+        val ganttX = if (::adapter.isInitialized) adapter.getLastScrollX() else savedScrollX
+        outState.putInt("gantt_scroll_x", ganttX)
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
-        savedInstanceState?.let {
-            // 1) Restaura a aba antes de qualquer popup
-            resumoExpanded = it.getBoolean("resumo_expanded", false)
+        savedInstanceState?.let { bundle ->
+            // 0) Recupera o X horizontal ANTES de criar/ligar o adapter.
+            savedScrollX = bundle.getInt("gantt_scroll_x", 0)
+
+            // 1) Restaura a aba (faz isso cedo para o layout já nascer no estado correto)
+            resumoExpanded = bundle.getBoolean("resumo_expanded", false)
             binding.contentResumoGantt.isVisible = resumoExpanded
             binding.ivArrowResumoGantt.rotation = if (resumoExpanded) 180f else 0f
             binding.contentResumoGantt.post { updateRecyclerBottomInsetForFooter() }
 
-            // marca que já restauramos estado para não sobrescrever na inicialização
+            // Evita que a inicialização padrão sobrescreva este estado
             stateRestored = true
 
             // 2) Restaura flags dos popups
-            popupIntegralVisible = it.getBoolean("popup_integral", false)
-            popupSemDuplaVisible = it.getBoolean("popup_sem_dupla", false)
-            popupSaldoVisible = it.getBoolean("popup_saldo", false)
+            popupIntegralVisible = bundle.getBoolean("popup_integral", false)
+            popupSemDuplaVisible = bundle.getBoolean("popup_sem_dupla", false)
+            popupSaldoVisible = bundle.getBoolean("popup_saldo", false)
 
-            // 3) Reabre popups (se a aba está visível)
+            // 3) Reabre os popups (somente se a aba estiver visível)
             binding.root.post {
                 if (resumoExpanded && popupIntegralVisible) {
                     popupIntegral = showInfoPopup(
@@ -1208,6 +1300,7 @@ class CronogramaGanttFragment : Fragment() {
             }
         }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

@@ -156,11 +156,11 @@
                             android:text="@string/login_create_account"
                             android:textAlignment="center"
                             android:textAllCaps="false"
-                            android:textSize="12sp"
+                            android:textSize="@dimen/text_size_login"
                             app:icon="@drawable/ic_user_plus"
                             app:iconGravity="textStart"
                             app:iconPadding="8dp"
-                            app:iconSize="17dp" />
+                            app:iconSize="@dimen/icon_size" />
                     </FrameLayout>
 
                     <!-- Coluna direita (Esqueceu a senha?) -->
@@ -176,14 +176,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="48dp"
                             android:gravity="center"
-                            android:textSize="12sp"
+                            android:textSize="@dimen/text_size_login"
                             android:text="@string/login_forgot_password"
                             android:textAlignment="center"
                             android:textAllCaps="false"
                             app:icon="@drawable/ic_key_reset"
                             app:iconGravity="textStart"
                             app:iconPadding="8dp"
-                            app:iconSize="17dp" />
+                            app:iconSize="@dimen/icon_size" />
                     </FrameLayout>
                 </LinearLayout>
 

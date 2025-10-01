@@ -27,8 +27,9 @@ class GanttTimelineView @JvmOverloads constructor(
 ) : View(context, attrs) {
 
     // Config
-    private val dayWidthPx = resources.getDimension(R.dimen.gantt_day_width)
-    private val dayGapPx = resources.getDimension(R.dimen.gantt_day_gap)
+    private val dayWidthPx = resources.getDimensionPixelSize(R.dimen.gantt_day_width).toFloat()
+    private val dayGapPx = resources.getDimensionPixelSize(R.dimen.gantt_day_gap).toFloat()
+
     private val radiusPx = resources.displayMetrics.density * 6f
 
     private val tmpRect = RectF()
@@ -121,8 +122,14 @@ class GanttTimelineView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val desiredWidth = ((dayWidthPx + dayGapPx) * headerDays.size).toInt()
-        val desiredHeight = MeasureSpec.getSize(heightMeasureSpec)
+        val n = headerDays.size
+        val contentW = if (n <= 0) 0f else (dayWidthPx * n + dayGapPx * (n - 1))
+        val desiredWidth = (paddingLeft + contentW + paddingRight).toInt()
+
+        val givenH = MeasureSpec.getSize(heightMeasureSpec)
+        val minH = paddingTop + paddingBottom
+        val desiredHeight = maxOf(givenH, minH)
+
         setMeasuredDimension(
             resolveSize(desiredWidth, widthMeasureSpec),
             resolveSize(desiredHeight, heightMeasureSpec)
@@ -133,13 +140,14 @@ class GanttTimelineView @JvmOverloads constructor(
         super.onDraw(canvas)
         if (headerDays.isEmpty()) return
 
-        val h = height.toFloat()
-        val top = resources.displayMetrics.density * 6f
-        val bottom = h - resources.displayMetrics.density * 6f
+        val inset = resources.displayMetrics.density * 6f
+        val startX = paddingLeft.toFloat()
+        val top = paddingTop + inset
+        val bottom = height - paddingBottom - inset
         val today = LocalDate.now()
 
         headerDays.forEachIndexed { idx, day ->
-            val left = idx * (dayWidthPx + dayGapPx)
+            val left = startX + idx * (dayWidthPx + dayGapPx)
             val right = left + dayWidthPx
             tmpRect.set(left, top, right, bottom)
 
@@ -151,11 +159,11 @@ class GanttTimelineView @JvmOverloads constructor(
                 canvas.drawRoundRect(tmpRect, radiusPx, radiusPx, sundayPaint)
 
                 // "X" sutil dentro do quadrado do domingo
-                val inset = resources.displayMetrics.density * 6f // margem interna (~6dp)
-                val l = tmpRect.left + inset
-                val t = tmpRect.top + inset
-                val r = tmpRect.right - inset
-                val b = tmpRect.bottom - inset
+                val inset1 = resources.displayMetrics.density * 6f // margem interna (~6dp)
+                val l = tmpRect.left + inset1
+                val t = tmpRect.top + inset1
+                val r = tmpRect.right - inset1
+                val b = tmpRect.bottom - inset1
                 canvas.drawLine(l, t, r, b, sundayXPaint)
                 canvas.drawLine(l, b, r, t, sundayXPaint)
             }
@@ -175,18 +183,17 @@ class GanttTimelineView @JvmOverloads constructor(
 
         val todayIdx = headerDays.indexOf(today)
         if (todayIdx >= 0) {
-            val left = todayIdx * (dayWidthPx + dayGapPx)
+            val left = startX + todayIdx * (dayWidthPx + dayGapPx)
             val right = left + dayWidthPx
             tmpRect.set(left, top, right, bottom)
-
-            // desenha apenas o contorno azul
             canvas.drawRoundRect(tmpRect, radiusPx, radiusPx, todayStrokePaint)
         }
     }
 
     private fun idxFromX(x: Float): Int {
         val col = (dayWidthPx + dayGapPx)
-        var idx = floor(x / col).toInt()
+        val xContent = (x - paddingLeft).coerceAtLeast(0f)
+        var idx = floor(xContent / col).toInt()
         if (idx < 0) idx = 0
         if (idx >= headerDays.size) idx = headerDays.lastIndex
         return idx
@@ -221,11 +228,12 @@ class GanttTimelineView @JvmOverloads constructor(
     override fun onTouchEvent(ev: MotionEvent): Boolean {
         when (ev.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                // não bloqueie o ScrollView ainda
                 downX = ev.x
                 downY = ev.y
                 moved = false
-                // retorne false? Não. Retorne true para continuar recebendo UP.
+                // 👉 Bloqueia o HorizontalScrollView enquanto for um possível TAP.
+                parent?.requestDisallowInterceptTouchEvent(true)
+                // Consome o DOWN para receber o UP.
                 return true
             }
 
@@ -234,26 +242,34 @@ class GanttTimelineView @JvmOverloads constructor(
                 val dy = kotlin.math.abs(ev.y - downY)
                 if (dx > touchSlop || dy > touchSlop) {
                     moved = true
+                    // 👉 Libera para o HorizontalScrollView (rolagem real):
+                    parent?.requestDisallowInterceptTouchEvent(false)
+                    // Entrega o restante do gesto para o HSV:
+                    return false
                 }
-                // NÃO consome o MOVE -> deixa o HorizontalScrollView rolar
-                return false
+                // Ainda é TAP: consome para não despertar barra/ripple.
+                return true
             }
 
             MotionEvent.ACTION_UP -> {
-                // se não houve movimento significativo, trate como "tap"
                 val dx = kotlin.math.abs(ev.x - downX)
                 val dy = kotlin.math.abs(ev.y - downY)
+                // Gesto terminou: garanta que o parent possa voltar a interceptar depois.
+                parent?.requestDisallowInterceptTouchEvent(false)
+
                 if (!moved && dx <= touchSlop && dy <= touchSlop) {
                     val idx = idxFromX(ev.x)
-                    toggleByIndex(idx)
-                    performClick()
-                    return true
+                    toggleByIndex(idx)         // muda só a cor do quadrado
+                    performClick()             // acessibilidade OK, sem efeito visual extra
+                    return true                // 👉 consome para não mostrar barras
                 }
+                // Era rolagem (já entregue ao HSV)
                 return false
             }
 
             MotionEvent.ACTION_CANCEL -> {
                 moved = false
+                parent?.requestDisallowInterceptTouchEvent(false)
                 return false
             }
         }

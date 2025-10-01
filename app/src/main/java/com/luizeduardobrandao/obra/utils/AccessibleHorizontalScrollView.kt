@@ -14,4 +14,9 @@ class AccessibleHorizontalScrollView @JvmOverloads constructor(
         // Sem ação extra — o importante é existir para acessibilidade
         return true
     }
+
+    // 👉 Expor awakenScrollBars de forma pública
+    fun showScrollBarsTemporarily() {
+        super.awakenScrollBars() // chama o protegido da superclasse
+    }
 }

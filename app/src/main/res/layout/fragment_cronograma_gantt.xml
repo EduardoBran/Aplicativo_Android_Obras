@@ -24,8 +24,13 @@
         android:id="@+id/headerScroll"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:fadeScrollbars="true"
+        android:fadingEdgeLength="0dp"
+        android:fillViewport="false"
         android:overScrollMode="never"
+        android:scrollbarStyle="insideOverlay"
+        android:scrollbars="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbarGantt">
@@ -44,7 +49,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:padding="8dp"
+        android:padding="5.75dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -143,7 +148,7 @@
                 android:fillViewport="true"
                 android:overScrollMode="ifContentScrolls"
                 android:visibility="gone"
-                tools:visibility="visible">
+                tools:visibility="gone">
 
                 <!-- Conteúdo real da aba -->
                 <LinearLayout

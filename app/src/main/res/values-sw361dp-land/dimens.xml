@@ -7,6 +7,10 @@
     <dimen name="login_hero_stroke">2dp</dimen>
     <dimen name="login_hero_inner_padding">8dp</dimen>
 
+    <!-- Login "Criar Conta" e "Recuperar Senha -->
+    <dimen name="text_size_login">14sp</dimen>
+    <dimen name="icon_size">18dp</dimen>
+
     <!-- Imagem Solução de Problemas -->
     <dimen name="img_iafragment">180dp</dimen>
 

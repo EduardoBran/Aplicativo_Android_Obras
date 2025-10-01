@@ -2,7 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="@dimen/gantt_day_width"
-    android:layout_height="40dp"
+    android:layout_height="48dp"
     android:layout_marginEnd="@dimen/gantt_day_gap"
     android:foreground="?attr/selectableItemBackground"
     android:paddingHorizontal="2dp"
