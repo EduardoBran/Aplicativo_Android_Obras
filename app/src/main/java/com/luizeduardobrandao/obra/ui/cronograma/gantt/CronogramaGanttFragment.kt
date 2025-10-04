@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -16,7 +17,10 @@ import android.widget.TextView
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.os.bundleOf
 import androidx.core.text.HtmlCompat
+import androidx.core.view.isNotEmpty
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -25,7 +29,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.navigation.NavOptions
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Etapa
@@ -34,6 +40,7 @@ import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentCronogramaGanttBinding
 import com.luizeduardobrandao.obra.ui.cronograma.CronogramaViewModel
 import com.luizeduardobrandao.obra.ui.cronograma.gantt.adapter.GanttRowAdapter
+import com.luizeduardobrandao.obra.ui.cronograma.gantt.anim.GanttHeaderAnimator
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.ui.funcionario.FuncionarioViewModel
 import com.luizeduardobrandao.obra.ui.resumo.ResumoViewModel
@@ -47,7 +54,6 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 import java.time.LocalDate
-import androidx.core.graphics.drawable.toDrawable
 
 @AndroidEntryPoint
 class CronogramaGanttFragment : Fragment() {
@@ -65,7 +71,6 @@ class CronogramaGanttFragment : Fragment() {
 
     // Cabeçalho/timeline global (mínimo comum entre todas as etapas carregadas)
     private var headerDays: List<LocalDate> = emptyList()
-
     private var lastBuiltHeaderDays: List<LocalDate>? = null
 
     private var currentEtapas: List<Etapa> = emptyList()
@@ -99,6 +104,18 @@ class CronogramaGanttFragment : Fragment() {
     // Reposicionar Recycler ao retornar de CronogramaRegister
     private var savedScrollX: Int = 0
 
+    // Loading com duração mínima
+    private val minLoadingTime = 1_000L
+    private var loadingStartedAt: Long = 0L
+    private var pendingHideRunnable: Runnable? = null
+
+    // Estado Animação
+    private var headerAnimatedOnce = false
+    private var headerIntroDxPx: Int = 0
+
+    // Evitar dupla navegação acidental ao reiniciar o Gantt
+    private var selfRestarted = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -106,6 +123,8 @@ class CronogramaGanttFragment : Fragment() {
         _binding = FragmentCronogramaGanttBinding.inflate(inflater, container, false)
         // >>> força rebuild do header quando a View é recriada
         lastBuiltHeaderDays = null
+        headerAnimatedOnce = false
+        headerIntroDxPx = 0
         return binding.root
     }
 
@@ -252,12 +271,47 @@ class CronogramaGanttFragment : Fragment() {
                 row.paddingBottom
             )
 
+            // Reposiciona o header já com o novo padding aplicado E só então recalcula o fade
+            postIfAlive { b ->
+                val headerW = b.headerRow.measuredWidth
+                val vpW = b.headerScroll.width
+                val maxScrollX = (headerW - vpW).coerceAtLeast(0)
+
+                val targetX = savedScrollX.coerceIn(0, maxScrollX)
+                b.headerScroll.scrollTo(targetX, 0)
+                syncVisibleRowsTo(targetX)
+                GanttHeaderAnimator.requestFadeRecalc(b.headerScroll, b.headerRow)
+            }
+
             // Linhas: manda o mesmo endPad para o adapter (ele aplica no GanttTimelineView)
             adapter.setTimelineEndPad(computedEndPad)
             adapter.freezeLeftWidth(leftWidth)
         }
 
         rvGantt.adapter = adapter
+
+        // Interromper animação após clique rápido
+        binding.rvGantt.addOnChildAttachStateChangeListener(
+            object : RecyclerView.OnChildAttachStateChangeListener {
+                override fun onChildViewAttachedToWindow(view: View) {
+                    val vh = binding.rvGantt.findContainingViewHolder(view) as? GanttRowAdapter.VH
+                        ?: return
+                    val rowScroll = vh.b.rowScroll
+                    // detector por linha
+                    GanttHeaderAnimator.installEarlyFinishOnRowScroll(
+                        rowScroll = rowScroll,
+                        headerScroll = binding.headerScroll,
+                        container = binding.headerRow
+                    )
+                }
+
+                override fun onChildViewDetachedFromWindow(view: View) {
+                    val vh = binding.rvGantt.findContainingViewHolder(view) as? GanttRowAdapter.VH
+                        ?: return
+                    GanttHeaderAnimator.uninstallEarlyFinishOnRowScroll(vh.b.rowScroll)
+                }
+            }
+        )
 
         // elimina cross-fade/merge que causava blink
         (rvGantt.itemAnimator as? SimpleItemAnimator)?.apply {
@@ -347,17 +401,20 @@ class CronogramaGanttFragment : Fragment() {
                         when (etapasUi) {
                             is UiState.Loading -> {
                                 // Enquanto qualquer lado não estiver pronto → loading
-                                renderLoading(true)
+                                startLoading()
                                 return@collect
                             }
 
                             is UiState.ErrorRes -> {
                                 // Erro: esconde conteúdo e mostra mensagem
-                                renderLoading(false)
-                                binding.headerContainer.isVisible = false
-                                binding.rvGantt.isVisible = false
-                                binding.textEmpty.isVisible = true
-                                binding.textEmpty.setText(etapasUi.resId)
+                                finishLoading {
+                                    binding.headerContainer.isVisible = false
+                                    binding.rvGantt.isVisible = false
+                                    binding.textEmpty.isVisible = true
+                                    binding.textEmpty.setText(etapasUi.resId)
+                                    binding.headerScroll.isVisible = false
+                                    binding.cardResumoGantt.isVisible = false
+                                }
                                 return@collect
                             }
 
@@ -373,7 +430,7 @@ class CronogramaGanttFragment : Fragment() {
 
                                 // Se o header NÃO estiver pronto ainda, aguarde (loading)
                                 if (!hasHeader) {
-                                    renderLoading(true)
+                                    startLoading()
                                     return@collect
                                 }
 
@@ -381,18 +438,31 @@ class CronogramaGanttFragment : Fragment() {
                                 buildHeaderViews() // monta as datas do topo (sem mexer em visibilidade)
                                 adapter.submitList(lista) {
                                     // Mostrar tudo só depois que a lista aplicar o diff
-                                    renderLoading(false)
-                                    binding.textEmpty.isVisible = lista.isEmpty()
-                                    if (lista.isEmpty()) binding.textEmpty.setText(R.string.gantt_empty)
+                                    finishLoading {
+                                        binding.textEmpty.isVisible = lista.isEmpty()
+                                        if (lista.isEmpty()) binding.textEmpty.setText(R.string.gantt_empty)
 
-                                    binding.headerContainer.isVisible = lista.isNotEmpty()
-                                    binding.rvGantt.isVisible = lista.isNotEmpty()
+                                        binding.headerContainer.isVisible = lista.isNotEmpty()
+                                        binding.rvGantt.isVisible = lista.isNotEmpty()
+                                        binding.headerScroll.isVisible = lista.isNotEmpty()
+                                        binding.cardResumoGantt.isVisible = true
 
-                                    binding.headerContainer.isVisible = lista.isNotEmpty()
-                                    binding.rvGantt.isVisible = lista.isNotEmpty()
+                                        // Recalcula o resumo do rodapé sempre que as etapas mudarem
+                                        updateResumoFooter()
 
-                                    // >>> Recalcula o resumo do rodapé sempre que as etapas mudarem
-                                    updateResumoFooter()
+                                        // Re-emite um "scroll changed" após as linhas estarem bindadas
+                                        postIfAlive { b ->
+                                            val x = b.headerScroll.scrollX
+                                            b.headerScroll.scrollTo(x + 1, 0)
+                                            b.headerScroll.scrollTo(x, 0)
+
+                                            syncVisibleRowsTo()
+                                            GanttHeaderAnimator.requestFadeRecalc(
+                                                b.headerScroll,
+                                                b.headerRow
+                                            )
+                                        }
+                                    }
                                 }
                             }
 
@@ -403,14 +473,66 @@ class CronogramaGanttFragment : Fragment() {
         }
     }
 
-    private fun renderLoading(show: Boolean) = with(binding) {
-        progressGantt.isVisible = show
-        // Conteúdo some enquanto carrega
-        rvGantt.isVisible = !show
-        headerContainer.isVisible = !show
+    // Loading com 1s no mínimo
+    private fun startLoading() = with(binding) {
+        // cancela qualquer hide pendente
+        pendingHideRunnable?.let {
+            progressGantt.removeCallbacks(it)
+            pendingHideRunnable = null
+        }
+        if (!progressGantt.isVisible) {
+            loadingStartedAt = SystemClock.elapsedRealtime()
+            progressGantt.isIndeterminate = true // redundante, mas seguro
+            progressGantt.isVisible = true
+        }
+        // nunca conteúdo junto com loading
+        rvGantt.isVisible = false
+        headerContainer.isVisible = false
         textEmpty.isVisible = false
+        headerScroll.isVisible = false
+        cardResumoGantt.isVisible = false
     }
 
+    private fun finishLoading(after: () -> Unit) = with(binding) {
+        // cancela atrasos anteriores
+        pendingHideRunnable?.let {
+            progressGantt.removeCallbacks(it)
+            pendingHideRunnable = null
+        }
+        val elapsed = SystemClock.elapsedRealtime() - loadingStartedAt
+        val remain = (minLoadingTime - elapsed).coerceAtLeast(0L)
+
+        val hideAndThen = Runnable {
+            progressGantt.isVisible = false
+            pendingHideRunnable = null
+
+            // 1) Deixe quem chamou mostrar o conteúdo
+            after()
+
+            // 2) Anime o header uma única vez
+            if (!headerAnimatedOnce && headerRow.isNotEmpty()) {
+                postIfAlive { b ->
+                    val offsetPx = -(resources.displayMetrics.density * 2f)
+                    GanttHeaderAnimator.animateInDates(
+                        container = b.headerRow,
+                        durationMs = 580L,
+                        staggerMs = 90L,
+                        offsetPx = offsetPx
+                    )
+                    headerAnimatedOnce = true
+                }
+            }
+        }
+
+        if (remain > 0L) {
+            pendingHideRunnable = hideAndThen
+            progressGantt.postDelayed(hideAndThen, remain)
+        } else {
+            hideAndThen.run()
+        }
+    }
+
+    // Exibição do cabeçalho com as datas
     private fun buildHeaderViews() = with(binding) {
         if (headerDays.isEmpty()) return@with
 
@@ -446,9 +568,41 @@ class CronogramaGanttFragment : Fragment() {
         // sincroniza adapter ↔ header
         adapter.attachHeaderScroll(headerScroll)
 
-        // restaura posição do scroll
-        headerScroll.post {
-            headerScroll.scrollTo(savedScrollX, 0)
+        // Ativa o fade proporcional de datas conforme visibilidade da célula
+        GanttHeaderAnimator.enableScrollFade(headerScroll, headerRow)
+
+        // Gesto real do usuário encerra a intro e ativa o fade imediatamente
+        GanttHeaderAnimator.installEarlyFinishGestures(
+            headerScroll = headerScroll,
+            container = headerRow,
+            recycler = rvGantt
+        )
+
+        if (headerAnimatedOnce) {
+            // pulamos a animação inicial após rotação → libera o fade
+            GanttHeaderAnimator.markIntroDone(headerRow)
+        }
+
+        // PRIME anti-flash: só se ainda não animou
+        if (!headerAnimatedOnce) {
+            val startOffset = -(resources.displayMetrics.density * 40f) // esquerda → direita
+            for (i in 0 until headerRow.childCount) {
+                val v = headerRow.getChildAt(i)
+                v.alpha = 0f
+                v.translationX = startOffset
+            }
+        }
+
+        // Restaura posição do scroll
+        postIfAlive { b ->
+            val headerW = b.headerRow.measuredWidth
+            val vpW = b.headerScroll.width
+            val maxScrollX = (headerW - vpW).coerceAtLeast(0)
+
+            val targetX = savedScrollX.coerceIn(0, maxScrollX)
+            b.headerScroll.scrollTo(targetX, 0)
+            syncVisibleRowsTo(targetX)
+            GanttHeaderAnimator.requestFadeRecalc(b.headerScroll, b.headerRow)
         }
 
         // cache atualizado
@@ -653,7 +807,7 @@ class CronogramaGanttFragment : Fragment() {
                 .start()
 
             // Ajusta o inset do Recycler após a mudança de altura
-            content.post { updateRecyclerBottomInsetForFooter() }
+            postIfAlive { updateRecyclerBottomInsetForFooter() }
         }
 
         // Estado inicial:
@@ -898,19 +1052,6 @@ class CronogramaGanttFragment : Fragment() {
         canvas.drawText(safe, colStartX.toFloat(), baselineY, paint)
     }
 
-    /** Snackbar perguntando se deseja salvar */
-    private fun askSavePdf() {
-        showSnackbarFragment(
-            type = Constants.SnackType.WARNING.name,
-            title = getString(R.string.export_summary_snack_title),
-            msg = getString(R.string.export_summary_snack_msg),
-            btnText = getString(R.string.export_summary_snack_yes),
-            onAction = { exportToPdf() },
-            btnNegativeText = getString(R.string.export_summary_snack_no),
-            onNegative = { /* fica na página */ }
-        )
-    }
-
     /** Desenha um parágrafo com quebra automática de linha até a borda direita.
      *  Retorna o novo Y (baseline) após a última linha desenhada.
      */
@@ -966,16 +1107,25 @@ class CronogramaGanttFragment : Fragment() {
         return y
     }
 
-    /** Exportar PDF */
+    /** Exportar PDF — robusto e à prova de NPE/estado do Fragment */
     private fun exportToPdf() {
+        // Garante que o Fragment está anexado e a View existe
+        if (!isAdded || _binding == null) return
+        val ctx = context ?: return
+
+        var doc: PdfDocument? = null
+        var baos: java.io.ByteArrayOutputStream? = null
+
         try {
-            val pageWidth = 595  // ~A4 em pontos (72 dpi)
+            // Dimensões A4 em ~72dpi
+            val pageWidth = 595
             val pageHeight = 842
             val left = 40
             val top = 40
             val right = pageWidth - 40
             val bottom = pageHeight - 40
 
+            // Pincéis
             val titlePaint = Paint().apply {
                 isAntiAlias = true
                 textSize = 18f
@@ -998,7 +1148,8 @@ class CronogramaGanttFragment : Fragment() {
             }
             val linePaint = Paint().apply { strokeWidth = 1.2f }
 
-            val doc = PdfDocument()
+            // Documento
+            doc = PdfDocument()
             var pageNumber = 0
             fun newPage(): PdfDocument.Page {
                 pageNumber += 1
@@ -1012,44 +1163,36 @@ class CronogramaGanttFragment : Fragment() {
             var y = top.toFloat()
 
             // Título
-            canvas.drawText(getString(R.string.gantt_title), left.toFloat(), y, titlePaint)
+            canvas.drawText(ctx.getString(R.string.gantt_title), left.toFloat(), y, titlePaint)
             y += 18f + 12f
 
-            // Colunas (um pouco mais enxutas para sobrar espaço ao "Progresso")
+            // Colunas
             val colTitulo = left
             val colPeriodo = colTitulo + 170
             val colResp = colPeriodo + 130
             val colValor = colResp + 100
-            val colProg = colValor + 70   // agora sobra ~45px até 'right'
+            val colProg = colValor + 70  // sobra margem à direita
 
             fun drawHeaderRow() {
                 canvas.drawText(
-                    getString(R.string.etapa_reg_name_hint),
-                    colTitulo.toFloat(),
-                    y,
-                    headPaint
+                    ctx.getString(R.string.etapa_reg_name_hint),
+                    colTitulo.toFloat(), y, headPaint
                 )
                 canvas.drawText(
-                    getString(R.string.cronograma_date_range, "Ini", "Fim"),
+                    ctx.getString(R.string.cronograma_date_range, "Ini", "Fim"),
                     colPeriodo.toFloat(), y, headPaint
                 )
                 canvas.drawText(
-                    getString(R.string.cron_reg_responsavel_title),
-                    colResp.toFloat(),
-                    y,
-                    headPaint
+                    ctx.getString(R.string.cron_reg_responsavel_title),
+                    colResp.toFloat(), y, headPaint
                 )
                 canvas.drawText(
-                    getString(R.string.gantt_valor_col),
-                    colValor.toFloat(),
-                    y,
-                    headPaint
+                    ctx.getString(R.string.gantt_valor_col),
+                    colValor.toFloat(), y, headPaint
                 )
                 canvas.drawText(
-                    getString(R.string.gantt_progress_col),
-                    colProg.toFloat(),
-                    y,
-                    headPaint
+                    ctx.getString(R.string.gantt_progress_col),
+                    colProg.toFloat(), y, headPaint
                 )
                 y += 10f
                 canvas.drawLine(left.toFloat(), y, right.toFloat(), y, linePaint)
@@ -1058,7 +1201,7 @@ class CronogramaGanttFragment : Fragment() {
 
             drawHeaderRow()
 
-            // Linhas
+            // Linhas (usa estado atual — rápido o bastante para síncrono)
             currentEtapas.forEach { e ->
                 val ini = GanttUtils.brToLocalDateOrNull(e.dataInicio)
                 val fim = GanttUtils.brToLocalDateOrNull(e.dataFim)
@@ -1070,33 +1213,34 @@ class CronogramaGanttFragment : Fragment() {
 
                 val respRaw = when (e.responsavelTipo) {
                     "EMPRESA" -> (e.empresaNome?.ifBlank { "—" } ?: "—")
-                    "FUNCIONARIOS" -> getString(R.string.cronograma_funcionarios_title)
+                    "FUNCIONARIOS" -> ctx.getString(R.string.cronograma_funcionarios_title)
                     else -> "—"
                 }
                 val valorRaw = formatMoneyBR(computeValorTotal(e))
-                val progressoRaw = GanttUtils
-                    .calcularProgresso(
-                        e.diasConcluidos?.toSet() ?: emptySet(),
-                        e.dataInicio,
-                        e.dataFim
-                    )
-                    .toString() + "%"
+                val progressoRaw = (GanttUtils.calcularProgresso(
+                    e.diasConcluidos?.toSet() ?: emptySet(),
+                    e.dataInicio,
+                    e.dataFim
+                )).toString() + "%"
 
-                // Quebra de página ANTES de desenhar a próxima linha
+                // quebra de página se necessário (antes de desenhar)
                 if (y > (bottom - 40)) {
                     doc.finishPage(page)
                     page = newPage()
                     canvas = page.canvas
                     y = top.toFloat()
 
-                    // título da nova página
-                    canvas.drawText(getString(R.string.gantt_title), left.toFloat(), y, titlePaint)
+                    canvas.drawText(
+                        ctx.getString(R.string.gantt_title),
+                        left.toFloat(),
+                        y,
+                        titlePaint
+                    )
                     y += 18f + 12f
-                    // cabeçalho da tabela
                     drawHeaderRow()
                 }
 
-                // Desenha cada célula elipsando para caber até a próxima coluna
+                // Células
                 drawCell(canvas, textPaint, e.titulo, colTitulo, colPeriodo, 8, y)
                 drawCell(canvas, textPaint, periodoRaw, colPeriodo, colResp, 8, y)
                 drawCell(canvas, textPaint, respRaw, colResp, colValor, 8, y)
@@ -1108,7 +1252,6 @@ class CronogramaGanttFragment : Fragment() {
 
             // --------------------- RESUMO FINANCEIRO (PDF) ---------------------
             run {
-                // 1) Calcula os mesmos números que a tela exibe
                 val valorTotalIntegral = computeValorTotalIntegral(currentEtapas)
                 val valorTotalSemDuplicatas =
                     computeValorTotalSemOverlapInclusiveEmpresas(currentEtapas, funcionariosCache)
@@ -1119,13 +1262,9 @@ class CronogramaGanttFragment : Fragment() {
                 val baseSaldo = saldoComAportes ?: saldoInicialObra
                 val saldoRestante = baseSaldo - valorTotalSemDuplicatas
 
-                // 2) Espaço antes do bloco
-                val fmTitle = headPaint.fontMetrics
-                val titleHeight = (fmTitle.descent - fmTitle.ascent)
                 val blockTopExtra = 18f
-
-                // Quebra de página se faltar espaço
-                if (y > (bottom - (blockTopExtra + titleHeight + 80f))) {
+                // espaço mínimo para o bloco
+                if (y > (bottom - (blockTopExtra + 12f + 80f))) {
                     doc.finishPage(page)
                     page = newPage()
                     canvas = page.canvas
@@ -1134,69 +1273,71 @@ class CronogramaGanttFragment : Fragment() {
 
                 y += blockTopExtra
 
-                // 3) Cabeçalho do bloco
+                // Cabeçalho bloco
                 canvas.drawText(
-                    getString(R.string.crg_pdf_finance_header),
-                    left.toFloat(),
-                    y,
-                    headPaint
+                    ctx.getString(R.string.crg_pdf_finance_header),
+                    left.toFloat(), y, headPaint
                 )
                 y += 12f
 
-                // 4) Linhas (usar o mesmo formatMoneyBR da tela)
-                val linhaSaldoInicial =
-                    getString(R.string.crg_pdf_saldo_inicial_mask, formatMoneyBR(saldoInicialObra))
-                val linhaSaldoComAportes = getString(
+                // Linhas
+                val linhaSaldoInicial = ctx.getString(
+                    R.string.crg_pdf_saldo_inicial_mask, formatMoneyBR(saldoInicialObra)
+                )
+                val linhaSaldoComAportes = ctx.getString(
                     R.string.crg_pdf_saldo_aporte_mask,
                     saldoComAportes?.let { formatMoneyBR(it) } ?: "-"
                 )
-                val linhaValorTotalIntegral = getString(
-                    R.string.crg_pdf_valor_total_integral_mask,
-                    formatMoneyBR(valorTotalIntegral)
+                val linhaValorTotalIntegral = ctx.getString(
+                    R.string.crg_pdf_valor_total_integral_mask, formatMoneyBR(valorTotalIntegral)
                 )
-                val linhaValorTotalSemDup = getString(
+                val linhaValorTotalSemDup = ctx.getString(
                     R.string.crg_pdf_valor_total_sem_dup_mask,
                     formatMoneyBR(valorTotalSemDuplicatas)
                 )
-                val linhaSaldoRestante =
-                    getString(R.string.crg_pdf_saldo_restante_mask, formatMoneyBR(saldoRestante))
+                val linhaSaldoRestante = ctx.getString(
+                    R.string.crg_pdf_saldo_restante_mask, formatMoneyBR(saldoRestante)
+                )
 
                 val textGap = 4f
-                canvas.drawText(linhaSaldoInicial, left.toFloat(), y, textPaint)
-                y += 11f + textGap
-                canvas.drawText(linhaSaldoComAportes, left.toFloat(), y, textPaint)
-                y += 11f + textGap
-                // >>> NOVO: Total (Integral)
-                canvas.drawText(linhaValorTotalIntegral, left.toFloat(), y, textPaint)
-                y += 11f + textGap
-                canvas.drawText(linhaValorTotalSemDup, left.toFloat(), y, textPaint)
-                y += 11f + textGap
+                canvas.drawText(linhaSaldoInicial, left.toFloat(), y, textPaint); y += 11f + textGap
+                canvas.drawText(
+                    linhaSaldoComAportes,
+                    left.toFloat(),
+                    y,
+                    textPaint
+                ); y += 11f + textGap
+                canvas.drawText(
+                    linhaValorTotalIntegral,
+                    left.toFloat(),
+                    y,
+                    textPaint
+                ); y += 11f + textGap
+                canvas.drawText(
+                    linhaValorTotalSemDup,
+                    left.toFloat(),
+                    y,
+                    textPaint
+                ); y += 11f + textGap
 
-                // Saldo Restante em vermelho quando negativo (mesma lógica da tela)
-                val normalColor = ContextCompat.getColor(
-                    requireContext(),
-                    R.color.md_theme_light_onSurfaceVariant
-                )
-                val errorColor =
-                    ContextCompat.getColor(requireContext(), R.color.md_theme_light_error)
-
+                // Cor especial p/ saldo negativo
+                val normalColor =
+                    ContextCompat.getColor(ctx, R.color.md_theme_light_onSurfaceVariant)
+                val errorColor = ContextCompat.getColor(ctx, R.color.md_theme_light_error)
                 val oldTextColor = textPaint.color
                 textPaint.color = if (saldoRestante < 0) errorColor else normalColor
                 canvas.drawText(linhaSaldoRestante, left.toFloat(), y, textPaint)
                 textPaint.color = oldTextColor
                 y += 14f
 
-                // 5) Parágrafo explicativo (wrap automático)
-                val exp = getString(R.string.crg_pdf_saldo_restante_exp)
-
-                // Quebra de página se faltar espaço para o parágrafo
+                // Parágrafo explicativo (wrap)
+                val exp = ctx.getString(R.string.crg_pdf_saldo_restante_exp)
                 if (y > (bottom - 60f)) {
                     doc.finishPage(page)
                     page = newPage()
                     canvas = page.canvas
                     y = top.toFloat()
                 }
-
                 y = drawWrappedText(
                     canvas = canvas,
                     paint = textPaint,
@@ -1208,37 +1349,108 @@ class CronogramaGanttFragment : Fragment() {
                 )
             }
 
+            // Finaliza e grava
             doc.finishPage(page)
 
-            val name = "gantt_${args.obraId}_${System.currentTimeMillis()}.pdf"
-            val baos = java.io.ByteArrayOutputStream()
+            baos = java.io.ByteArrayOutputStream()
             doc.writeTo(baos)
-            doc.close()
+            val bytes = baos.toByteArray()
 
-            val uri = savePdfToDownloads(requireContext(), baos.toByteArray(), name)
-            if (uri != null) {
-                SnackbarFragment.newInstance(
-                    type = com.luizeduardobrandao.obra.utils.Constants.SnackType.SUCCESS.name,
-                    title = getString(R.string.snack_success),
-                    msg = getString(R.string.gantt_export_pdf_ok),
-                    btnText = getString(R.string.snack_button_ok)
-                ).show(childFragmentManager, SnackbarFragment.TAG)
-            } else {
-                SnackbarFragment.newInstance(
-                    type = com.luizeduardobrandao.obra.utils.Constants.SnackType.ERROR.name,
-                    title = getString(R.string.snack_error),
-                    msg = getString(R.string.gantt_export_error),
-                    btnText = getString(R.string.snack_button_ok)
-                ).show(childFragmentManager, SnackbarFragment.TAG)
+            val name = "Obra_${args.obraId}_${System.currentTimeMillis()}.pdf"
+            val uri = savePdfToDownloads(ctx, bytes, name)
+
+            // UI (snackbar) — sempre via postIfAlive
+            postIfAlive { _ ->
+                if (uri != null) {
+                    SnackbarFragment.newInstance(
+                        type = com.luizeduardobrandao.obra.utils.Constants.SnackType.SUCCESS.name,
+                        title = ctx.getString(R.string.snack_success),
+                        msg = ctx.getString(R.string.gantt_export_pdf_ok),
+                        btnText = ctx.getString(R.string.snack_button_ok)
+                    ).show(childFragmentManager, SnackbarFragment.TAG)
+                } else {
+                    SnackbarFragment.newInstance(
+                        type = com.luizeduardobrandao.obra.utils.Constants.SnackType.ERROR.name,
+                        title = ctx.getString(R.string.snack_error),
+                        msg = ctx.getString(R.string.gantt_export_error),
+                        btnText = ctx.getString(R.string.snack_button_ok)
+                    ).show(childFragmentManager, SnackbarFragment.TAG)
+                }
             }
         } catch (t: Throwable) {
-            t.printStackTrace()
-            SnackbarFragment.newInstance(
-                type = com.luizeduardobrandao.obra.utils.Constants.SnackType.ERROR.name,
-                title = getString(R.string.snack_error),
-                msg = getString(R.string.gantt_export_error),
-                btnText = getString(R.string.snack_button_ok)
-            ).show(childFragmentManager, SnackbarFragment.TAG)
+            // Erro genérico (ex.: I/O). Loga e avisa o usuário se a View ainda existir.
+            postIfAlive { _ ->
+                t.printStackTrace()
+                SnackbarFragment.newInstance(
+                    type = com.luizeduardobrandao.obra.utils.Constants.SnackType.ERROR.name,
+                    title = ctx.getString(R.string.snack_error),
+                    msg = ctx.getString(R.string.gantt_export_error),
+                    btnText = ctx.getString(R.string.snack_button_ok)
+                ).show(childFragmentManager, SnackbarFragment.TAG)
+            }
+        } finally {
+            // Fecha recursos mesmo em caso de exceção
+            runCatching { doc?.close() }
+            runCatching { baos?.close() }
+        }
+    }
+
+    /** Snackbar perguntando se deseja salvar */
+    private fun askSavePdf() {
+        postIfAlive {
+            showSnackbarFragment(
+                type = Constants.SnackType.WARNING.name,
+                title = getString(R.string.export_summary_snack_title),
+                msg = getString(R.string.export_summary_snack_msg),
+                btnText = getString(R.string.export_summary_snack_yes),
+                onAction = { exportToPdf() },
+                btnNegativeText = getString(R.string.export_summary_snack_no),
+                onNegative = { /* fica na página */ }
+            )
+        }
+    }
+
+    // Helper ante NPE/race: só executa se a view ainda estiver anexada
+    private inline fun postIfAlive(
+        crossinline block: (FragmentCronogramaGanttBinding) -> Unit
+    ) {
+        val v = _binding?.root ?: return
+        v.post {
+            val b = _binding ?: return@post
+            if (!b.root.isAttachedToWindow) return@post
+            block(b)
+        }
+    }
+
+    /** Alinha todas as linhas visíveis ao X do header (ou a um X específico). */
+    private fun syncVisibleRowsTo(targetX: Int? = null) = postIfAlive { b ->
+        val lm = b.rvGantt.layoutManager as? LinearLayoutManager ?: return@postIfAlive
+
+        // Clampa o X ao conteúdo do header (evita “pulo” após rotação)
+        val headerContentW = b.headerRow.measuredWidth
+        val viewportW = b.headerScroll.width
+        val maxHeaderX = (headerContentW - viewportW).coerceAtLeast(0)
+        val x = targetX ?: b.headerScroll.scrollX
+        val clampedHeaderX = x.coerceIn(0, maxHeaderX)
+
+        // Garante o X do header
+        b.headerScroll.scrollTo(clampedHeaderX, 0)
+
+        val first = lm.findFirstVisibleItemPosition()
+        val last = lm.findLastVisibleItemPosition()
+        if (first == RecyclerView.NO_POSITION ||
+            last == RecyclerView.NO_POSITION
+        ) return@postIfAlive
+
+        // Aplica o mesmo X, respeitando o limite individual de cada linha
+        for (pos in first..last) {
+            val holder =
+                b.rvGantt.findViewHolderForAdapterPosition(pos) as? GanttRowAdapter.VH ?: continue
+            val row = holder.b.rowScroll
+            val childW = row.getChildAt(0)?.width ?: 0
+            val maxRowX = (childW - row.width).coerceAtLeast(0)
+            val clampedRowX = clampedHeaderX.coerceAtMost(maxRowX)
+            if (row.scrollX != clampedRowX) row.scrollTo(clampedRowX, 0)
         }
     }
 
@@ -1255,6 +1467,8 @@ class CronogramaGanttFragment : Fragment() {
         // Scroll horizontal atual do Gantt (se adapter já existe) senão usa último salvo
         val ganttX = if (::adapter.isInitialized) adapter.getLastScrollX() else savedScrollX
         outState.putInt("gantt_scroll_x", ganttX)
+
+        outState.putBoolean("header_anim_once", headerAnimatedOnce)
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
@@ -1262,12 +1476,15 @@ class CronogramaGanttFragment : Fragment() {
         savedInstanceState?.let { bundle ->
             // 0) Recupera o X horizontal ANTES de criar/ligar o adapter.
             savedScrollX = bundle.getInt("gantt_scroll_x", 0)
+            headerAnimatedOnce = bundle.getBoolean("header_anim_once", true)
 
             // 1) Restaura a aba (faz isso cedo para o layout já nascer no estado correto)
             resumoExpanded = bundle.getBoolean("resumo_expanded", false)
             binding.contentResumoGantt.isVisible = resumoExpanded
             binding.ivArrowResumoGantt.rotation = if (resumoExpanded) 180f else 0f
-            binding.contentResumoGantt.post { updateRecyclerBottomInsetForFooter() }
+            postIfAlive { updateRecyclerBottomInsetForFooter() }
+
+            postIfAlive { syncVisibleRowsTo(savedScrollX) } // <— ajuda em alguns aparelhos
 
             // Evita que a inicialização padrão sobrescreva este estado
             stateRestored = true
@@ -1278,22 +1495,22 @@ class CronogramaGanttFragment : Fragment() {
             popupSaldoVisible = bundle.getBoolean("popup_saldo", false)
 
             // 3) Reabre os popups (somente se a aba estiver visível)
-            binding.root.post {
+            postIfAlive { b ->
                 if (resumoExpanded && popupIntegralVisible) {
                     popupIntegral = showInfoPopup(
-                        binding.ivInfoIntegral,
+                        b.ivInfoIntegral,
                         getString(R.string.crg_footer_valor_total_integral_exp)
                     ) { popupIntegralVisible = false; popupIntegral = null }
                 }
                 if (resumoExpanded && popupSemDuplaVisible) {
                     popupSemDupla = showInfoPopup(
-                        binding.ivInfoSemDupla,
+                        b.ivInfoSemDupla,
                         getString(R.string.crg_footer_valor_total_sem_dupla_exp)
                     ) { popupSemDuplaVisible = false; popupSemDupla = null }
                 }
                 if (resumoExpanded && popupSaldoVisible) {
                     popupSaldo = showInfoPopup(
-                        binding.ivInfoSaldo,
+                        b.ivInfoSaldo,
                         getString(R.string.crg_footer_saldo_restante_exp)
                     ) { popupSaldoVisible = false; popupSaldo = null }
                 }
@@ -1301,10 +1518,45 @@ class CronogramaGanttFragment : Fragment() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        popupIntegral?.dismiss(); popupIntegral = null
+        popupSemDupla?.dismiss(); popupSemDupla = null
+        popupSaldo?.dismiss(); popupSaldo = null
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val sHandle = findNavController().currentBackStackEntry?.savedStateHandle
+        val mustRestart = sHandle?.get<Boolean>("RESTART_GANTT") == true
+        if (mustRestart && !selfRestarted) {
+            selfRestarted = true
+            sHandle?.remove<Boolean>("RESTART_GANTT")
+            val nav = findNavController()
+            if (nav.currentDestination?.id == R.id.cronogramaGanttFragment) {
+                nav.navigate(
+                    R.id.cronogramaGanttFragment,
+                    bundleOf("obraId" to args.obraId),
+                    NavOptions.Builder()
+                        .setPopUpTo(R.id.cronogramaGanttFragment, true)
+                        .build()
+                )
+            }
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
         adapter.detachHeaderScroll()
+
+        // Remove listener aditivo do header (fade) com binding nul-safe
+        _binding?.let { GanttHeaderAnimator.disableScrollFade(it.headerRow) }
+        _binding?.let {
+            GanttHeaderAnimator.uninstallEarlyFinishGestures(
+                it.headerScroll,
+                it.rvGantt
+            )
+        }
 
         // Remova o listener com segurança (o VTO pode não estar "alive")
         footerGlobalLayoutListener?.let { l ->
@@ -1313,6 +1565,18 @@ class CronogramaGanttFragment : Fragment() {
             }
             footerGlobalLayoutListener = null
         }
+
+        pendingHideRunnable?.let { _binding?.progressGantt?.removeCallbacks(it) }
+        pendingHideRunnable = null
+        _binding?.progressGantt?.isVisible = false
+
+        // limpa callbacks em handlers
+        runCatching { _binding?.root?.handler?.removeCallbacksAndMessages(null) }
+        runCatching { _binding?.headerScroll?.handler?.removeCallbacksAndMessages(null) }
+        runCatching { _binding?.rvGantt?.handler?.removeCallbacksAndMessages(null) }
+
+        // evita vazamento do adapter
+        _binding?.rvGantt?.adapter = null
 
         _binding = null
     }

@@ -404,7 +404,7 @@ class CronogramaRegisterFragment : Fragment() {
                                 Toast.makeText(requireContext(), msgRes, Toast.LENGTH_SHORT).show()
 
                                 binding.root.post {
-                                    findNavController().navigateUp()
+                                    navigateUpReturningToCallerAndRestartGanttIfNeeded()
                                     shouldCloseAfterSave = false
                                 }
                             } else {
@@ -478,11 +478,16 @@ class CronogramaRegisterFragment : Fragment() {
                 // Mostrar campo de valor e info
                 tilEmpresaValor.visibility = View.VISIBLE
                 tvEmpresaValorInfo.visibility = View.VISIBLE
-                // Preenche valor salvo (se houver)
+                // Preenche valor salvo (se houver) — exibe como "5.050,20" (sem "R$")
                 if (e.empresaValor != null) {
-                    // formata simples (use seu helper de currency se tiver)
-                    val str = e.empresaValor.toString()
-                    etEmpresaValor.setText(str)
+                    val nf = java.text.NumberFormat.getNumberInstance(
+                        Locale("pt", "BR")
+                    ).apply {
+                        minimumFractionDigits = 2
+                        maximumFractionDigits = 2
+                        isGroupingUsed = true
+                    }
+                    etEmpresaValor.setText(nf.format(e.empresaValor))
                 } else {
                     etEmpresaValor.setText("")
                 }
@@ -859,12 +864,12 @@ class CronogramaRegisterFragment : Fragment() {
                 title = getString(R.string.snack_attention),
                 msg = getString(R.string.unsaved_confirm_msg),
                 btnText = getString(R.string.snack_button_yes),
-                onAction = { findNavController().navigateUp() },
+                onAction = { navigateUpReturningToCallerAndRestartGanttIfNeeded() },
                 btnNegativeText = getString(R.string.snack_button_no),
                 onNegative = { /* permanece nesta tela */ }
             )
         } else {
-            findNavController().navigateUp()
+            navigateUpReturningToCallerAndRestartGanttIfNeeded()
         }
     }
 
@@ -1164,16 +1169,61 @@ class CronogramaRegisterFragment : Fragment() {
             .toCollection(linkedSetOf())
     }
 
-    /** Converte "1.234,56" ou "1234.56" para Double (>= 0). Retorna null se vazio/ inválido.
+    /** Converte "1.234,56", "1,234.56", "1234,56", "1234.56" e até "50.050.50" em Double (>= 0).
      *  Se negativo for digitado (ex.: colar), limpa o campo silenciosamente e retorna null. */
     private fun parseEmpresaValorOrNull(raw: String?, onNegative: (() -> Unit)? = null): Double? {
-        val s = raw?.trim().orEmpty()
-        if (s.isBlank()) return null
-        // normaliza vírgula para ponto
-        val norm = s.replace(',', '.')
-        val v = norm.toDoubleOrNull() ?: return null
+        val s0 = raw?.trim().orEmpty()
+        if (s0.isBlank()) return null
+
+        // remove espaços visíveis/invisíveis
+        val s = s0.replace(Regex("\\s"), "")
+
+        val hasComma = s.indexOf(',') >= 0
+        val hasDot = s.indexOf('.') >= 0
+
+        val normalized = when {
+            // Tem vírgula E ponto -> BR clássico "1.234,56"
+            hasComma && hasDot -> s.replace(".", "").replace(',', '.')
+
+            // Só vírgulas (pode ter várias): último é decimal, demais são milhar
+            hasComma && !hasDot -> {
+                val last = s.lastIndexOf(',')
+                buildString(s.length) {
+                    s.forEachIndexed { i, ch ->
+                        when (ch) {
+                            ',' -> if (i == last) append('.') // decimal
+                            else { /* descarta vírgula de milhar */
+                            }
+
+                            else -> append(ch)
+                        }
+                    }
+                }
+            }
+
+            // Só pontos (pode ter vários): último é decimal, demais são milhar
+            !hasComma && hasDot -> {
+                val last = s.lastIndexOf('.')
+                buildString(s.length) {
+                    s.forEachIndexed { i, ch ->
+                        when (ch) {
+                            '.' -> if (i == last) append('.') // decimal
+                            else { /* descarta ponto de milhar */
+                            }
+
+                            else -> append(ch)
+                        }
+                    }
+                }
+            }
+
+            // Só dígitos (sem separador)
+            else -> s
+        }
+
+        val v = normalized.toDoubleOrNull() ?: return null
         if (v < 0.0) {
-            onNegative?.invoke()  // regra: não permitir negativo (sem aviso)
+            onNegative?.invoke() // regra: não permitir negativo
             return null
         }
         return v
@@ -1232,6 +1282,23 @@ class CronogramaRegisterFragment : Fragment() {
         tvTituloError.isVisible = false
         tvDataInicioError.isVisible = false
         tvDataFimError.isVisible = false
+    }
+
+    // Navegação segura de volta para o CronogramaGanttFragment
+    private fun requestGanttRestartIfPresent() {
+        val nav = findNavController()
+        runCatching {
+            nav.getBackStackEntry(R.id.cronogramaGanttFragment)
+                .savedStateHandle["RESTART_GANTT"] = true
+        }.onFailure {
+            // Não faz nada (volta normal para o CronogramaFragment).
+        }
+    }
+
+    // use SEMPRE para sair do Register
+    private fun navigateUpReturningToCallerAndRestartGanttIfNeeded() {
+        requestGanttRestartIfPresent()          // sinaliza restart do Gantt somente se ele existir na pilha
+        findNavController().navigateUp()        // volta para quem chamou (Gantt ou Cronograma)
     }
 
 
