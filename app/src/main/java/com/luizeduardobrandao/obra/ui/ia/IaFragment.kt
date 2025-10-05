@@ -245,6 +245,14 @@ class IaFragment : Fragment() {
                 getString(R.string.ia_copy_success),
                 Toast.LENGTH_SHORT
             ).show()
+
+            // Muda o texto para "Copiado" por 2s e depois retorna
+            btnCopyAnswer.text = getString(R.string.ia_copied)
+            btnCopyAnswer.isEnabled = false
+            btnCopyAnswer.postDelayed({
+                btnCopyAnswer.text = getString(R.string.ia_copy_label)
+                btnCopyAnswer.isEnabled = true
+            }, 2000)
         }
 
         // Toolbar

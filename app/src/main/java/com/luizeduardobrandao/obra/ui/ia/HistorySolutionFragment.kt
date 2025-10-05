@@ -1,6 +1,7 @@
 package com.luizeduardobrandao.obra.ui.ia
 
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.*
 import android.view.ViewTreeObserver
 import android.content.ClipData
@@ -24,6 +25,7 @@ import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.ui.ia.adapter.HistoryAdapter
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -48,6 +50,9 @@ class HistorySolutionFragment : Fragment() {
     // controla exibição do loader na primeira carga
     private var firstLoad = true
 
+    // controla o timestamp de quando o loader foi exibido
+    private var progressShownAt: Long = 0L
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -65,6 +70,7 @@ class HistorySolutionFragment : Fragment() {
 
         // estado inicial: mostra loader, esconde lista e vazio
         progressHistory.isVisible = true
+        progressShownAt = SystemClock.elapsedRealtime() // 1 segundo de loading
         rvHistory.isGone = true
         tvEmptyHistory.isGone = true
 
@@ -98,6 +104,9 @@ class HistorySolutionFragment : Fragment() {
                     // a partir da 1ª emissão, some o loader
                     if (firstLoad) {
                         firstLoad = false
+                        val elapsed = SystemClock.elapsedRealtime() - progressShownAt
+                        val remaining = 1_000L - elapsed
+                        if (remaining > 0) delay(remaining)
                         binding.progressHistory.isGone = true
                     }
 

@@ -95,7 +95,7 @@
         Falha ao salvar a obra. Tente novamente mais tarde.
     </string>
     <string name="work_error_date_order">Data de término deve ser igual ou posterior à data de início.</string>
-    <string name="work_error_contato">Informe um telefone ou e-mail.</string>
+    <string name="work_error_contato">Informe um telefone.</string>
     <string name="obra_data_contact_hint">Contato</string>
     <string name="work_error_saldo_format">Formato inválido. Use "20.500,00".</string>
 
@@ -980,6 +980,7 @@
     <string name="ia_problem_length_error">A dúvida deve ter entre 8 e 100 caracteres.</string>
 
     <string name="ia_copy_label">Copiar</string>
+    <string name="ia_copied">Copiado</string>
     <string name="ia_copy_success">Copiado para a área de transferência</string>
 
     <!-- Botões / UI -->
