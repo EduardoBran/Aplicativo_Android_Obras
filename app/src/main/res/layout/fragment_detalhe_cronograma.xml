@@ -164,10 +164,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:layout_marginBottom="16dp"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 android:textColor="?attr/colorOnSurface"
                 tools:text="—" />
+
+            <!-- Barra de progresso do status da etapa (igual à do Gantt) -->
+            <com.luizeduardobrandao.obra.ui.cronograma.gantt.anim.PercentBarView
+                android:id="@+id/progressStatusBar"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/progress_status_height"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="16dp" />
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

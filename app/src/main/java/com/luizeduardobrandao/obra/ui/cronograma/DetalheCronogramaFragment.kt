@@ -37,6 +37,10 @@ class DetalheCronogramaFragment : Fragment() {
 
     private var etapaAtual: Etapa? = null
 
+    // Estado da barra de progresso (sobrevive à rotação)
+    private var barAnimatedOnce: Boolean = false
+    private var lastPct: Int = 0
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -48,6 +52,12 @@ class DetalheCronogramaFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Restaura estado da barra (evita reanimar após rotação)
+        barAnimatedOnce = savedInstanceState?.getBoolean("det_bar_animated_once", false) ?: false
+        lastPct = savedInstanceState?.getInt("det_bar_last_pct", 0) ?: 0
+        // Se já temos valor salvo (rotação), pinta sem animar
+        binding.progressStatusBar.setProgress(lastPct, animate = false)
 
         with(binding) {
             toolbarDetEtapa.setNavigationOnClickListener { findNavController().navigateUp() }
@@ -111,6 +121,24 @@ class DetalheCronogramaFragment : Fragment() {
                                 tvDetDataIni.text = et.dataInicio
                                 tvDetDataFim.text = et.dataFim
                                 tvDetStatus.text = et.status
+
+                                // Calcula % da etapa (mesma regra do Gantt)
+                                val pct = GanttUtils.calcularProgresso(
+                                    et.diasConcluidos?.toSet() ?: emptySet(),
+                                    et.dataInicio,
+                                    et.dataFim
+                                )
+                                lastPct = pct
+
+                                // Regra de animação: só anima na primeira entrada da tela
+                                if (barAnimatedOnce) {
+                                    binding.progressStatusBar.setProgress(pct, animate = false)
+                                } else {
+                                    // garante estado inicial e anima até o valor
+                                    binding.progressStatusBar.setProgress(0, animate = false)
+                                    binding.progressStatusBar.setProgress(pct, animate = true)
+                                    barAnimatedOnce = true
+                                }
                             }
 
                             is UiState.ErrorRes -> {
@@ -195,6 +223,12 @@ class DetalheCronogramaFragment : Fragment() {
             }
         }
         return total
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean("det_bar_animated_once", barAnimatedOnce)
+        outState.putInt("det_bar_last_pct", lastPct)
     }
 
     override fun onDestroyView() {

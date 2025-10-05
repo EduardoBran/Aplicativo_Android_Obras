@@ -194,7 +194,7 @@
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
 
-                            <!-- NOVO: barra de progresso animada -->
+                            <!-- Barra de progresso animada -->
                             <com.luizeduardobrandao.obra.ui.cronograma.gantt.anim.PercentBarView
                                 android:id="@+id/progressStatusBar"
                                 android:layout_width="match_parent"
