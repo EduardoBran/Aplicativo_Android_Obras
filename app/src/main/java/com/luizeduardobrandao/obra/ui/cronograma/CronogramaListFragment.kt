@@ -130,6 +130,12 @@ class CronogramaListFragment : Fragment() {
                                 }
                             adapter.submitList(list)
 
+                            if (isResumed) {
+                                binding.rvEtapas.post {
+                                    adapter.reanimateVisible(binding.rvEtapas)
+                                }
+                            }
+
                             rvEtapas.isVisible = list.isNotEmpty()
                             tvEmptyEtapas.isVisible = list.isEmpty()
                         }
@@ -156,7 +162,25 @@ class CronogramaListFragment : Fragment() {
         rvEtapas.isVisible = !show
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Garante que ao selecionar a aba, as porcentagens animem
+        binding.rvEtapas.post {
+            adapter.reanimateVisible(binding.rvEtapas)
+        }
+    }
+
     override fun onDestroyView() {
+        // ✅ Cancela quaisquer animações em andamento para evitar vazamentos ou "salto" visual
+        binding.rvEtapas.let { rv ->
+            for (i in 0 until rv.childCount) {
+                val holder = rv.getChildViewHolder(rv.getChildAt(i))
+                if (holder is EtapaAdapter.VH) {
+                    holder.pctAnimator?.cancel()
+                }
+            }
+        }
+
         super.onDestroyView()
         _binding = null
     }

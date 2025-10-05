@@ -109,6 +109,23 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:text="Pendente" />
 
+        <!-- Percentual [N%] abaixo do status (centralizado sob o tvStatusEtapa, sem truncar) -->
+        <TextView
+            android:id="@+id/tvPctEtapa"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:maxLines="1"
+            android:textSize="16sp"
+            app:autoSizeMaxTextSize="16sp"
+            app:autoSizeMinTextSize="12sp"
+            app:autoSizeStepGranularity="1sp"
+            app:autoSizeTextType="uniform"
+            app:layout_constraintEnd_toEndOf="@id/tvStatusEtapa"
+            app:layout_constraintStart_toStartOf="@id/tvStatusEtapa"
+            app:layout_constraintTop_toBottomOf="@id/tvStatusEtapa"
+            tools:text="100%" />
+
         <!-- Divider (AJUSTADO: agora abaixo do tvValorEtapa) -->
         <View
             android:layout_width="0dp"

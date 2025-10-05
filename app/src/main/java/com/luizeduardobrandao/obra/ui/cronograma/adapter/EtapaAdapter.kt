@@ -1,7 +1,9 @@
 package com.luizeduardobrandao.obra.ui.cronograma.adapter
 
+import android.animation.ValueAnimator
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.view.animation.DecelerateInterpolator
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -106,6 +108,9 @@ class EtapaAdapter(
     inner class VH(private val b: ItemCronogramaBinding) :
         RecyclerView.ViewHolder(b.root) {
 
+        private var lastPctShown: Int = -1
+        var pctAnimator: ValueAnimator? = null
+
         fun bind(e: Etapa) {
             val ctx = b.root.context
 
@@ -198,6 +203,19 @@ class EtapaAdapter(
                     else -> R.color.success
                 }
                 setTextColor(ContextCompat.getColor(ctx, colorRes))
+
+                // ▼▼ Percentual [N%] abaixo do status (mesma cor; sem animar aqui) ▼▼
+                val pct = GanttUtils.calcularProgresso(
+                    e.diasConcluidos?.toSet() ?: emptySet(),
+                    e.dataInicio,
+                    e.dataFim
+                ).coerceIn(0, 100)
+
+                // mesma cor do status
+                b.tvPctEtapa.setTextColor(b.tvStatusEtapa.currentTextColor)
+
+                // mostra o valor atual (sem animação no bind)
+                b.tvPctEtapa.text = b.root.context.getString(R.string.gantt_progress_fmt, pct)
             }
 
             // ⑥ Call-backs
@@ -205,6 +223,49 @@ class EtapaAdapter(
             b.btnDetailEtapa.setOnClickListener { onDetail(e) }
             b.btnDeleteEtapa.setOnClickListener { onDelete(e) }
         }
+
+        // Animação
+        fun animatePct(e: Etapa, force: Boolean = false) {
+            val ctx = b.root.context
+            val pct = GanttUtils.calcularProgresso(
+                e.diasConcluidos?.toSet() ?: emptySet(),
+                e.dataInicio,
+                e.dataFim
+            ).coerceIn(0, 100)
+
+            val colorRes = when (e.status) {
+                CronogramaPagerAdapter.STATUS_PENDENTE -> R.color.md_theme_light_error
+                CronogramaPagerAdapter.STATUS_ANDAMENTO -> R.color.warning
+                else -> R.color.success
+            }
+            b.tvPctEtapa.setTextColor(ContextCompat.getColor(ctx, colorRes))
+
+            if (!force && lastPctShown == pct) {
+                b.tvPctEtapa.text = ctx.getString(R.string.gantt_progress_fmt, pct)
+                return
+            }
+
+            pctAnimator?.cancel()
+
+            val start = if (!force && lastPctShown in 0..100) lastPctShown else 0
+            b.tvPctEtapa.text = ctx.getString(R.string.gantt_progress_fmt, start)
+
+            val delta = kotlin.math.abs(pct - start)
+            val animDuration = (delta * 12L).coerceIn(350L, 1000L)
+
+            pctAnimator = ValueAnimator.ofInt(start, pct).apply {
+                duration = animDuration
+                interpolator = DecelerateInterpolator(1.5f)
+                addUpdateListener { va ->
+                    val v = (va.animatedValue as Int).coerceIn(0, 100)
+                    b.tvPctEtapa.text = ctx.getString(R.string.gantt_progress_fmt, v)
+                    b.tvPctEtapa.contentDescription = b.tvPctEtapa.text
+                }
+                doOnEnd { lastPctShown = pct }
+            }
+            pctAnimator?.start()
+        }
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH =
@@ -219,6 +280,31 @@ class EtapaAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) =
         holder.bind(getItem(position))
 
+    override fun onViewAttachedToWindow(holder: VH) {
+        super.onViewAttachedToWindow(holder)
+        val pos = holder.bindingAdapterPosition
+        if (pos != RecyclerView.NO_POSITION) {
+            holder.animatePct(getItem(pos), force = false) // era animatePctIfNeeded(...)
+        }
+    }
+
+    override fun onViewDetachedFromWindow(holder: VH) {
+        super.onViewDetachedFromWindow(holder)
+        // cancela animação ao sair da tela para evitar vazamentos/“salto”
+        holder.pctAnimator?.cancel()
+    }
+
+    fun reanimateVisible(rv: RecyclerView) {
+        for (i in 0 until rv.childCount) {
+            val child = rv.getChildAt(i)
+            val holder = rv.getChildViewHolder(child) as? VH ?: continue
+            val pos = holder.bindingAdapterPosition
+            if (pos != RecyclerView.NO_POSITION) {
+                holder.animatePct(getItem(pos), force = true)
+            }
+        }
+    }
+
     companion object {
         private val DIFF = object : DiffUtil.ItemCallback<Etapa>() {
             override fun areItemsTheSame(old: Etapa, new: Etapa) =
@@ -228,4 +314,14 @@ class EtapaAdapter(
                 old == new
         }
     }
+}
+
+// Extensão utilitária local de animação
+private fun ValueAnimator.doOnEnd(block: () -> Unit) {
+    addListener(object : android.animation.Animator.AnimatorListener {
+        override fun onAnimationStart(animation: android.animation.Animator) {}
+        override fun onAnimationEnd(animation: android.animation.Animator) = block()
+        override fun onAnimationCancel(animation: android.animation.Animator) {}
+        override fun onAnimationRepeat(animation: android.animation.Animator) {}
+    })
 }
