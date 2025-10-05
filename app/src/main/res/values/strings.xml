@@ -489,6 +489,9 @@
     <string name="etapa_reg_empresa_valor_info">
     Este valor não será descontado no menu &lt;b&gt;Resumo&lt;/b&gt;. Para isso adicione o valor no menu &lt;b&gt;Notas&lt;/b&gt;.
 </string>
+    <string name="etapa_error_duplicate_title">
+    Já existe uma etapa com este título. Escolha outro nome.
+</string>
 
     <!-- Cabeçalho da função (sublinhado via paint flag) -->
     <string name="cron_func_role_header_underline">%1$s</string>

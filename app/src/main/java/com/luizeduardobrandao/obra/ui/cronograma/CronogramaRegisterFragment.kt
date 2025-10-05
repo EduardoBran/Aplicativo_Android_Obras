@@ -104,6 +104,20 @@ class CronogramaRegisterFragment : Fragment() {
     private var lastDataInicioErrorVisible: Boolean? = null
     private var lastDataFimErrorVisible: Boolean? = null
 
+    // Snapshot local das etapas para validação de título duplicado
+    private var etapasSnapshot: List<Etapa> = emptyList()
+    private var etapasLoaded: Boolean = false
+
+    // Bloqueio temporário após tentar salvar com título duplicado
+    private var blockSaveDueToDuplicate: Boolean = false
+    private var lastDuplicateTitleKey: String? = null
+
+    private fun titleKey(raw: String?): String =
+        raw?.trim()
+            ?.lowercase(Locale.getDefault())
+            ?.replace(Regex("\\s+"), " ")  // colapsa espaços
+            .orEmpty()
+
     private companion object {
         private const val STATE_FUNC_PICKER_OPEN = "state_func_picker_open"
         private const val STATE_FUNC_SELECTION = "state_func_selection"
@@ -253,6 +267,7 @@ class CronogramaRegisterFragment : Fragment() {
 
             // ⚠️ NÃO instale watchers nem valide ainda em modo edição
             //    (anti-"flash"). Só depois que os dados chegarem.
+            viewModel.loadEtapas()
             if (isEdit) {
                 viewModel.loadEtapas()
                 observeEtapa() // em observeEtapa(), após preencher, marcamos dataLoaded=true e instalamos os watchers
@@ -325,6 +340,19 @@ class CronogramaRegisterFragment : Fragment() {
 
                             else -> Unit
                         }
+                    }
+                }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { ui ->
+                    if (ui is UiState.Success) {
+                        etapasSnapshot = ui.data
+                        etapasLoaded = true
+                        // Revalida para (des)habilitar o botão quando os dados chegarem
+                        if (dataLoaded) validateForm()
                     }
                 }
             }
@@ -587,6 +615,26 @@ class CronogramaRegisterFragment : Fragment() {
         val dataIni = binding.etDataInicioEtapa.text.toString().trim()
         val dataFim = binding.etDataFimEtapa.text.toString().trim()
 
+        // Checagem de duplicado (SNACK só no clique)
+        val tituloNorm = titleKey(titulo)
+        val existeMesmoTitulo = etapasSnapshot.any { etapa ->
+            titleKey(etapa.titulo) == tituloNorm && (!isEdit || etapa.id != args.etapaId)
+        }
+        if (existeMesmoTitulo) {
+            // Bloqueia até o usuário alterar o título
+            blockSaveDueToDuplicate = true
+            lastDuplicateTitleKey = tituloNorm
+            binding.btnSaveEtapa.isEnabled = false
+
+            showSnackbarFragment(
+                Constants.SnackType.ERROR.name,
+                getString(R.string.snack_error),
+                getString(R.string.etapa_error_duplicate_title),
+                getString(R.string.snack_button_ok)
+            )
+            return
+        }
+
         if (titulo.length < Constants.Validation.MIN_NAME) {
             showError(R.string.etapa_error_title); return
         }
@@ -692,7 +740,24 @@ class CronogramaRegisterFragment : Fragment() {
             override fun afterTextChanged(s: Editable?) {}
         }
 
-        etTituloEtapa.addTextChangedListener(watcher)
+        etTituloEtapa.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (!dataLoaded) return
+
+                // Se estava bloqueado por duplicado, desbloqueia assim que o título mudar
+                if (blockSaveDueToDuplicate) {
+                    val currentKey = titleKey(s?.toString())
+                    if (currentKey != lastDuplicateTitleKey) {
+                        blockSaveDueToDuplicate = false
+                        lastDuplicateTitleKey = null
+                    }
+                }
+                validateForm()
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
         etEmpresa.addTextChangedListener(watcher) // validação dinâmica do nome da empresa
         // Valor Empresa (opcional, mas sem permitir negativo)
         etEmpresaValor.addTextChangedListener(object : TextWatcher {
@@ -836,10 +901,14 @@ class CronogramaRegisterFragment : Fragment() {
         }
 
         // habilitação do botão
-        val enabled = tituloOk && iniOk && fimOk && ordemOk && respOk &&
+        val baseOk = tituloOk && iniOk && fimOk && ordemOk && respOk &&
                 (responsavelSelecionado != RespTipo.EMPRESA || empresaOk)
+
         if (!isSaving && !shouldCloseAfterSave) {
-            btnSaveEtapa.isEnabled = enabled
+            // Se o usuário tentou salvar com duplicado, fica bloqueado
+            // até alterar o título (o watcher do título libera o bloqueio)
+            val enabledFinal = baseOk && !blockSaveDueToDuplicate
+            btnSaveEtapa.isEnabled = enabledFinal
         }
     }
 
