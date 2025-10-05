@@ -289,6 +289,16 @@ class IaFragment : Fragment() {
             viewModel.setProblemDraft(it?.toString().orEmpty())
         }
 
+        // 🔽 ADICIONE AQUI o listener do botão "Ir" do teclado
+        etProblem.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_GO) {
+                btnSendIa.performClick()   // Faz o mesmo que o botão "Enviar"
+                true                       // Consome o evento (não deixa o teclado repetir)
+            } else {
+                false
+            }
+        }
+
         // Estado inicial: botão desabilitado
         btnSendIa.isEnabled = false
 

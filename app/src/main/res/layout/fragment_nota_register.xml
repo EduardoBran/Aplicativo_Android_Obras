@@ -200,7 +200,7 @@
                     android:drawableStart="@drawable/ic_store"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:imeOptions="actionNext"
+                    android:imeOptions="actionDone"
                     android:inputType="textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
 

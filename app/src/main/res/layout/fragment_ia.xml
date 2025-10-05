@@ -117,7 +117,7 @@
                     android:layout_height="96dp"
                     android:gravity="top|start"
                     android:imeOptions="actionGo"
-                    android:inputType="textMultiLine"
+                    android:inputType="text"
                     android:minHeight="120dp"
                     android:paddingTop="22dp"
                     android:paddingBottom="16dp" />

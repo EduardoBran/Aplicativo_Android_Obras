@@ -52,7 +52,7 @@
                     android:drawableStart="@drawable/ic_person"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:imeOptions="actionNext"
+                    android:imeOptions="actionDone"
                     android:inputType="textPersonName" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -162,7 +162,7 @@
                     android:drawableStart="@drawable/ic_money"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:imeOptions="actionNext"
+                    android:imeOptions="actionDone"
                     android:inputType="numberDecimal|number" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -262,7 +262,7 @@
                     android:drawableStart="@drawable/ic_pix"
                     android:drawablePadding="12dp"
                     android:drawableTint="@color/md_theme_light_onSurfaceVariant"
-                    android:imeOptions="actionNext" />
+                    android:imeOptions="actionDone" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Dias trabalhados -->
