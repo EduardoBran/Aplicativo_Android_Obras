@@ -2,4 +2,7 @@
 <resources>
     <!-- Retrato (portrait): 3 colunas -->
     <integer name="fotos_grid_span">3</integer>
+
+    <!-- Barra de Progresso (Velocidade)-->
+    <integer name="progress_status_anim_ms">1200</integer>
 </resources>

@@ -433,8 +433,9 @@
     <!-- Cronograma Gantt - Resumo no rodapé -->
     <string name="crg_footer_title">Resumo Cronogramas</string>
     <string name="crg_footer_andamento_title">Andamento da Obra</string>
-    <string name="crg_footer_status_placeholder">Status: -</string>
+    <string name="crg_footer_status_placeholder">Status</string>
     <string name="crg_footer_status_value">Status: %1$d%% / 100%%</string>
+    <string name="progress_status_value">%1$d%% / 100%%</string>
 
     <string name="crg_footer_values_title">Financeiro</string>
     <string name="crg_footer_saldo_inicial_placeholder">Saldo Inicial: -</string>

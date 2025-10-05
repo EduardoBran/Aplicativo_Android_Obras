@@ -115,6 +115,6 @@
     <color name="fab_scroll_bg">#DBDBDB</color>         <!-- cinza 300 -->
     <color name="fab_scroll_icon_tint">#282828</color>  <!-- cinza 700 -->
 
-    <color name="gantt_today_stroke">#64B5F6</color>
+    <color name="progress_light_green">#8FD69A</color> <!-- verde claro elegante -->
 
 </resources>

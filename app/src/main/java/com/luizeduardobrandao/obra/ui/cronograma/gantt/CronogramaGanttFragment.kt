@@ -113,6 +113,10 @@ class CronogramaGanttFragment : Fragment() {
     private var headerAnimatedOnce = false
     private var headerIntroDxPx: Int = 0
 
+    // ——— Barra de progresso (resumo) ———
+    private var lastAvgPct: Int = 0
+    private var animateBarOnNextUpdate = false
+
     // Evitar dupla navegação acidental ao reiniciar o Gantt
     private var selfRestarted = false
 
@@ -375,6 +379,12 @@ class CronogramaGanttFragment : Fragment() {
 
         // Garante nested scrolling ativado sem risco de NPE na inflação
         binding.contentResumoGantt.isNestedScrollingEnabled = true
+
+        // Se a aba já vier expandida (ex.: após rotação/restauração), pinte imediatamente sem animar
+        if (binding.contentResumoGantt.isVisible) {
+            // usa o último valor conhecido antes da coleta finalizar
+            binding.progressStatusBar.setProgress(lastAvgPct, animate = false)
+        }
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -781,24 +791,28 @@ class CronogramaGanttFragment : Fragment() {
         arrow: ImageView,
         startCollapsed: Boolean
     ) {
-        fun apply(expanded: Boolean, animate: Boolean) {
-            // estado global (salva/recupera em rotação)
+        fun apply(expanded: Boolean, animateLayout: Boolean) {
             resumoExpanded = expanded
 
-            if (animate) {
+            if (animateLayout) {
                 val t = androidx.transition.AutoTransition().apply { duration = 180 }
                 androidx.transition.TransitionManager.beginDelayedTransition(
                     binding.root as ViewGroup, t
                 )
             }
 
+            // aplica visibilidade
             content.isVisible = expanded
 
-            // se colapsar, feche quaisquer popups abertos
             if (!expanded) {
+                // ao colapsar só fecha popups
                 popupIntegral?.dismiss()
                 popupSemDupla?.dismiss()
                 popupSaldo?.dismiss()
+            } else {
+                // ao expandir, quem decide animar é o updateResumoFooter via flag
+                // (abaixo chamamos updateResumoFooter() para já pintar)
+                updateResumoFooter()
             }
 
             arrow.animate()
@@ -806,25 +820,27 @@ class CronogramaGanttFragment : Fragment() {
                 .setDuration(180)
                 .start()
 
-            // Ajusta o inset do Recycler após a mudança de altura
             postIfAlive { updateRecyclerBottomInsetForFooter() }
         }
 
-        // Estado inicial:
-        // - se já restauramos de rotação, respeita resumoExpanded;
-        // - caso contrário, usa o startCollapsed (expandido = !startCollapsed).
+        // Estado inicial do fragment
         if (stateRestored) {
-            apply(expanded = resumoExpanded, animate = false)
+            apply(expanded = resumoExpanded, animateLayout = false)
         } else {
-            apply(expanded = !startCollapsed, animate = false)
+            apply(expanded = !startCollapsed, animateLayout = false)
         }
 
-        // Toggle ao tocar no cabeçalho
+        // Toggle do usuário
         header.setOnClickListener {
             val willExpand = !content.isVisible
-            apply(willExpand, animate = true)
+            if (willExpand) {
+                // NÃO zere mais aqui. Só arme o flag.
+                animateBarOnNextUpdate = true
+            }
+            apply(expanded = willExpand, animateLayout = true)
         }
     }
+
 
     // ——— Recalcula e preenche os textos do rodapé ———
     private fun updateResumoFooter() = with(binding) {
@@ -841,7 +857,23 @@ class CronogramaGanttFragment : Fragment() {
             }
             kotlin.math.round(sum.toDouble() / currentEtapas.size).toInt()
         }
-        tvAndamentoObraGantt.text = getString(R.string.crg_footer_status_value, avgPct)
+        // Guarda para uso ao expandir
+        lastAvgPct = avgPct
+
+        // Pinta a barra
+        if (contentResumoGantt.isVisible) {
+            if (animateBarOnNextUpdate) {
+                contentResumoGantt.post {
+                    // garante estado inicial sem animação
+                    binding.progressStatusBar.setProgress(0, animate = false)
+                    // agora anima até o valor calculado
+                    binding.progressStatusBar.setProgress(avgPct, animate = true)
+                    animateBarOnNextUpdate = false
+                }
+            } else {
+                binding.progressStatusBar.setProgress(avgPct, animate = false)
+            }
+        }
 
         // 2) Financeiro: Saldo Inicial / Aportes
         tvSaldoInicialGantt.text = HtmlCompat.fromHtml(
@@ -1469,6 +1501,9 @@ class CronogramaGanttFragment : Fragment() {
         outState.putInt("gantt_scroll_x", ganttX)
 
         outState.putBoolean("header_anim_once", headerAnimatedOnce)
+
+        // Barra Progresso
+        outState.putInt("bar_pct_last", lastAvgPct)
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
@@ -1478,8 +1513,19 @@ class CronogramaGanttFragment : Fragment() {
             savedScrollX = bundle.getInt("gantt_scroll_x", 0)
             headerAnimatedOnce = bundle.getBoolean("header_anim_once", true)
 
+            // Restaura último percentual conhecido para a barra
+            lastAvgPct = bundle.getInt("bar_pct_last", lastAvgPct)
+
             // 1) Restaura a aba (faz isso cedo para o layout já nascer no estado correto)
             resumoExpanded = bundle.getBoolean("resumo_expanded", false)
+
+            // Se a aba estava expandida durante a rotação, pinte imediatamente sem animar
+            if (resumoExpanded) {
+                animateBarOnNextUpdate = false
+                postIfAlive {
+                    binding.progressStatusBar.setProgress(lastAvgPct, animate = false)
+                }
+            }
             binding.contentResumoGantt.isVisible = resumoExpanded
             binding.ivArrowResumoGantt.rotation = if (resumoExpanded) 180f else 0f
             postIfAlive { updateRecyclerBottomInsetForFooter() }
@@ -1520,6 +1566,7 @@ class CronogramaGanttFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
+        if (requireActivity().isChangingConfigurations) return
         popupIntegral?.dismiss(); popupIntegral = null
         popupSemDupla?.dismiss(); popupSemDupla = null
         popupSaldo?.dismiss(); popupSaldo = null

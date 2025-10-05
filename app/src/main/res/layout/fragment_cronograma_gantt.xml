@@ -150,7 +150,7 @@
                 android:fillViewport="true"
                 android:overScrollMode="ifContentScrolls"
                 android:visibility="gone"
-                tools:visibility="gone">
+                tools:visibility="visible">
 
                 <!-- Conteúdo real da aba -->
                 <LinearLayout
@@ -175,8 +175,9 @@
                             android:padding="16dp">
 
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:gravity="center_horizontal"
                                 android:text="@string/crg_footer_andamento_title"
                                 android:textSize="20sp"
                                 android:textStyle="bold" />
@@ -185,13 +186,23 @@
                                 android:id="@+id/tvAndamentoObraGantt"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="14dp"
+                                android:layout_marginTop="16dp"
                                 android:fontFamily="@font/roboto"
                                 android:fontFeatureSettings="tnum"
                                 android:letterSpacing="0"
                                 android:text="@string/crg_footer_status_placeholder"
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
+
+                            <!-- NOVO: barra de progresso animada -->
+                            <com.luizeduardobrandao.obra.ui.cronograma.gantt.anim.PercentBarView
+                                android:id="@+id/progressStatusBar"
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/progress_status_height"
+                                android:layout_marginHorizontal="8dp"
+                                android:layout_marginTop="12dp"
+                                android:layout_marginBottom="4dp" />
+
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
 
@@ -211,8 +222,9 @@
 
                             <TextView
                                 android:id="@+id/tvFinanceiroHeaderGantt"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:gravity="center_horizontal"
                                 android:text="@string/crg_footer_financeiro_title"
                                 android:textSize="22sp"
                                 android:textStyle="bold" />
@@ -222,7 +234,7 @@
                                 android:id="@+id/tvSaldoInicialGantt"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="14dp"
+                                android:layout_marginTop="16dp"
                                 android:fontFamily="@font/roboto"
                                 android:fontFeatureSettings="tnum"
                                 android:letterSpacing="0"

@@ -65,4 +65,9 @@
     <!-- Padding interno do ConstraintLayout do item -->
     <dimen name="gantt_row_content_pad">12dp</dimen>
 
+    <dimen name="progress_status_height">36dp</dimen>
+    <dimen name="progress_status_radius">12dp</dimen>
+    <dimen name="progress_status_inner_pad">6dp</dimen>
+    <dimen name="progress_status_text_sp">14sp</dimen>
+
 </resources>
