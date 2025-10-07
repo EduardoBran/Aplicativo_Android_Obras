@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.core.view.isVisible
+import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -407,11 +408,11 @@ class ExportSummaryFragment : Fragment() {
     // ───────────────────────── PDF ─────────────────────────
 
     private fun savePdfNow() {
-        // captura o container principal (o conteúdo dentro do NestedScrollView)
         val container = binding.containerExportSummary
-
-        // Layout defensivo (garante medidas corretas antes de desenhar)
         container.post {
+            // ✅ Guardas defensivas: evita rodar se a view já foi destruída/desanexada
+            if (!isAdded || _binding == null || !container.isAttachedToWindow) return@post
+
             val pdfBytes = buildPdfBytesFrom(container)
             if (pdfBytes == null) {
                 showSnackbarFragment(
@@ -423,7 +424,6 @@ class ExportSummaryFragment : Fragment() {
                 return@post
             }
 
-            // Nome do arquivo: resumo_obra_{obraId}_{ddMMyyyy}.pdf
             val today =
                 SimpleDateFormat("ddMMyyyy", Locale.ROOT).format(Calendar.getInstance().time)
             val displayName = getString(R.string.export_summary_doc_name_fmt, args.obraId, today)
@@ -453,15 +453,11 @@ class ExportSummaryFragment : Fragment() {
      */
     private fun buildPdfBytesFrom(view: View): ByteArray? {
         try {
-            // Garante medição do conteúdo
-            val specW = View.MeasureSpec.makeMeasureSpec(view.width, View.MeasureSpec.EXACTLY)
-            val specH = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-            view.measure(specW, specH)
-            view.layout(0, 0, view.measuredWidth, view.measuredHeight)
+            // ❌ NÃO re-medimos nem relayoutamos a view que está na tela.
+            // Ela já está completamente layoutada quando savePdfNow() chama via post { ... }.
 
-            val contentWidthPx = view.measuredWidth
-            val contentHeightPx = view.measuredHeight
-
+            val contentWidthPx = view.width
+            val contentHeightPx = view.height
             if (contentWidthPx <= 0 || contentHeightPx <= 0) return null
 
             // Página A4: altura ≈ 1.414 * largura (mantendo a largura do conteúdo)
@@ -476,13 +472,14 @@ class ExportSummaryFragment : Fragment() {
                 val bottom = min(top + pageHeight, contentHeightPx)
                 val actualPageHeight = bottom - top
 
-                val pageInfo =
-                    PdfDocument.PageInfo.Builder(pageWidth, actualPageHeight, pageIndex + 1)
-                        .create()
+                val pageInfo = PdfDocument.PageInfo
+                    .Builder(pageWidth, actualPageHeight, pageIndex + 1)
+                    .create()
+
                 val page = pdf.startPage(pageInfo)
                 val canvas = page.canvas
 
-                // Move o canvas para "recortar" a parte do conteúdo referente a esta página
+                // Recorta a parte visível desta página
                 canvas.translate(0f, (-top).toFloat())
                 view.draw(canvas)
 
@@ -604,8 +601,14 @@ class ExportSummaryFragment : Fragment() {
     private fun addBodyLine(parent: ViewGroup, text: String, italic: Boolean = false) {
         val tv = MaterialTextView(requireContext()).apply {
             this.text = text
-            setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium)
-            if (italic) setTypeface(typeface, android.graphics.Typeface.ITALIC)
+            // Use seu R, não o material.R
+            TextViewCompat.setTextAppearance(
+                this,
+                R.style.Custom_TextAppearance_Material3_BodyMedium
+            )
+            if (italic) {
+                setTypeface(typeface, android.graphics.Typeface.ITALIC)
+            }
             val pad = resources.getDimensionPixelSize(R.dimen.spacing_2)
             setPadding(0, pad, 0, 0)
         }
@@ -633,6 +636,10 @@ class ExportSummaryFragment : Fragment() {
             binding.scrollExportSummary.viewTreeObserver.removeOnGlobalLayoutListener(l)
             globalLayoutListener = null
         }
+
+        // Limpar os listeners da toolbar
+        binding.toolbarExportSummary.setOnMenuItemClickListener(null)
+        binding.toolbarExportSummary.setNavigationOnClickListener(null)
 
         _binding = null
         super.onDestroyView()

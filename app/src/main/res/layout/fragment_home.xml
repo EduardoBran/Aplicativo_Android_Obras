@@ -3,383 +3,163 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".ui.home.HomeFragment">
 
-    <!-- Toolbar: título = nome do cliente, menu Logout -->
+    <!-- 1) Toolbar fixo no topo -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbarHome"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
-        android:theme="@style/ThemeOverlay.ObrasApp.Toolbar"
+        android:elevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:menu="@menu/menu_home_logout"
-        app:titleCentered="true" />
+        app:menu="@menu/menu_home_dense"
+        app:popupTheme="@style/ThemeOverlay.Material3.Light"
+        app:titleCentered="true"
+        app:titleTextColor="@color/white"
+        tools:menu="@menu/menu_home_dense"
+        tools:title="Obra: Alice" />
 
-    <ProgressBar
-        android:id="@+id/progressHome"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <!-- SCRIM para fechar a busca ao tocar fora -->
+    <View
+        android:id="@+id/searchScrim"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@android:color/transparent"
+        android:clickable="true"
+        android:focusable="true"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbarHome"
-        tools:visibility="visible" />
+        app:layout_constraintTop_toBottomOf="@id/searchCard"
+        tools:visibility="gone" />
 
-    <!-- ScrollView preenchendo t0do o espaço abaixo da Toolbar -->
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/homeScroll"
+    <!-- CONTAINER da busca (inicialmente oculto) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/searchCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/home_header_margin_horizontal"
+        android:layout_marginTop="@dimen/home_header_margin_vertical"
+        android:visibility="gone"
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:cardCornerRadius="@dimen/home_header_radius"
+        app:cardElevation="@dimen/home_header_elevation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbarHome"
+        tools:visibility="gone">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilSearch"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/search"
+            android:paddingHorizontal="@dimen/home_header_padding_horizontal"
+            android:paddingVertical="@dimen/home_header_padding_vertical"
+            app:endIconContentDescription="@string/search"
+            app:endIconDrawable="@drawable/ic_chevron_right"
+            app:endIconMode="custom">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/search"
+                android:imeOptions="actionGo"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                android:maxLines="1"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+
+    <!-- 2) Header FIXO logo abaixo do Toolbar -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/headerCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/home_header_margin_horizontal"
+        android:layout_marginVertical="@dimen/home_header_margin_vertical"
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:cardCornerRadius="@dimen/home_header_radius"
+        app:cardElevation="@dimen/home_header_elevation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/searchCard">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/home_header_padding_horizontal"
+            android:paddingVertical="@dimen/home_header_padding_vertical">
+
+            <com.luizeduardobrandao.obra.ui.cronograma.gantt.anim.PercentBarView
+                android:id="@+id/progressStatus"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/progress_status_height"
+                android:layout_marginEnd="@dimen/home_header_content_gap"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnVerCronograma"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:ellipsize="none"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:minWidth="@dimen/home_btn_cronograma_min_width"
+                android:paddingHorizontal="0dp"
+                android:paddingVertical="0dp"
+                android:text="@string/home_btn_cronograma"
+                app:autoSizeMaxTextSize="16sp"
+                app:autoSizeMinTextSize="12sp"
+                app:autoSizeStepGranularity="1sp"
+                app:autoSizeTextType="uniform"
+                app:iconPadding="0dp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 3) Lista ocupa o restante, com gap igual ao topo do Header -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvHome"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:fillViewport="true"
+        android:layout_marginVertical="@dimen/home_list_margin_vertical"
+        android:clipToPadding="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbarHome">
+        app:layout_constraintTop_toBottomOf="@id/headerCard"
+        tools:listitem="@layout/item_action_list"
+        tools:itemCount="8"/>
 
-        <!-- Container centralizado -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="24dp">
+    <!-- 4) Loading Lottie centralizado na tela inteira -->
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/loadingHomeLottie"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:visibility="gone"
+        app:lottie_rawRes="@raw/loading_home"
+        app:lottie_autoPlay="false"
+        app:lottie_loop="true"
+        app:lottie_renderMode="software"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible" />
 
-            <!-- Item 1 (Funcionários) -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnEmployees"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_item_click"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/icEmployees"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="16dp"
-                    android:src="@drawable/ic_worker"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvEmployees"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:text="@string/home_btn_funcionarios"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    app:layout_constraintBottom_toBottomOf="@id/icEmployees"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/icEmployees"
-                    app:layout_constraintTop_toTopOf="@id/icEmployees" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Item 2 (Notas de Materiais -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnNotes"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_item_click"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/icReceipt"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="16dp"
-                    android:src="@drawable/ic_receipt"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:text="@string/home_btn_notas2"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    app:layout_constraintBottom_toBottomOf="@id/icReceipt"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/icReceipt"
-                    app:layout_constraintTop_toTopOf="@id/icReceipt" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Item 3 (Cronograma) -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnSchedule"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_item_click"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/icSchedule"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="16dp"
-                    android:src="@drawable/ic_schedule"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:text="@string/home_btn_cronograma"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    app:layout_constraintBottom_toBottomOf="@id/icSchedule"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/icSchedule"
-                    app:layout_constraintTop_toTopOf="@id/icSchedule" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Item 4 (Materiais) -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnMaterials"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_item_click"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/icMaterials"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="16dp"
-                    android:src="@drawable/ic_build"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:text="@string/home_btn_materiais"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    app:layout_constraintBottom_toBottomOf="@id/icMaterials"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/icMaterials"
-                    app:layout_constraintTop_toTopOf="@id/icMaterials" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Item 5 (Dados da Obra) -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnProjectData"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_item_click"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/icBuild"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="16dp"
-                    android:src="@drawable/ic_store"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:text="@string/home_btn_dados_obra"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    app:layout_constraintBottom_toBottomOf="@id/icBuild"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/icBuild"
-                    app:layout_constraintTop_toTopOf="@id/icBuild" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Item 6 (Fotos da Obra) -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnPhotos"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_item_click"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/icPhoto"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="16dp"
-                    android:src="@drawable/ic_photo"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:text="@string/home_btn_fotos"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    app:layout_constraintBottom_toBottomOf="@id/icPhoto"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/icPhoto"
-                    app:layout_constraintTop_toTopOf="@id/icPhoto" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Item 7 (Solução de Problemas) -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnSolution"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_item_click"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/icSolution"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="16dp"
-                    android:src="@drawable/ic_robo"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:text="@string/home_btn_solution"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    app:layout_constraintBottom_toBottomOf="@id/icSolution"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/icSolution"
-                    app:layout_constraintTop_toTopOf="@id/icSolution" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Item 8 (Resumo) -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnSummary"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_item_click"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/icSummary"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="16dp"
-                    android:src="@drawable/ic_summary2"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:text="@string/home_btn_resumo"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    app:layout_constraintBottom_toBottomOf="@id/icSummary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/icSummary"
-                    app:layout_constraintTop_toTopOf="@id/icSummary" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Item 9 (Nível de Laser) -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnLevelMeter"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_item_click"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/icLevel"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="16dp"
-                    android:src="@drawable/ic_level_laser"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvLevel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:text="@string/home_btn_level_meter"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    app:layout_constraintBottom_toBottomOf="@id/icLevel"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/icLevel"
-                    app:layout_constraintTop_toTopOf="@id/icLevel" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Item 10 (Selecionar Outra Obra) -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/btnChangeWork"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_item_click"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/icChangeWork"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="16dp"
-                    android:src="@drawable/ic_swap"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvChangeWork"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:text="@string/home_btn_change_work"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    app:layout_constraintBottom_toBottomOf="@id/icChangeWork"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/icChangeWork"
-                    app:layout_constraintTop_toTopOf="@id/icChangeWork" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

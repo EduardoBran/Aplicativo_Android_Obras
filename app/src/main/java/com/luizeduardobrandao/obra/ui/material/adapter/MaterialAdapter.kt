@@ -23,7 +23,8 @@ class MaterialAdapter(
     private val onEdit: (Material) -> Unit = {},
     private val onDetail: (Material) -> Unit = {},
     private val onDelete: (Material) -> Unit = {},
-    private val showActions: Boolean = true
+    private val showActions: Boolean = true,
+    var showDelete: Boolean = true
 ) : ListAdapter<Material, MaterialAdapter.VH>(DIFF) {
 
     init {
@@ -52,9 +53,9 @@ class MaterialAdapter(
             // ③ Descrição (resumo com limite e prefixo em negrito opcional)
             val desc = m.descricao.orEmpty().trim()
             val descText = when {
-                desc.isBlank()      -> "—"
-                desc.length > 40    -> desc.take(40) + " ..."
-                else                -> desc
+                desc.isBlank() -> "—"
+                desc.length > 40 -> desc.take(40) + " ..."
+                else -> desc
             }
             tvDescMaterial.text = descText
 
@@ -73,9 +74,14 @@ class MaterialAdapter(
             if (showActions) {
                 layoutActions.visibility = View.VISIBLE
                 dividerActions.visibility = View.VISIBLE
+
                 btnEditMaterial.setOnClickListener { onEdit(m) }
                 btnDetailMaterial.setOnClickListener { onDetail(m) }
-                btnDeleteMaterial.setOnClickListener { onDelete(m) }
+
+                btnDeleteMaterial.visibility = if (showDelete) View.VISIBLE else View.GONE
+                btnDeleteMaterial.setOnClickListener(
+                    if (showDelete) View.OnClickListener { onDelete(m) } else null
+                )
             } else {
                 layoutActions.visibility = View.GONE
                 dividerActions.visibility = View.GONE

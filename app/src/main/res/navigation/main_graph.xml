@@ -127,6 +127,14 @@
             android:id="@+id/action_home_to_levelMeter"
             app:destination="@id/levelMeterFragment" />
 
+        <action
+            android:id="@+id/action_home_to_globalSearch"
+            app:destination="@id/globalSearchFragment" />
+
+        <action
+            android:id="@+id/action_home_to_cronogramaGantt"
+            app:destination="@id/cronogramaGanttFragment" />
+
         <!-- logout: volta diretamente ao Login limpando pilha -->
         <action
             android:id="@+id/action_home_logout"
@@ -134,12 +142,59 @@
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
 
+        <action
+            android:id="@+id/action_home_to_exportSummary"
+            app:destination="@id/exportSummaryFragment" />
+
         <argument
             android:name="obraId"
             app:argType="string" />
 
     </fragment>
 
+    <!-- ────────────────────────────  ►  GLOBAL SEARCH  ◄  ──────────────────────────── -->
+    <fragment
+        android:id="@+id/globalSearchFragment"
+        android:name="com.luizeduardobrandao.obra.ui.home.search.GlobalSearchFragment"
+        android:label="@string/search_title"
+        tools:layout="@layout/fragment_global_search">
+
+        <argument
+            android:name="obraId"
+            app:argType="string" />
+
+        <argument
+            android:name="query"
+            app:argType="string" />
+
+        <!-- Abrir telas de edição diretamente -->
+        <action
+            android:id="@+id/action_globalSearch_to_editFuncionario"
+            app:destination="@id/funcionarioRegisterFragment" />
+        <action
+            android:id="@+id/action_globalSearch_to_editNota"
+            app:destination="@id/notaRegisterFragment" />
+        <action
+            android:id="@+id/action_globalSearch_to_editEtapa"
+            app:destination="@id/cronogramaRegisterFragment" />
+        <action
+            android:id="@+id/action_globalSearch_to_editMaterial"
+            app:destination="@id/materialRegisterFragment" />
+
+        <!-- Abrir telas de detalhes diretamente -->
+        <action
+            android:id="@+id/action_globalSearch_to_detailFuncionario"
+            app:destination="@id/detalheFuncionarioFragment" />
+        <action
+            android:id="@+id/action_globalSearch_to_detailNota"
+            app:destination="@id/detalheNotaFragment" />
+        <action
+            android:id="@+id/action_globalSearch_to_detailEtapa"
+            app:destination="@id/detalheCronogramaFragment" />
+        <action
+            android:id="@+id/action_globalSearch_to_detailMaterial"
+            app:destination="@id/detalheMaterialFragment" />
+    </fragment>
 
     <!-- ────────────────────────────  ►  FUNCIONÁRIOS  ◄  ───────────────────── -->
     <fragment

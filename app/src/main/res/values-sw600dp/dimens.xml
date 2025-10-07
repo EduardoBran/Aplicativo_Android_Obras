@@ -36,4 +36,29 @@
     <dimen name="gantt_day_text_size">16sp</dimen>
     <dimen name="gantt_day_text_size_sunday">20sp</dimen> <!-- Letra "D" de Domingo -->
 
+    <!-- HomeFragment -->
+    <!-- Header do Home -->
+    <dimen name="home_header_margin_horizontal">12dp</dimen>
+    <dimen name="home_header_margin_vertical">24dp</dimen>
+    <dimen name="home_header_padding_horizontal">12dp</dimen>
+    <dimen name="home_header_padding_vertical">8dp</dimen>
+    <dimen name="home_header_content_gap">12dp</dimen>
+    <dimen name="progress_status_height_home">32dp</dimen>
+
+    <!-- Barra de Progresso Header Home -->
+    <dimen name="home_header_elevation">2dp</dimen>
+    <dimen name="home_header_stroke_width">1dp</dimen>
+    <dimen name="home_header_radius">12dp</dimen>
+
+    <!-- Text Botton Header Home -->
+    <dimen name="home_btn_cronograma_min_width">190dp</dimen>
+
+    <!-- Lista -->
+    <dimen name="home_list_margin_vertical">24dp</dimen>
+    <dimen name="home_list_padding_bottom">24dp</dimen>
+
+    <!-- Item da lista -->
+    <dimen name="home_item_horz_padding">16dp</dimen>
+    <dimen name="home_item_vert_padding">12dp</dimen>
+
 </resources>

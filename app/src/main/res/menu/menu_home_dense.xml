@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_search"
+        android:title="@string/search"
+        android:icon="@drawable/ic_search"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_change_work"
+        android:title="@string/home_btn_change_work"
+        android:icon="@drawable/ic_swap"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_edit"
+        android:title="@string/generic_edit"
+        android:icon="@drawable/ic_edit3"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_export"
+        android:title="@string/export_summary_title"
+        android:icon="@drawable/ic_export2"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_laser"
+        android:title="@string/home_btn_level_meter"
+        android:icon="@drawable/ic_level_laser"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_logout"
+        android:title="@string/home_logout_confirm_action"
+        android:icon="@drawable/ic_logout"
+        app:showAsAction="never"/>
+</menu>

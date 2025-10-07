@@ -5,6 +5,7 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.view.animation.DecelerateInterpolator
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -30,6 +31,8 @@ class EtapaAdapter(
     private val onDetail: (Etapa) -> Unit = {},
     private val onDelete: (Etapa) -> Unit = {}
 ) : ListAdapter<Etapa, EtapaAdapter.VH>(DIFF) {
+
+    var showDelete: Boolean = true
 
     init {
         setHasStableIds(true)
@@ -221,7 +224,12 @@ class EtapaAdapter(
             // ⑥ Call-backs
             b.btnEditEtapa.setOnClickListener { onEdit(e) }
             b.btnDetailEtapa.setOnClickListener { onDetail(e) }
-            b.btnDeleteEtapa.setOnClickListener { onDelete(e) }
+
+            // Oculta somente o excluir aqui
+            b.btnDeleteEtapa.visibility = if (showDelete) View.VISIBLE else View.GONE
+            b.btnDeleteEtapa.setOnClickListener(
+                if (showDelete) View.OnClickListener { onDelete(e) } else null
+            )
         }
 
         // Animação

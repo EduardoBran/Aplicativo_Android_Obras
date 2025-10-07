@@ -185,4 +185,12 @@
         <item name="android:textSize">18sp</item>
     </style>
 
+    <style name="Custom_TextAppearance_Material3_BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <!-- Aparência padrão do Material 3 BodyMedium -->
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">?android:textColorPrimary</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
 </resources>

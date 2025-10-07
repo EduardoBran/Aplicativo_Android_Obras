@@ -33,7 +33,8 @@ class FuncionarioAdapter(
     private val onEdit: (Funcionario) -> Unit = {},
     private val onDetail: (Funcionario) -> Unit = {},
     private val onDelete: (Funcionario) -> Unit = {},
-    private val showActions: Boolean = true
+    private val showActions: Boolean = true,
+    var showDelete: Boolean = true
 ) : ListAdapter<Funcionario, FuncionarioAdapter.FuncViewHolder>(DIFF) {
 
     // melhora animações / reciclagem
@@ -128,7 +129,12 @@ class FuncionarioAdapter(
 
                 btnEdit.setOnClickListener { onEdit(item) }
                 btnDetail.setOnClickListener { onDetail(item) }
-                btnDelete.setOnClickListener { onDelete(item) }
+
+                // Oculta somente o excluir
+                btnDelete.visibility = if (showDelete) View.VISIBLE else View.GONE
+                btnDelete.setOnClickListener(
+                    if (showDelete) View.OnClickListener { onDelete(item) } else null
+                )
             } else {
                 layoutActions.visibility = View.GONE
                 dividerActions.visibility = View.GONE

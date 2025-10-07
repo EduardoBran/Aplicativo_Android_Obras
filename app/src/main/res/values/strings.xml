@@ -106,7 +106,7 @@
     <string name="home_btn_funcionarios">Funcionários</string>
     <string name="home_btn_notas">Notas de Materiais</string>
     <string name="home_btn_notas2">Notas</string>
-    <string name="home_btn_cronograma">Cronograma da Obra</string>
+    <string name="home_btn_cronograma">Cronograma</string>
     <string name="home_btn_dados_obra">Dados da Obra</string>
     <string name="home_btn_resumo">Resumo</string>
     <string name="home_btn_fotos">Fotos da Obra</string>
@@ -116,8 +116,46 @@
     <string name="home_logout_confirm_msg">Deseja sair da conta?</string>
     <string name="home_logout_confirm_action">Sair</string>
     <string name="home_btn_materiais">Materiais</string>
-    <string name="home_btn_change_work">Selecionar Outra Obra</string>
+    <string name="home_btn_change_work">Trocar de Obra</string>
     <string name="home_change_work_confirm_msg">Deseja voltar ao menu com a lista de obras?</string>
+
+    <string name="home_sub_cron">Planejar e acompanhar etapas</string>
+    <string name="home_sub_ia">Soluções com IA</string>
+    <string name="home_sub_fotos">Registrar andamento com imagens</string>
+    <string name="home_sub_notas">Gerir notas e comprovantes</string>
+    <string name="home_sub_materiais">Cadastrar e controlar materiais</string>
+    <string name="home_sub_func">Cadastrar e gerenciar equipe</string>
+    <string name="home_sub_dados">Informações e ajustes do projeto</string>
+    <string name="home_sub_resumo">Tudo da obra num só lugar</string>
+    <string name="home_sub_level">Ferramentas de nível/inclinação</string>
+    <string name="home_sub_trocar">Voltar à seleção de obras</string>
+
+    <string name="notas_register_quick">Nova Nota</string>
+    <string name="imagens_add_photo">Adicionar Foto</string>
+
+    <string name="home_progress_fmt">%1$d%% concluído</string>
+    <string name="cd_section_icon">Ícone da seção</string>
+    <string name="cd_navigate">Ir para a seção</string>
+    <string name="search">Buscar</string>
+
+    <!-- Global Search -->
+    <string name="search_title">Buscar na obra</string>
+    <string name="search_min_char_3">Digite ao menos 3 caracteres.</string>
+    <string name="search_result_title">Resultado da Pesquisa</string>
+    <string name="search_results_subtitle">Resultados da busca: %1$s</string>
+    <string name="search_empty">Não foi encontrado nenhum item com esta(s) palavra(s).</string>
+
+    <!-- Títulos das seções -->
+    <string name="search_section_cronograma">Cronograma</string>
+    <string name="search_section_funcionario">Funcionário</string>
+    <string name="search_section_material">Material</string>
+    <string name="search_section_nota">Nota</string>
+
+    <!-- Plural do total -->
+    <plurals name="search_total_elements">
+        <item quantity="one">Total de elementos encontrados: %1$d elemento.</item>
+        <item quantity="other">Total de elementos encontrados: %1$d elementos.</item>
+    </plurals>
 
     <!-- FuncionarioFragment -->
     <string name="func_title">Funcionários</string>

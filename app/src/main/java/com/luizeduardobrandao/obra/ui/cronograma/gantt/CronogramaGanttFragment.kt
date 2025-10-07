@@ -44,6 +44,7 @@ import com.luizeduardobrandao.obra.ui.cronograma.gantt.anim.GanttHeaderAnimator
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.ui.funcionario.FuncionarioViewModel
 import com.luizeduardobrandao.obra.ui.resumo.ResumoViewModel
+import com.luizeduardobrandao.obra.utils.calcularProgressoGeralPorDias
 import com.luizeduardobrandao.obra.utils.GanttUtils
 import com.luizeduardobrandao.obra.utils.savePdfToDownloads
 import com.luizeduardobrandao.obra.ui.snackbar.SnackbarFragment
@@ -845,18 +846,8 @@ class CronogramaGanttFragment : Fragment() {
     // ——— Recalcula e preenche os textos do rodapé ———
     private fun updateResumoFooter() = with(binding) {
         // 1) Andamento da obra
-        val avgPct: Int = if (currentEtapas.isEmpty()) {
-            0
-        } else {
-            val sum = currentEtapas.sumOf { e ->
-                GanttUtils.calcularProgresso(
-                    e.diasConcluidos?.toSet() ?: emptySet(),
-                    e.dataInicio,
-                    e.dataFim
-                )
-            }
-            kotlin.math.round(sum.toDouble() / currentEtapas.size).toInt()
-        }
+        val avgPct: Int = calcularProgressoGeralPorDias(currentEtapas)
+
         // Guarda para uso ao expandir
         lastAvgPct = avgPct
 

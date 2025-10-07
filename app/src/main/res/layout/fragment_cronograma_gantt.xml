@@ -246,7 +246,7 @@
                                 android:id="@+id/tvSaldoComAportesGantt"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="12dp"
+                                android:layout_marginTop="16dp"
                                 android:fontFamily="@font/roboto"
                                 android:fontFeatureSettings="tnum"
                                 android:letterSpacing="0"
@@ -282,14 +282,23 @@
                                     android:text="@string/crg_footer_valor_total_integral_mask"
                                     android:textSize="16sp" />
 
-                                <ImageView
+                                <FrameLayout
                                     android:id="@+id/ivInfoIntegral"
-                                    android:layout_width="20dp"
-                                    android:layout_height="20dp"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
                                     android:layout_marginStart="6dp"
-                                    android:contentDescription="@string/info"
-                                    android:src="@drawable/ic_info2"
-                                    app:tint="@color/icon_info_recycler" />
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:foreground="?attr/selectableItemBackgroundBorderless">
+
+                                    <ImageView
+                                        android:layout_width="24dp"
+                                        android:layout_height="24dp"
+                                        android:layout_gravity="center"
+                                        android:src="@drawable/ic_info2"
+                                        android:contentDescription="@string/info"
+                                        app:tint="@color/icon_info_recycler" />
+                                </FrameLayout>
                             </LinearLayout>
 
                             <TextView
@@ -320,14 +329,23 @@
                                     android:text="@string/crg_footer_valor_total_sem_dupla_mask"
                                     android:textSize="16sp" />
 
-                                <ImageView
+                                <FrameLayout
                                     android:id="@+id/ivInfoSemDupla"
-                                    android:layout_width="20dp"
-                                    android:layout_height="20dp"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
                                     android:layout_marginStart="6dp"
-                                    android:contentDescription="@string/info"
-                                    android:src="@drawable/ic_info2"
-                                    app:tint="@color/icon_info_recycler" />
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:foreground="?attr/selectableItemBackgroundBorderless">
+
+                                    <ImageView
+                                        android:layout_width="24dp"
+                                        android:layout_height="24dp"
+                                        android:layout_gravity="center"
+                                        android:src="@drawable/ic_info2"
+                                        android:contentDescription="@string/info"
+                                        app:tint="@color/icon_info_recycler" />
+                                </FrameLayout>
                             </LinearLayout>
 
                             <TextView
@@ -369,14 +387,23 @@
                                     android:textSize="18sp"
                                     android:textStyle="bold" />
 
-                                <ImageView
+                                <FrameLayout
                                     android:id="@+id/ivInfoSaldo"
-                                    android:layout_width="20dp"
-                                    android:layout_height="20dp"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
                                     android:layout_marginStart="6dp"
-                                    android:contentDescription="@string/info"
-                                    android:src="@drawable/ic_info2"
-                                    app:tint="@color/icon_info_recycler" />
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:foreground="?attr/selectableItemBackgroundBorderless">
+
+                                    <ImageView
+                                        android:layout_width="24dp"
+                                        android:layout_height="24dp"
+                                        android:layout_gravity="center"
+                                        android:src="@drawable/ic_info2"
+                                        android:contentDescription="@string/info"
+                                        app:tint="@color/icon_info_recycler" />
+                                </FrameLayout>
                             </LinearLayout>
 
                             <TextView

@@ -10,11 +10,13 @@ import androidx.annotation.Px
 import androidx.core.content.FileProvider
 import androidx.core.view.doOnLayout
 import com.google.android.material.appbar.MaterialToolbar
+import com.luizeduardobrandao.obra.data.model.Etapa
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /**
  * Utilitário para manipulação de arquivos de imagem no app.
@@ -236,6 +238,36 @@ fun savePdfToDownloads(context: Context, bytes: ByteArray, displayName: String):
         e.printStackTrace()
         null
     }
+}
+
+/**
+ * Calcula a porcentagem geral considerando TODAS as etapas juntas:
+ * soma de dias concluídos ÷ soma de dias planejados (sem domingos).
+ * Retorna inteiro clamped em 0..100.
+ */
+fun calcularProgressoGeralPorDias(etapas: List<Etapa>): Int {
+    var doneSum = 0
+    var totalSum = 0
+
+    etapas.forEach { et ->
+        val ini = GanttUtils.brToLocalDateOrNull(et.dataInicio)
+        val fim = GanttUtils.brToLocalDateOrNull(et.dataFim)
+        if (ini == null || fim == null || fim.isBefore(ini)) return@forEach
+
+        val range = GanttUtils.daysBetween(ini, fim).filter { !GanttUtils.isSunday(it) }
+        if (range.isEmpty()) return@forEach
+
+        val rangeSet = range.toSet()
+        val normalizadoDone = (et.diasConcluidos ?: emptyList())
+            .mapNotNull { GanttUtils.utcStringToLocalDate(it) }
+            .filter { it in rangeSet }
+
+        doneSum += normalizadoDone.size
+        totalSum += range.size
+    }
+
+    return if (totalSum == 0) 0
+    else (100.0 * doneSum / totalSum).roundToInt().coerceIn(0, 100)
 }
 
 /**

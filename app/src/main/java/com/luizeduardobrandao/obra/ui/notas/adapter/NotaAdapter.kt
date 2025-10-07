@@ -29,7 +29,8 @@ class NotaAdapter(
     private val onEdit: (Nota) -> Unit = {},
     private val onDetail: (Nota) -> Unit = {},
     private val onDelete: (Nota) -> Unit = {},
-    private val showActions: Boolean = true
+    private val showActions: Boolean = true,
+    var showDelete: Boolean = true
 ) : ListAdapter<Nota, NotaAdapter.VH>(DIFF) {
 
     init {
@@ -120,10 +121,13 @@ class NotaAdapter(
             llActions.visibility = if (showActions) View.VISIBLE else View.GONE
             dividerActions.visibility = if (showActions) View.VISIBLE else View.GONE
 
-            // Listeners só importam se visível, mas não faz mal mantê-los
             btnEditNota.setOnClickListener { onEdit(nota) }
             btnDetailNota.setOnClickListener { onDetail(nota) }
-            btnDeleteNota.setOnClickListener { onDelete(nota) }
+
+            btnDeleteNota.visibility = if (showDelete && showActions) View.VISIBLE else View.GONE
+            btnDeleteNota.setOnClickListener(
+                if (showDelete && showActions) View.OnClickListener { onDelete(nota) } else null
+            )
         }
     }
 
