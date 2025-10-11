@@ -11,9 +11,11 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.luizeduardobrandao.obra.R
+import com.luizeduardobrandao.obra.data.model.Etapa
 import com.luizeduardobrandao.obra.data.model.Funcionario
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentCronogramaListBinding
@@ -122,13 +124,57 @@ class CronogramaListFragment : Fragment() {
                         is UiState.Loading -> progress(true)
                         is UiState.Success -> {
                             progress(false)
-                            val list = ui.data
-                                .filter { it.status == status }
-                                .sortedBy {
+                            val cmp = compareBy<Etapa>(
+                                {
                                     GanttUtils.brToLocalDateOrNull(it.dataInicio)?.toEpochDay()
                                         ?: Long.MAX_VALUE
-                                }
+                                }, // 1) início mais antigo
+                                {
+                                    GanttUtils.brToLocalDateOrNull(it.dataFim)?.toEpochDay()
+                                        ?: Long.MAX_VALUE
+                                },     // 2) fim mais antigo
+                                {
+                                    it.titulo.trim().lowercase(java.util.Locale.getDefault())
+                                }                       // 3) alfabético (case-insensitive)
+                            )
+
+                            val list = ui.data
+                                .filter { it.status == status }
+                                .sortedWith(cmp)
                             adapter.submitList(list)
+
+                            // --- NOVO: focar item recém-adicionado, se houver chave de foco ---
+                            runCatching {
+                                val sHandle = parentFragment
+                                    ?.findNavController()
+                                    ?.currentBackStackEntry
+                                    ?.savedStateHandle
+
+                                val focusTitleKey = sHandle?.remove<String>("FOCUS_ETAPA_TITLE_KEY")
+                                val focusIni = sHandle?.remove<String>("FOCUS_ETAPA_INICIO")
+                                val focusFim = sHandle?.remove<String>("FOCUS_ETAPA_FIM")
+
+                                if (!focusTitleKey.isNullOrBlank() && !focusIni.isNullOrBlank() && !focusFim.isNullOrBlank()) {
+                                    // mesmo normalizador do Register
+                                    fun titleKey(raw: String?): String =
+                                        raw?.trim()
+                                            ?.lowercase(java.util.Locale.getDefault())
+                                            ?.replace(Regex("\\s+"), " ") ?: ""
+
+                                    val idx = list.indexOfFirst { e ->
+                                        titleKey(e.titulo) == focusTitleKey &&
+                                                e.dataInicio == focusIni &&
+                                                e.dataFim == focusFim
+                                    }
+                                    if (idx >= 0) {
+                                        // rola sem risco de NPE e anima o percentual
+                                        binding.rvEtapas.post {
+                                            binding.rvEtapas.scrollToPosition(idx)
+                                            adapter.reanimateVisible(binding.rvEtapas)
+                                        }
+                                    }
+                                }
+                            }.onFailure { /* seguro: ignora qualquer erro de navegação/savedState */ }
 
                             if (isResumed) {
                                 binding.rvEtapas.post {

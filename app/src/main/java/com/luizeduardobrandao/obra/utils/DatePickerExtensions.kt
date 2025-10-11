@@ -38,6 +38,92 @@ private fun utcMillisToBrDate(millis: Long): String {
     return df.format(Date(millis))
 }
 
+// ───────────────────── NOVO: helpers/Picker com faixa ─────────────────────
+
+private fun brDateToUtcMillisOrNull(dateBr: String?): Long? {
+    return try {
+        if (dateBr.isNullOrBlank()) null
+        else {
+            val (dStr, mStr, yStr) = dateBr.split("/")
+            val d = dStr.toInt()
+            val m = mStr.toInt()
+            val y = yStr.toInt()
+            LocalDate.of(y, m, d)
+                .atStartOfDay(ZoneOffset.UTC)
+                .toInstant()
+                .toEpochMilli()
+        }
+    } catch (_: Exception) {
+        null
+    }
+}
+
+/**
+ * Abre o MaterialDatePicker limitado entre [minBrDate]..[maxBrDate] (ambas "dd/MM/yyyy").
+ * - Se min/max forem nulos, o picker se comporta sem limites.
+ * - Seleção inicial respeita o limite (é "clampada" dentro do range).
+ */
+fun Fragment.showMaterialDatePickerBrBounded(
+    initialBrDate: String?,
+    minBrDate: String?,
+    maxBrDate: String?,
+    onResult: (String) -> Unit
+) {
+    val minUtc = brDateToUtcMillisOrNull(minBrDate)
+    val maxUtc = brDateToUtcMillisOrNull(maxBrDate)
+
+    val today = MaterialDatePicker.todayInUtcMilliseconds()
+    val initialRequested = brDateToUtcMillisOrNull(initialBrDate) ?: today
+
+    // clamp inicial dentro da faixa, se houver faixa
+    val initialClamped = when {
+        minUtc != null && initialRequested < minUtc -> minUtc
+        maxUtc != null && initialRequested > maxUtc -> maxUtc
+        else -> initialRequested
+    }
+
+    val constraintsBuilder =
+        com.google.android.material.datepicker.CalendarConstraints.Builder().apply {
+            if (minUtc != null) setStart(minUtc)
+            if (maxUtc != null) setEnd(maxUtc)
+            // Validadores combinados (frente e trás) quando min/max existem
+            val validators =
+                mutableListOf<com.google.android.material.datepicker.CalendarConstraints.DateValidator>()
+            if (minUtc != null) {
+                validators += com.google.android.material.datepicker.DateValidatorPointForward.from(
+                    minUtc
+                )
+            }
+            if (maxUtc != null) {
+                validators += com.google.android.material.datepicker.DateValidatorPointBackward.before(
+                    maxUtc + 1
+                ) // inclusivo
+            }
+            if (validators.isNotEmpty()) {
+                setValidator(
+                    com.google.android.material.datepicker.CompositeDateValidator.allOf(
+                        validators
+                    )
+                )
+            }
+        }
+
+    val picker = MaterialDatePicker.Builder
+        .datePicker()
+        .setTitleText(getString(R.string.date_picker_title))
+        .setSelection(initialClamped)
+        .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
+        .setCalendarConstraints(constraintsBuilder.build())
+        .build()
+
+    picker.isCancelable = false
+    picker.addOnPositiveButtonClickListener { millis -> onResult(utcMillisToBrDate(millis)) }
+    picker.addOnNegativeButtonClickListener { /* cancelar */ }
+
+    picker.show(childFragmentManager, "DATE_PICKER_BR_BOUNDED")
+    picker.dialog?.setCanceledOnTouchOutside(false)
+}
+
 /**
  * Abre o MaterialDatePicker já SELECIONANDO a data informada (dd/MM/yyyy).
  * Retorna a data escolhida (dd/MM/yyyy) no [onResult].

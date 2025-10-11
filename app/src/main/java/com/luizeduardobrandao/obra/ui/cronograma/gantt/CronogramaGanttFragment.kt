@@ -88,6 +88,9 @@ class CronogramaGanttFragment : Fragment() {
     private var baseRvPaddingBottom: Int = 0
     private var footerGlobalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
+    // --- NOVO: última largura conhecida da coluna fixa (esquerda)
+    private var lastKnownLeftWidth: Int = 0
+
     // Estado Popup Informação e Aba Expansível
     private var popupIntegralVisible = false
     private var popupSemDuplaVisible = false
@@ -241,6 +244,9 @@ class CronogramaGanttFragment : Fragment() {
 
         // Conecta o callback ANTES de setar o adapter no RecyclerView
         adapter.onFirstLeftWidth = { leftWidth ->
+            lastKnownLeftWidth = leftWidth
+            applyHeaderLayoutWithLeftWidth(leftWidth)
+
             val row = binding.headerRow
 
             // Paddings/margens reais que existem ANTES do HSV de cada linha
@@ -431,11 +437,19 @@ class CronogramaGanttFragment : Fragment() {
 
                             is UiState.Success -> {
                                 // Ordene por data de início (mais recente primeiro). Datas inválidas vão para o fim.
-                                val lista = etapasUi.data
-                                    .sortedBy {
+                                val cmp = compareBy<Etapa>(
+                                    {
                                         GanttUtils.brToLocalDateOrNull(it.dataInicio)?.toEpochDay()
                                             ?: Long.MAX_VALUE
-                                    }
+                                    },
+                                    {
+                                        GanttUtils.brToLocalDateOrNull(it.dataFim)?.toEpochDay()
+                                            ?: Long.MAX_VALUE
+                                    },
+                                    { it.titulo.trim().lowercase(Locale.getDefault()) }
+                                )
+
+                                val lista = etapasUi.data.sortedWith(cmp)
 
                                 currentEtapas = lista // << guardar para exportações
 
@@ -604,20 +618,30 @@ class CronogramaGanttFragment : Fragment() {
             }
         }
 
-        // Restaura posição do scroll
-        postIfAlive { b ->
-            val headerW = b.headerRow.measuredWidth
-            val vpW = b.headerScroll.width
-            val maxScrollX = (headerW - vpW).coerceAtLeast(0)
-
-            val targetX = savedScrollX.coerceIn(0, maxScrollX)
-            b.headerScroll.scrollTo(targetX, 0)
-            syncVisibleRowsTo(targetX)
-            GanttHeaderAnimator.requestFadeRecalc(b.headerScroll, b.headerRow)
+        // --- NOVO: se já conhecemos a largura da coluna fixa, aplicamos o layout do header agora,
+        // mesmo que o primeiro item ainda não esteja visível.
+        if (lastKnownLeftWidth > 0) {
+            applyHeaderLayoutWithLeftWidth(lastKnownLeftWidth)
+        } else {
+            tryApplyHeaderLayoutFromFirstVisibleRow()
         }
 
         // cache atualizado
         lastBuiltHeaderDays = headerDays
+    }
+
+    // --- NOVO: tenta estimar a largura a partir da primeira linha visível
+    private fun tryApplyHeaderLayoutFromFirstVisibleRow() {
+        val lm = binding.rvGantt.layoutManager as? LinearLayoutManager ?: return
+        val pos = lm.findFirstVisibleItemPosition()
+        if (pos == RecyclerView.NO_POSITION) return
+        val vh =
+            binding.rvGantt.findViewHolderForAdapterPosition(pos) as? GanttRowAdapter.VH ?: return
+        val leftWidthGuess = vh.b.leftColumn.width
+        if (leftWidthGuess > 0) {
+            lastKnownLeftWidth = leftWidthGuess
+            applyHeaderLayoutWithLeftWidth(leftWidthGuess)
+        }
     }
 
     /** Mesmo cálculo já usado no Adapter: NÃO conta domingos. */
@@ -1477,6 +1501,56 @@ class CronogramaGanttFragment : Fragment() {
         }
     }
 
+    // --- NOVO: aplica padding do header e sincroniza tudo usando uma largura conhecida da coluna fixa
+    private fun applyHeaderLayoutWithLeftWidth(leftWidth: Int) = with(binding) {
+        // Paddings/margens reais antes do HSV de cada linha
+        val listStartPad = rvGantt.paddingLeft
+        val firstGap = resources.getDimensionPixelSize(R.dimen.gantt_first_cell_margin_start)
+        val endPadMin = resources.getDimensionPixelSize(R.dimen.gantt_header_end_pad)
+        val dayWidth = resources.getDimensionPixelSize(R.dimen.gantt_day_width)
+        val dayGap = resources.getDimensionPixelSize(R.dimen.gantt_day_gap)
+
+        val cardMarginStart = resources.getDimensionPixelSize(R.dimen.gantt_card_margin_h)
+        val rowInnerPadStart = resources.getDimensionPixelSize(R.dimen.gantt_row_content_pad)
+
+        val daysWidth = if (headerDays.isNotEmpty()) {
+            (dayWidth * headerDays.size + dayGap * (headerDays.size - 1)) + firstGap
+        } else 0
+
+        // offset até o 1º quadrado
+        val startOffset = cardMarginStart + listStartPad + rowInnerPadStart + leftWidth + firstGap
+
+        // paddingEnd que garante visualizar o último quadrado
+        val computedEndPad = maxOf(
+            endPadMin,
+            root.width - (startOffset - firstGap + daysWidth)
+        )
+
+        // Header usa o mesmo endPad das linhas
+        headerRow.setPadding(
+            startOffset,
+            headerRow.paddingTop,
+            computedEndPad,
+            headerRow.paddingBottom
+        )
+
+        // Reposiciona header e recalc do fade
+        postIfAlive { b ->
+            val headerW = b.headerRow.measuredWidth
+            val vpW = b.headerScroll.width
+            val maxScrollX = (headerW - vpW).coerceAtLeast(0)
+            val targetX = savedScrollX.coerceIn(0, maxScrollX)
+            b.headerScroll.scrollTo(targetX, 0)
+            syncVisibleRowsTo(targetX)
+            GanttHeaderAnimator.requestFadeRecalc(b.headerScroll, b.headerRow)
+        }
+
+        // Linhas: mesmo endPad + congela largura no adapter
+        adapter.setTimelineEndPad(computedEndPad)
+        adapter.freezeLeftWidth(leftWidth)
+    }
+
+
     // Salvar/Restaurar estado de rotação
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
@@ -1495,6 +1569,8 @@ class CronogramaGanttFragment : Fragment() {
 
         // Barra Progresso
         outState.putInt("bar_pct_last", lastAvgPct)
+
+        outState.putInt("left_width_last", lastKnownLeftWidth)
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
@@ -1503,6 +1579,7 @@ class CronogramaGanttFragment : Fragment() {
             // 0) Recupera o X horizontal ANTES de criar/ligar o adapter.
             savedScrollX = bundle.getInt("gantt_scroll_x", 0)
             headerAnimatedOnce = bundle.getBoolean("header_anim_once", true)
+            lastKnownLeftWidth = bundle.getInt("left_width_last", 0)
 
             // Restaura último percentual conhecido para a barra
             lastAvgPct = bundle.getInt("bar_pct_last", lastAvgPct)

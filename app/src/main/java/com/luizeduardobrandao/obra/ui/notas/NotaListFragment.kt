@@ -12,6 +12,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.luizeduardobrandao.obra.R
+import com.luizeduardobrandao.obra.data.model.Nota
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentNotaListBinding
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
@@ -36,7 +37,7 @@ class NotaListFragment : Fragment() {
 
     private val adapter by lazy {
         NotaAdapter(
-            onEdit   = { actions?.onEdit(it)   },
+            onEdit = { actions?.onEdit(it) },
             onDetail = { actions?.onDetail(it) },
             onDelete = { actions?.onDelete(it) }
         )
@@ -51,7 +52,7 @@ class NotaListFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            obraId = it.getString(ARG_OBRA)   ?: error("obraId ausente")
+            obraId = it.getString(ARG_OBRA) ?: error("obraId ausente")
             status = it.getString(ARG_STATUS) ?: error("status ausente")
         }
         // Dispara o carregamento
@@ -87,17 +88,23 @@ class NotaListFragment : Fragment() {
                         is UiState.Loading -> {
                             progressNotasList.visibility = View.VISIBLE
                         }
+
                         is UiState.Success -> {
                             progressNotasList.visibility = View.GONE
+                            val comparator = compareBy<Nota> { dataToEpoch(it.data) }
+                                .thenBy { it.nomeMaterial.lowercase(java.util.Locale.ROOT) }
+
                             val list = ui.data
                                 .filter { it.status == status }
-                                .sortedBy { dataToEpoch(it.data) }
+                                .sortedWith(comparator)
+
                             adapter.submitList(list.toList())
 
-                            rvNotas.visibility   = if (list.isEmpty()) View.GONE else View.VISIBLE
+                            rvNotas.visibility = if (list.isEmpty()) View.GONE else View.VISIBLE
                             tvEmptyNotas.visibility =
                                 if (list.isEmpty()) View.VISIBLE else View.GONE
                         }
+
                         is UiState.ErrorRes -> {
                             progressNotasList.visibility = View.GONE
                             showSnackbarFragment(
@@ -107,6 +114,7 @@ class NotaListFragment : Fragment() {
                                 getString(R.string.snack_button_ok)
                             )
                         }
+
                         else -> Unit
                     }
                 }
@@ -129,7 +137,8 @@ class NotaListFragment : Fragment() {
                 sdf.isLenient = false
                 val time = sdf.parse(s)?.time
                 if (time != null) return time
-            } catch (_: Exception) { /* tenta o próximo formato */ }
+            } catch (_: Exception) { /* tenta o próximo formato */
+            }
         }
         return Long.MIN_VALUE
     }
@@ -141,14 +150,14 @@ class NotaListFragment : Fragment() {
 
     /* ---------- companion / factory ---------- */
     companion object {
-        private const val ARG_OBRA    = "obraId"
-        private const val ARG_STATUS  = "status"
+        private const val ARG_OBRA = "obraId"
+        private const val ARG_STATUS = "status"
 
         /** Factory para o *ViewPager* */
         fun newInstance(obraId: String, status: String): NotaListFragment =
             NotaListFragment().apply {
                 arguments = bundleOf(
-                    ARG_OBRA   to obraId,
+                    ARG_OBRA to obraId,
                     ARG_STATUS to status
                 )
             }

@@ -41,7 +41,9 @@ import com.luizeduardobrandao.obra.ui.extensions.hideKeyboard
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.utils.applyFullWidthButtonSizingGrowShrink
 import com.luizeduardobrandao.obra.utils.Constants
-import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrInRange
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrBounded
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrToday
+import com.luizeduardobrandao.obra.utils.showMaterialDatePickerBrWithInitial
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.ParseException
@@ -169,27 +171,60 @@ class CronogramaRegisterFragment : Fragment() {
             )
 
             // Date pickers
-            etDataInicioEtapa.setOnClickListener {
-                // initial = valor atual do campo (se houver), limitado ao intervalo da Obra
-                val initial = etDataInicioEtapa.text?.toString()
-                showMaterialDatePickerBrInRange(
-                    initialBr = initial,
-                    startBr = obraDataInicioBr,
-                    endBr = obraDataFimBr
-                ) { chosen ->
-                    etDataInicioEtapa.setText(chosen)
-                    validateForm()
+            binding.etDataInicioEtapa.setOnClickListener {
+                val atual = binding.etDataInicioEtapa.text?.toString()?.trim()
+                    ?: etapaOriginal?.dataInicio
+
+                val minBr = obraDataInicioBr
+                val maxBr = obraDataFimBr
+
+                if (minBr != null && maxBr != null) {
+                    // Com faixa da obra
+                    val initial = if (isEdit && !atual.isNullOrEmpty()) atual else null
+                    showMaterialDatePickerBrBounded(initial, minBr, maxBr) { chosen ->
+                        binding.etDataInicioEtapa.setText(chosen)
+                        validateForm()
+                    }
+                } else {
+                    // Sem faixa definida → mantém comportamento anterior
+                    if (isEdit && !atual.isNullOrEmpty()) {
+                        showMaterialDatePickerBrWithInitial(atual) { chosen ->
+                            binding.etDataInicioEtapa.setText(chosen)
+                            validateForm()
+                        }
+                    } else {
+                        showMaterialDatePickerBrToday { chosen ->
+                            binding.etDataInicioEtapa.setText(chosen)
+                            validateForm()
+                        }
+                    }
                 }
             }
-            etDataFimEtapa.setOnClickListener {
-                val initial = etDataFimEtapa.text?.toString()
-                showMaterialDatePickerBrInRange(
-                    initialBr = initial,
-                    startBr = obraDataInicioBr,
-                    endBr = obraDataFimBr
-                ) { chosen ->
-                    etDataFimEtapa.setText(chosen)
-                    validateForm()
+            binding.etDataFimEtapa.setOnClickListener {
+                val atual = binding.etDataFimEtapa.text?.toString()?.trim()
+                    ?: etapaOriginal?.dataFim
+
+                val minBr = obraDataInicioBr
+                val maxBr = obraDataFimBr
+
+                if (minBr != null && maxBr != null) {
+                    val initial = if (isEdit && !atual.isNullOrEmpty()) atual else null
+                    showMaterialDatePickerBrBounded(initial, minBr, maxBr) { chosen ->
+                        binding.etDataFimEtapa.setText(chosen)
+                        validateForm()
+                    }
+                } else {
+                    if (isEdit && !atual.isNullOrEmpty()) {
+                        showMaterialDatePickerBrWithInitial(atual) { chosen ->
+                            binding.etDataFimEtapa.setText(chosen)
+                            validateForm()
+                        }
+                    } else {
+                        showMaterialDatePickerBrToday { chosen ->
+                            binding.etDataFimEtapa.setText(chosen)
+                            validateForm()
+                        }
+                    }
                 }
             }
 
@@ -432,12 +467,32 @@ class CronogramaRegisterFragment : Fragment() {
                                 Toast.makeText(requireContext(), msgRes, Toast.LENGTH_SHORT).show()
 
                                 binding.root.post {
+                                    // --- NOVO: sinalizar foco na lista ao voltar (somente inclusão) ---
+                                    if (!isEdit) {
+                                        val focusTitleKey =
+                                            titleKey(binding.etTituloEtapa.text?.toString())
+                                        val focusIni =
+                                            binding.etDataInicioEtapa.text?.toString()?.trim()
+                                        val focusFim =
+                                            binding.etDataFimEtapa.text?.toString()?.trim()
+
+                                        // Envia para a tela anterior (CronogramaFragment) de forma segura
+                                        findNavController().previousBackStackEntry
+                                            ?.savedStateHandle
+                                            ?.set("FOCUS_ETAPA_TITLE_KEY", focusTitleKey)
+
+                                        findNavController().previousBackStackEntry
+                                            ?.savedStateHandle
+                                            ?.set("FOCUS_ETAPA_INICIO", focusIni)
+
+                                        findNavController().previousBackStackEntry
+                                            ?.savedStateHandle
+                                            ?.set("FOCUS_ETAPA_FIM", focusFim)
+                                    }
+                                    // --- navega de volta normalmente ---
                                     navigateUpReturningToCallerAndRestartGanttIfNeeded()
                                     shouldCloseAfterSave = false
                                 }
-                            } else {
-                                progress(false)
-                                binding.btnSaveEtapa.isEnabled = true
                             }
                         }
 
