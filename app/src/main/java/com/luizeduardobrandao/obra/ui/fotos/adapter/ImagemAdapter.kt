@@ -9,10 +9,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil.decode.DataSource
 import coil.load
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.Imagem
-import coil.decode.DataSource
+import java.util.Locale
+import java.text.SimpleDateFormat
 
 class ImagemAdapter(
     private val onOpen: (Imagem) -> Unit,
@@ -58,7 +60,7 @@ class ImagemAdapter(
 
         fun bind(item: Imagem) {
             tvNome.text = item.nome
-            tvData.text = item.data
+            tvData.text = formatDdMMyy(item.data)
 
             // limpa estado do item reciclado
             imgThumb.setImageDrawable(null)
@@ -89,6 +91,25 @@ class ImagemAdapter(
             itemView.setOnClickListener { onOpen(item) }
             imgThumb.setOnClickListener { onOpen(item) }
             btnExpand.setOnClickListener { onExpand(item) }
+        }
+
+        // Formatar Exibição Data
+        private fun formatDdMMyy(s: String?): String {
+            if (s.isNullOrBlank()) return ""
+            val inPatterns = arrayOf("dd/MM/yyyy", "d/M/yyyy", "d/MM/yyyy", "dd/M/yyyy")
+            for (p in inPatterns) {
+                try {
+                    val inFmt =
+                        SimpleDateFormat(p, Locale("pt", "BR")).apply { isLenient = false }
+                    val date = inFmt.parse(s) ?: continue
+                    val outFmt =
+                        SimpleDateFormat("dd/MM/yy", Locale("pt", "BR"))
+                    return outFmt.format(date)
+                } catch (_: Exception) { /* tenta o próximo formato */
+                }
+            }
+            // fallback: se não parsear, devolve como veio
+            return s
         }
 
         private fun scheduleConditionalShimmer(shouldStart: () -> Boolean) {

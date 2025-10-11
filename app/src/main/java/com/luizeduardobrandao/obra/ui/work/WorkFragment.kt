@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.view.doOnPreDraw
@@ -166,6 +167,15 @@ class WorkFragment : Fragment() {
         }
 
         collectViewModel()
+
+        // Sair do app ao pressionar "voltar" quando WorkFragment estiver no topo
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    requireActivity().finishAffinity() // Encerra a activity e sai do app
+                }
+            }
+        )
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
