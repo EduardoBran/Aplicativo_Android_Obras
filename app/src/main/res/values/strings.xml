@@ -414,6 +414,40 @@
     <!-- Linha "Tipo — R$ 1.234,56" recebendo o valor já formatado -->
     <string name="tipo_valor_mask_money">%1$s — %2$s</string>
 
+    <!-- Export Resumo Notas -->
+    <string name="export_popup_share">Compartilhar</string>
+    <string name="export_popup_download">Download</string>
+    <string name="export_share_chooser">Compartilhar PDF</string>
+
+    <string name="resumo_export_choose_title">Selecione uma das opções:</string>
+    <string name="resumo_export_opt_due">A Receber</string>
+    <string name="resumo_export_opt_paid">Pago</string>
+    <string name="resumo_export_opt_date">Data</string>
+
+    <string name="resumo_export_no_notes">Não há nenhuma nota cadastrada.</string>
+    <string name="resumo_export_no_notes_in_filter">Não há notas para o filtro selecionado.</string>
+    <string name="resumo_export_no_notes_in_range">Não existem notas no período de datas selecionado.</string>
+    <string name="resumo_export_error_save">Falha ao salvar o PDF.</string>
+    <string name="resumo_export_saved_ok">PDF salvo com sucesso.</string>
+
+    <string name="resumo_export_confirm_due">Deseja salvar as notas do tipo “A Receber” em um arquivo PDF?</string>
+    <string name="resumo_export_confirm_paid">Deseja salvar as notas do tipo “Pago” em um arquivo PDF?</string>
+    <string name="resumo_export_confirm_range">Deseja salvar as notas da(s) data(s) escolhida(s) em um arquivo PDF?</string>
+    <!-- Confirmações específicas para COMPARTILHAR -->
+    <string name="resumo_export_confirm_due_share_take2">Deseja compartilhar as notas do tipo “%1$s” em um arquivo PDF?</string>
+    <string name="resumo_export_confirm_range_share">Deseja compartilhar as notas da(s) data(s) escolhida(s) em um arquivo PDF?</string>
+    <string name="resumo_export_shared_ok">PDF compartilhado com sucesso.</string>
+
+    <!-- PDF content -->
+    <string name="resumo_pdf_title">Notas</string>
+    <string name="resumo_pdf_dates">Datas: %1$s</string>
+    <string name="resumo_pdf_item_date">Data: %1$s</string>
+    <string name="resumo_pdf_item_material">Material: %1$s</string>
+    <string name="resumo_pdf_item_store">Loja: %1$s</string>
+    <string name="resumo_pdf_item_types">Tipos: %1$s</string>
+    <string name="resumo_pdf_item_value">Valor: %1$s</string>
+    <string name="resumo_pdf_total">Total: %1$s</string>
+
 
     <!-- CronogramaFragment -->
     <string name="cron_title">Cronograma da Obra</string>

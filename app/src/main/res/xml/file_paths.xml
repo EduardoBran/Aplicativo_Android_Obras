@@ -8,8 +8,6 @@
         name="external_pictures"
         path="Pictures/" />
 
-    <!-- (Opcional) se preferir permitir todo o external-files do app:
-    <external-files-path
-        name="external_files_all"
-        path="." /> -->
+    <!-- ✅ necessário para compartilhar arquivos do getCacheDir() -->
+    <cache-path name="cache" path="." />
 </paths>

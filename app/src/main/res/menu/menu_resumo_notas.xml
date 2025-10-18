@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_resumo_export"
+        android:icon="@drawable/ic_export2"
+        android:title="@string/export_summary_title"
+        app:actionLayout="@layout/action_export_menu"
+        app:showAsAction="always" />
+</menu>

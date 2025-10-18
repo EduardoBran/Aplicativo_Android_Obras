@@ -176,3 +176,51 @@ fun Fragment.showMaterialDatePickerBrToday(
     picker.show(childFragmentManager, "DATE_PICKER_BR_TODAY")
     picker.dialog?.setCanceledOnTouchOutside(false)
 }
+
+/**
+ * Mostra um DateRangePicker limitado entre "minBrDate" e "maxBrDate" (ambas "dd/MM/yyyy").
+ * Retorna as datas escolhidas no formato "dd/MM/yyyy" (start, end). Se o usuário escolher
+ * apenas um dia, start == end.
+ */
+fun Fragment.showMaterialDateRangePickerBrBounded(
+    minBrDate: String,
+    maxBrDate: String,
+    onResult: (String, String) -> Unit
+) {
+    val minUtc = brDateToUtcMillisOrNull(minBrDate) ?: MaterialDatePicker.todayInUtcMilliseconds()
+    val maxUtc = brDateToUtcMillisOrNull(maxBrDate) ?: MaterialDatePicker.todayInUtcMilliseconds()
+
+    val constraints = com.google.android.material.datepicker.CalendarConstraints.Builder()
+        .setStart(minUtc)
+        .setEnd(maxUtc)
+        .setValidator(
+            com.google.android.material.datepicker.CompositeDateValidator.allOf(
+                listOf(
+                    com.google.android.material.datepicker.DateValidatorPointForward.from(minUtc),
+                    com.google.android.material.datepicker.DateValidatorPointBackward.before(maxUtc + 1)
+                )
+            )
+        )
+        .build()
+
+    val picker = MaterialDatePicker.Builder.dateRangePicker()
+        .setTitleText(getString(R.string.date_picker_title))
+        .setCalendarConstraints(constraints)
+        .setTheme(com.google.android.material.R.style.ThemeOverlay_Material3_MaterialCalendar)
+        .build()
+
+    picker.isCancelable = false
+
+    picker.addOnPositiveButtonClickListener { sel ->
+        // sel é Pair<Long, Long>?
+        val start = sel?.first ?: return@addOnPositiveButtonClickListener
+        val end = sel.second ?: start
+        val startBr = utcMillisToBrDate(start)
+        val endBr = utcMillisToBrDate(end)
+        onResult(startBr, endBr)
+    }
+    picker.addOnNegativeButtonClickListener { /* cancelar */ }
+
+    picker.show(childFragmentManager, "DATE_RANGE_PICKER_BR_BOUNDED")
+    picker.dialog?.setCanceledOnTouchOutside(false)
+}

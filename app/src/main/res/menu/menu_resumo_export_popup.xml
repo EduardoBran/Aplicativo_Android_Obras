@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:id="@+id/group_share">
+        <item
+            android:id="@+id/action_export_share"
+            android:icon="@drawable/ic_export_share"
+            android:title="@string/export_popup_share" />
+    </group>
+
+    <group android:id="@+id/group_download">
+        <item
+            android:id="@+id/action_export_download"
+            android:icon="@drawable/ic_download2"
+            android:title="@string/export_popup_download" />
+    </group>
+
+</menu>
