@@ -1,6 +1,5 @@
 package com.luizeduardobrandao.obra.ui.ia
 
-
 import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -13,6 +12,7 @@ import android.view.*
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
+import androidx.core.net.toUri
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -46,10 +46,11 @@ import com.luizeduardobrandao.obra.utils.FileUtils
 import com.luizeduardobrandao.obra.utils.syncTextSizesGroup
 import com.luizeduardobrandao.obra.utils.VoiceInputHelper
 import dagger.hilt.android.AndroidEntryPoint
+import io.noties.markwon.ext.tables.TablePlugin
+import io.noties.markwon.inlineparser.MarkwonInlineParserPlugin
+import io.noties.markwon.linkify.LinkifyPlugin
 import io.noties.markwon.Markwon
 import kotlinx.coroutines.launch
-import androidx.core.net.toUri
-
 
 @AndroidEntryPoint
 class IaFragment : Fragment() {
@@ -79,6 +80,9 @@ class IaFragment : Fragment() {
 
     // Permissão de Localização
     private lateinit var fusedClient: FusedLocationProviderClient
+
+    // Guarde o markdown assim que chegar
+    private var lastAnswerMarkdown: String? = null
 
     // Permissão rápida só para Pesquisa de Loja
     private var pendingStoreQuery: String? = null
@@ -175,7 +179,18 @@ class IaFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) = with(binding) {
         super.onViewCreated(view, savedInstanceState)
 
-        markwon = Markwon.create(requireContext())
+        fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
+
+        markwon = Markwon.builder(requireContext())
+            .usePlugin(TablePlugin.create { theme ->
+                theme
+                    .tableBorderWidth(dp(1))
+                    .tableBorderColor(0x33000000)     // borda leve
+                    .tableCellPadding(dp(10))      // padding uniforme
+            })
+            .usePlugin(LinkifyPlugin.create())
+            .usePlugin(MarkwonInlineParserPlugin.create())
+            .build()
 
         // Ditado por voz: conecta o ícone do TextInputLayout
         voiceHelper = VoiceInputHelper(
@@ -236,22 +251,26 @@ class IaFragment : Fragment() {
 
         // Copiar texto do card
         btnCopyAnswer.setOnClickListener {
-            val text = tvAnswer.text?.toString().orEmpty()
+            // 1) Prioriza o markdown original (mantém a tabela GFM certinha)
+            var toCopy = lastAnswerMarkdown?.trim().orEmpty()
+
+            // 2) Fallback: se por algum motivo estiver vazio, copia o texto do TextView
+            if (toCopy.isEmpty()) {
+                toCopy = binding.tvAnswer.text?.toString().orEmpty()
+            }
+
             val clipboard = requireContext()
                 .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            clipboard.setPrimaryClip(ClipData.newPlainText("IA Answer", text))
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.ia_copy_success),
-                Toast.LENGTH_SHORT
-            ).show()
+            clipboard.setPrimaryClip(ClipData.newPlainText("IA Answer (Markdown)", toCopy))
 
-            // Muda o texto para "Copiado" por 2s e depois retorna
-            btnCopyAnswer.text = getString(R.string.ia_copied)
-            btnCopyAnswer.isEnabled = false
-            btnCopyAnswer.postDelayed({
-                btnCopyAnswer.text = getString(R.string.ia_copy_label)
-                btnCopyAnswer.isEnabled = true
+            Toast.makeText(requireContext(), getString(R.string.ia_copy_success), Toast.LENGTH_SHORT).show()
+
+            // feedback visual
+            binding.btnCopyAnswer.text = getString(R.string.ia_copied)
+            binding.btnCopyAnswer.isEnabled = false
+            binding.btnCopyAnswer.postDelayed({
+                binding.btnCopyAnswer.text = getString(R.string.ia_copy_label)
+                binding.btnCopyAnswer.isEnabled = true
             }, 2000)
         }
 
@@ -353,7 +372,7 @@ class IaFragment : Fragment() {
                 btnText = getString(R.string.snack_button_yes),
                 onAction = {
                     viewModel.saveToHistory(
-                        title = text.take(100),
+                        title = text.take(500),
                         content = answer
                     )
                     Toast.makeText(
@@ -425,6 +444,7 @@ class IaFragment : Fragment() {
 
                         is UiState.Success -> {
                             showLoading(false)
+                            lastAnswerMarkdown = ui.data
                             binding.cardAnswer.visibility = View.VISIBLE
                             binding.tvAnswer.text = ui.data
                             markwon.setMarkdown(binding.tvAnswer, ui.data)
@@ -475,7 +495,7 @@ class IaFragment : Fragment() {
         }
     }
 
-    /** Valida o campo de problema: habilita o botão somente se 8..100 chars.
+    /** Valida o campo de problema: habilita o botão somente se 8..500 chars.
      *  Em caso de inválido, mostra um "bubble" de erro no EditText.
      */
     private fun validateProblem(): Boolean = with(binding) {
@@ -486,7 +506,7 @@ class IaFragment : Fragment() {
         }
 
         val len = etProblem.text?.toString()?.trim()?.length ?: 0
-        val isValid = len in 8..100
+        val isValid = len in 8..500
 
         tilProblem.error = if (!isValid) {
             getString(R.string.ia_problem_length_error)

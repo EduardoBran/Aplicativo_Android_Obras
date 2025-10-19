@@ -1052,7 +1052,7 @@
     <string name="ia_btn_save">Salvar</string>
     <string name="ia_btn_new">Nova dúvida</string>
     <string name="ia_toast_saved">Dúvida salva no histórico.</string>
-    <string name="ia_problem_length_error">A dúvida deve ter entre 8 e 100 caracteres.</string>
+    <string name="ia_problem_length_error">A dúvida deve ter entre 8 e 500 caracteres.</string>
 
     <string name="ia_copy_label">Copiar</string>
     <string name="ia_copied">Copiado</string>
@@ -1103,6 +1103,7 @@
 
     <!-- Prompts -->
     <string name="ia_prompt_missing">Prompt ausente.</string>
+    <string name="ia_err_block_missing">Dados ausentes.</string>
 
     <!-- Permissão de Voz -->
     <string name="ia_voice_input_desc">Ditado por voz</string>

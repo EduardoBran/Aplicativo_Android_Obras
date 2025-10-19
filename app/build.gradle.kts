@@ -133,6 +133,9 @@ dependencies {
 
     // Markdown
     implementation("io.noties.markwon:core:4.6.2")
+    implementation("io.noties.markwon:ext-tables:4.6.2")     // extensões para tabela/links
+    implementation("io.noties.markwon:linkify:4.6.2")        // opcional, mas útil
+    implementation("io.noties.markwon:inline-parser:4.6.2")  // opcional, melhora parsing
 
     // Permissão de Localização
     implementation("com.google.android.gms:play-services-location:21.3.0")

@@ -29,7 +29,10 @@ private interface OpenAiApi {
 private data class ChatRequest(
     val model: String,
     val messages: List<Message>,
-    @SerialName("temperature") val temperature: Double = 0.2
+    @SerialName("max_tokens") val maxTokens: Int = 1500,
+    @SerialName("temperature") val temperature: Double = 0.0,
+    @SerialName("top_p") val topP: Double = 1.0,
+    val seed: Int? = 12345,
 )
 
 @Serializable
@@ -78,7 +81,7 @@ class ChatGptSolutionRepositoryImpl @Inject constructor() : AiSolutionRepository
         val client = OkHttpClient.Builder()
             .addInterceptor(logging)
             .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-            .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(90, java.util.concurrent.TimeUnit.SECONDS)
             .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .build()
@@ -97,6 +100,7 @@ class ChatGptSolutionRepositoryImpl @Inject constructor() : AiSolutionRepository
         imageBytes: ByteArray?,
         imageMime: String?
     ): Result<String> = runCatching {
+
         val contentParts = mutableListOf(
             ContentPart(type = "text", text = prompt)
         )
@@ -110,11 +114,14 @@ class ChatGptSolutionRepositoryImpl @Inject constructor() : AiSolutionRepository
         }
 
         val req = ChatRequest(
-            model = "gpt-4o-mini",
+            model = "gpt-5-search-api",
             messages = listOf(
                 Message(role = "user", content = contentParts)
             ),
-            temperature = 0.2
+            maxTokens = 1500,
+            topP = 1.0,
+            seed = 12345,
+            temperature = 0.0,
         )
 
         val resp = service.chatCompletions(
