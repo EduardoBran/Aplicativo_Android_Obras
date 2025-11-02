@@ -11,7 +11,7 @@ data class HomeAction(
     @StringRes val subtitle: Int? = null
 ) {
     enum class Id {
-        CRONOGRAMA, IA, FOTOS, NOTAS, MATERIAIS, FUNCIONARIOS, DADOS_OBRA, RESUMO
+        CRONOGRAMA, FOTOS, CALC_MATERIAL, IA, NOTAS, MATERIAIS, FUNCIONARIOS, RESUMO
     }
 
     companion object {
@@ -46,13 +46,13 @@ data class HomeAction(
                 R.drawable.ic_camera,
                 R.string.home_sub_fotos
             ),
-            HomeAction(Id.IA, R.string.ia_title, R.drawable.ic_robo, R.string.home_sub_ia),
             HomeAction(
-                Id.DADOS_OBRA,
-                R.string.home_btn_dados_obra,
-                R.drawable.ic_store,
-                R.string.home_sub_dados
+                Id.CALC_MATERIAL,
+                R.string.calc_material_action_title,
+                R.drawable.ic_calculator,
+                R.string.home_sub_calc_material
             ),
+            HomeAction(Id.IA, R.string.ia_title, R.drawable.ic_robo, R.string.home_sub_ia),
             HomeAction(
                 Id.RESUMO,
                 R.string.resumo_title,

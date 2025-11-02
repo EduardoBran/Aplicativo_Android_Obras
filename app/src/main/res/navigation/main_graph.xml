@@ -120,6 +120,10 @@
             app:destination="@id/fotosFragment" />
 
         <action
+            android:id="@+id/action_home_to_calcMaterial"
+            app:destination="@id/calcMaterialFragment" />
+
+        <action
             android:id="@+id/action_home_to_ia"
             app:destination="@id/iaFragment" />
 
@@ -641,6 +645,26 @@
             android:name="obraId"
             app:argType="string" />
     </fragment>
+
+    <!-- ──────────────────────────  ►  Cálculo de Material  ◄  ────────────────────────── -->
+    <fragment
+        android:id="@+id/calcMaterialFragment"
+        android:name="com.luizeduardobrandao.obra.ui.calculo.CalcMaterialFragment"
+        android:label="@string/calc_material_title"
+        tools:layout="@layout/fragment_calc_material" >
+
+        <action
+            android:id="@+id/action_calcMaterial_to_calcRevestimento"
+            app:destination="@id/calcRevestimentoFragment" />
+
+    </fragment>
+
+    <!-- ──────────────────────────  ►  Cálculo de Revestimento  ◄  ────────────────────────── -->
+    <fragment
+        android:id="@+id/calcRevestimentoFragment"
+        android:name="com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoFragment"
+        android:label="@string/calc_title"
+        tools:layout="@layout/fragment_calc_revestimento" />
 
     <!-- ──────────────────────────  ►  Nível de Laser  ◄  ────────────────────────── -->
     <fragment

@@ -96,4 +96,10 @@
     <dimen name="home_item_horz_padding">16dp</dimen>
     <dimen name="home_item_vert_padding">12dp</dimen>
 
+    <!-- Botão "Novo Cálculo" em Cálculo de Materiais -->
+    <dimen name="calc_btn_large_height">56dp</dimen>
+    <dimen name="calc_btn_large_text">18sp</dimen>
+    <dimen name="calc_btn_normal_text">16sp</dimen>
+    <dimen name="calc_btn_icon_large">20dp</dimen>
+
 </resources>

@@ -266,11 +266,16 @@ class HomeFragment : Fragment() {
             HomeAction.Id.CRONOGRAMA ->
                 findNavController().navigate(HomeFragmentDirections.actionHomeToCronograma(obraId))
 
-            HomeAction.Id.IA ->
-                findNavController().navigate(HomeFragmentDirections.actionHomeToIa(obraId))
-
             HomeAction.Id.FOTOS ->
                 findNavController().navigate(HomeFragmentDirections.actionHomeToFotos(obraId))
+
+            // ✅ NOVO CASE
+            HomeAction.Id.CALC_MATERIAL ->
+                // action sem argumentos; navegando por id é simples e robusto
+                findNavController().navigate(R.id.action_home_to_calcMaterial)
+
+            HomeAction.Id.IA ->
+                findNavController().navigate(HomeFragmentDirections.actionHomeToIa(obraId))
 
             HomeAction.Id.NOTAS ->
                 findNavController().navigate(HomeFragmentDirections.actionHomeToNotas(obraId))
@@ -280,9 +285,6 @@ class HomeFragment : Fragment() {
 
             HomeAction.Id.FUNCIONARIOS ->
                 findNavController().navigate(HomeFragmentDirections.actionHomeToFuncionario(obraId))
-
-            HomeAction.Id.DADOS_OBRA ->
-                findNavController().navigate(HomeFragmentDirections.actionHomeToDadosObra(obraId))
 
             HomeAction.Id.RESUMO ->
                 findNavController().navigate(HomeFragmentDirections.actionHomeToResumo(obraId))

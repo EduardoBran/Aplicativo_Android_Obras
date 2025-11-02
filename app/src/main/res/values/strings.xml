@@ -8,7 +8,7 @@
     <string name="generic_add">Adicionar</string>
     <string name="generic_cancel">Cancelar</string>
     <string name="generic_back">Voltar</string>
-    <string name="generic_ok">Ok</string>
+    <string name="generic_ok">OK</string>
     <string name="generic_yes">Sim</string>
     <string name="generic_no">Não</string>
     <string name="generic_continue">Continuar</string>
@@ -101,6 +101,7 @@
 
     <!-- HomeFragment -->
     <string name="home_toolbar_title">Obra: %1$s</string>
+    <string name="home_toolbar_edit">Editar Dados da Obra</string>
     <string name="home_logout">Sair</string>
     <string name="home_toast_logout">Usuário deslogado.</string>
     <string name="home_btn_funcionarios">Funcionários</string>
@@ -1110,7 +1111,7 @@
     <string name="ia_voice_prompt">Fale sua dúvida</string>
     <string name="ia_voice_not_available">Reconhecimento de voz não disponível neste dispositivo.</string>
     <string name="ia_voice_perm_denied">Permissão do microfone negada.</string>
-    <string name="ia_voice_choose_type_first">Escolha o tipo de dúvida antes de ditar.</string>
+    <string name="ia_voice_choose_type_first">Escolha o tipo de dúvida antes de editar.</string>
 
     <!-- Snackbar: Salvar no histórico -->
     <string name="ia_snack_save_title">Salvar no Histórico</string>
@@ -1140,5 +1141,190 @@
     <string name="level_shot">Capturar print</string>
     <string name="level_screenshot_saved">Imagem salva na galeria.</string>
     <string name="level_screenshot_fail">Falha ao salvar captura</string>
+
+    <!-- Cálculo de Material -->
+    <!-- Título do card na Home -->
+    <string name="calc_material_action_title">Cálculo de Material</string>
+    <string name="home_sub_calc_material">Estimativas para diversos materiais</string>
+    <!-- Título / Toolbar -->
+    <string name="calc_title">Cálculo de Material</string>
+    <string name="calc_material_title">Cálculo de Material</string>
+    <string name="calc_material_go_revest">Cálculo de Revestimento</string>
+
+    <!-- TELA 0 -->
+    <string name="calc_open_title">Cálculo de Revestimento</string>
+    <string name="calc_open_msg">Siga os passos para calcular a quantidade exata de materiais necessários.</string>
+    <string name="generic_start">Começar</string>
+
+    <!-- TELA 1 -->
+    <string name="calc_step1_title">Escolha o tipo de revestimento</string>
+    <string name="calc_step1_opt_piso">Piso (cerâmico ou porcelanato)</string>
+    <string name="calc_step1_opt_azulejo">Azulejo (parede)</string>
+    <string name="calc_step1_opt_pastilha">Pastilha</string>
+    <string name="calc_step1_opt_pedra">Pedra (portuguesa/irregular)</string>
+    <string name="calc_step1_opt_marmore">Mármore</string>
+    <string name="calc_step1_opt_granito">Granito</string>
+    <string name="calc_step1_placa_tipo">Tipo de Piso:</string>
+    <string name="calc_step1_help">Cerâmicos, porcelanatos, azulejos e pastilhas usam argamassa colante. Pedra, mármore e granito usam colchão de cimento + areia (traço 1:4).</string>
+
+    <!-- TELA 2 -->
+    <string name="calc_step2_title">Tipo de ambiente</string>
+    <string name="calc_step2_opt_seco">Seco (interior)</string>
+    <string name="calc_step2_opt_semi">Semi-molhado (varanda coberta)</string>
+    <string name="calc_step2_opt_molhado">Molhado (banheiro, área externa com água)</string>
+    <string name="calc_step2_opt_sempre">Sempre molhado (piscina, tanque)</string>
+    <string name="calc_step2_help">O ambiente define a classe da argamassa e a necessidade de impermeabilização.</string>
+    <string name="calc_step2_obs_porcelanato_ac3">Porcelanato em semi/molhado: fabricantes exigem ACIII.</string>
+
+    <!-- TELA 3 -->
+    <string name="calc_step3_title">Informe as medidas da área</string>
+    <string name="calc_step3_comp">Comprimento (m)</string>
+    <string name="calc_step3_larg">Largura (m)</string>
+    <string name="calc_step3_alt">Altura (m) (somente parede)</string>
+    <string name="calc_step3_or">Ou informe diretamente:</string>
+    <string name="calc_step3_area_total">Área total (m²)</string>
+    <string name="text_area_total_aviso">Usando a Área total informada; Comprimento, Largura e Altura serão ignorados no cálculo da área base.</string>
+
+    <!-- TELA 4 -->
+    <string name="calc_step4_title">Parâmetros do revestimento</string>
+    <string name="calc_step4_peca_comp">Tamanho da peça – Comprimento (cm)</string>
+    <string name="calc_step4_peca_larg">Tamanho da peça – Largura (cm)</string>
+    <string name="calc_step4_peca_esp">Espessura da peça (mm) (opcional)</string>
+    <string name="calc_step4_junta">Espessura da junta (mm)</string>
+    <string name="calc_step4_sobra">Sobra técnica (%)</string>
+    <string name="calc_step4_warn_piece">Sem tamanho de peça, não calcularemos quantidade de placas.</string>
+    <string name="calc_step4_warn_porcelanato">Porcelanato externo requer ACIII.</string>
+    <string name="calc_piece_applied">Parâmetros de peça aplicados.</string>
+    <string name="calc_step4_placa_ceramica">Cerâmica</string>
+    <string name="calc_step4_placa_porcelanato">Porcelanato</string>
+
+    <!-- Pastilha: labels/hints -->
+    <string name="calc_step4_pastilha_comp_hint">Tamanho da manta – Largura (cm)</string>
+    <string name="calc_step4_pastilha_larg_hint">Tamanho da manta – Altura (cm)</string>
+
+    <!-- Pastilha: helpers -->
+    <string name="calc_piece_helper_pastilha">Em centímetros • Ex: 60 (limite: 20 a 40 cm)</string>
+    <string name="calc_step4_junta_helper_pastilha">Em milímetros • Ex: 2 (opcional) • padrão atual: %s</string>
+
+    <!-- Helper default da junta (para materiais que não são pastilha) -->
+    <string name="calc_step4_junta_helper_default">Em milímetros • Ex: 3</string>
+
+    <!-- Mensagem de erro para range especial da pastilha -->
+    <string name="calc_piece_err_pastilha_range">Para pastilha, informe entre 20 e 40 cm.</string>
+    <string name="calc_err_junta_pastilha_range">Para pastilha, use entre 1 e 3 mm.</string>
+
+    <!-- ► Itens de materiais novos (rejunte e cunhas) -->
+    <string name="mat_rejunte_epoxi">Rejunte epóxi (1 kg)</string>
+    <string name="mat_rejunte_cimenticio_t1">Rejunte cimentício Tipo 1 (5 kg)</string>
+    <string name="mat_rejunte_cimenticio_t2">Rejunte cimentício Tipo 2 (5 kg)</string>
+    <string name="mat_cunhas">Cunhas (pacote 100 un)</string>
+
+    <!-- ► Observações/compras (usadas pela coluna "Comprar") -->
+    <string name="obs_pacotes_100un">%1$d pacotes de 100 un</string>
+    <string name="obs_sacos_kg">%1$d sacos de %2$s kg</string>
+
+    <!-- Hints específicos para Mármore/Granito (metros) -->
+    <string name="calc_step4_peca_comp_m">Tamanho da peça – Comprimento (m)</string>
+    <string name="calc_step4_peca_larg_m">Tamanho da peça – Largura (m)</string>
+
+    <!-- Mensagens genéricas de faixa para helper texts e inline errors -->
+    <string name="calc_step4_peca_esp_helper_with_default">Em milímetros • Ex: 8 (opcional) • padrão atual: %s</string>
+    <string name="calc_piece_helper_mg">Comprimento/Largura em metros. Exemplos: 1 = 1 m; 0,30 = 30 cm; 1,50 = 1 m e 50 cm. Limites: 5 cm a 20 m.</string>
+    <string name="calc_piece_err_mg">Valor inválido. Use metros (ex.: 1 = 1 m; 0,30 = 30 cm; 1,50 = 1 m e 50 cm). Limites: 5 cm a 20 m.</string>
+    <string name="calc_piece_err_cm">Valor inválido. Informe entre 5 e 200 cm. Dica: use vírgula como decimal (ex.: 7,5).</string>
+    <string name="calc_piece_helper_cm">Em centímetros • Ex: 60 (limite: 5 a 200 cm)</string>
+    <string name="calc_err_junta_range">Valor inválido (0,5 a 20 mm).</string>
+    <string name="calc_err_esp_range">Valor inválido (3 a 30 mm).</string>
+    <string name="calc_err_ppc_range">Valor inválido (1 a 50).</string>
+    <string name="calc_err_sobra_range">Valor inválido (0 a 50%).</string>
+    <string name="calc_err_rodape_altura">Altura inválida (3 a 30 cm).</string>
+    <string name="calc_err_rodape_comp">Valor inválido. Informe o comprimento comercial em metros.</string>
+    <string name="calc_err_sobra_min">Sobra mínima para este revestimento: %1$s%%</string>
+
+    <!-- Medidas da área (step 3) -->
+    <string name="calc_err_medida_comp_larg_m">Valor inválido. Limites: 0,01 a 10.000 m.</string>
+    <string name="calc_err_medida_alt_m">Valor inválido. Limites: 0,01 a 100 m.</string>
+    <string name="calc_err_area_total">Valor inválido. Limites: 0,1 a 50.000 m².</string>
+
+    <!-- TELA 5 -->
+    <string name="calc_step5_title">Rodapé</string>
+    <string name="calc_step5_include">Incluir rodapé no cálculo</string>
+    <string name="calc_step5_altura">Altura (cm)</string>
+    <string name="calc_step5_perimetro">Perímetro (m lineares)</string>
+    <string name="calc_step5_per_auto">Auto (2 × (C + L))</string>
+    <string name="calc_step5_per_manual">Manual</string>
+    <string name="calc_step5_per_manual_hint">Perímetro (m)</string>
+    <string name="calc_step5_vaos">Descontar vãos (m) (opcional)</string>
+    <string name="calc_step5_material">Material</string>
+    <string name="calc_step5_mat_mesma">Mesma peça do piso</string>
+    <string name="calc_step5_mat_pronta">Peça pronta</string>
+    <string name="calc_step5_orient">Orientação (mesma peça)</string>
+    <string name="calc_step5_orient_maior">Lado maior</string>
+    <string name="calc_step5_orient_menor">Lado menor</string>
+    <string name="calc_step5_comp_comercial">Comprimento comercial (m)</string>
+    <string name="calc_step5_warn_piece_needed">Se usar "mesma peça", informe o tamanho da peça para calcular o rodapé.</string>
+    <string name="calc_skirt_applied">Dados de rodapé aplicados.</string>
+
+    <!-- TELA 6 -->
+    <string name="calc_step6_title">Impermeabilização</string>
+    <string name="calc_step6_include">Incluir impermeabilizante no cálculo</string>
+    <string name="calc_step6_notes">Seco: não se aplica. Semi: opcional (recomendado se há laje abaixo). Molhado: opcional/obrigatório em box/laje. Sempre molhado: obrigatório.</string>
+
+    <!-- TELA 7 -->
+    <string name="calc_step7_title">Revisar parâmetros antes do cálculo</string>
+    <string name="calc_step7_arg_consumo">Argamassa (consumo típico): ≤ 30×30 → 4–5 kg/m² • 60×60 → 5–7 kg/m² • ≥ 90×90 → 7–9 kg/m² (dupla colagem)</string>
+    <string name="calc_step7_rej">Rejunte: consumo varia com junta e espessura.</string>
+    <string name="calc_step7_pedra">Pedra/Mármore/Granito: colchão 1:4 • espessura 2,5 cm.</string>
+    <string name="calc_step7_imp">Impermeabilizante: Semi (0,70 L/m²) • Molhado (2,0 kg/m²) • Sempre (3,0 kg/m²).</string>
+    <string name="generic_calculate">Calcular</string>
+
+    <!-- TELA 8 -->
+    <string name="icon_card_informação">ℹ️</string>
+    <string name="calc_table_hint">Os valores consideram consumos técnicos conforme NBR 14081, TCPO e especificações de fabricantes.\n\nA coluna "Comprar" indica as embalagens comerciais necessárias (arredondadas para cima).</string>
+    <string name="col_item">Material</string>
+    <string name="col_unid">Unid</string>
+    <string name="col_qtd">Qtd</string>
+    <string name="col_obs">Observação</string>
+    <string name="col_usado">Usar</string>
+    <string name="col_comprar">Comprar</string>
+
+    <string name="calc_novo_calculo">Novo Cálculo</string>
+    <string name="calc_new_calc_title">Iniciar novo cálculo?</string>
+    <string name="calc_new_calc_message">Você voltará para a tela de cálculo de materiais e dados do cálculo atual serão perdidos.</string>
+
+    <!-- Novas strings para melhorias -->
+    <string name="calc_step4_pecas_caixa">Peças por caixa (opcional)</string>
+    <string name="calc_table_title">📋 Lista de Materiais</string>
+
+    <!-- Header resumo -->
+    <string name="calc_header_format">%1$s | %2$s | Área %3$s m² | %4$s | Junta %5$.0f mm | Sobra %6$.0f%%</string>
+    <string name="calc_header_rodape_format">+ Rodapé %1$s m × %2$.0f cm = %3$s m²</string>
+    <string name="calc_header_rodape_none">Sem rodapé</string>
+
+    <!-- PDF / Export -->
+    <string name="export_summary_title_calc">Exportar</string>
+    <string name="export_share">Compartilhar PDF</string>
+    <string name="export_download">Baixar PDF</string>
+    <string name="export_share_chooser_calc">Compartilhar cálculo</string>
+    <string name="calc_export_no_data">Nada para exportar ainda.</string>
+    <string name="calc_title_pdf">Cálculo de Material – Revestimento</string>
+    <string name="calc_header_pdf">%1$s | %2$s | Área %3$s m² | %4$s | Junta %5$s mm | Sobra %6$s%%</string>
+    <string name="calc_pdf_classe_arg">Classe da argamassa: %1$s</string>
+    <!-- usado no EditText do comprimento comercial (para evitar hardcode) -->
+    <string name="calc_default_rodape_comp_060">0.60</string>
+
+    <!-- header PDF para rodapé -->
+    <string name="calc_header_rodape_pdf">Rodapé: %1$s m² × %2$.0f cm = %3$s m²</string>
+
+    <!-- Navegação -->
+    <string name="generic_next">Avançar</string>
+
+    <!-- Validação geral -->
+    <string name="calc_validate_step">Preencha os campos obrigatórios desta etapa.</string>
+    <string name="cont_btn_avancar">Avançar para próxima etapa</string>
+    <string name="cont_btn_back">Voltar para etapa anterior</string>
+    <string name="cont_btn_calcular">Calcular materiais</string>
+    <string name="cont_novo_calculo">Iniciar novo cálculo</string>
+    <string name="hint_comprimento_peca_pronta">Comprimento da peça pronta (m)</string>
 
 </resources>

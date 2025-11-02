@@ -119,4 +119,11 @@
 
     <color name="progress_light_green">#8FD69A</color> <!-- verde claro elegante -->
 
+    <!-- Cores para tabela de resultados (baseadas no tema verde) -->
+    <color name="tableHeaderBg">#256C47</color>           <!-- Primary do tema -->
+    <color name="tableHeaderText">#FFFFFF</color>          <!-- OnPrimary do tema -->
+    <color name="tableRowBg">#FFFFFF</color>               <!-- Branco -->
+    <color name="tableRowAlternateBg">#F1F8F4</color>     <!-- Verde muito claro (tint 5%) -->
+    <color name="tableDivider">#C8E6C9</color>             <!-- Verde claro -->
+
 </resources>
