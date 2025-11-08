@@ -9,24 +9,53 @@
     android:paddingHorizontal="12dp"
     android:paddingVertical="10dp">
 
-    <!-- Coluna: Item (40%) -->
+    <!-- Guideline fim da coluna Item (~40%) -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineItemEnd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.36" />
+
+    <!-- Guideline fim da coluna Unid (~40%) (UNIDA COM COLUNA Usar e formando nova coluna "Qtd" -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineUnidEnd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.40" />
+
+    <!-- Guideline fim da coluna Usar (~70%) -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineUsarEnd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.60" />
+
+    <!-- Guideline INÍCIO da coluna Comprar (~74%) para dar respiro -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineComprarStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.64" />
+
+    <!-- Coluna: Item -->
     <TextView
         android:id="@+id/tvItem"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:ellipsize="end"
-        android:maxLines="3"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurface"
         android:textSize="13sp"
-        app:layout_constraintEnd_toStartOf="@id/tvUnid"
-        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintEnd_toStartOf="@id/guidelineItemEnd"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.38"
         tools:text="Piso porcelanato 60×60 cm" />
 
-    <!-- Coluna: Unidade (12%) -->
+    <!-- Coluna: Unidade -->
     <TextView
         android:id="@+id/tvUnid"
         android:layout_width="0dp"
@@ -35,29 +64,27 @@
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="12sp"
-        app:layout_constraintEnd_toStartOf="@id/tvQtdUsada"
-        app:layout_constraintStart_toEndOf="@id/tvItem"
+        app:layout_constraintEnd_toStartOf="@id/guidelineUnidEnd"
+        app:layout_constraintStart_toEndOf="@id/guidelineItemEnd"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.12"
         tools:text="m²" />
 
-    <!-- Coluna: Quantidade Usada (22%) -->
+    <!-- Coluna: Quantidade Usada -->
     <TextView
         android:id="@+id/tvQtdUsada"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-medium"
-        android:gravity="end"
+        android:gravity="center"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurface"
         android:textSize="13sp"
-        app:layout_constraintEnd_toStartOf="@id/tvQtdComprar"
-        app:layout_constraintStart_toEndOf="@id/tvUnid"
+        app:layout_constraintEnd_toStartOf="@id/guidelineUsarEnd"
+        app:layout_constraintStart_toEndOf="@id/guidelineUnidEnd"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.22"
-        tools:text="25,50" />
+        tools:text="25552,50kg" />
 
-    <!-- Coluna: Quantidade Comprar (28%) -->
+    <!-- Coluna: Quantidade Comprar (agora com espaço visual) -->
     <TextView
         android:id="@+id/tvQtdComprar"
         android:layout_width="0dp"
@@ -68,17 +95,24 @@
         android:textColor="?attr/colorPrimary"
         android:textSize="13sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/tvQtdUsada"
+        app:layout_constraintStart_toEndOf="@id/guidelineComprarStart"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.28"
-        tools:text="2× 25kg" />
+        tools:text="2 pct 5kg + 1 pct 2kg" />
 
-    <!-- Observação (linha abaixo, span total) -->
+    <!-- Barreira: pega o ponto mais baixo da linha principal -->
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/bottomRowBarrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="tvItem,tvUnid,tvQtdUsada,tvQtdComprar" />
+
+    <!-- Observação (sempre abaixo da linha mais baixa) -->
     <TextView
         android:id="@+id/tvObservacao"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="5dp"
         android:ellipsize="end"
         android:maxLines="2"
         android:textAppearance="?attr/textAppearanceBodySmall"
@@ -87,7 +121,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvItem"
+        app:layout_constraintTop_toBottomOf="@id/bottomRowBarrier"
         tools:text="Inclui sobra técnica de 10% • 72 peças (5 caixas)"
         tools:visibility="visible" />
 

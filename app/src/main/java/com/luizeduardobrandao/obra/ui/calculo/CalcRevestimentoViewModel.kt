@@ -20,20 +20,37 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
      * MODELOS E CONSTANTES
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    enum class RevestimentoType { PISO, AZULEJO, PASTILHA, PEDRA, MARMORE, GRANITO }
+    enum class RevestimentoType { PISO, AZULEJO, PASTILHA, PEDRA, PISO_INTERTRAVADO, MARMORE, GRANITO }
     enum class AmbienteType { SECO, SEMI, MOLHADO, SEMPRE }
     enum class PlacaTipo { CERAMICA, PORCELANATO }
     enum class RodapeMaterial { MESMA_PECA, PECA_PRONTA }
 
+    /** Tráfego específico para piso intertravado */
+    enum class TrafegoType { LEVE, MEDIO, PESADO }
+
+    /** Tipos de impermeabilização específicos do intertravado */
+    enum class ImpIntertravadoTipo { MANTA_GEOTEXTIL, ADITIVO_SIKA1, MANTA_ASFALTICA }
+
     // Constantes de densidade e embalagens
     private companion object {
-        const val DENS_EPOXI = 1600.0
-        const val DENS_CIMENTICIO = 1600.0
+        const val DENS_EPOXI = 1700.0
+        const val DENS_CIMENTICIO = 1900.0
         const val EMB_EPOXI_KG = 1.0
         const val EMB_CIME_KG = 5.0
         const val ESP_COLCHAO_PEDRA_M = 0.04
         const val ESP_COLCHAO_MGM_M = 0.03
-        val MIX_PEDRA_TRACO_13 = TracoMix("1:3", 430.0, 0.80)
+        const val CONSUMO_ARGAMASSA_RODAPE_KG_M2 = 5.0
+        val MIX_PEDRA_TRACO_13 = TracoMix("1:3", 430.0, 0.85)
+
+        // Piso intertravado - espessuras de camadas e parâmetros
+        const val ESP_AREIA_LEVE_M = 0.03
+        const val ESP_BGS_LEVE_M = 0.08
+        const val ESP_AREIA_MEDIO_M = 0.04
+        const val ESP_BGS_MEDIO_M = 0.12
+        const val ESP_AREIA_PESADO_M = 0.05
+        const val ESP_CONCRETO_PESADO_M = 0.14
+        const val MALHA_Q196_M2_POR_CHAPA = 10.0
+        const val CIMENTO_SACOS_M3_BASE = 8.0 // usado como base p/ BGS estabilizada e concreto
     }
 
     data class MaterialItem(
@@ -52,6 +69,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     data class HeaderResumo(
         val tipo: String,
         val ambiente: String,
+        val trafego: String?,
         val areaM2: Double,
         val rodapeBaseM2: Double,
         val rodapeAlturaCm: Double,
@@ -76,6 +94,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val pecaEspMm: Double? = null,
         val pecasPorCaixa: Int? = null,
         val juntaMm: Double? = null,
+        val desnivelCm: Double? = null,
         val sobraPct: Double? = null,
         val rodapeEnable: Boolean = false,
         val rodapeAlturaCm: Double? = null,
@@ -84,7 +103,10 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val rodapePerimetroAuto: Boolean = true,
         val rodapeMaterial: RodapeMaterial = RodapeMaterial.MESMA_PECA,
         val rodapeOrientacaoMaior: Boolean = true,
-        val rodapeCompComercialM: Double? = null
+        val rodapeCompComercialM: Double? = null,
+        // Piso intertravado
+        val trafego: TrafegoType? = null,
+        val impIntertravadoTipo: ImpIntertravadoTipo? = null
     )
 
     data class ResultResultado(val resultado: Resultado)
@@ -96,13 +118,12 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val areiaM3PorM3: Double
     )
 
-    private data class PackArg(val desc: String, val kgCompra: Double)
     private data class RejunteSpec(val nome: String, val densidade: Double, val packKg: Double)
     private data class ImpConfig(
-        val nome: String,
+        val item: String,
         val consumo: Double,
         val unid: String,
-        val demaos: String
+        val observacao: String
     )
 
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -122,21 +143,42 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
      * SETTERS
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    // Define o tipo de revestimento e reseta rodapé se não aplicável
+    // Define o tipo de revestimento e garante reset dos campos dependentes
     fun setRevestimento(type: RevestimentoType) = viewModelScope.launch {
-        var newInputs = _inputs.value.copy(
+        val cur = _inputs.value
+
+        // mantém apenas o tipo de placa se continuar em Piso comum
+        val novoPlacaTipo =
+            if (type == RevestimentoType.PISO) cur.pisoPlacaTipo else null
+
+        var newInputs = cur.copy(
             revest = type,
-            pisoPlacaTipo = if (type == RevestimentoType.PISO) _inputs.value.pisoPlacaTipo else null,
-            sobraPct = sobraMinimaPorTipo(type)
+            pisoPlacaTipo = novoPlacaTipo,
+            sobraPct = sobraMinimaPorTipo(type),
+
+            // 🔴 ZERA SEMPRE O AMBIENTE E DERIVADOS AO TROCAR DE REVESTIMENTO
+            ambiente = null,
+            classeArgamassa = null,
+            impermeabilizacaoOn = false,
+            impermeabilizacaoLocked = false,
+            trafego = null,
+            impIntertravadoTipo = null
         )
+
+        // Se o novo tipo não suporta rodapé, zera configuração de rodapé
         if (type !in tiposComRodape()) {
             newInputs = newInputs.copy(
-                rodapeEnable = false, rodapeAlturaCm = null, rodapePerimetroManualM = null,
-                rodapeDescontarVaoM = 0.0, rodapePerimetroAuto = true,
-                rodapeMaterial = RodapeMaterial.MESMA_PECA, rodapeOrientacaoMaior = true,
+                rodapeEnable = false,
+                rodapeAlturaCm = null,
+                rodapePerimetroManualM = null,
+                rodapeDescontarVaoM = 0.0,
+                rodapePerimetroAuto = true,
+                rodapeMaterial = RodapeMaterial.MESMA_PECA,
+                rodapeOrientacaoMaior = true,
                 rodapeCompComercialM = null
             )
         }
+
         _inputs.value = newInputs
     }
 
@@ -147,11 +189,17 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     // Define o ambiente e ajusta argamassa e impermeabilização
     fun setAmbiente(amb: AmbienteType) = viewModelScope.launch {
+        val cur = _inputs.value
+        if (cur.revest == RevestimentoType.PISO_INTERTRAVADO) {
+            val updated = cur.copy(ambiente = amb)
+            _inputs.value = applyIntertravadoImpConfig(updated)
+            return@launch
+        }
         val (classe, impOn, impLocked) = when (amb) {
             AmbienteType.SECO -> Triple("ACI", false, true)
             AmbienteType.SEMI -> Triple("ACII", false, false)
             AmbienteType.MOLHADO -> Triple("ACIII", false, false)
-            AmbienteType.SEMPRE -> Triple("ACIII", true, true)
+            AmbienteType.SEMPRE -> Triple("ACIII", false, false)
         }
 
         val sugereAc3 = _inputs.value.revest == RevestimentoType.PISO &&
@@ -164,6 +212,18 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             impermeabilizacaoOn = impOn,
             impermeabilizacaoLocked = impLocked
         )
+    }
+
+    // Define tipo de tráfego (apenas para Piso Intertravado)
+    fun setTrafego(trafego: TrafegoType?) = viewModelScope.launch {
+        val updated = _inputs.value.copy(trafego = trafego)
+        _inputs.value = applyIntertravadoImpConfig(updated)
+    }
+
+    // Define tipo de impermeabilização específica do intertravado (MOLHADO leve/médio)
+    fun setIntertravadoImpTipo(tipo: ImpIntertravadoTipo) = viewModelScope.launch {
+        val updated = _inputs.value.copy(impIntertravadoTipo = tipo)
+        _inputs.value = applyIntertravadoImpConfig(updated)
     }
 
     // Define as medidas do ambiente (com validação de limites)
@@ -184,13 +244,16 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     ) = viewModelScope.launch {
         val cur = _inputs.value
         val (minCm, maxCm) = when (cur.revest) {
-            RevestimentoType.MARMORE, RevestimentoType.GRANITO -> 5.0 to 2000.0
+            RevestimentoType.MARMORE, RevestimentoType.GRANITO -> 10.0 to 2000.0
             RevestimentoType.PASTILHA -> 20.0 to 40.0
             else -> 5.0 to 200.0
         }
 
-        val espFinal = if (cur.revest == RevestimentoType.PASTILHA) null
-        else espMm?.takeIf { it in 3.0..30.0 }
+        val espFinal = when (cur.revest) {
+            RevestimentoType.PASTILHA -> null
+            RevestimentoType.PISO_INTERTRAVADO -> espMm?.takeIf { it in 40.0..120.0 } // 4–12 cm em mm
+            else -> espMm?.takeIf { it in 3.0..30.0 }
+        }
 
         _inputs.value = cur.copy(
             pecaCompCm = compCm?.takeIf { it in minCm..maxCm },
@@ -200,6 +263,11 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             juntaMm = juntaMm?.takeIf { it in 0.5..20.0 },
             sobraPct = (sobraPct ?: sobraMinimaAtual()).takeIf { it in 0.0..50.0 }
         )
+    }
+
+    fun setDesnivelCm(v: Double?) {
+        val cur = _inputs.value
+        _inputs.value = cur.copy(desnivelCm = v)
     }
 
     // Define os parâmetros do rodapé
@@ -222,9 +290,80 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     // Define se deve usar impermeabilização
     fun setImpermeabilizacao(on: Boolean) = viewModelScope.launch {
-        if (!_inputs.value.impermeabilizacaoLocked) {
-            _inputs.value = _inputs.value.copy(impermeabilizacaoOn = on)
+        val cur = _inputs.value
+
+        // Para outros revestimentos, mantém regra antiga (não altera se locked)
+        if (cur.revest != RevestimentoType.PISO_INTERTRAVADO && cur.impermeabilizacaoLocked) {
+            return@launch
         }
+
+        var updated = cur.copy(impermeabilizacaoOn = on)
+
+        if (updated.revest == RevestimentoType.PISO_INTERTRAVADO) {
+            updated = applyIntertravadoImpConfig(updated)
+        }
+
+        _inputs.value = updated
+    }
+
+    // Aplica regras automáticas de impermeabilização para Piso Intertravado
+    private fun applyIntertravadoImpConfig(i: Inputs): Inputs {
+        if (i.revest != RevestimentoType.PISO_INTERTRAVADO) return i
+
+        val amb = i.ambiente
+        val traf = i.trafego
+
+        // Sem ambiente ou tráfego ainda → limpa e libera
+        if (amb == null || traf == null) {
+            return i.copy(
+                impermeabilizacaoOn = false,
+                impermeabilizacaoLocked = false,
+                impIntertravadoTipo = null
+            )
+        }
+
+        // Ambiente seco: nunca tem impermeabilização, nem tela
+        if (amb == AmbienteType.SECO) {
+            return i.copy(
+                impermeabilizacaoOn = false,
+                impermeabilizacaoLocked = false,
+                impIntertravadoTipo = null
+            )
+        }
+
+        val impOn = i.impermeabilizacaoOn
+        var impTipo = i.impIntertravadoTipo
+
+        // Para intertravado o usuário SEMPRE pode ligar/desligar o switch
+        val impLocked = false
+
+        if (!impOn) {
+            impTipo = null
+        } else {
+            impTipo = when {
+                // Semi-molhado + LEVE/MÉDIO → aditivo fixo
+                amb == AmbienteType.SEMI &&
+                        (traf == TrafegoType.LEVE || traf == TrafegoType.MEDIO) ->
+                    ImpIntertravadoTipo.ADITIVO_SIKA1
+
+                // Molhado ou Sempre molhado + LEVE/MÉDIO → escolha do usuário (rádios)
+                (amb == AmbienteType.MOLHADO || amb == AmbienteType.SEMPRE) &&
+                        (traf == TrafegoType.LEVE || traf == TrafegoType.MEDIO) ->
+                    impTipo
+
+                // Qualquer (Semi/Molhado/Sempre) + PESADO → manta asfáltica fixa
+                traf == TrafegoType.PESADO ->
+                    ImpIntertravadoTipo.MANTA_ASFALTICA
+
+                else -> null
+            }
+        }
+
+        return i.copy(
+            impermeabilizacaoOn = impOn,
+            impermeabilizacaoLocked = impLocked,
+            impIntertravadoTipo = impTipo
+        )
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -236,10 +375,34 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val i = _inputs.value
         var next = _step.value + 1
 
-        if (next == 5 && i.revest !in tiposComRodape()) next = 6
-        if (next == 6 && i.ambiente == AmbienteType.SECO) next = 7
+        // Step 3: Tipo de Tráfego só se Piso Intertravado
+        if (next == 3 && i.revest != RevestimentoType.PISO_INTERTRAVADO) {
+            next = 4
+        }
 
-        _step.value = next.coerceAtMost(8)
+        // Step 6: Rodapé só para tipos que suportam
+        if (next == 6 && i.revest !in tiposComRodape()) {
+            next = 7
+        }
+
+        // Step 7: Impermeabilização é pulado se ambiente seco
+        if (next == 7) {
+            if (i.revest == RevestimentoType.PISO_INTERTRAVADO) {
+                val amb = i.ambiente
+                val traf = i.trafego
+                val deveMostrar = (amb != null && amb != AmbienteType.SECO && traf != null)
+                if (!deveMostrar) {
+                    next = 8
+                }
+            } else {
+                // Demais revestimentos: pular se ambiente seco
+                if (i.ambiente == AmbienteType.SECO) {
+                    next = 8
+                }
+            }
+        }
+
+        _step.value = next.coerceAtMost(9)
     }
 
     // Retorna para etapa anterior (pulando etapas não aplicáveis)
@@ -247,18 +410,63 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val i = _inputs.value
         var prev = _step.value - 1
 
-        if (_step.value == 7 && i.ambiente == AmbienteType.SECO) {
-            prev = if (i.revest in tiposComRodape()) 5 else 4
-        } else if (_step.value == 6 && i.revest !in tiposComRodape()) {
-            prev = 4
+        when (_step.value) {
+            3 -> { // Tipo de tráfego → Ambiente
+                if (i.revest == RevestimentoType.PISO_INTERTRAVADO) {
+                    prev = 2
+                }
+            }
+
+            4 -> { // Medidas
+                // Se não é intertravado, voltamos para Ambiente (pulando tráfego)
+                if (i.revest != RevestimentoType.PISO_INTERTRAVADO) {
+                    prev = 2
+                }
+            }
+
+            6 -> { // Rodapé
+                if (i.revest !in tiposComRodape()) {
+                    prev = 5
+                }
+            }
+
+            7 -> { // Impermeabilização
+                prev = if (i.revest in tiposComRodape()) 6 else 5
+            }
+
+            8 -> { // Revisão → voltar para 7 (se houver), ou 6/5 conforme aplicável
+                prev = when {
+                    i.revest == RevestimentoType.PISO_INTERTRAVADO -> {
+                        val temEtapa7 =
+                            i.ambiente != null &&
+                                    i.ambiente != AmbienteType.SECO &&
+                                    i.trafego != null
+                        if (temEtapa7) 7 else 5 // intertravado não tem rodapé (6)
+                    }
+
+                    i.ambiente == AmbienteType.SECO -> if (i.revest in tiposComRodape()) 6 else 5
+                    else -> 7
+                }
+            }
+
+            9 -> { // Resultado
+                prev = 8
+            }
         }
 
-        _step.value = prev.coerceAtLeast(0)
+        prev = prev.coerceAtLeast(0)
+
+        // Zerar ao voltar a tela inicial ou tipo de piso
+        if (prev == 0 || prev == 1) {
+            resetAllInternal()
+        }
+
+        _step.value = prev
     }
 
     // Vai diretamente para uma etapa específica
     fun goTo(step: Int) = viewModelScope.launch {
-        _step.value = step.coerceIn(0, 8)
+        _step.value = step.coerceIn(0, 9)
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -271,10 +479,12 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             0 -> StepValidation(true)
             1 -> validateStep1(i)
             2 -> validateStep2(i)
-            3 -> validateStep3(i)
-            4 -> validateStep4(i)
-            5 -> validateStep5(i)
-            in 6..8 -> StepValidation(true)
+            3 -> validateStepTrafego(i)
+            4 -> validateStep3(i)
+            5 -> validateStep4(i)
+            6 -> validateStep5(i)
+            7 -> validateStep7Imp(i)
+            in 8..9 -> StepValidation(true)
             else -> StepValidation(false)
         }
     }
@@ -295,6 +505,18 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         if (i.ambiente == null) StepValidation(false, "Selecione o tipo de ambiente")
         else StepValidation(true)
 
+    // Valida Tipo de Tráfego (apenas para Piso Intertravado)
+    private fun validateStepTrafego(i: Inputs): StepValidation {
+        return if (i.revest == RevestimentoType.PISO_INTERTRAVADO) {
+            if (i.trafego == null)
+                StepValidation(false, "Selecione o tipo de tráfego")
+            else
+                StepValidation(true)
+        } else {
+            StepValidation(true)
+        }
+    }
+
     // Valida medidas do ambiente
     private fun validateStep3(i: Inputs): StepValidation {
         val area = areaBaseM2(i)
@@ -313,9 +535,10 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    // Valida parâmetros da peça (complexo: varia por tipo)
+    // Valida parâmetros da peça e/ou Tipo de Tráfego (complexo: varia por tipo)
     private fun validateStep4(i: Inputs): StepValidation {
         return when {
+            i.revest == RevestimentoType.PISO_INTERTRAVADO -> validateIntertravado(i)
             i.revest == RevestimentoType.PASTILHA -> validatePastilha(i)
             isPedraOuSimilares() -> validatePedra(i)
             else -> validateRevestimentoPadrao(i)
@@ -348,11 +571,15 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             i.pecaCompCm !in 20.0..40.0 || i.pecaLargCm !in 20.0..40.0 ->
                 StepValidation(false, "Manta fora do limite (20 a 40 cm)")
 
-            i.juntaMm != null && i.juntaMm < 0.5 ->
-                StepValidation(false, "Junta muito fina (mínimo 0,5 mm)")
+            i.juntaMm != null && i.juntaMm < 1.0 -> StepValidation(
+                false,
+                "Junta muito fina (mínimo 1 mm)"
+            )
 
-            i.juntaMm != null && i.juntaMm > 20.0 ->
-                StepValidation(false, "Junta muito larga (máximo 20 mm)")
+            i.juntaMm != null && i.juntaMm > 3.0 -> StepValidation(
+                false,
+                "Junta muito larga (máximo 3 mm)"
+            )
 
             i.sobraPct != null && i.sobraPct < minSobra ->
                 StepValidation(false, "Sobra mínima para este revestimento é ${arred2(minSobra)}%")
@@ -363,6 +590,15 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     // Valida pedra/mármore/granito
     private fun validatePedra(i: Inputs): StepValidation {
+        // MG: se o usuário informou tamanho de peça, validar faixa (0,10 m a 20,00 m em cm)
+        if (i.revest == RevestimentoType.MARMORE || i.revest == RevestimentoType.GRANITO) {
+            val okComp = i.pecaCompCm == null || i.pecaCompCm in 10.0..2000.0
+            val okLarg = i.pecaLargCm == null || i.pecaLargCm in 10.0..2000.0
+            if (!okComp || !okLarg) {
+                return StepValidation(false, "Peça fora do limite (0,10 a 20,00 m)")
+            }
+        }
+
         val minSobra = sobraMinimaPorTipo(i.revest)
         return when {
             i.juntaMm == null -> StepValidation(false, "Informe a largura da junta")
@@ -398,6 +634,47 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         }
     }
 
+    // Valida Piso Intertravado
+    private fun validateIntertravado(i: Inputs): StepValidation {
+        val comp = i.pecaCompCm
+        val larg = i.pecaLargCm
+        val esp = i.pecaEspMm
+        val sobra = i.sobraPct
+
+        return when {
+            comp == null || larg == null || esp == null || sobra == null ->
+                StepValidation(false, "Preencha tamanho, largura, espessura e sobra técnica")
+
+            comp !in 5.0..200.0 || larg !in 5.0..200.0 ->
+                StepValidation(false, "Dimensões da peça inválidas")
+
+            esp !in 40.0..120.0 ->
+                StepValidation(false, "Espessura do piso intertravado deve ficar entre 4 e 12 cm")
+
+            sobra !in 0.0..50.0 ->
+                StepValidation(false, "Sobra técnica deve ser entre 0% e 50%")
+
+            else -> StepValidation(true)
+        }
+    }
+
+    // Valida Tipo Impermeabilizante Piso Intertravado
+    private fun validateStep7Imp(i: Inputs): StepValidation {
+        // Para piso intertravado, só é obrigatório escolher tipo
+        // no caso Molhado e Sempre Molhado + (Leve ou Médio) quando o switch estiver LIGADO
+        if (i.revest == RevestimentoType.PISO_INTERTRAVADO &&
+            (i.ambiente == AmbienteType.MOLHADO || i.ambiente == AmbienteType.SEMPRE) &&
+            (i.trafego == TrafegoType.LEVE || i.trafego == TrafegoType.MEDIO) &&
+            i.impermeabilizacaoOn
+        ) {
+            return if (i.impIntertravadoTipo == null)
+                StepValidation(false, "Selecione o tipo de impermeabilização")
+            else
+                StepValidation(true)
+        }
+        return StepValidation(true)
+    }
+
     /* ═══════════════════════════════════════════════════════════════════════════
      * FUNÇÕES AUXILIARES PÚBLICAS
      * ═══════════════════════════════════════════════════════════════════════════ */
@@ -419,6 +696,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
                 RevestimentoType.AZULEJO -> "Azulejo"
                 RevestimentoType.PASTILHA -> "Pastilha"
                 RevestimentoType.PEDRA -> "Pedra portuguesa/irregular"
+                RevestimentoType.PISO_INTERTRAVADO -> "Piso intertravado"
                 RevestimentoType.MARMORE -> "Mármore"
                 RevestimentoType.GRANITO -> "Granito"
                 null -> "—"
@@ -428,17 +706,39 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         // Ambiente
         append("• Ambiente: ")
-        val showClasse = shouldShowClasse(i)
-        append(
-            when (i.ambiente) {
-                AmbienteType.SECO -> if (showClasse) "Seco (ACI)" else "Seco"
-                AmbienteType.SEMI -> if (showClasse) "Semi-úmido (ACII)" else "Semi-úmido"
-                AmbienteType.MOLHADO -> if (showClasse) "Molhado (ACIII)" else "Molhado"
-                AmbienteType.SEMPRE -> if (showClasse) "Sempre molhado (ACIII)" else "Sempre molhado"
-                null -> "—"
+
+        val ambienteLabel = when (i.ambiente) {
+            AmbienteType.SECO -> "Seco"
+            AmbienteType.SEMI -> "Semi-úmido"
+            AmbienteType.MOLHADO -> "Molhado"
+            AmbienteType.SEMPRE -> "Sempre molhado"
+            null -> "—"
+        }
+
+        if (i.ambiente == null) {
+            appendLine("—")
+        } else {
+            val ambienteTexto = when (i.revest) {
+                // Nunca mostrar classe junto para pedra e piso intertravado
+                RevestimentoType.PEDRA,
+                RevestimentoType.PISO_INTERTRAVADO -> ambienteLabel
+
+                // Mármore/Granito: se não for leito espesso → força ACIII (como já é no cálculo)
+                RevestimentoType.MARMORE,
+                RevestimentoType.GRANITO -> {
+                    val usaLeitoEspesso = mgIsAreiaCimento(i)
+                    if (!usaLeitoEspesso) "$ambienteLabel (ACIII)" else ambienteLabel
+                }
+
+                // Demais revestimentos: usa classeArgamassa calculada em setAmbiente
+                else -> {
+                    val classe = i.classeArgamassa
+                    if (classe != null && shouldShowClasse(i)) "$ambienteLabel ($classe)" else ambienteLabel
+                }
             }
-        )
-        appendLine()
+
+            appendLine(ambienteTexto)
+        }
 
         // Área
         areaBaseM2(i)?.let { area ->
@@ -455,13 +755,28 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         }
 
         // Espessura (se informada)
-        i.pecaEspMm?.let { appendLine("• Espessura: ${arred1(it)} mm") }
+        i.pecaEspMm?.let { espMm ->
+            if (i.revest == RevestimentoType.PISO_INTERTRAVADO) {
+                val espCm = espMm / 10.0
+                appendLine("• Espessura: ${arred1(espCm)} cm")
+            } else {
+                appendLine("• Espessura: ${arred1(espMm)} mm")
+            }
+        }
 
         // Peças por caixa (se informada)
         i.pecasPorCaixa?.let { appendLine("• Peças por caixa: $it") }
 
         // Junta
         i.juntaMm?.let { appendLine("• Junta: ${arred2(it)} mm") }
+
+        // Desnível (se informado)
+        i.desnivelCm?.let { appendLine("• Desnível: ${arred1(it)} cm") }
+
+        // Tráfego (apenas intertravado)
+        if (i.revest == RevestimentoType.PISO_INTERTRAVADO && i.trafego != null) {
+            appendLine("• Tráfego: ${i.trafego}")
+        }
 
         // Sobra
         if (i.sobraPct != null && i.sobraPct > 0) {
@@ -504,6 +819,11 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         // Processar materiais conforme tipo de revestimento
         when {
+            i.revest == RevestimentoType.PISO_INTERTRAVADO -> {
+                processarPisoIntertravado(i, areaBase, itens)
+                classe = null
+            }
+
             isPedraOuSimilares() -> processarPedraOuSimilares(
                 i,
                 areaRevestimentoM2,
@@ -515,12 +835,15 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         }
 
         // Adicionar rodapé e impermeabilização
-        adicionarRodape(i, areaRodapeExibM2, perimetroCompraMl, sobra, itens)
-        adicionarImpermeabilizacao(i, areaBase + areaRodapeExibM2, itens)
+        if (i.revest != RevestimentoType.PISO_INTERTRAVADO) {
+            adicionarRodape(i, areaRodapeExibM2, perimetroCompraMl, sobra, itens)
+            adicionarImpermeabilizacao(i, areaBase + areaRodapeExibM2, itens)
+        }
 
         val header = HeaderResumo(
             tipo = i.revest?.name ?: "-",
             ambiente = i.ambiente?.name ?: "-",
+            trafego = i.trafego?.name,
             areaM2 = areaBase,
             rodapeBaseM2 = areaBaseExibM2,
             rodapeAlturaCm = i.rodapeAlturaCm ?: 0.0,
@@ -529,8 +852,16 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             sobraPct = sobra
         )
 
+        if ((i.revest == RevestimentoType.MARMORE || i.revest == RevestimentoType.GRANITO) &&
+            i.rodapeEnable &&
+            mgIsAreiaCimento(i)
+        ) {
+            // Apenas no cenário AREIA + CIMENTO manter item separado de argamassa p/ rodapé
+            materialArgamassaRodape(header.rodapeAreaM2)?.let { itens += it }
+        }
+
         _resultado.value = UiState.Success(ResultResultado(Resultado(header, classe, itens)))
-        _step.value = 8
+        _step.value = 9
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -557,11 +888,19 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         // Adicionar revestimento com peças calculadas
         val qtdPecas = calcularQuantidadePecas(i, areaM2, sobra)
+        val observacao = buildObservacaoRevestimento(
+            sobra = sobra,
+            qtdPecas = qtdPecas,
+            pecasPorCaixa = i.pecasPorCaixa,
+            pecaCompCm = i.pecaCompCm,
+            pecaLargCm = i.pecaLargCm
+        )
+
         itens += MaterialItem(
             item = nomeRev + tamanhoSufixo(i),
             unid = "m²",
             qtd = arred2(areaM2),
-            observacao = buildObservacaoRevestimento(sobra, qtdPecas, i.pecasPorCaixa)
+            observacao = observacao
         )
 
         // Adicionar argamassa colante
@@ -597,19 +936,237 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         itens: MutableList<MaterialItem>
     ) {
         val mix = MIX_PEDRA_TRACO_13
+        val d = (i.desnivelCm ?: 0.0)
+        val leitoPedraCm = kotlin.math.round((max(4.0, d + 0.5) * 10.0)) / 10.0
+        val leitoM = leitoPedraCm / 100.0
+
         itens += MaterialItem(
             item = "Pedra (m²)",
             unid = "m²",
             qtd = arred2(areaM2),
-            observacao = "Colchao cimentado (traco ${mix.rotulo} • ${arred1(ESP_COLCHAO_PEDRA_M * 100)} cm) • perda ${
-                arred0(
-                    sobra
-                )
-            }%"
+            observacao = "leito: ${arred1(leitoPedraCm)} cm • rejunte incluso no traço."
         )
 
-        val (cimentoKg, areiaM3) = calcularCimentoEAreia(areaM2, sobra, i, mix)
+        val (cimentoKg, areiaM3) = calcularCimentoEAreia(
+            areaM2 = areaM2,
+            sobra = sobra,
+            i = i,
+            mix = mix,
+            leitoOverrideM = leitoM
+        )
         adicionarCimentoEAreia(cimentoKg, areiaM3, itens)
+
+        adicionarEspacadoresECunhas(i, areaM2, sobra, itens)
+    }
+
+    // Processa Piso Intertravado conforme tráfego e ambiente
+    private fun processarPisoIntertravado(
+        i: Inputs,
+        areaM2: Double,
+        itens: MutableList<MaterialItem>
+    ) {
+        if (areaM2 <= 0.0) return
+
+        val comp = i.pecaCompCm ?: return
+        val larg = i.pecaLargCm ?: return
+        val espMm = i.pecaEspMm ?: getEspessuraPadraoMm(i)
+        val traf = i.trafego ?: return
+        val sobra = i.sobraPct ?: sobraMinimaPorTipo(RevestimentoType.PISO_INTERTRAVADO)
+
+        val pecasPorM2 = 10000.0 / (larg * comp)
+        val espCm = espMm / 10.0
+        val qtdPecas = calcularQuantidadePecas(i, areaM2, sobra)
+
+        val observacao = buildString {
+            append("Peças por m²: ${arred2(pecasPorM2)}")
+            if (qtdPecas != null && qtdPecas > 0) {
+                append(" • ${qtdPecas.toInt()} peças.")
+            }
+        }
+
+        itens += MaterialItem(
+            item = "Piso intertravado ${arred0(comp)}×${arred0(larg)}×${arred1(espCm)} cm",
+            unid = "m²",
+            qtd = arred2(areaM2),
+            observacao = observacao
+        )
+
+        var volumeBgs = 0.0
+
+        fun addAreia(espM: Double) {
+            val vol = espM * areaM2 * (1 + sobra / 100.0)
+
+            itens += MaterialItem(
+                item = "Areia de assentamento",
+                unid = "m³",
+                qtd = arred3(vol),
+                observacao = "${arred1(espM * 100)} cm de camada."
+            )
+        }
+
+        fun addBgs(espM: Double) {
+            volumeBgs = espM * areaM2 * (1 + sobra / 100.0)
+            itens += MaterialItem(
+                item = "Brita graduada simples (BGS)",
+                unid = "m³",
+                qtd = arred3(volumeBgs),
+                observacao = "${arred1(espM * 100)} cm de base compactada."
+            )
+        }
+
+        fun addConcreto(espM: Double) {
+            val vol = espM * areaM2 * (1 + sobra / 100.0)
+            val sacosRef = vol * CIMENTO_SACOS_M3_BASE          // sacos de referência (8/m³)
+            val cimentoKg = sacosRef * 50.0                     // base em sacos de 50 kg
+
+            itens += MaterialItem(
+                item = "Concreto armado (laje)",
+                unid = "m³",
+                qtd = arred3(vol),
+                observacao = "${arred1(espM * 100)} cm de espessura."
+            )
+
+            itens += MaterialItem(
+                item = "Cimento",
+                unid = "kg",
+                qtd = arred1(cimentoKg),
+                observacao = "Utilizado para traço do concreto da laje."
+            )
+        }
+
+        fun addMalhaQ196() {
+            val chapas = areaM2 / MALHA_Q196_M2_POR_CHAPA
+            val chapasCompra = ceil(chapas).toInt()
+            itens += MaterialItem(
+                item = "Malha pop Q-196",
+                unid = "cp",
+                qtd = arred2(chapas),
+                observacao = "$chapasCompra chapa(s) a cada 10 m²."
+            )
+        }
+
+        fun addAditivoSika1() {
+            if (volumeBgs <= 0.0) return
+
+            val sacosRef =
+                volumeBgs * (1 + sobra / 100.0) * CIMENTO_SACOS_M3_BASE    // sacos referência
+            val cimentoKg = sacosRef * 50.0                     // base 50 kg
+
+            // Cimento para estabilização da base
+            itens += MaterialItem(
+                item = "Cimento",
+                unid = "kg",
+                qtd = arred1(cimentoKg),
+                observacao = "Estabilização da base BGS com o impermeabilizante (Sika 1)."
+            )
+
+            // Aditivo Sika 1 - empacotamento 1L / 3,6L / 18L
+            val litros = sacosRef
+            itens += MaterialItem(
+                item = "Aditivo impermeabilizante (Sika 1 ou similar)",
+                unid = "L",
+                qtd = arred1(litros),
+                observacao = "Dosagem 1 L por saco de cimento na estabilização da base."
+            )
+        }
+
+        fun addMantaGeotextil() {
+            val area = arred2(areaM2 * (1 + sobra / 100.0))
+
+            val nome = when {
+                i.ambiente == AmbienteType.MOLHADO &&
+                        i.trafego == TrafegoType.LEVE ->
+                    "Manta Geotêxtil ≥ 150 g/m²"
+
+                i.ambiente == AmbienteType.MOLHADO &&
+                        i.trafego == TrafegoType.MEDIO ->
+                    "Manta Geotêxtil ≥ 200 g/m²"
+
+                i.ambiente == AmbienteType.SEMPRE &&
+                        i.trafego == TrafegoType.LEVE ->
+                    "Manta Geotêxtil ≥ 200 g/m²"
+
+                i.ambiente == AmbienteType.SEMPRE &&
+                        i.trafego == TrafegoType.MEDIO ->
+                    "Manta Geotêxtil ≥ 300 g/m²"
+
+                else -> "Manta Geotêxtil"
+            }
+
+            itens += MaterialItem(
+                item = nome,
+                unid = "m²",
+                qtd = area,
+                observacao = "Aplicar sob toda a área da base (rolos de 100 m²)."
+            )
+        }
+
+        fun addMantaAsfaltica() {
+            val area = arred2(areaM2 * (1 + sobra / 100.0))
+
+            itens += MaterialItem(
+                item = "Manta Asfáltica",
+                unid = "m²",
+                qtd = area,
+                observacao = "Aplicação em toda a área impermeabilizada (rolos de 10 m²)."
+            )
+        }
+
+        when (traf) {
+            TrafegoType.LEVE -> {
+                addAreia(ESP_AREIA_LEVE_M)
+                addBgs(ESP_BGS_LEVE_M)
+            }
+
+            TrafegoType.MEDIO -> {
+                addAreia(ESP_AREIA_MEDIO_M)
+                addBgs(ESP_BGS_MEDIO_M)
+            }
+
+            TrafegoType.PESADO -> {
+                addAreia(ESP_AREIA_PESADO_M)
+                addConcreto(ESP_CONCRETO_PESADO_M)
+                addMalhaQ196()
+            }
+        }
+
+        // Impermeabilização conforme regras (só se switch estiver ligado)
+        if (i.impermeabilizacaoOn) {
+            when (traf) {
+                TrafegoType.PESADO -> {
+                    // Semi / Molhado / Sempre + PESADO → manta asfáltica
+                    addMantaAsfaltica()
+                }
+
+                else -> {
+                    when (i.ambiente) {
+                        // Semi-molhado + LEVE/MÉDIO → aditivo fixo
+                        AmbienteType.SEMI -> {
+                            if (traf == TrafegoType.LEVE || traf == TrafegoType.MEDIO) {
+                                addAditivoSika1()
+                            }
+                        }
+
+                        // Molhado ou Sempre molhado + LEVE/MÉDIO → segue escolha dos rádios
+                        AmbienteType.MOLHADO,
+                        AmbienteType.SEMPRE -> {
+                            if (traf == TrafegoType.LEVE || traf == TrafegoType.MEDIO) {
+                                when (i.impIntertravadoTipo) {
+                                    ImpIntertravadoTipo.MANTA_GEOTEXTIL -> addMantaGeotextil()
+                                    ImpIntertravadoTipo.ADITIVO_SIKA1 -> addAditivoSika1()
+                                    else -> { /* validação já garante escolha */
+                                    }
+                                }
+                            }
+                        }
+
+                        else -> {
+                            // SECO ou outros casos: sem impermeabilização adicional
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // Processa mármore ou granito
@@ -623,31 +1180,111 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             else -> "Revestimento (m²)"
         }
 
-        val espUsadaMm = (i.pecaEspMm ?: getEspessuraPadraoMm(i)).coerceAtLeast(3.0)
-        val usarLeitoEspesso = espUsadaMm > 20.0
+        val isAreiaCimento = mgIsAreiaCimento(i)
+        val leitoMgCm = mgLeitoCm(i) // null se for argamassa
+        val qtdPecas = calcularQuantidadePecas(i, areaM2, sobra)
 
-        val obsBase = if (usarLeitoEspesso)
-            "Colchao cimentado (traco ${MIX_PEDRA_TRACO_13.rotulo} • ${arred1(ESP_COLCHAO_MGM_M * 100)})"
-        else "Argamassa colante branca p/ pedra natural • dupla colagem"
+        val obsRevest = buildObservacaoRevestimento(
+            sobra = sobra,
+            qtdPecas = qtdPecas,
+            pecasPorCaixa = i.pecasPorCaixa,
+            pecaCompCm = i.pecaCompCm,
+            pecaLargCm = i.pecaLargCm
+        )
+
+        val obsExtra = if (isAreiaCimento) {
+            leitoMgCm?.let { "leito: ${arred1(it)} cm" }
+        } else {
+            "Dupla colagem"
+        }
+
+        val observacaoFinal = buildString {
+            if (obsRevest.isNotBlank()) append(obsRevest)
+            if (!obsExtra.isNullOrBlank()) {
+                if (isNotEmpty()) append(" • ")
+                append(obsExtra)
+            }
+        }.ifBlank { null }
 
         itens += MaterialItem(
             item = nome + tamanhoSufixo(i),
             unid = "m²",
             qtd = arred2(areaM2),
-            observacao = obsBase
+            observacao = observacaoFinal
         )
 
-        return if (usarLeitoEspesso) {
-            val (cimentoKg, areiaM3) = calcularCimentoEAreia(areaM2, sobra, i, MIX_PEDRA_TRACO_13)
+        val classeRetornada: String?
+
+        if (isAreiaCimento) {
+            // Leito espesso (areia+cimento)
+            val (cimentoKg, areiaM3) = calcularCimentoEAreia(
+                areaM2 = areaM2,
+                sobra = sobra,
+                i = i,
+                mix = MIX_PEDRA_TRACO_13,
+                leitoOverrideM = (leitoMgCm!! / 100.0)
+            )
             adicionarCimentoEAreia(cimentoKg, areiaM3, itens)
-            null
+            classeRetornada = null
         } else {
-            adicionarArgamassaColante(i, areaM2, sobra, itens)
-            "ACIII (branca p/ pedra natural)"
-        }.also {
-            adicionarRejunte(i, areaM2, itens)
-            adicionarEspacadoresECunhas(i, areaM2, sobra, itens)
+            // Colagem com argamassa → sempre ACIII (sem “branca”)
+            // Incluir o consumo do rodapé dentro da mesma ACIII (sem item separado)
+            val perimetroCompraMl = rodapePerimetroSeguroM(i) ?: 0.0
+            val alturaRodapeM = (i.rodapeAlturaCm ?: 0.0) / 100.0
+            val areaRodapeCompraM2 = if (i.rodapeEnable) perimetroCompraMl * alturaRodapeM else 0.0
+
+            // Só precisamos somar EXTRA quando o rodapé NÃO estiver já incluído em areaRevestimentoM2
+            // (ou seja, quando for PECA_PRONTA). Se for MESMA_PECA, a área já entrou em areaM2.
+            val extraKgRodape =
+                if (i.rodapeEnable && i.rodapeMaterial == RodapeMaterial.PECA_PRONTA)
+                    areaRodapeCompraM2 * CONSUMO_ARGAMASSA_RODAPE_KG_M2
+                else 0.0
+
+            val iAc3 = i.copy(classeArgamassa = "ACIII")
+            adicionarArgamassaColante(
+                i = iAc3,
+                areaM2 = areaM2,
+                sobra = sobra,
+                itens = itens,
+                extraKg = extraKgRodape
+            )
+            classeRetornada = "ACIII"
         }
+
+        adicionarRejunte(i, areaM2, itens)
+        adicionarEspacadoresECunhas(i, areaM2, sobra, itens)
+
+        return classeRetornada
+    }
+
+    private fun mgIsAreiaCimento(i: Inputs): Boolean {
+        val espMm = i.pecaEspMm ?: 0.0
+        if (espMm >= 20.0) return true
+        val d = i.desnivelCm ?: 0.0
+        return d >= 1.0 // 0.0..0.9 → argamassa | 1.0..3.0 → areia+cimento
+    }
+
+    private fun mgLeitoCm(i: Inputs): Double? {
+        // Só aplica quando cenário = Areia+cimento
+        if (!mgIsAreiaCimento(i)) return null
+        val d = (i.desnivelCm ?: 0.0)
+        val leito = max(3.0, d + 0.5) // NÃO soma espessura da peça
+        // Arredonde a 1 casa para exibir em observação
+        return kotlin.math.round(leito * 10.0) / 10.0
+    }
+
+    // Monta o MaterialItem de argamassa específica do RODAPÉ (usa empacotarArgamassa de 20 kg)
+    private fun materialArgamassaRodape(rodapeAreaM2: Double): MaterialItem? {
+        if (rodapeAreaM2 <= 0.0) return null
+
+        val kgReal = rodapeAreaM2 * CONSUMO_ARGAMASSA_RODAPE_KG_M2
+
+        return MaterialItem(
+            item = "Argamassa colante (rodapé)",
+            unid = "kg",
+            qtd = arred1(kgReal),
+            observacao = "Para assentamento do rodapé."
+        )
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -659,18 +1296,18 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         i: Inputs,
         areaM2: Double,
         sobra: Double,
-        itens: MutableList<MaterialItem>
+        itens: MutableList<MaterialItem>,
+        extraKg: Double = 0.0
     ) {
         val consumoArgKgM2 = consumoArgamassaKgM2(i)
-        val totalArgKg = consumoArgKgM2 * areaM2 * (1 + sobra / 100.0)
+        val totalArgKg = (consumoArgKgM2 * areaM2 * (1 + sobra / 100.0)) + extraKg
         val classe = i.classeArgamassa ?: "ACI"
-        val packArg = empacotarArgamassa(totalArgKg)
 
         itens += MaterialItem(
             item = "Argamassa colante $classe",
             unid = "kg",
             qtd = arred1(max(0.0, totalArgKg)),
-            observacao = "${packArg.desc} • comprar ${arred0(packArg.kgCompra)} kg"
+            observacao = "Consumo estimado para assentamento do revestimento."
         )
     }
 
@@ -680,26 +1317,29 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val consumoRejKgM2 = consumoRejunteKgM2(i, spec.densidade)
         val sobraUsuarioPct = i.sobraPct ?: 10.0
         val totalRejKg = consumoRejKgM2 * areaM2 * (1 + sobraUsuarioPct / 100.0)
-        val juntaInfo = if ((i.juntaMm ?: 0.0) > 0.0) " (${arred2(i.juntaMm!!)} mm)" else ""
 
-        // 🔧 Se for epóxi, usar 2 kg + 1 kg; senão, manter pacote único (ex.: 5 kg)
-        val packs = if (spec.nome.contains("epóxi", ignoreCase = true)) listOf(2.0, 1.0)
-        else listOf(spec.packKg)
+        val observacaoRejunte = when {
+            i.ambiente == AmbienteType.SECO &&
+                    spec.nome.contains("Tipo 1", ignoreCase = true) ->
+                "Considera junta, formato das peças e sobra.\nIndicado para áreas secas."
 
-        // Melhor combo ≥ totalRejKg
-        val combo = bestPackCombo(totalRejKg, packs)
-        val totalEmbKg = combo.entries.sumOf { it.key * it.value }
+            (i.ambiente == AmbienteType.SEMI || i.ambiente == AmbienteType.MOLHADO) &&
+                    spec.nome.contains("Tipo 2", ignoreCase = true) ->
+                "Considera junta, formato das peças e sobra.\nIndicado para áreas úmidas."
 
-        // Ex.: "1x 2 kg • 1x 1 kg"
-        val obsPacks = combo.entries
-            .sortedByDescending { it.key }
-            .joinToString(" • ") { (kg, n) -> "${n}x ${arred0(kg)} kg" }
+            i.ambiente == AmbienteType.SEMPRE &&
+                    spec.nome.contains("epóxi", ignoreCase = true) ->
+                "Considera junta, formato das peças e sobra.\nIndicado para áreas sempre molhadas."
+
+            else ->
+                "Considera junta, formato das peças e sobra."
+        }
 
         itens += MaterialItem(
-            item = "${spec.nome}$juntaInfo",
+            item = spec.nome,
             unid = "kg",
-            qtd = arred1(max(0.0, totalRejKg)), // consumo real estimado
-            observacao = "$obsPacks • comprar ${arred0(totalEmbKg)} kg"
+            qtd = arred1(max(0.0, totalRejKg)),
+            observacao = observacaoRejunte
         )
     }
 
@@ -719,20 +1359,27 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val pecasNec = ceil((areaM2 / areaPecaM2) * (1 + sobra / 100.0))
         val espacadores = ceil(pecasNec * 3.0).toInt()
         val pacEsp100 = pacotesDe100Un(espacadores)
+        val obsPacEsp = if (pacEsp100 == 1)
+            "1 pacote de 100 unidades."
+        else
+            "$pacEsp100 pacotes de 100 unidades."
 
         itens += MaterialItem(
-            item = "Espaçadores (${arred2(i.juntaMm ?: 0.0)} mm)",
+            item = "Espaçadores",
             unid = "un",
             qtd = espacadores.toDouble(),
-            observacao = "$pacEsp100 pacotes de 100 un"
+            observacao = obsPacEsp
         )
 
-        itens += MaterialItem(
-            item = "Cunhas p/ nivelamento",
-            unid = "un",
-            qtd = espacadores.toDouble(),
-            observacao = "$pacEsp100 pacotes de 100 un"
-        )
+        // Cunhas apenas se NÃO for pastilha
+        if (i.revest != RevestimentoType.PASTILHA) {
+            itens += MaterialItem(
+                item = "Cunhas",
+                unid = "un",
+                qtd = espacadores.toDouble(),
+                observacao = obsPacEsp
+            )
+        }
     }
 
     // Adiciona cimento e areia à lista de materiais
@@ -741,21 +1388,18 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         areiaM3: Double,
         itens: MutableList<MaterialItem>
     ) {
-        val (compraKg, obsCimento) = calcularEmbalagensCimento(cimentoKg)
         itens += MaterialItem(
             item = "Cimento",
             unid = "kg",
             qtd = arred1(cimentoKg),
-            observacao = "$obsCimento • comprar ${arred0(compraKg)} kg"
+            observacao = "Utilizado para preparo do assentamento."
         )
 
-        val areiaKgAprox = areiaM3 * 1400.0
-        val sacos20 = ceil(areiaKgAprox / 20.0).toInt()
         itens += MaterialItem(
             item = "Areia",
             unid = "m³",
             qtd = arred3(areiaM3),
-            observacao = "$sacos20 sacos de 20 kg (aprox.)"
+            observacao = "Volume de areia para preparo do assentamento."
         )
     }
 
@@ -768,20 +1412,20 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         if (i.rodapeMaterial == RodapeMaterial.MESMA_PECA) {
             itens += MaterialItem(
-                item = "Rodapé (mesma peça • ${arred0(i.rodapeAlturaCm ?: 0.0)} cm)",
+                item = "Rodapé • ${arred0(i.rodapeAlturaCm ?: 0.0)} cm)",
                 unid = "m²",
                 qtd = arred2(areaExibM2),
-                observacao = "incluso (informativo)"
+                observacao = "Incluso na quantidade de peças."
             )
         } else {
             val comp = i.rodapeCompComercialM ?: 0.60
             val mlEfetivo = perimetroCompraM * (1 + sobra / 100.0)
             val q = ceil(mlEfetivo / comp).toInt()
             itens += MaterialItem(
-                item = "Rodapé (peça pronta • ${arred2(comp)} m)",
+                item = "Rodapé • ${arred2(comp)} m)",
                 unid = "m",
                 qtd = arred2(mlEfetivo),
-                observacao = "$q peças"
+                observacao = "Peça pronta • $q peças."
             )
         }
     }
@@ -795,40 +1439,37 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         if (!i.impermeabilizacaoOn) return
 
         val config = when (i.ambiente) {
-            AmbienteType.SEMI -> ImpConfig("Membrana acrílica", 1.2, "L", "3-4 demaos")
+            AmbienteType.SEMI -> ImpConfig(
+                item = "Impermeabilizante Membrana Acrílica",
+                consumo = 1.2, // L/m²
+                unid = "L",
+                observacao = "Vendida em embalagens • Aplicar em 3 a 4 demãos."
+            )
+
             AmbienteType.MOLHADO -> ImpConfig(
-                "Argamassa polimérica flexível",
-                3.5,
-                "kg",
-                "2 demaos"
+                item = "Impermeabilizante Argamassa Polimérica Flexível (3,5 kg/m²)",
+                consumo = 3.5, // kg/m²
+                unid = "kg",
+                observacao = "Vendida em embalagens • Aplicar em 2 demãos."
             )
 
             AmbienteType.SEMPRE -> ImpConfig(
-                "Argamassa polimérica bicomponente",
-                4.0,
-                "kg",
-                "2 demaos"
+                item = "Impermeabilizante Argamassa Polimérica Bicomponente (4 kg/m²)",
+                consumo = 4.0, // kg/m²
+                unid = "kg",
+                observacao = "Vendida em kits • Misturar os 2 componentes e aplicar em 2 demãos."
             )
 
             else -> return
         }
 
-        val total = config.consumo * areaTotal
-        val packing = if (config.unid == "L")
-            bestPackCombo(total, listOf(18.0, 3.6, 1.0))
-        else bestPackCombo(total, listOf(18.0, 4.0))
-
-        val textoObs = packing.entries.sortedByDescending { it.key }
-            .joinToString(" • ") { (size, count) ->
-                "$count ${if (config.unid == "L") "balde(s)" else "balde(s)"} de ${arred2(size)} ${config.unid}"
-            }
-        val totalEmb = packing.entries.sumOf { it.key * it.value }
+        val totalUsar = config.consumo * areaTotal
 
         itens += MaterialItem(
-            item = "Impermeabilizante (${config.nome})",
+            item = config.item,
             unid = config.unid,
-            qtd = arred1(totalEmb),
-            observacao = "$textoObs • ${config.demaos}"
+            qtd = arred1(totalUsar),
+            observacao = config.observacao
         )
     }
 
@@ -880,7 +1521,10 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val compM = (i.pecaCompCm ?: 30.0) / 100.0
         val largM = (i.pecaLargCm ?: 30.0) / 100.0
         val juntaM = ((i.juntaMm ?: getJuntaPadraoMm(i)).coerceAtLeast(0.5)) / 1000.0
-        val espM = ((i.pecaEspMm ?: getEspessuraPadraoMm(i)).coerceAtLeast(3.0)) / 1000.0
+        val espM = when (i.revest) {
+            RevestimentoType.PASTILHA -> 3.0 / 1000.0   // fixa 3 mm; ignora espessura
+            else -> ((i.pecaEspMm ?: getEspessuraPadraoMm(i)).coerceAtLeast(3.0)) / 1000.0
+        }
 
         val consumo = ((compM + largM) / (compM * largM)) * juntaM * espM * densidadeKgDm3
         return consumo.coerceIn(0.10, 3.0)
@@ -891,11 +1535,12 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         areaM2: Double,
         sobra: Double,
         i: Inputs,
-        mix: TracoMix
+        mix: TracoMix,
+        leitoOverrideM: Double? = null
     ): Pair<Double, Double> {
-        val espColchaoM = when (i.revest) {
-            RevestimentoType.PEDRA -> ESP_COLCHAO_PEDRA_M     // 0.04 (4,0 cm)
-            RevestimentoType.MARMORE, RevestimentoType.GRANITO -> ESP_COLCHAO_MGM_M // 0.03 (3 cm)
+        val espColchaoM = leitoOverrideM ?: when (i.revest) {
+            RevestimentoType.PEDRA -> ESP_COLCHAO_PEDRA_M
+            RevestimentoType.MARMORE, RevestimentoType.GRANITO -> ESP_COLCHAO_MGM_M
             else -> 0.0
         }
 
@@ -1016,94 +1661,38 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
      * HELPERS DE EMBALAGEM E FORMATAÇÃO
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    // Empacota argamassa em sacos de 20 kg
-    private fun empacotarArgamassa(kgReal: Double): PackArg {
-        val n = ceil(kgReal / 20.0).toInt().coerceAtLeast(0)
-        val totalKg = n * 20.0
-        val desc = if (n > 0) "${n}x 20 kg" else "0x 20 kg"
-        return PackArg(desc, totalKg)
-    }
-
-    // Calcula melhor combinação de embalagens de cimento
-    private fun calcularEmbalagensCimento(cimentoKg: Double): Pair<Double, String> = when {
-        cimentoKg <= 25.0 -> {
-            val sacos = ceil(cimentoKg / 25.0).toInt()
-            (sacos * 25.0) to "${sacos}x 25 kg"
-        }
-
-        cimentoKg <= 50.0 -> {
-            val sacos25 = ceil(cimentoKg / 25.0).toInt()
-            val total25 = sacos25 * 25.0
-            val sobra50 = 50.0 - cimentoKg
-            val sobra25 = total25 - cimentoKg
-            if (sobra50 <= sobra25) 50.0 to "1x 50 kg" else total25 to "${sacos25}x 25 kg"
-        }
-
-        else -> {
-            val sacos50 = (cimentoKg / 50.0).toInt()
-            val resto = cimentoKg - (sacos50 * 50.0)
-            val sacos25 = if (resto > 0) ceil(resto / 25.0).toInt() else 0
-            val totalKg = (sacos50 * 50.0) + (sacos25 * 25.0)
-            val desc = buildString {
-                if (sacos50 > 0) append("${sacos50}x 50 kg")
-                if (sacos25 > 0) {
-                    if (sacos50 > 0) append(" + ")
-                    append("${sacos25}x 25 kg")
-                }
-            }
-            totalKg to desc
-        }
-    }
-
-    // Encontra melhor combinação de embalagens (algoritmo de busca)
-    private fun bestPackCombo(target: Double, sizes: List<Double>): Map<Double, Int> {
-        val sorted = sizes.sortedDescending()
-        var best: Map<Double, Int> = emptyMap()
-        var bestOver = Double.MAX_VALUE
-        var bestCount = Int.MAX_VALUE
-
-        val limits = sorted.associateWith { ceil(target / it).toInt() + 3 }
-
-        fun search(idx: Int, acc: Map<Double, Int>) {
-            if (idx == sorted.size) {
-                val total = acc.entries.sumOf { it.key * it.value }
-                val count = acc.values.sum()
-                val over = max(0.0, total - target)
-                if (total >= target && (over < bestOver || (over == bestOver && count < bestCount))) {
-                    best = acc
-                    bestOver = over
-                    bestCount = count
-                }
-                return
-            }
-            val size = sorted[idx]
-            val maxN = limits[size] ?: 5
-            for (n in 0..maxN) {
-                val next = if (n == 0) acc else acc + (size to n)
-                val partialTotal = next.entries.sumOf { it.key * it.value }
-                if (partialTotal > target + bestOver && bestOver < Double.MAX_VALUE) continue
-                search(idx + 1, next)
-            }
-        }
-        search(0, emptyMap())
-        if (best.isEmpty()) return mapOf(sorted.last() to ceil(target / sorted.last()).toInt())
-        return best
-    }
-
     // Constrói observação do revestimento
     private fun buildObservacaoRevestimento(
         sobra: Double,
         qtdPecas: Double?,
-        pecasPorCaixa: Int?
-    ): String = buildString {
-        append("Inclui sobra técnica de ${arred2(sobra)}%")
-        if (qtdPecas != null) {
-            append(" • ${qtdPecas.toInt()} peças")
+        pecasPorCaixa: Int?,
+        pecaCompCm: Double?,
+        pecaLargCm: Double?
+    ): String {
+        val sb = StringBuilder()
+
+        // Peças/m² (se tiver dimensão da peça)
+        val pecasPorM2 = if (pecaCompCm != null && pecaLargCm != null &&
+            pecaCompCm > 0 && pecaLargCm > 0
+        ) {
+            10000.0 / (pecaCompCm * pecaLargCm)
+        } else null
+
+        if (pecasPorM2 != null) {
+            sb.append("Peças por m²: ${arred2(pecasPorM2)}")
+        } else {
+            sb.append("sobra: ${arred2(sobra)}%")
+        }
+
+        if (qtdPecas != null && qtdPecas > 0) {
+            sb.append(" • ${qtdPecas.toInt()} peças.")
             if (pecasPorCaixa != null && pecasPorCaixa > 0) {
                 val caixas = ceil(qtdPecas / pecasPorCaixa).toInt()
-                append(" (${caixas} caixas)")
+                sb.append(" (${caixas} caixas.)")
             }
         }
+
+        return sb.toString()
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -1119,17 +1708,21 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     )
 
     private fun sobraMinimaPorTipo(type: RevestimentoType?) = when (type) {
-        RevestimentoType.PEDRA, RevestimentoType.MARMORE, RevestimentoType.GRANITO -> 10.0
+        RevestimentoType.PEDRA,
+        RevestimentoType.MARMORE,
+        RevestimentoType.GRANITO,
+        RevestimentoType.PISO_INTERTRAVADO -> 10.0
+
         RevestimentoType.PASTILHA -> 5.0
         else -> 10.0
     }
 
     // Retorna especificação de rejunte conforme ambiente
     private fun rejunteSpec(i: Inputs) = when (i.ambiente) {
-        AmbienteType.MOLHADO, AmbienteType.SEMPRE ->
+        AmbienteType.SEMPRE ->
             RejunteSpec("Rejunte epóxi", DENS_EPOXI, EMB_EPOXI_KG)
 
-        AmbienteType.SEMI ->
+        AmbienteType.SEMI, AmbienteType.MOLHADO ->
             RejunteSpec("Rejunte cimentício Tipo 2", DENS_CIMENTICIO, EMB_CIME_KG)
 
         else ->
@@ -1140,6 +1733,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     private fun getEspessuraPadraoMm(i: Inputs) = when (i.revest) {
         RevestimentoType.PASTILHA -> 5.0
         RevestimentoType.PEDRA -> 20.0
+        RevestimentoType.PISO_INTERTRAVADO -> 60.0
         RevestimentoType.MARMORE, RevestimentoType.GRANITO -> 12.0
         RevestimentoType.PISO -> {
             if (i.pisoPlacaTipo == PlacaTipo.PORCELANATO) {
@@ -1211,6 +1805,12 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         appendLine()
     }
 
+    // Reset via botão "Voltar"
+    private fun resetAllInternal() {
+        _inputs.value = Inputs()
+        _resultado.value = UiState.Idle
+    }
+
     /* ═══════════════════════════════════════════════════════════════════════════
      * FUNÇÕES UTILITÁRIAS
      * ═══════════════════════════════════════════════════════════════════════════ */
@@ -1222,7 +1822,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         return if (c != null && l != null) " ${arred0(c)}×${arred0(l)} cm" else ""
     }
 
-    private fun arred0(v: Double) = ceil(v * 1.0)
+    private fun arred0(v: Double) = kotlin.math.round(v)
     private fun arred1(v: Double) = kotlin.math.round(v * 10.0) / 10.0
     private fun arred2(v: Double) = kotlin.math.round(v * 100.0) / 100.0
     private fun arred3(v: Double) = kotlin.math.round(v * 1000.0) / 1000.0

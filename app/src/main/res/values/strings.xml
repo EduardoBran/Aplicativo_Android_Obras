@@ -1161,7 +1161,8 @@
     <string name="calc_step1_opt_piso">Piso (cerâmico ou porcelanato)</string>
     <string name="calc_step1_opt_azulejo">Azulejo (parede)</string>
     <string name="calc_step1_opt_pastilha">Pastilha</string>
-    <string name="calc_step1_opt_pedra">Pedra (portuguesa/irregular)</string>
+    <string name="calc_step1_opt_pedra">Pedra Portuguesa</string>
+    <string name="calc_step1_opt_piso_intertravado">Piso Intertravado</string>
     <string name="calc_step1_opt_marmore">Mármore</string>
     <string name="calc_step1_opt_granito">Granito</string>
     <string name="calc_step1_placa_tipo">Tipo de Piso:</string>
@@ -1175,6 +1176,14 @@
     <string name="calc_step2_opt_sempre">Sempre molhado (piscina, tanque)</string>
     <string name="calc_step2_help">O ambiente define a classe da argamassa e a necessidade de impermeabilização.</string>
     <string name="calc_step2_obs_porcelanato_ac3">Porcelanato em semi/molhado: fabricantes exigem ACIII.</string>
+
+    <!-- Tipo de Tráfego -->
+    <string name="calc_step_trafego_title">Selecione o tipo de tráfego</string>
+    <string name="calc_step_trafego_leve">Leve (calçadas residenciais, jardins)</string>
+    <string name="calc_step_trafego_medio">Médio (garagens, estacionamentos)</string>
+    <string name="calc_step_trafego_pesado">Pesado (caminhões, área industrial)</string>
+    <string name="calc_step_trafego_hint">Esta escolha define as camadas de base, concreto e impermeabilização.</string>
+    <string name="calc_err_trafego_required">Selecione o tipo de tráfego para continuar.</string>
 
     <!-- TELA 3 -->
     <string name="calc_step3_title">Informe as medidas da área</string>
@@ -1191,19 +1200,22 @@
     <string name="calc_step4_peca_larg">Tamanho da peça – Largura (cm)</string>
     <string name="calc_step4_peca_esp">Espessura da peça (mm) (opcional)</string>
     <string name="calc_step4_junta">Espessura da junta (mm)</string>
+    <string name="calc_step4_desnivel_label">Desnível a corrigir (cm)</string>
     <string name="calc_step4_sobra">Sobra técnica (%)</string>
     <string name="calc_step4_warn_piece">Sem tamanho de peça, não calcularemos quantidade de placas.</string>
     <string name="calc_step4_warn_porcelanato">Porcelanato externo requer ACIII.</string>
     <string name="calc_piece_applied">Parâmetros de peça aplicados.</string>
     <string name="calc_step4_placa_ceramica">Cerâmica</string>
     <string name="calc_step4_placa_porcelanato">Porcelanato</string>
+    <string name="calc_step4_peca_esp_intertravado_hint">Espessura da peça (cm)</string>
+    <string name="calc_step4_peca_esp_intertravado_helper">Em centímetros • Ex: 6</string>
 
     <!-- Pastilha: labels/hints -->
     <string name="calc_step4_pastilha_comp_hint">Tamanho da manta – Largura (cm)</string>
     <string name="calc_step4_pastilha_larg_hint">Tamanho da manta – Altura (cm)</string>
 
     <!-- Pastilha: helpers -->
-    <string name="calc_piece_helper_pastilha">Em centímetros • Ex: 60 (limite: 20 a 40 cm)</string>
+    <string name="calc_piece_helper_pastilha">Em centímetros • Ex: 30 (limite: 20 a 40 cm)</string>
     <string name="calc_step4_junta_helper_pastilha">Em milímetros • Ex: 2 (opcional) • padrão atual: %s</string>
 
     <!-- Helper default da junta (para materiais que não são pastilha) -->
@@ -1229,8 +1241,8 @@
 
     <!-- Mensagens genéricas de faixa para helper texts e inline errors -->
     <string name="calc_step4_peca_esp_helper_with_default">Em milímetros • Ex: 8 (opcional) • padrão atual: %s</string>
-    <string name="calc_piece_helper_mg">Comprimento/Largura em metros. Exemplos: 1 = 1 m; 0,30 = 30 cm; 1,50 = 1 m e 50 cm. Limites: 5 cm a 20 m.</string>
-    <string name="calc_piece_err_mg">Valor inválido. Use metros (ex.: 1 = 1 m; 0,30 = 30 cm; 1,50 = 1 m e 50 cm). Limites: 5 cm a 20 m.</string>
+    <string name="calc_piece_helper_mg">Em metros • Ex: 1,20 (mín: 0,10 m • máx: 20,0 m)</string>
+    <string name="calc_piece_err_mg">Valor inválido. Use metros (ex.: 1 = 1 m; 0,30 = 30 cm; 1,50 = 1 m e 50 cm). Limites: 0,10 cm a 20 m.</string>
     <string name="calc_piece_err_cm">Valor inválido. Informe entre 5 e 200 cm. Dica: use vírgula como decimal (ex.: 7,5).</string>
     <string name="calc_piece_helper_cm">Em centímetros • Ex: 60 (limite: 5 a 200 cm)</string>
     <string name="calc_err_junta_range">Valor inválido (0,5 a 20 mm).</string>
@@ -1240,6 +1252,12 @@
     <string name="calc_err_rodape_altura">Altura inválida (3 a 30 cm).</string>
     <string name="calc_err_rodape_comp">Valor inválido. Informe o comprimento comercial em metros.</string>
     <string name="calc_err_sobra_min">Sobra mínima para este revestimento: %1$s%%</string>
+    <string name="calc_step4_desnivel_helper_pedra">Em centímetros • Ex: 5 (se vazio, será utilizado 4 cm)</string>
+    <string name="calc_step4_desnivel_helper_mg">Em centímetros • Ex: 1 cm (se vazio, será utilizado 0 cm)</string>
+    <string name="calc_err_desnivel_pedra_range">Informe entre 4 e 8 cm</string>
+    <string name="calc_err_desnivel_mg_range">Informe entre 0 e 3 cm</string>
+    <string name="calc_err_generic">Valor inválido</string>
+    <string name="calc_err_esp_intertravado_range">Espessura inválida (permitido: 4 a 12 cm)</string>
 
     <!-- Medidas da área (step 3) -->
     <string name="calc_err_medida_comp_larg_m">Valor inválido. Limites: 0,01 a 10.000 m.</string>
@@ -1269,6 +1287,12 @@
     <string name="calc_step6_title">Impermeabilização</string>
     <string name="calc_step6_include">Incluir impermeabilizante no cálculo</string>
     <string name="calc_step6_notes">Seco: não se aplica. Semi: opcional (recomendado se há laje abaixo). Molhado: opcional/obrigatório em box/laje. Sempre molhado: obrigatório.</string>
+
+    <!-- Impermeabilização Intertravado -->
+    <string name="calc_step6_intertravado_imp_label">Escolha o tipo de impermeabilização:</string>
+    <string name="calc_step6_imp_manta_geotextil">Manta geotêxtil</string>
+    <string name="calc_step6_imp_aditivo_sika1">Aditivo impermeabilizante (Sika 1 ou similar)</string>
+    <string name="calc_err_imp_intertravado_required">Selecione o tipo de impermeabilização para continuar.</string>
 
     <!-- TELA 7 -->
     <string name="calc_step7_title">Revisar parâmetros antes do cálculo</string>
@@ -1312,9 +1336,10 @@
     <string name="calc_pdf_classe_arg">Classe da argamassa: %1$s</string>
     <!-- usado no EditText do comprimento comercial (para evitar hardcode) -->
     <string name="calc_default_rodape_comp_060">0.60</string>
+    <string name="calc_header_pdf_intertravado">%1$s • %2$s\nÁrea total: %3$s m²\n%4$s\nSobra técnica: %5$s%%</string>
 
     <!-- header PDF para rodapé -->
-    <string name="calc_header_rodape_pdf">Rodapé: %1$s m² × %2$.0f cm = %3$s m²</string>
+    <string name="calc_header_rodape_pdf">Rodapé: %1$s m² + %2$.0f cm = %3$s m²</string>
 
     <!-- Navegação -->
     <string name="generic_next">Avançar</string>

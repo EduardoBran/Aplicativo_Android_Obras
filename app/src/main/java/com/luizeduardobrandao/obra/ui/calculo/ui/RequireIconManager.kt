@@ -77,6 +77,23 @@ class RequiredIconManager(private val context: Context) {
         val exigeTamanhoPeca = (revest != CalcRevestimentoViewModel.RevestimentoType.PEDRA) &&
                 groupPecaTamanhoVisible
 
+        if (revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO) {
+            val compFilled = !etPecaComp.text.isNullOrBlank()
+            val largFilled = !etPecaLarg.text.isNullOrBlank()
+            val espFilled = !etPecaEsp.text.isNullOrBlank()
+            val sobraFilled = !etSobra.text.isNullOrBlank()
+
+            setRequiredIconVisible(etPecaComp, !compFilled)
+            setRequiredIconVisible(etPecaLarg, !largFilled)
+            setRequiredIconVisible(etPecaEsp, !espFilled)
+            setRequiredIconVisible(etSobra, !sobraFilled)
+
+            // Não exigir junta nem peças por caixa
+            setRequiredIconVisible(etJunta, false)
+            setRequiredIconVisible(etPecasPorCaixa, false)
+            return
+        }
+
         val compFilled = !etPecaComp.text.isNullOrBlank()
         val largFilled = !etPecaLarg.text.isNullOrBlank()
         val juntaFilled = !etJunta.text.isNullOrBlank()

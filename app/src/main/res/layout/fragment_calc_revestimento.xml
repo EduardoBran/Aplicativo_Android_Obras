@@ -149,6 +149,12 @@
                             android:text="@string/calc_step1_opt_pedra" />
 
                         <com.google.android.material.radiobutton.MaterialRadioButton
+                            android:id="@+id/rbPisoIntertravado"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/calc_step1_opt_piso_intertravado" />
+
+                        <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbMarmore"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -255,6 +261,55 @@
                         android:text="@string/calc_step2_obs_porcelanato_ac3"
                         android:textColor="?attr/colorPrimary"
                         android:visibility="gone" />
+                </LinearLayout>
+
+                <!-- ═══════════════════════════════════════════ -->
+                <!-- TELA 2.1 – Tipo de Tráfego (Piso Intertravado) -->
+                <!-- ═══════════════════════════════════════════ -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/calc_step_trafego_title"
+                        android:textAppearance="?attr/textAppearanceTitleLarge" />
+
+                    <RadioGroup
+                        android:id="@+id/rgTrafego"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp">
+
+                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            android:id="@+id/rbTrafegoLeve"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/calc_step_trafego_leve" />
+
+                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            android:id="@+id/rbTrafegoMedio"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/calc_step_trafego_medio" />
+
+                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            android:id="@+id/rbTrafegoPesado"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/calc_step_trafego_pesado" />
+                    </RadioGroup>
+
+                    <TextView
+                        android:id="@+id/tvTrafegoHint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/calc_step_trafego_hint"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
 
                 <!-- ═══════════════════════════════════════════ -->
@@ -466,6 +521,24 @@
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilDesnivel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:hint="@string/calc_step4_desnivel_label"
+                        android:visibility="gone"
+                        app:helperTextEnabled="true"
+                        tools:visibility="visible">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDesnivel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:digits="0123456789,."
+                            android:inputType="numberDecimal" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSobra"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -597,6 +670,41 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:text="@string/calc_step6_include" />
+
+                    <LinearLayout
+                        android:id="@+id/groupIntertravadoImpOptions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/calc_step6_intertravado_imp_label"
+                            android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                        <RadioGroup
+                            android:id="@+id/rgIntertravadoImp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp">
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbImpMantaGeotextil"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/calc_step6_imp_manta_geotextil" />
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbImpAditivoSika1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/calc_step6_imp_aditivo_sika1" />
+                        </RadioGroup>
+                    </LinearLayout>
+
                 </LinearLayout>
 
                 <!-- ═══════════════════════════════════════════ -->
@@ -691,7 +799,7 @@
                         android:layout_marginTop="20dp"
                         android:layout_marginBottom="12dp"
                         android:text="@string/calc_table_title"
-                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textAppearance="?attr/textAppearanceTitleLarge"
                         android:textColor="?attr/colorPrimary" />
 
                     <!-- Card Tabela -->

@@ -30,12 +30,6 @@ class PdfGenerator(
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
     }
 
-    private val headerPaint = Paint().apply {
-        isAntiAlias = true
-        textSize = 12f
-        typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
-    }
-
     private val textPaint = Paint().apply {
         isAntiAlias = true
         textSize = 12f
@@ -53,7 +47,8 @@ class PdfGenerator(
     fun generate(
         resultado: CalcRevestimentoViewModel.Resultado,
         pecaEspMm: Double?,
-        pecasPorCaixa: Int?
+        pecasPorCaixa: Int?,
+        desnivelCm: Double?
     ): ByteArray {
         val doc = PdfDocument()
         var pageNum = 1
@@ -80,10 +75,20 @@ class PdfGenerator(
             val used = drawMultiline(page, headerText, y)
             y += used
 
-            // Espessura e peças por caixa (se informadas)
+            // Espessura, desnível e peças por caixa (se informadas)
             pecaEspMm?.let { esp ->
                 page.canvas.drawText(
                     "Espessura: ${NumberFormatter.format(esp)} mm",
+                    LEFT_MARGIN.toFloat(),
+                    y.toFloat(),
+                    textPaint
+                )
+                y += LINE_GAP
+            }
+
+            desnivelCm?.let { d ->
+                page.canvas.drawText(
+                    "Desnível: ${NumberFormatter.format(d)} cm",
                     LEFT_MARGIN.toFloat(),
                     y.toFloat(),
                     textPaint
@@ -116,67 +121,110 @@ class PdfGenerator(
 
         var page = newPage()
 
-        // Classe da argamassa
-        resultado.classeArgamassa?.let {
-            val text = context.getString(R.string.calc_pdf_classe_arg, it)
-            page.canvas.drawText(text, LEFT_MARGIN.toFloat(), y.toFloat(), headerPaint)
-            y += LINE_GAP
-        }
-
         // Tabela
-        fun needBreak(extra: Int = 100): Boolean = y > PAGE_HEIGHT - extra
-
-        fun drawRow(c1: String, c2: String, c3: String, c4: String, bold: Boolean = false) {
-            if (needBreak()) {
-                doc.finishPage(page)
-                pageNum++
-                page = newPage()
-            }
-
+        fun drawRow(c1: String, c2: String, c3: String, bold: Boolean = false) {
             val colW = (right - LEFT_MARGIN)
-            val w1 = (colW * 0.46).toInt()
-            val w2 = (colW * 0.12).toInt()
-            val w3 = (colW * 0.18).toInt()
+
+            // 3 colunas: Material | Qtd | Comprar
+            val w1 = (colW * 0.5f).toInt()  // Material
+            val w2 = (colW * 0.18f).toInt() // Qtd
+            val x1 = LEFT_MARGIN
+            val x2 = LEFT_MARGIN + w1 + 8
+            val x3 = LEFT_MARGIN + w1 + w2 + 16
+            val w3 = right - x3          // largura efetiva da coluna "Comprar"
 
             val paint = Paint(textPaint).apply {
                 typeface = Typeface.create(typeface, if (bold) Typeface.BOLD else Typeface.NORMAL)
             }
 
-            page.canvas.drawText(c1, LEFT_MARGIN.toFloat(), y.toFloat(), paint)
-            page.canvas.drawText(c2, (LEFT_MARGIN + w1 + 8).toFloat(), y.toFloat(), paint)
-            page.canvas.drawText(c3, (LEFT_MARGIN + w1 + w2 + 16).toFloat(), y.toFloat(), paint)
-            page.canvas.drawText(
-                c4,
-                (LEFT_MARGIN + w1 + w2 + w3 + 24).toFloat(),
-                y.toFloat(),
-                paint
-            )
+            // Métricas reais da fonte
+            val fm = paint.fontMetrics
+            val textHeight = fm.descent - fm.ascent
 
+            // Quebra por coluna: cada uma respeita sua própria largura
+            val l1 = wrapText(c1, paint, w1.toFloat())
+            val l2 = wrapText(c2, paint, w2.toFloat())
+            val l3 = wrapText(c3, paint, w3.toFloat())
+
+            val maxLines = maxOf(l1.size, l2.size, l3.size)
+
+            // Espaço interno acima/abaixo do texto
+            val innerPadding = 6
+
+            // Altura total da linha (inclui texto + paddings + linhas extras)
+            val rowHeight = (innerPadding * 2 + textHeight + (maxLines - 1) * LINE_GAP).toInt()
+
+            // Quebra de página considerando a linha inteira
+            if (y + rowHeight > PAGE_HEIGHT - 40) {
+                doc.finishPage(page)
+                pageNum++
+                page = newPage()
+            }
+
+            // Baseline da primeira linha, centralizada verticalmente
+            val firstBaseline = y + innerPadding - fm.ascent
+
+            fun drawColumn(
+                lines: List<String>,
+                startX: Int,
+                colWidth: Int,
+                alignRight: Boolean = false
+            ) {
+                var baseline = firstBaseline
+                lines.forEach { line ->
+                    val x = if (alignRight) {
+                        val textWidth = paint.measureText(line)
+                        // encosta na borda direita da coluna (que no caso da última é o 'right')
+                        startX + colWidth - textWidth
+                    } else {
+                        startX.toFloat()
+                    }
+                    page.canvas.drawText(line, x, baseline, paint)
+                    baseline += LINE_GAP
+                }
+            }
+
+            // Desenha colunas: Material | Qtd | Comprar
+            drawColumn(l1, x1, w1)                  // Material (esquerda)
+            drawColumn(l2, x2, w2)                  // Qtd (esquerda)
+            drawColumn(l3, x3, w3, alignRight = true) // Comprar (alinhado à direita)
+
+
+            // Linha inferior da linha da tabela
+            val bottomY = y + rowHeight
             page.canvas.drawLine(
                 LEFT_MARGIN.toFloat(),
-                (y + 4).toFloat(),
+                bottomY.toFloat(),
                 right.toFloat(),
-                (y + 4).toFloat(),
+                bottomY.toFloat(),
                 linePaint
             )
-            y += LINE_GAP
+
+            // Próxima linha
+            y = bottomY
         }
 
         // Cabeçalho da tabela
         drawRow(
             context.getString(R.string.col_item),
-            context.getString(R.string.col_unid),
-            context.getString(R.string.col_usado),
+            context.getString(R.string.col_qtd),
             context.getString(R.string.col_comprar),
             bold = true
         )
 
         // Linhas de dados
+        // Linhas de dados
         resultado.itens.forEach { item ->
+            // Qtd exatamente como no app: valor + unidade juntos
+            val qtdStr = run {
+                val valor = NumberFormatter.format(item.qtd)
+                val unidade = item.unid.trim()
+                if (unidade.isNotEmpty()) "$valor$unidade" else valor
+            }
+
             drawRow(
                 item.item,
-                item.unid,
-                NumberFormatter.format(item.qtd),
+                qtdStr,
                 buildComprarCell(item)
             )
         }
@@ -199,24 +247,80 @@ class PdfGenerator(
         val h = r.header
         val areaTotalHeader = h.areaM2 + h.rodapeAreaM2
 
-        return context.getString(
-            R.string.calc_header_pdf,
-            h.tipo,
-            h.ambiente,
-            NumberFormatter.format(areaTotalHeader),
-            if (h.rodapeAreaM2 > 0) {
-                context.getString(
-                    R.string.calc_header_rodape_pdf,
-                    NumberFormatter.format(h.rodapeBaseM2),
-                    h.rodapeAlturaCm,
-                    NumberFormatter.format(h.rodapeAreaM2)
-                )
-            } else {
-                context.getString(R.string.calc_header_rodape_none)
-            },
-            NumberFormatter.format(h.juntaMm),
-            NumberFormatter.format(h.sobraPct)
-        )
+        fun mapRevest(tipo: String?): String = when (tipo) {
+            "PISO" -> "Piso"
+            "AZULEJO" -> "Azulejo"
+            "PASTILHA" -> "Pastilha"
+            "PEDRA" -> "Pedra Portuguesa"
+            "PISO_INTERTRAVADO" -> "Piso intertravado"
+            "MARMORE" -> "Mármore"
+            "GRANITO" -> "Granito"
+            else -> tipo.orEmpty()
+        }
+
+        fun mapAmbiente(amb: String?): String = when (amb) {
+            "SECO" -> "Seco"
+            "SEMI" -> "Semi-molhado"
+            "MOLHADO" -> "Molhado"
+            "SEMPRE" -> "Sempre molhado"
+            else -> amb.orEmpty()
+        }
+
+        fun mapTrafego(traf: String?): String = when (traf) {
+            "LEVE" -> "Leve"
+            "MEDIO" -> "Médio"
+            "PESADO" -> "Pesado"
+            else -> traf.orEmpty()
+        }
+
+        val revestStr = mapRevest(h.tipo)
+        val ambienteStr = mapAmbiente(h.ambiente)
+        val trafegoStr = mapTrafego(h.trafego)
+
+        // Texto do rodapé
+        val rodapeStr = if (h.rodapeAreaM2 > 0) {
+            "Rodapé: ${
+                NumberFormatter.format(h.rodapeBaseM2)
+            } m² + ${
+                h.rodapeAlturaCm
+            } cm = ${
+                NumberFormatter.format(h.rodapeAreaM2)
+            } m²"
+        } else {
+            "Sem rodapé"
+        }
+
+        return if (h.tipo == "PISO_INTERTRAVADO") {
+            buildString {
+                append(revestStr)
+                append(" | Tipo do Ambiente: ")
+                append(ambienteStr)
+                append(" | Tipo do Tráfego: ")
+                append(trafegoStr)
+                append(" | Área total: ")
+                append(NumberFormatter.format(areaTotalHeader))
+                append(" m² | ")
+                append(rodapeStr)
+                append(" | Sobra técnica: ")
+                append(NumberFormatter.format(h.sobraPct))
+                append("%")
+            }
+        } else {
+            buildString {
+                append(revestStr)
+                append(" | Tipo do Ambiente: ")
+                append(ambienteStr)
+                append(" | Área ")
+                append(NumberFormatter.format(areaTotalHeader))
+                append(" m² | ")
+                append(rodapeStr)
+                append(" | Junta ")
+                append(NumberFormatter.format(h.juntaMm))
+                append(" mm | Sobra ")
+                append(NumberFormatter.format(h.sobraPct))
+                append("%")
+            }
+        }
     }
 
     /**

@@ -36,6 +36,27 @@ class FieldValidator(
     }
 
     /**
+     * Verifica se há erro no desnível (considera visibilidade e tipo do revestimento)
+     */
+    fun hasDesnivelErrorNow(
+        et: TextInputEditText,
+        tilVisible: Boolean,
+        desnivelCm: Double?
+    ): Boolean {
+        if (!tilVisible) return false
+        if (et.text.isNullOrBlank()) return false
+
+        val range: ClosedRange<Double> = when (viewModel.inputs.value.revest) {
+            CalcRevestimentoViewModel.RevestimentoType.PEDRA -> 4.0..8.0
+            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
+            CalcRevestimentoViewModel.RevestimentoType.GRANITO -> 0.0..3.0
+            else -> return false
+        }
+
+        return desnivelCm == null || desnivelCm !in range
+    }
+
+    /**
      * Verifica se há erro na espessura (Pastilha nunca bloqueia)
      */
     fun hasEspessuraErrorNow(
@@ -127,7 +148,7 @@ class FieldValidator(
             val cm = parseFunc(num)
 
             val ok = when {
-                isMG -> (cm != null && cm in 5.0..2000.0)
+                isMG -> (cm != null && cm in 10.0..2000.0) // 0,1 m .. 20,0 m
                 isPastilha -> (cm != null && cm in 20.0..40.0)
                 else -> (cm != null && cm in 5.0..200.0)
             }
