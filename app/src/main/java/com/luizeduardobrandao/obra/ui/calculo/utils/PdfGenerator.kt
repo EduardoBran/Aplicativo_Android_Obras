@@ -71,7 +71,7 @@ class PdfGenerator(
             y += LINE_GAP + 4
 
             // Header
-            val headerText = buildHeaderText(resultado)
+            val headerText = buildHeaderText(resultado, pecaEspMm)
             val used = drawMultiline(page, headerText, y)
             y += used
 
@@ -107,13 +107,30 @@ class PdfGenerator(
             }
 
             // Linha separadora
+            val lineY = y + 4
             page.canvas.drawLine(
                 LEFT_MARGIN.toFloat(),
-                (y + 4).toFloat(),
+                lineY.toFloat(),
                 right.toFloat(),
-                (y + 4).toFloat(),
+                lineY.toFloat(),
                 linePaint
             )
+
+            // Espaço abaixo da linha antes da frase
+            y = lineY + LINE_GAP
+
+            // Frase informativa antes da tabela
+            val sobraStr = NumberFormatter.format(resultado.header.sobraPct)
+            val infoText =
+                "Os valores abaixo já consideram a sobra técnica de $sobraStr% informada."
+            page.canvas.drawText(
+                infoText,
+                LEFT_MARGIN.toFloat(),
+                y.toFloat(),
+                textPaint
+            )
+
+            // Espaço após a frase
             y += LINE_GAP
 
             return page
@@ -243,9 +260,13 @@ class PdfGenerator(
     /**
      * Constrói texto do cabeçalho
      */
-    private fun buildHeaderText(r: CalcRevestimentoViewModel.Resultado): String {
+    private fun buildHeaderText(
+        r: CalcRevestimentoViewModel.Resultado,
+        pecaEspMm: Double?
+    ): String {
         val h = r.header
-        val areaTotalHeader = h.areaM2 + h.rodapeAreaM2
+        val areaOriginalHeader = h.areaM2
+        val espessuraMm = pecaEspMm ?: 8.0
 
         fun mapRevest(tipo: String?): String = when (tipo) {
             "PISO" -> "Piso"
@@ -273,21 +294,53 @@ class PdfGenerator(
             else -> traf.orEmpty()
         }
 
-        val revestStr = mapRevest(h.tipo)
+        var revestStr = mapRevest(h.tipo)
         val ambienteStr = mapAmbiente(h.ambiente)
         val trafegoStr = mapTrafego(h.trafego)
 
+        // Ajuste específico para Piso: cerâmico x porcelanato no cabeçalho
+        if (h.tipo == "PISO") {
+            val pisoItem = r.itens.firstOrNull {
+                it.item.startsWith("Piso porcelanato", ignoreCase = true) ||
+                        it.item.startsWith("Piso cerâmico", ignoreCase = true)
+            }
+
+            revestStr = when {
+                pisoItem?.item?.startsWith("Piso porcelanato", ignoreCase = true) == true ->
+                    "Piso: Porcelanato"
+
+                pisoItem?.item?.startsWith("Piso cerâmico", ignoreCase = true) == true ->
+                    "Piso: Cerâmico"
+
+                else -> "Piso"
+            }
+        }
+
         // Texto do rodapé
-        val rodapeStr = if (h.rodapeAreaM2 > 0) {
-            "Rodapé: ${
-                NumberFormatter.format(h.rodapeBaseM2)
-            } m² + ${
-                h.rodapeAlturaCm
-            } cm = ${
-                NumberFormatter.format(h.rodapeAreaM2)
-            } m²"
-        } else {
-            "Sem rodapé"
+        val rodapeStr = run {
+            // Detecta Rodapé (peça pronta) a partir dos itens
+            val rodapePecaPronta = r.itens.firstOrNull {
+                it.item.equals("Rodapé", ignoreCase = true) &&
+                        (it.observacao?.contains("peça pronta", ignoreCase = true) == true)
+            }
+
+            when {
+                // Caso Rodapé (peça pronta): igual ao card de revisão
+                rodapePecaPronta != null ->
+                    "Rodapé: ${NumberFormatter.format(rodapePecaPronta.qtd)} m² (peça pronta)"
+
+                // Demais casos (mantém comportamento atual)
+                h.rodapeAreaM2 > 0 ->
+                    "Rodapé: ${
+                        NumberFormatter.format(h.rodapeBaseM2)
+                    } m² + ${
+                        h.rodapeAlturaCm
+                    } cm = ${
+                        NumberFormatter.format(h.rodapeAreaM2)
+                    } m²"
+
+                else -> "Sem rodapé"
+            }
         }
 
         return if (h.tipo == "PISO_INTERTRAVADO") {
@@ -297,10 +350,12 @@ class PdfGenerator(
                 append(ambienteStr)
                 append(" | Tipo do Tráfego: ")
                 append(trafegoStr)
-                append(" | Área total: ")
-                append(NumberFormatter.format(areaTotalHeader))
+                append(" | Área original: ")
+                append(NumberFormatter.format(areaOriginalHeader))
                 append(" m² | ")
                 append(rodapeStr)
+                append(" | Espessura: ")
+                append(NumberFormatter.format(espessuraMm))
                 append(" | Sobra técnica: ")
                 append(NumberFormatter.format(h.sobraPct))
                 append("%")
@@ -310,13 +365,15 @@ class PdfGenerator(
                 append(revestStr)
                 append(" | Tipo do Ambiente: ")
                 append(ambienteStr)
-                append(" | Área ")
-                append(NumberFormatter.format(areaTotalHeader))
+                append(" | Área original: ")
+                append(NumberFormatter.format(areaOriginalHeader))
                 append(" m² | ")
                 append(rodapeStr)
                 append(" | Junta ")
                 append(NumberFormatter.format(h.juntaMm))
-                append(" mm | Sobra ")
+                append(" mm | Espessura: ")
+                append(NumberFormatter.format(espessuraMm))
+                append("mm | Sobra Técnica: ")
                 append(NumberFormatter.format(h.sobraPct))
                 append("%")
             }

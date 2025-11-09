@@ -183,16 +183,3 @@ class FieldValidator(
         }
     }
 }
-
-/**
- * Limpa erro inline se o campo estiver vazio ou válido
- */
-//fun clearInlineErrorWhenValidOrEmpty(
-//    et: TextInputEditText,
-//    til: TextInputLayout?,
-//    isValid: Boolean
-//) {
-//    if (et.text.isNullOrBlank() || isValid) {
-//        setInlineError(et, til, null)
-//    }
-//}

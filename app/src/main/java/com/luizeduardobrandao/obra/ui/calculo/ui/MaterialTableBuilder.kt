@@ -83,11 +83,35 @@ class MaterialTableBuilder(
         // Esconde a coluna "Unid": a unidade agora vai junto na Qtd
         tvUnid.visibility = View.GONE
 
+        val obsLower = item.observacao?.lowercase(Locale.getDefault()) ?: ""
+
+        val isRodapeMesmaPeca =
+            item.item.equals("Rodapé", ignoreCase = true) &&
+                    obsLower.contains("mesma peça")
+
+        val isRodapePecaPronta =
+            item.item.equals("Rodapé", ignoreCase = true) &&
+                    obsLower.contains("peça pronta")
+
         // Qtd = [valor usado][unidade], ex: "96,8kg"
-        val qtdStr = run {
-            val valor = NumberFormatter.format(item.qtd)
-            val unidade = item.unid.trim()
-            if (unidade.isNotEmpty()) "$valor$unidade" else valor
+        val qtdStr = when {
+            // MESMA PEÇA: mostra o m² extra considerado (já incluso no piso)
+            isRodapeMesmaPeca -> {
+                val valor = formatQtdRaw(item.qtd)
+                "${valor}m²"
+            }
+
+            // PEÇA PRONTA: mostra o m² coberto pelas peças prontas
+            isRodapePecaPronta -> {
+                val valor = formatQtdRaw(item.qtd)
+                "${valor}m²"
+            }
+
+            else -> {
+                val unidade = item.unid.trim()
+                val valor = formatQtdRaw(item.qtd)
+                if (unidade.isNotEmpty()) "$valor$unidade" else valor
+            }
         }
         tvQtdUsada.text = qtdStr
 
@@ -103,6 +127,22 @@ class MaterialTableBuilder(
         return row
     }
 
+    private fun formatQtdRaw(v: Double): String {
+        // Sem arredondar pra inteiro.
+        // Mostra:
+        // - sem casas se for exato (18.0 -> "18")
+        // - até 2 casas se tiver decimal (17.6 -> "17,6"; 1.3333 -> "1,333")
+        val abs = kotlin.math.abs(v)
+        return when {
+            abs == kotlin.math.floor(abs) -> abs.toInt().toString()
+            else -> {
+                // limita casas só para não ficar 17.6000000001, mas sem jogar pra 18
+                val s = String.format(Locale.getDefault(), "%.2f", v)
+                s.trimEnd('0').trimEnd(',', '.')
+            }
+        }.replace('.', ',') // se quiser separador brasileiro
+    }
+
     /**
      * Constrói célula "Comprar" com extração inteligente de embalagens
      */
@@ -112,6 +152,25 @@ class MaterialTableBuilder(
 
         val nome = item.item
         val unid = item.unid
+        val obs = item.observacao?.lowercase(Locale.getDefault())
+
+        // Rodapé MESMA PEÇA → mostrar "Incluso" (m² extra já está somado no piso)
+        if (nome.equals("Rodapé", ignoreCase = true) &&
+            obs?.contains("mesma peça") == true
+        ) {
+            return "Incluso"
+        }
+
+        // Rodapé PEÇA PRONTA → usa "Peça pronta • [q] peças." para montar "[q] pc"
+        if (nome.equals("Rodapé", ignoreCase = true) &&
+            obs?.contains("peça pronta") == true
+        ) {
+            val match = Regex("""(\d+)\s+peças""").find(obs)
+            val qtdPc = match?.groupValues?.get(1)?.toIntOrNull()?.coerceAtLeast(1)
+            if (qtdPc != null) {
+                return "$qtdPc pc"
+            }
+        }
 
         // ---------------- ESPECIAIS / EXCEÇÕES ----------------
 
@@ -120,11 +179,6 @@ class MaterialTableBuilder(
             nome.contains("pedra", ignoreCase = true)
         ) {
             return NumberFormatter.format(alvo)
-        }
-
-        // Rodapé mesma peça → incluso
-        if (nome.startsWith("Rodapé (mesma peça", ignoreCase = true)) {
-            return "Incluso"
         }
 
         // Areia geral em m³ → sacos de 20 kg (densidade ~1400 kg/m³)
@@ -230,8 +284,6 @@ class MaterialTableBuilder(
         }
 
         // ---------------- HEURÍSTICAS BASEADAS NA OBS ----------------
-
-        val obs = item.observacao?.lowercase(Locale.getDefault())
 
         if (obs?.contains("informativo") == true) return "—"
 

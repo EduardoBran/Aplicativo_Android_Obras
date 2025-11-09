@@ -1219,21 +1219,11 @@
     <string name="calc_step4_junta_helper_pastilha">Em milímetros • Ex: 2 (opcional) • padrão atual: %s</string>
 
     <!-- Helper default da junta (para materiais que não são pastilha) -->
-    <string name="calc_step4_junta_helper_default">Em milímetros • Ex: 3</string>
+    <string name="calc_step4_junta_helper_default">Em milímetros • Ex: 5</string>
 
     <!-- Mensagem de erro para range especial da pastilha -->
     <string name="calc_piece_err_pastilha_range">Para pastilha, informe entre 20 e 40 cm.</string>
     <string name="calc_err_junta_pastilha_range">Para pastilha, use entre 1 e 3 mm.</string>
-
-    <!-- ► Itens de materiais novos (rejunte e cunhas) -->
-    <string name="mat_rejunte_epoxi">Rejunte epóxi (1 kg)</string>
-    <string name="mat_rejunte_cimenticio_t1">Rejunte cimentício Tipo 1 (5 kg)</string>
-    <string name="mat_rejunte_cimenticio_t2">Rejunte cimentício Tipo 2 (5 kg)</string>
-    <string name="mat_cunhas">Cunhas (pacote 100 un)</string>
-
-    <!-- ► Observações/compras (usadas pela coluna "Comprar") -->
-    <string name="obs_pacotes_100un">%1$d pacotes de 100 un</string>
-    <string name="obs_sacos_kg">%1$d sacos de %2$s kg</string>
 
     <!-- Hints específicos para Mármore/Granito (metros) -->
     <string name="calc_step4_peca_comp_m">Tamanho da peça – Comprimento (m)</string>
@@ -1268,25 +1258,16 @@
     <string name="calc_step5_title">Rodapé</string>
     <string name="calc_step5_include">Incluir rodapé no cálculo</string>
     <string name="calc_step5_altura">Altura (cm)</string>
-    <string name="calc_step5_perimetro">Perímetro (m lineares)</string>
-    <string name="calc_step5_per_auto">Auto (2 × (C + L))</string>
-    <string name="calc_step5_per_manual">Manual</string>
-    <string name="calc_step5_per_manual_hint">Perímetro (m)</string>
-    <string name="calc_step5_vaos">Descontar vãos (m) (opcional)</string>
     <string name="calc_step5_material">Material</string>
     <string name="calc_step5_mat_mesma">Mesma peça do piso</string>
     <string name="calc_step5_mat_pronta">Peça pronta</string>
-    <string name="calc_step5_orient">Orientação (mesma peça)</string>
-    <string name="calc_step5_orient_maior">Lado maior</string>
-    <string name="calc_step5_orient_menor">Lado menor</string>
-    <string name="calc_step5_comp_comercial">Comprimento comercial (m)</string>
-    <string name="calc_step5_warn_piece_needed">Se usar "mesma peça", informe o tamanho da peça para calcular o rodapé.</string>
-    <string name="calc_skirt_applied">Dados de rodapé aplicados.</string>
+    <string name="calc_step5_comp_pronta_cm">Comprimento da peça pronta (cm)</string>
+    <string name="calc_step5_comp_pronta_cm_helper">Em centímetros • Ex: 30 para 30cm ou 100 para 1m</string>
+    <string name="calc_err_rodape_comp_cm_range">Valor inválido. Informe entre 5 e 300cm.</string>
 
     <!-- TELA 6 -->
     <string name="calc_step6_title">Impermeabilização</string>
     <string name="calc_step6_include">Incluir impermeabilizante no cálculo</string>
-    <string name="calc_step6_notes">Seco: não se aplica. Semi: opcional (recomendado se há laje abaixo). Molhado: opcional/obrigatório em box/laje. Sempre molhado: obrigatório.</string>
 
     <!-- Impermeabilização Intertravado -->
     <string name="calc_step6_intertravado_imp_label">Escolha o tipo de impermeabilização:</string>
@@ -1295,7 +1276,7 @@
     <string name="calc_err_imp_intertravado_required">Selecione o tipo de impermeabilização para continuar.</string>
 
     <!-- TELA 7 -->
-    <string name="calc_step7_title">Revisar parâmetros antes do cálculo</string>
+    <string name="calc_step7_title">📋 Revisão dos Parâmetros </string>
     <string name="calc_step7_arg_consumo">Argamassa (consumo típico): ≤ 30×30 → 4–5 kg/m² • 60×60 → 5–7 kg/m² • ≥ 90×90 → 7–9 kg/m² (dupla colagem)</string>
     <string name="calc_step7_rej">Rejunte: consumo varia com junta e espessura.</string>
     <string name="calc_step7_pedra">Pedra/Mármore/Granito: colchão 1:4 • espessura 2,5 cm.</string>
@@ -1319,11 +1300,6 @@
     <!-- Novas strings para melhorias -->
     <string name="calc_step4_pecas_caixa">Peças por caixa (opcional)</string>
     <string name="calc_table_title">📋 Lista de Materiais</string>
-
-    <!-- Header resumo -->
-    <string name="calc_header_format">%1$s | %2$s | Área %3$s m² | %4$s | Junta %5$.0f mm | Sobra %6$.0f%%</string>
-    <string name="calc_header_rodape_format">+ Rodapé %1$s m × %2$.0f cm = %3$s m²</string>
-    <string name="calc_header_rodape_none">Sem rodapé</string>
 
     <!-- PDF / Export -->
     <string name="export_summary_title_calc">Exportar</string>
@@ -1350,6 +1326,14 @@
     <string name="cont_btn_back">Voltar para etapa anterior</string>
     <string name="cont_btn_calcular">Calcular materiais</string>
     <string name="cont_novo_calculo">Iniciar novo cálculo</string>
-    <string name="hint_comprimento_peca_pronta">Comprimento da peça pronta (m)</string>
+    <string name="helper_junta_piso_ceramico">Em milímetros • Recomendado: 5mm</string>
+    <string name="helper_junta_piso_porcelanato">Em milímetros • Recomendado: 4mm</string>
+    <string name="helper_junta_pastilha">Em milímetros • Recomendado: 2mm</string>
+    <string name="helper_junta_azulejo">Em milímetros • Recomendado: 3mm</string>
+    <string name="helper_junta_pedra_portuguesa">Em milímetros • Recomendado: 4mm</string>
+    <string name="helper_junta_marmore_granito">Em milímetros • Recomendado: 2mm</string>
+    <string name="helper_junta_piso_intertravado">Em milímetros • Recomendado: 4mm</string>
+    <string name="valor_sobra_minima">10</string>
+
 
 </resources>

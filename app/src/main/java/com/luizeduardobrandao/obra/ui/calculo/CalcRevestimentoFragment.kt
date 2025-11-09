@@ -562,33 +562,45 @@ class CalcRevestimentoFragment : Fragment() {
         etSobra.doAfterTextChanged {
             updatePecaParametros()
 
-            val min = viewModel.sobraMinimaAtual()
             val s = getD(etSobra)
-            tilSobra.error = when {
-                s != null && s < min -> "Sobra obrigatória para este revestimento é ${
-                    NumberFormatter.format(
-                        min
-                    )
-                }%"
+            val msg = when {
+                etSobra.text.isNullOrBlank() -> null
+                s == null || s < 0.0 || s > 50.0 ->
+                    getString(R.string.calc_err_sobra_range)
 
                 else -> null
             }
 
-            if (viewModel.step.value in 1..7) refreshNextEnabled()
+            tilSobra.error = msg
+
+            if (viewModel.step.value in 1..7) {
+                refreshNextEnabled()
+            }
             updateRequiredIconsStep4()
         }
 
         etSobra.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
 
+            // Se usuário deixar em branco, aplicar automaticamente 10%
+            if (etSobra.text.isNullOrBlank()) {
+                etSobra.setText(getString(R.string.valor_sobra_minima))
+                updatePecaParametros()
+                tilSobra.error = null
+                if (viewModel.step.value in 1..7) {
+                    refreshNextEnabled()
+                }
+                return@setOnFocusChangeListener
+            }
+
             val s = getD(etSobra)
-            val min = viewModel.sobraMinimaAtual()
             val msg = when {
-                etSobra.text.isNullOrBlank() -> null
-                s == null || s < 0.0 || s > 50.0 -> getString(R.string.calc_err_sobra_range)
-                s < min -> getString(R.string.calc_err_sobra_min, NumberFormatter.format(min))
+                s == null || s < 0.0 || s > 50.0 ->
+                    getString(R.string.calc_err_sobra_range)
+
                 else -> null
             }
+
             validator.setInlineError(etSobra, tilSobra, msg)
         }
     }
@@ -599,6 +611,9 @@ class CalcRevestimentoFragment : Fragment() {
             groupRodapeFields.isVisible = isChecked
             updateRodapeViewModel()
             updateRequiredIconsStep5()
+            if (viewModel.step.value in 1..7) {
+                refreshNextEnabled()
+            }
         }
 
         rgRodapeMat.setOnCheckedChangeListener { _, checkedId ->
@@ -606,10 +621,17 @@ class CalcRevestimentoFragment : Fragment() {
             val isPecaPronta = (checkedId == R.id.rbRodapePeca)
             tilRodapeCompComercial.isVisible = isPecaPronta
 
-            if (!isPecaPronta) etRodapeCompComercial.text?.clear()
+            if (!isPecaPronta) {
+                etRodapeCompComercial.text?.clear()
+                tilRodapeCompComercial.error = null
+            }
 
             updateRodapeViewModel()
             updateRequiredIconsStep5()
+
+            if (viewModel.step.value in 1..7) {
+                refreshNextEnabled()
+            }
         }
 
         etRodapeAltura.doAfterTextChanged {
@@ -636,15 +658,35 @@ class CalcRevestimentoFragment : Fragment() {
             updateRodapeViewModel()
             updateRequiredIconsStep5()
 
-            val visible = tilRodapeCompComercial.isVisible
-            val v = getD(etRodapeCompComercial)
+            val isPecaProntaSelecionada =
+                switchRodape.isChecked &&
+                        rgRodapeMat.checkedRadioButtonId == R.id.rbRodapePeca &&
+                        tilRodapeCompComercial.isVisible
+
+            val compCm = getD(etRodapeCompComercial)
+
             val msg = when {
-                !visible || etRodapeCompComercial.text.isNullOrBlank() -> null
-                v == null || v <= 0.0 -> getString(R.string.calc_err_rodape_comp)
+                // Enquanto vazio, não mostra erro visual (só bloqueia o Avançar via refreshNextEnabled)
+                !isPecaProntaSelecionada || etRodapeCompComercial.text.isNullOrBlank() -> null
+                compCm == null || compCm !in 5.0..300.0 ->
+                    getString(R.string.calc_err_rodape_comp_cm_range)
+
                 else -> null
             }
+
             validator.setInlineError(etRodapeCompComercial, tilRodapeCompComercial, msg)
+
+            if (viewModel.step.value in 1..7) {
+                refreshNextEnabled()
+            }
         }
+        validator.validateRangeOnBlur(
+            etRodapeCompComercial,
+            tilRodapeCompComercial,
+            { getD(etRodapeCompComercial) },
+            5.0..300.0,
+            getString(R.string.calc_err_rodape_comp_cm_range)
+        )
     }
 
     // Etapa 6: Impermeabilização
@@ -714,6 +756,7 @@ class CalcRevestimentoFragment : Fragment() {
             syncFieldValues(i)
             updateUIVisibility(i)
             updateHelperTexts(i)
+            updateJuntaHelper(i)
 
             if (viewModel.step.value in 1..7) refreshNextEnabled()
         }
@@ -760,17 +803,26 @@ class CalcRevestimentoFragment : Fragment() {
 
     // Atualiza rodapé no ViewModel
     private fun updateRodapeViewModel() = with(binding) {
+        val material = if (rgRodapeMat.checkedRadioButtonId == R.id.rbRodapeMesma)
+            CalcRevestimentoViewModel.RodapeMaterial.MESMA_PECA
+        else
+            CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA
+
+        val compProntaM =
+            if (material == CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA)
+                getD(etRodapeCompComercial)?.div(100.0) // campo agora em cm → ViewModel continua recebendo em m
+            else
+                null
+
         viewModel.setRodape(
             enable = switchRodape.isChecked,
             alturaCm = mToCmIfLooksLikeMeters(getD(etRodapeAltura)),
             perimetroManualM = null,
             descontarVaoM = 0.0,
             perimetroAuto = true,
-            material = if (rgRodapeMat.checkedRadioButtonId == R.id.rbRodapeMesma)
-                CalcRevestimentoViewModel.RodapeMaterial.MESMA_PECA
-            else CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA,
+            material = material,
             orientacaoMaior = true,
-            compComercialM = getD(etRodapeCompComercial)
+            compComercialM = compProntaM
         )
     }
 
@@ -838,6 +890,27 @@ class CalcRevestimentoFragment : Fragment() {
                 ) &&
                 !validator.hasPecasPorCaixaErrorNow(etPecasPorCaixa) &&
                 !validator.hasDesnivelErrorNow(etDesnivel, tilDesnivel.isVisible, getD(etDesnivel))
+
+        val inputs = viewModel.inputs.value
+
+        if (inputs.rodapeEnable &&
+            inputs.rodapeMaterial == CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA
+        ) {
+            // Altura em cm (já tratada pelo helper existente)
+            val alturaCm = mToCmIfLooksLikeMeters(getD(etRodapeAltura))
+            val compCm = getD(etRodapeCompComercial)
+
+            val alturaOk = alturaCm != null &&
+                    alturaCm in 3.0..30.0 &&
+                    tilRodapeAltura.error.isNullOrEmpty()
+
+            // Obrigatório e entre 5 e 300cm
+            val compOk = compCm != null &&
+                    compCm in 5.0..300.0 &&
+                    tilRodapeCompComercial.error.isNullOrEmpty()
+
+            btnNext.isEnabled = btnNext.isEnabled && alturaOk && compOk
+        }
     }
 
     // Exibe resultado do cálculo
@@ -1380,6 +1453,37 @@ class CalcRevestimentoFragment : Fragment() {
             }
 
             else -> tilDesnivel.setHelperTextSafely(null)
+        }
+    }
+
+    // Atualiza helper texts dinâmicos para junta
+    private fun updateJuntaHelper(i: CalcRevestimentoViewModel.Inputs) = with(binding) {
+        tilJunta.helperText = when (i.revest) {
+            CalcRevestimentoViewModel.RevestimentoType.PISO -> {
+                if (i.pisoPlacaTipo == CalcRevestimentoViewModel.PlacaTipo.PORCELANATO) {
+                    getString(R.string.helper_junta_piso_porcelanato)
+                } else {
+                    getString(R.string.helper_junta_piso_ceramico)
+                }
+            }
+
+            CalcRevestimentoViewModel.RevestimentoType.PASTILHA ->
+                getString(R.string.helper_junta_pastilha)
+
+            CalcRevestimentoViewModel.RevestimentoType.AZULEJO ->
+                getString(R.string.helper_junta_azulejo)
+
+            CalcRevestimentoViewModel.RevestimentoType.PEDRA ->
+                getString(R.string.helper_junta_pedra_portuguesa)
+
+            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
+            CalcRevestimentoViewModel.RevestimentoType.GRANITO ->
+                getString(R.string.helper_junta_marmore_granito)
+
+            CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO ->
+                getString(R.string.helper_junta_piso_intertravado)
+
+            else -> null
         }
     }
 

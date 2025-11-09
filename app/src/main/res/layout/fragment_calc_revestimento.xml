@@ -635,9 +635,9 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:hint="@string/hint_comprimento_peca_pronta"
+                            android:hint="@string/calc_step5_comp_pronta_cm"
                             android:visibility="gone"
-                            app:helperText="Em metros • Ex: 0,60 (padrão), 1,00, 2,00"
+                            app:helperText="@string/calc_step5_comp_pronta_cm_helper"
                             app:helperTextEnabled="true">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -737,7 +737,8 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="monospace"
                             android:padding="16dp"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:lineSpacingExtra="44dp"
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
                             tools:text="📋 REVISÃO DOS PARÂMETROS\n\n• Tipo: Piso Porcelanato\n• Ambiente: Molhado (ACIII)" />
                     </com.google.android.material.card.MaterialCardView>
 

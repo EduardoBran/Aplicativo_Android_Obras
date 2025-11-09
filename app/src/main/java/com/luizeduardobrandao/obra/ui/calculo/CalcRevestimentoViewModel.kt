@@ -154,9 +154,9 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         var newInputs = cur.copy(
             revest = type,
             pisoPlacaTipo = novoPlacaTipo,
-            sobraPct = sobraMinimaPorTipo(type),
+            sobraPct = 10.0,
 
-            // 🔴 ZERA SEMPRE O AMBIENTE E DERIVADOS AO TROCAR DE REVESTIMENTO
+            // Zerar Valores ao retornar a pagina de revestimentos
             ambiente = null,
             classeArgamassa = null,
             impermeabilizacaoOn = false,
@@ -261,7 +261,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             pecaEspMm = espFinal,
             pecasPorCaixa = pecasPorCaixa?.takeIf { it in 1..50 },
             juntaMm = juntaMm?.takeIf { it in 0.5..20.0 },
-            sobraPct = (sobraPct ?: sobraMinimaAtual()).takeIf { it in 0.0..50.0 }
+            sobraPct = (sobraPct ?: 10.0).takeIf { it in 0.0..50.0 }
         )
     }
 
@@ -284,7 +284,11 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             rodapePerimetroAuto = perimetroAuto,
             rodapeMaterial = material,
             rodapeOrientacaoMaior = orientacaoMaior,
-            rodapeCompComercialM = compComercialM?.takeIf { it > 0 }
+            rodapeCompComercialM =
+                if (material == RodapeMaterial.PECA_PRONTA)
+                    compComercialM?.takeIf { it in 0.05..3.0 } // 5 a 300 cm em metros
+                else
+                    null
         )
     }
 
@@ -549,21 +553,51 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     private fun validateStep5(i: Inputs): StepValidation {
         if (!i.rodapeEnable) return StepValidation(true)
 
-        return when {
-            i.rodapeAlturaCm == null -> StepValidation(false, "Informe a altura do rodapé")
-            i.rodapeAlturaCm < 3.0 -> StepValidation(false, "Rodapé muito baixo (mínimo 3 cm)")
-            i.rodapeAlturaCm > 30.0 -> StepValidation(false, "Rodapé muito alto (máximo 30 cm)")
-            else -> {
-                val per = rodapePerimetroM(i)
-                if (per == null || per <= 0) StepValidation(false, "Perímetro do rodapé inválido")
-                else StepValidation(true)
+        // Altura obrigatória e dentro da faixa
+        val altura = i.rodapeAlturaCm
+        when {
+            altura == null ->
+                return StepValidation(false, "Informe a altura do rodapé")
+
+            altura < 3.0 ->
+                return StepValidation(false, "Rodapé muito baixo (mínimo 3 cm)")
+
+            altura > 30.0 ->
+                return StepValidation(false, "Rodapé muito alto (máximo 30 cm)")
+        }
+
+        // Se for PEÇA PRONTA: comprimento comercial obrigatório (5 a 300 cm)
+        if (i.rodapeMaterial == RodapeMaterial.PECA_PRONTA) {
+            val compM = i.rodapeCompComercialM
+            val compCm = compM?.times(100.0)
+
+            return when (compCm) {
+                null ->
+                    StepValidation(false, "Informe o comprimento da peça pronta (cm)")
+
+                !in 5.0..300.0 ->
+                    StepValidation(false, "Comprimento da peça pronta deve ser entre 5 e 300 cm")
+
+                else -> {
+                    val per = rodapePerimetroM(i)
+                    if (per == null || per <= 0.0)
+                        StepValidation(false, "Perímetro do rodapé inválido")
+                    else
+                        StepValidation(true)
+                }
             }
         }
+
+        // MESMA PEÇA → mantém comportamento anterior
+        val per = rodapePerimetroM(i)
+        return if (per == null || per <= 0.0)
+            StepValidation(false, "Perímetro do rodapé inválido")
+        else
+            StepValidation(true)
     }
 
     // Valida pastilha especificamente
     private fun validatePastilha(i: Inputs): StepValidation {
-        val minSobra = sobraMinimaPorTipo(i.revest)
         return when {
             i.pecaCompCm == null || i.pecaLargCm == null ->
                 StepValidation(false, "Informe o tamanho da manta (largura × altura)")
@@ -571,18 +605,15 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             i.pecaCompCm !in 20.0..40.0 || i.pecaLargCm !in 20.0..40.0 ->
                 StepValidation(false, "Manta fora do limite (20 a 40 cm)")
 
-            i.juntaMm != null && i.juntaMm < 1.0 -> StepValidation(
-                false,
-                "Junta muito fina (mínimo 1 mm)"
-            )
+            i.juntaMm != null && i.juntaMm < 1.0 ->
+                StepValidation(false, "Junta muito fina (mínimo 1 mm)")
 
-            i.juntaMm != null && i.juntaMm > 3.0 -> StepValidation(
-                false,
-                "Junta muito larga (máximo 3 mm)"
-            )
+            i.juntaMm != null && i.juntaMm > 3.0 ->
+                StepValidation(false, "Junta muito larga (máximo 3 mm)")
 
-            i.sobraPct != null && i.sobraPct < minSobra ->
-                StepValidation(false, "Sobra mínima para este revestimento é ${arred2(minSobra)}%")
+            // Sobra técnica: apenas valida faixa 0% a 50%
+            i.sobraPct != null && i.sobraPct !in 0.0..50.0 ->
+                StepValidation(false, "Sobra técnica deve ser entre 0% e 50%")
 
             else -> StepValidation(true)
         }
@@ -599,13 +630,17 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             }
         }
 
-        val minSobra = sobraMinimaPorTipo(i.revest)
+        val juntaUsada = i.juntaMm ?: getJuntaPadraoMm(i)
+
         return when {
-            i.juntaMm == null -> StepValidation(false, "Informe a largura da junta")
-            i.juntaMm < 0.5 -> StepValidation(false, "Junta muito fina (mínimo 0,5 mm)")
-            i.juntaMm > 20.0 -> StepValidation(false, "Junta muito larga (máximo 20 mm)")
-            i.sobraPct != null && i.sobraPct < minSobra ->
-                StepValidation(false, "Sobra mínima para este revestimento é ${arred2(minSobra)}%")
+            juntaUsada < 0.5 ->
+                StepValidation(false, "Junta muito fina (mínimo 0,5 mm)")
+
+            juntaUsada > 20.0 ->
+                StepValidation(false, "Junta muito larga (máximo 20 mm)")
+
+            i.sobraPct != null && i.sobraPct !in 0.0..50.0 ->
+                StepValidation(false, "Sobra técnica deve ser entre 0% e 50%")
 
             else -> StepValidation(true)
         }
@@ -613,7 +648,6 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     // Valida revestimento padrão (piso/azulejo)
     private fun validateRevestimentoPadrao(i: Inputs): StepValidation {
-        val minSobra = sobraMinimaPorTipo(i.revest)
         return when {
             i.pecaCompCm == null || i.pecaLargCm == null ->
                 StepValidation(false, "Informe o tamanho da peça (comprimento × largura)")
@@ -627,8 +661,8 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             i.juntaMm == null -> StepValidation(false, "Informe a largura da junta")
             i.juntaMm < 0.5 -> StepValidation(false, "Junta muito fina (mínimo 0,5 mm)")
             i.juntaMm > 20.0 -> StepValidation(false, "Junta muito larga (máximo 20 mm)")
-            i.sobraPct != null && i.sobraPct < minSobra ->
-                StepValidation(false, "Sobra mínima para este revestimento é ${arred2(minSobra)}%")
+            i.sobraPct != null && i.sobraPct !in 0.0..50.0 ->
+                StepValidation(false, "Sobra técnica deve ser entre 0% e 50%")
 
             else -> StepValidation(true)
         }
@@ -660,8 +694,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     // Valida Tipo Impermeabilizante Piso Intertravado
     private fun validateStep7Imp(i: Inputs): StepValidation {
-        // Para piso intertravado, só é obrigatório escolher tipo
-        // no caso Molhado e Sempre Molhado + (Leve ou Médio) quando o switch estiver LIGADO
+        // Para piso intertravado, só é obrigatório escolher tipo no caso Molhado e Sempre Molhado + (Leve ou Médio)
         if (i.revest == RevestimentoType.PISO_INTERTRAVADO &&
             (i.ambiente == AmbienteType.MOLHADO || i.ambiente == AmbienteType.SEMPRE) &&
             (i.trafego == TrafegoType.LEVE || i.trafego == TrafegoType.MEDIO) &&
@@ -679,24 +712,23 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
      * FUNÇÕES AUXILIARES PÚBLICAS
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    fun sobraMinimaAtual(): Double = sobraMinimaPorTipo(_inputs.value.revest)
     fun espessuraPadraoAtual(): Double = getEspessuraPadraoMm(_inputs.value)
     fun juntaPadraoAtual(): Double = getJuntaPadraoMm(_inputs.value)
 
     // Gera resumo textual para revisão do usuário
     fun getResumoRevisao(): String = buildString {
         val i = _inputs.value
-        appendLine("📋 REVISÃO DOS PARÂMETROS\n")
+        //appendLine("📋 REVISÃO DOS PARÂMETROS\n\n")
 
         // Tipo de revestimento
-        append("• Tipo: ")
+        append("• 🏗️ Revestimento: ")
         append(
             when (i.revest) {
                 RevestimentoType.PISO -> "Piso ${if (i.pisoPlacaTipo == PlacaTipo.PORCELANATO) "Porcelanato" else "Cerâmico"}"
                 RevestimentoType.AZULEJO -> "Azulejo"
                 RevestimentoType.PASTILHA -> "Pastilha"
-                RevestimentoType.PEDRA -> "Pedra portuguesa/irregular"
-                RevestimentoType.PISO_INTERTRAVADO -> "Piso intertravado"
+                RevestimentoType.PEDRA -> "Pedra Portuguesa"
+                RevestimentoType.PISO_INTERTRAVADO -> "Piso Intertravado"
                 RevestimentoType.MARMORE -> "Mármore"
                 RevestimentoType.GRANITO -> "Granito"
                 null -> "—"
@@ -705,91 +737,90 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         appendLine()
 
         // Ambiente
-        append("• Ambiente: ")
+        append("• 🌦️ Tipo de Ambiente: ")
 
         val ambienteLabel = when (i.ambiente) {
             AmbienteType.SECO -> "Seco"
-            AmbienteType.SEMI -> "Semi-úmido"
+            AmbienteType.SEMI -> "Semi-Úmido"
             AmbienteType.MOLHADO -> "Molhado"
-            AmbienteType.SEMPRE -> "Sempre molhado"
+            AmbienteType.SEMPRE -> "Sempre Molhado"
             null -> "—"
         }
 
         if (i.ambiente == null) {
             appendLine("—")
         } else {
-            val ambienteTexto = when (i.revest) {
-                // Nunca mostrar classe junto para pedra e piso intertravado
-                RevestimentoType.PEDRA,
-                RevestimentoType.PISO_INTERTRAVADO -> ambienteLabel
+            appendLine(ambienteLabel)
+        }
 
-                // Mármore/Granito: se não for leito espesso → força ACIII (como já é no cálculo)
-                RevestimentoType.MARMORE,
-                RevestimentoType.GRANITO -> {
-                    val usaLeitoEspesso = mgIsAreiaCimento(i)
-                    if (!usaLeitoEspesso) "$ambienteLabel (ACIII)" else ambienteLabel
-                }
-
-                // Demais revestimentos: usa classeArgamassa calculada em setAmbiente
-                else -> {
-                    val classe = i.classeArgamassa
-                    if (classe != null && shouldShowClasse(i)) "$ambienteLabel ($classe)" else ambienteLabel
-                }
-            }
-
-            appendLine(ambienteTexto)
+        // Tráfego (apenas intertravado)
+        if (i.revest == RevestimentoType.PISO_INTERTRAVADO && i.trafego != null) {
+            appendLine("• 🛣️ Tipo de tráfego: ${i.trafego}")
         }
 
         // Área
         areaBaseM2(i)?.let { area ->
-            append("• Área: ${arred2(area)} m²")
-            if (i.areaInformadaM2 == null) {
-                appendMedidasIfAvailable(i)
-            }
-            appendLine()
+            appendLine("• 📐 Área Total: ${arred2(area)} m²")
         }
 
         // Peça
         if (i.revest != RevestimentoType.PEDRA && i.pecaCompCm != null && i.pecaLargCm != null) {
-            appendLine("• Peça: ${arred0(i.pecaCompCm)} × ${arred0(i.pecaLargCm)} cm")
+            appendLine("• ◻️ Peça: ${arred0(i.pecaCompCm)} × ${arred0(i.pecaLargCm)} cm")
         }
 
         // Espessura (se informada)
         i.pecaEspMm?.let { espMm ->
             if (i.revest == RevestimentoType.PISO_INTERTRAVADO) {
                 val espCm = espMm / 10.0
-                appendLine("• Espessura: ${arred1(espCm)} cm")
+                appendLine("• 🧩 Espessura: ${arred1(espCm)} cm")
             } else {
-                appendLine("• Espessura: ${arred1(espMm)} mm")
+                appendLine("• 🧩 Espessura: ${arred1(espMm)} mm")
             }
         }
 
-        // Peças por caixa (se informada)
-        i.pecasPorCaixa?.let { appendLine("• Peças por caixa: $it") }
-
         // Junta
-        i.juntaMm?.let { appendLine("• Junta: ${arred2(it)} mm") }
+        i.juntaMm?.let { appendLine("• 🔗 Junta: ${arred2(it)} mm") }
+
+        // Peças por caixa (se informada)
+        i.pecasPorCaixa?.let { appendLine("• 📦 Peças por caixa: $it") }
 
         // Desnível (se informado)
-        i.desnivelCm?.let { appendLine("• Desnível: ${arred1(it)} cm") }
-
-        // Tráfego (apenas intertravado)
-        if (i.revest == RevestimentoType.PISO_INTERTRAVADO && i.trafego != null) {
-            appendLine("• Tráfego: ${i.trafego}")
-        }
-
-        // Sobra
-        if (i.sobraPct != null && i.sobraPct > 0) {
-            appendLine("• Sobra técnica: ${arred2(i.sobraPct)}%")
-        }
+        i.desnivelCm?.let { appendLine("• 📉 Desnível: ${arred1(it)} cm") }
 
         // Rodapé
         if (i.rodapeEnable && i.revest in tiposComRodape() && i.rodapeAlturaCm != null) {
             appendRodapeInfo(i)
         }
 
+        // Argamassa
+        val classeArg = when (i.revest) {
+            RevestimentoType.PEDRA,
+            RevestimentoType.PISO_INTERTRAVADO -> null // não exibe
+
+            RevestimentoType.MARMORE,
+            RevestimentoType.GRANITO -> {
+                // Se NÃO for leito espesso → força ACIII (como já fazia)
+                val usaLeitoEspesso = mgIsAreiaCimento(i)
+                if (!usaLeitoEspesso) "ACIII" else null
+            }
+
+            else -> {
+                val classe = i.classeArgamassa
+                if (classe != null && shouldShowClasse(i)) classe else null
+            }
+        }
+
+        classeArg?.let {
+            appendLine("• 🧱 Argamassa: $it")
+        }
+
         // Impermeabilização
-        if (i.impermeabilizacaoOn) appendLine("• Impermeabilização: Sim")
+        if (i.impermeabilizacaoOn) appendLine("• 💧 Impermeabilização: Sim")
+
+        // Sobra
+        if (i.sobraPct != null && i.sobraPct > 0) {
+            append("• ➕ Sobra Técnica: ${arred2(i.sobraPct)}%")
+        }
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -813,7 +844,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val areaRevestimentoM2 = areaBase +
                 if (i.rodapeEnable && i.rodapeMaterial == RodapeMaterial.MESMA_PECA) areaRodapeCompraM2 else 0.0
 
-        val sobra = max(i.sobraPct ?: 10.0, sobraMinimaPorTipo(i.revest))
+        val sobra = (i.sobraPct ?: 10.0).coerceIn(0.0, 50.0)
         val itens = mutableListOf<MaterialItem>()
         var classe: String? = i.classeArgamassa
 
@@ -836,7 +867,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         // Adicionar rodapé e impermeabilização
         if (i.revest != RevestimentoType.PISO_INTERTRAVADO) {
-            adicionarRodape(i, areaRodapeExibM2, perimetroCompraMl, sobra, itens)
+            adicionarRodape(i, areaRodapeCompraM2, perimetroCompraMl, sobra, itens)
             adicionarImpermeabilizacao(i, areaBase + areaRodapeExibM2, itens)
         }
 
@@ -888,6 +919,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         // Adicionar revestimento com peças calculadas
         val qtdPecas = calcularQuantidadePecas(i, areaM2, sobra)
+        val areaCompraM2 = areaM2 * (1 + sobra / 100.0)
         val observacao = buildObservacaoRevestimento(
             sobra = sobra,
             qtdPecas = qtdPecas,
@@ -899,7 +931,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         itens += MaterialItem(
             item = nomeRev + tamanhoSufixo(i),
             unid = "m²",
-            qtd = arred2(areaM2),
+            qtd = arred2(areaCompraM2),
             observacao = observacao
         )
 
@@ -939,11 +971,12 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val d = (i.desnivelCm ?: 0.0)
         val leitoPedraCm = kotlin.math.round((max(4.0, d + 0.5) * 10.0)) / 10.0
         val leitoM = leitoPedraCm / 100.0
+        val areaCompraM2 = areaM2 * (1 + sobra / 100.0)
 
         itens += MaterialItem(
             item = "Pedra (m²)",
             unid = "m²",
-            qtd = arred2(areaM2),
+            qtd = arred2(areaCompraM2),
             observacao = "leito: ${arred1(leitoPedraCm)} cm • rejunte incluso no traço."
         )
 
@@ -971,7 +1004,8 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val larg = i.pecaLargCm ?: return
         val espMm = i.pecaEspMm ?: getEspessuraPadraoMm(i)
         val traf = i.trafego ?: return
-        val sobra = i.sobraPct ?: sobraMinimaPorTipo(RevestimentoType.PISO_INTERTRAVADO)
+        val sobra = (i.sobraPct ?: 10.0).coerceIn(0.0, 50.0)
+        val areaCompraM2 = areaM2 * (1 + sobra / 100.0)
 
         val pecasPorM2 = 10000.0 / (larg * comp)
         val espCm = espMm / 10.0
@@ -987,7 +1021,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         itens += MaterialItem(
             item = "Piso intertravado ${arred0(comp)}×${arred0(larg)}×${arred1(espCm)} cm",
             unid = "m²",
-            qtd = arred2(areaM2),
+            qtd = arred2(areaCompraM2),
             observacao = observacao
         )
 
@@ -1183,6 +1217,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val isAreiaCimento = mgIsAreiaCimento(i)
         val leitoMgCm = mgLeitoCm(i) // null se for argamassa
         val qtdPecas = calcularQuantidadePecas(i, areaM2, sobra)
+        val areaCompraM2 = areaM2 * (1 + sobra / 100.0)
 
         val obsRevest = buildObservacaoRevestimento(
             sobra = sobra,
@@ -1209,7 +1244,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         itens += MaterialItem(
             item = nome + tamanhoSufixo(i),
             unid = "m²",
-            qtd = arred2(areaM2),
+            qtd = arred2(areaCompraM2),
             observacao = observacaoFinal
         )
 
@@ -1405,27 +1440,43 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     // Adiciona rodapé à lista de materiais
     private fun adicionarRodape(
-        i: Inputs, areaExibM2: Double, perimetroCompraM: Double,
-        sobra: Double, itens: MutableList<MaterialItem>
+        i: Inputs,
+        areaCompraM2: Double,
+        perimetroCompraM: Double,
+        sobra: Double,
+        itens: MutableList<MaterialItem>
     ) {
         if (!i.rodapeEnable || i.revest !in tiposComRodape()) return
 
         if (i.rodapeMaterial == RodapeMaterial.MESMA_PECA) {
+            // Qtd = m² EXTRA de rodapé (já incluído na Qtd do piso principal)
+            val areaComSobra = areaCompraM2 * (1 + sobra / 100.0)
             itens += MaterialItem(
-                item = "Rodapé • ${arred0(i.rodapeAlturaCm ?: 0.0)} cm)",
+                item = "Rodapé",
                 unid = "m²",
-                qtd = arred2(areaExibM2),
-                observacao = "Incluso na quantidade de peças."
+                qtd = arred2(areaComSobra),
+                observacao = "Mesma peça • Incluso na quantidade de peças."
             )
         } else {
-            val comp = i.rodapeCompComercialM ?: 0.60
+            // PEÇA PRONTA
+            val compM = i.rodapeCompComercialM ?: return
+            val alturaCm = i.rodapeAlturaCm ?: return
+            val alturaM = alturaCm / 100.0
+
+            // Comprimento efetivo com sobra técnica aplicada
             val mlEfetivo = perimetroCompraM * (1 + sobra / 100.0)
-            val q = ceil(mlEfetivo / comp).toInt()
+            val qtdPecas = ceil(mlEfetivo / compM).toInt().coerceAtLeast(1)
+
+            // Área total coberta pelas peças compradas
+            val areaTotalM2 = qtdPecas * compM * alturaM
+
+            val compCm = compM * 100.0
+
             itens += MaterialItem(
-                item = "Rodapé • ${arred2(comp)} m)",
-                unid = "m",
-                qtd = arred2(mlEfetivo),
-                observacao = "Peça pronta • $q peças."
+                item = "Rodapé",
+                unid = "m²",
+                qtd = arred2(areaTotalM2),
+                observacao = "Peça pronta • ${arred0(alturaCm)}cm x ${arred0(compCm)}cm • $qtdPecas peças."
             )
         }
     }
@@ -1707,16 +1758,6 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         RevestimentoType.PISO, RevestimentoType.MARMORE, RevestimentoType.GRANITO
     )
 
-    private fun sobraMinimaPorTipo(type: RevestimentoType?) = when (type) {
-        RevestimentoType.PEDRA,
-        RevestimentoType.MARMORE,
-        RevestimentoType.GRANITO,
-        RevestimentoType.PISO_INTERTRAVADO -> 10.0
-
-        RevestimentoType.PASTILHA -> 5.0
-        else -> 10.0
-    }
-
     // Retorna especificação de rejunte conforme ambiente
     private fun rejunteSpec(i: Inputs) = when (i.ambiente) {
         AmbienteType.SEMPRE ->
@@ -1751,10 +1792,28 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     // Retorna junta padrão em mm conforme tipo de revestimento
     private fun getJuntaPadraoMm(i: Inputs) = when (i.revest) {
+        // Pastilha: já era 2mm e continua
         RevestimentoType.PASTILHA -> 2.0
-        RevestimentoType.PEDRA -> 12.0
-        RevestimentoType.PISO -> if (i.pisoPlacaTipo == PlacaTipo.PORCELANATO) 2.5 else 4.0
+
+        // Pedra Portuguesa
+        RevestimentoType.PEDRA -> 4.0
+
+        // Mármore e Granito
+        RevestimentoType.MARMORE,
+        RevestimentoType.GRANITO -> 2.0
+
+        // Piso Intertravado ("Pedra Intertravada" na cópia): default do rejunte
+        RevestimentoType.PISO_INTERTRAVADO -> 4.0
+
+        // Piso comum: cerâmico x porcelanato
+        RevestimentoType.PISO -> {
+            if (i.pisoPlacaTipo == PlacaTipo.PORCELANATO) 4.0 else 5.0
+        }
+
+        // Azulejo
         RevestimentoType.AZULEJO -> 3.0
+
+        // Genérico / fallback
         else -> 3.0
     }
 
@@ -1771,38 +1830,24 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    // Adiciona informações de medidas ao resumo
-    private fun StringBuilder.appendMedidasIfAvailable(i: Inputs) {
-        val (c, l, a) = Triple(i.compM, i.largM, i.altM)
-        if ((i.revest == RevestimentoType.AZULEJO || i.revest == RevestimentoType.PASTILHA) &&
-            c != null && l != null && a != null
-        ) {
-            append(" (${arred2(c)} × ${arred2(l)} × ${arred2(a)} m)")
-        } else if (c != null && l != null) {
-            append(" (${arred2(c)} × ${arred2(l)} m)")
-        } else if (c != null && a != null) {
-            append(" (${arred2(c)} × ${arred2(a)} m)")
-        }
-    }
-
     // Adiciona informações do rodapé ao resumo
     private fun StringBuilder.appendRodapeInfo(i: Inputs) {
-        val areaBaseExibM2 = rodapeAreaBaseExibicaoM2(i)
-        val per = rodapePerimetroM(i) ?: 0.0
-        val vaos = i.rodapeDescontarVaoM ?: 0.0
-        val altCm = i.rodapeAlturaCm!!
-        val altM = altCm / 100.0
-        val areaRodapeExibM2 = max(0.0, per - vaos) * altM
+        val perimetro = rodapePerimetroM(i) ?: return
+        val alturaCm = i.rodapeAlturaCm ?: return
+        val alturaM = alturaCm / 100.0
+        val areaM2 = perimetro * alturaM
 
-        append(
-            "• Rodapé: ${arred2(areaBaseExibM2)} m² + ${arred0(altCm)} cm = ${
-                arred2(
-                    areaRodapeExibM2
-                )
-            } m²"
-        )
-        append(" (${if (i.rodapeMaterial == RodapeMaterial.MESMA_PECA) "mesma peça" else "peça pronta"})")
-        appendLine()
+        if (i.rodapeMaterial == RodapeMaterial.PECA_PRONTA) {
+            // Item 2: quando Peça pronta
+            appendLine("• 📏 Rodapé: ${arred2(areaM2)} m²\n(peça pronta)")
+        } else {
+            // Mantém comportamento anterior para "Mesma peça"
+            val areaBaseM2 = rodapeAreaBaseExibicaoM2(i)
+            appendLine(
+                "• 📏 Rodapé: ${arred2(areaBaseM2)} m² × ${arred1(alturaCm)} cm = " +
+                        "${arred2(areaM2)} m²\n(mesma peça)"
+            )
+        }
     }
 
     // Reset via botão "Voltar"
