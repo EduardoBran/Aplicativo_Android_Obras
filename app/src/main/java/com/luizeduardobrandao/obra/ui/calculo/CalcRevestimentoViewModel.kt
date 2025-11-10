@@ -24,6 +24,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     enum class AmbienteType { SECO, SEMI, MOLHADO, SEMPRE }
     enum class PlacaTipo { CERAMICA, PORCELANATO }
     enum class RodapeMaterial { MESMA_PECA, PECA_PRONTA }
+    enum class AplicacaoType { PISO, PAREDE }
 
     /** Tráfego específico para piso intertravado */
     enum class TrafegoType { LEVE, MEDIO, PESADO }
@@ -70,6 +71,8 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val tipo: String,
         val ambiente: String,
         val trafego: String?,
+        val paredeQtd: Int? = null,
+        val aberturaM2: Double? = null,
         val areaM2: Double,
         val rodapeBaseM2: Double,
         val rodapeAlturaCm: Double,
@@ -81,6 +84,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     data class Inputs(
         val revest: RevestimentoType? = null,
         val pisoPlacaTipo: PlacaTipo? = null,
+        val aplicacao: AplicacaoType? = null,
         val ambiente: AmbienteType? = null,
         val classeArgamassa: String? = null,
         val impermeabilizacaoOn: Boolean = false,
@@ -88,6 +92,8 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val compM: Double? = null,
         val largM: Double? = null,
         val altM: Double? = null,
+        val paredeQtd: Int? = null,
+        val aberturaM2: Double? = null,
         val areaInformadaM2: Double? = null,
         val pecaCompCm: Double? = null,
         val pecaLargCm: Double? = null,
@@ -156,13 +162,34 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             pisoPlacaTipo = novoPlacaTipo,
             sobraPct = 10.0,
 
-            // Zerar Valores ao retornar a pagina de revestimentos
+            // Define aplicação padrão por tipo
+            aplicacao = when (type) {
+                RevestimentoType.AZULEJO,
+                RevestimentoType.PASTILHA -> AplicacaoType.PAREDE
+
+                RevestimentoType.PISO,
+                RevestimentoType.PEDRA,
+                RevestimentoType.PISO_INTERTRAVADO -> AplicacaoType.PISO
+
+                RevestimentoType.MARMORE,
+                RevestimentoType.GRANITO -> null // definido via diálogo
+            },
+
+            // Reset dependentes
             ambiente = null,
             classeArgamassa = null,
             impermeabilizacaoOn = false,
             impermeabilizacaoLocked = false,
             trafego = null,
-            impIntertravadoTipo = null
+            impIntertravadoTipo = null,
+
+            // Reset medidas e novos campos
+            compM = null,
+            largM = null,
+            altM = null,
+            areaInformadaM2 = null,
+            paredeQtd = null,
+            aberturaM2 = null
         )
 
         // Se o novo tipo não suporta rodapé, zera configuração de rodapé
@@ -180,6 +207,50 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         }
 
         _inputs.value = newInputs
+    }
+
+    // Define o tipo de revestimento para Mármore e Granito
+    fun setAplicacao(aplicacao: AplicacaoType?) = viewModelScope.launch {
+        var i = _inputs.value.copy(aplicacao = aplicacao)
+
+        when (aplicacao) {
+            AplicacaoType.PISO -> {
+                // Piso: usa comp + larg; ignora altura/parede/abertura
+                i = i.copy(
+                    altM = null,
+                    paredeQtd = null,
+                    aberturaM2 = null
+                )
+            }
+
+            AplicacaoType.PAREDE -> {
+                // Parede: usa comp + alt + paredes (+ abertura); ignora largura
+                i = i.copy(
+                    largM = null
+                )
+            }
+
+            null -> {
+                i = i.copy(
+                    paredeQtd = null,
+                    aberturaM2 = null
+                )
+            }
+        }
+
+        _inputs.value = i
+    }
+
+    fun setParedeQtd(qtd: Int?) = viewModelScope.launch {
+        _inputs.value = _inputs.value.copy(
+            paredeQtd = qtd?.takeIf { it in 1..20 }
+        )
+    }
+
+    fun setAberturaM2(area: Double?) = viewModelScope.launch {
+        _inputs.value = _inputs.value.copy(
+            aberturaM2 = area?.takeIf { it >= 0.0 }
+        )
     }
 
     // Define o tipo de placa (cerâmica ou porcelanato)
@@ -523,15 +594,72 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     // Valida medidas do ambiente
     private fun validateStep3(i: Inputs): StepValidation {
+        // 1) Área total informada → só checa faixa
+        i.areaInformadaM2?.let { area ->
+            return when {
+                area < 0.01 -> StepValidation(false, "Área muito pequena (mínimo 0,01 m²)")
+                area > 50000.0 -> StepValidation(false, "Área muito grande (máximo 50.000 m²)")
+                else -> StepValidation(true)
+            }
+        }
+
+        val isParedeMode =
+            i.revest == RevestimentoType.AZULEJO ||
+                    i.revest == RevestimentoType.PASTILHA ||
+                    ((i.revest == RevestimentoType.MARMORE || i.revest == RevestimentoType.GRANITO) &&
+                            i.aplicacao == AplicacaoType.PAREDE)
+
+        if (isParedeMode) {
+            val c = i.compM
+            val h = i.altM
+            val paredes = i.paredeQtd
+
+            if (c == null || h == null || paredes == null) {
+                return StepValidation(
+                    false,
+                    "Preencha comprimento, altura e quantidade de paredes\nou informe a área total"
+                )
+            }
+
+            if (paredes !in 1..20) {
+                return StepValidation(false, "Quantidade de paredes deve ser entre 1 e 20")
+            }
+
+            val areaBruta = c * h * paredes
+            if (areaBruta <= 0.0) {
+                return StepValidation(false, "Área muito pequena (mínimo 0,01 m²)")
+            }
+
+            val abertura = i.aberturaM2
+            if (abertura != null) {
+                if (abertura < 0.0) {
+                    return StepValidation(false, "Abertura não pode ser negativa")
+                }
+                if (abertura > areaBruta) {
+                    return StepValidation(
+                        false,
+                        "A abertura não pode ser maior que a área total das paredes"
+                    )
+                }
+            }
+
+            val areaLiquida = areaBruta - (abertura ?: 0.0)
+            return when {
+                areaLiquida < 0.01 -> StepValidation(false, "Área muito pequena (mínimo 0,01 m²)")
+                areaLiquida > 50000.0 -> StepValidation(
+                    false,
+                    "Área muito grande (máximo 50.000 m²)"
+                )
+
+                else -> StepValidation(true)
+            }
+        }
+
+        // Piso / demais → mantém regra atual (comp × larg ou área total)
         val area = areaBaseM2(i)
         return when {
-            area == null -> {
-                val msg =
-                    if (i.revest in setOf(RevestimentoType.AZULEJO, RevestimentoType.PASTILHA))
-                        "Preencha comprimento E altura\nOU informe a área total"
-                    else "Preencha comprimento E largura\nOU informe a área total"
-                StepValidation(false, msg)
-            }
+            area == null ->
+                StepValidation(false, "Preencha comprimento e largura\nou informe a área total")
 
             area < 0.01 -> StepValidation(false, "Área muito pequena (mínimo 0,01 m²)")
             area > 50000.0 -> StepValidation(false, "Área muito grande (máximo 50.000 m²)")
@@ -741,7 +869,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         val ambienteLabel = when (i.ambiente) {
             AmbienteType.SECO -> "Seco"
-            AmbienteType.SEMI -> "Semi-Úmido"
+            AmbienteType.SEMI -> "Semi-Molhado"
             AmbienteType.MOLHADO -> "Molhado"
             AmbienteType.SEMPRE -> "Sempre Molhado"
             null -> "—"
@@ -875,6 +1003,8 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             tipo = i.revest?.name ?: "-",
             ambiente = i.ambiente?.name ?: "-",
             trafego = i.trafego?.name,
+            paredeQtd = if (i.areaInformadaM2 == null) i.paredeQtd else null,
+            aberturaM2 = if (i.areaInformadaM2 == null) i.aberturaM2?.takeIf { it > 0.0 } else null,
             areaM2 = areaBase,
             rodapeBaseM2 = areaBaseExibM2,
             rodapeAlturaCm = i.rodapeAlturaCm ?: 0.0,
@@ -1647,27 +1777,44 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
      * CÁLCULOS DE ÁREA E PERÍMETRO
      * ═══════════════════════════════════════════════════════════════════════════ */
 
+    // Cálcula área base do ambiente com base na qtd de parede(s)
+    private fun areaParedeM2(i: Inputs): Double? {
+        val c = i.compM ?: return null
+        val h = i.altM ?: return null
+        val paredes = i.paredeQtd ?: return null
+        if (paredes !in 1..20) return null
+
+        val areaBruta = c * h * paredes
+        if (areaBruta <= 0.0) return null
+
+        val abertura = i.aberturaM2 ?: 0.0
+        if (abertura < 0.0 || abertura > areaBruta) return null
+
+        val areaLiquida = areaBruta - abertura
+        return if (areaLiquida > 0.0) areaLiquida else null
+    }
+
     // Calcula área base do ambiente em m²
     private fun areaBaseM2(i: Inputs): Double? {
+        // 1) Área total informada tem prioridade
         i.areaInformadaM2?.takeIf { it > 0 }?.let { return it }
 
-        val (c, l, a) = Triple(i.compM, i.largM, i.altM)
+        val (c, l) = i.compM to i.largM
 
         return when (i.revest) {
-            RevestimentoType.AZULEJO, RevestimentoType.PASTILHA -> when {
-                c != null && l != null && a != null -> 2 * (c + l) * a
-                c != null && a != null -> c * a
-                c != null && l != null -> c * l
+            // Azulejo e Pastilha: sempre parede
+            RevestimentoType.AZULEJO,
+            RevestimentoType.PASTILHA -> areaParedeM2(i)
+
+            // Mármore / Granito dependem da aplicação
+            RevestimentoType.MARMORE,
+            RevestimentoType.GRANITO -> when (i.aplicacao) {
+                AplicacaoType.PAREDE -> areaParedeM2(i)
+                AplicacaoType.PISO -> if (c != null && l != null) c * l else null
                 else -> null
             }
 
-            RevestimentoType.MARMORE, RevestimentoType.GRANITO -> when {
-                c != null && l != null && a != null -> 2 * (c + l) * a
-                c != null && a != null -> c * a
-                c != null && l != null -> c * l
-                else -> null
-            }
-
+            // Demais: mantém lógica plana (piso, pedra, intertravado, etc.)
             else -> if (c != null && l != null) c * l else null
         }
     }

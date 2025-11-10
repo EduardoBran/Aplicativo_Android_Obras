@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.isGone
@@ -19,6 +20,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.luizeduardobrandao.obra.R
@@ -173,6 +175,7 @@ class CalcRevestimentoFragment : Fragment() {
         // Habilita slots de erro em todos os campos com TIL
         listOf(
             tilComp, tilLarg, tilAltura, tilAreaInformada,
+            tilParedeQtd, tilAbertura,
             tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta,
             tilPecasPorCaixa, tilDesnivel, tilSobra,
             tilRodapeAltura, tilRodapeCompComercial
@@ -194,18 +197,40 @@ class CalcRevestimentoFragment : Fragment() {
         btnNext.setOnClickListener {
             val step = viewModel.step.value
             val ok = viewModel.isStepValid(step) &&
+                    !validator.hasAreaTotalErrorNow(etAreaInformada) &&
                     !validator.hasJuntaErrorNow(etJunta, juntaValueMm(), juntaRange()) &&
                     !validator.hasEspessuraErrorNow(
                         etPecaEsp,
                         isPastilha(),
                         mToMmIfLooksLikeMeters(getD(etPecaEsp))
-                    )
+                    ) &&
+                    !validator.hasPecasPorCaixaErrorNow(etPecasPorCaixa) &&
+                    !validator.hasDesnivelErrorNow(
+                        etDesnivel,
+                        tilDesnivel.isVisible,
+                        getD(etDesnivel)
+                    ) &&
+                    tilParedeQtd.error.isNullOrEmpty() &&
+                    tilAbertura.error.isNullOrEmpty()
 
-            if (ok) {
-                rootCalc.post { viewModel.nextStep() }
-            } else {
+            if (!ok) {
                 toast(getString(R.string.calc_validate_step))
+                return@setOnClickListener
             }
+
+            // Regra especial para Mármore/Granito: definir aplicação antes de seguir
+            if (step == 1) {
+                val i = viewModel.inputs.value
+                if ((i.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                            i.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO) &&
+                    i.aplicacao == null
+                ) {
+                    showAplicacaoDialogForMG()
+                    return@setOnClickListener
+                }
+            }
+
+            rootCalc.post { viewModel.nextStep() }
         }
 
         btnBack.setOnClickListener {
@@ -217,6 +242,63 @@ class CalcRevestimentoFragment : Fragment() {
         }
 
         btnCancel.setOnClickListener { findNavController().navigateUp() }
+    }
+
+    // AlertDialog para Mármore / Granito
+    private fun showAplicacaoDialogForMG() {
+        val options = arrayOf(
+            getString(R.string.calc_aplicacao_option_piso),
+            getString(R.string.calc_aplicacao_option_parede)
+        )
+
+        var selected = -1
+        lateinit var dialog: AlertDialog
+
+        dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.calc_aplicacao_dialog_title_mg))
+            .setSingleChoiceItems(options, -1) { _, which ->
+                // Atualiza seleção
+                selected = which
+
+                // Habilita o botão OK assim que o usuário escolher uma opção
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = true
+            }
+            .setPositiveButton(getString(R.string.generic_ok), null) // tratamos o clique no onShow
+            .setNegativeButton(getString(R.string.generic_cancel)) { d, _ ->
+                // Cancelar → apenas fecha o diálogo, permanece na tela de revestimento
+                d.dismiss()
+            }
+            .create()
+
+        dialog.setOnShowListener {
+            val okBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+
+            // Inicialmente desabilitado até o usuário escolher Piso ou Parede
+            okBtn.isEnabled = (selected != -1)
+
+            okBtn.setOnClickListener {
+                if (selected == -1) {
+                    // Segurança extra: não deveria acontecer se o enable estiver correto
+                    return@setOnClickListener
+                }
+
+                val aplicacao =
+                    if (selected == 0)
+                        CalcRevestimentoViewModel.AplicacaoType.PISO
+                    else
+                        CalcRevestimentoViewModel.AplicacaoType.PAREDE
+
+                // Atualiza o ViewModel com o tipo de aplicação selecionado
+                viewModel.setAplicacao(aplicacao)
+
+                dialog.dismiss()
+
+                // Só depois de definido (Piso ou Parede) avança a etapa
+                binding.rootCalc.post { viewModel.nextStep() }
+            }
+        }
+
+        dialog.show()
     }
 
     // Etapa 1: Tipo de revestimento
@@ -288,6 +370,66 @@ class CalcRevestimentoFragment : Fragment() {
 
         // Altura
         setupMedidaField(etAlt, tilAltura, 0.01..100.0, R.string.calc_err_medida_alt_m)
+
+        // Parede (qtd)
+        etParedeQtd.doAfterTextChanged {
+            val qtd = etParedeQtd.text?.toString()?.toIntOrNull()
+            viewModel.setParedeQtd(qtd)
+
+            val msg = when {
+                etParedeQtd.text.isNullOrBlank() -> null
+                qtd == null || qtd !in 1..20 ->
+                    getString(R.string.calc_err_parede_qtd_range)
+
+                else -> null
+            }
+
+            validator.setInlineError(etParedeQtd, tilParedeQtd, msg)
+            updateRequiredIconsStep3()
+            refreshNextEnabled()
+        }
+
+        validator.validateRangeOnBlur(
+            etParedeQtd, tilParedeQtd,
+            { etParedeQtd.text?.toString()?.toIntOrNull()?.toDouble() },
+            1.0..20.0,
+            getString(R.string.calc_err_parede_qtd_range)
+        )
+
+        // Abertura (m²)
+        etAbertura.doAfterTextChanged {
+            val abertura = getD(etAbertura)
+            viewModel.setAberturaM2(abertura)
+
+            val i = viewModel.inputs.value
+            val c = i.compM
+            val h = i.altM
+            val paredes = i.paredeQtd
+            val areaBruta = if (c != null && h != null && paredes != null && paredes in 1..20)
+                c * h * paredes else null
+
+            val msg = when {
+                etAbertura.text.isNullOrBlank() -> null
+                abertura == null || abertura < 0.0 ->
+                    getString(R.string.calc_err_abertura_negative)
+
+                areaBruta != null && abertura > areaBruta ->
+                    getString(R.string.calc_err_abertura_maior_area)
+
+                else -> null
+            }
+
+            validator.setInlineError(etAbertura, tilAbertura, msg)
+            updateRequiredIconsStep3()
+            refreshNextEnabled()
+        }
+
+        validator.validateRangeOnBlur(
+            etAbertura, tilAbertura,
+            { getD(etAbertura) },
+            0.0..50000.0,
+            getString(R.string.calc_err_abertura_negative)
+        )
 
         // Área total
         etAreaInformada.doAfterTextChanged {
@@ -826,9 +968,18 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    // Atualiza ícones obrigatórios conforme etapa
+    // Atualiza ícones em campos obrigatórios
     private fun updateRequiredIconsStep3() = with(binding) {
-        iconManager.updateStep3Icons(etComp, etLarg, etAlt, etAreaInformada, tilAltura.isVisible)
+        iconManager.updateStep3Icons(
+            etComp,
+            etLarg,
+            etAlt,
+            etParedeQtd,
+            etAbertura,
+            etAreaInformada,
+            tilAltura.isVisible,
+            tilParedeQtd.isVisible
+        )
     }
 
     private fun updateRequiredIconsStep4() = with(binding) {
@@ -889,7 +1040,13 @@ class CalcRevestimentoFragment : Fragment() {
                     mToMmIfLooksLikeMeters(getD(etPecaEsp))
                 ) &&
                 !validator.hasPecasPorCaixaErrorNow(etPecasPorCaixa) &&
-                !validator.hasDesnivelErrorNow(etDesnivel, tilDesnivel.isVisible, getD(etDesnivel))
+                !validator.hasDesnivelErrorNow(
+                    etDesnivel,
+                    tilDesnivel.isVisible,
+                    getD(etDesnivel)
+                ) &&
+                tilParedeQtd.error.isNullOrEmpty() &&
+                tilAbertura.error.isNullOrEmpty()
 
         val inputs = viewModel.inputs.value
 
@@ -1066,7 +1223,7 @@ class CalcRevestimentoFragment : Fragment() {
         btnBack.setTypeface(btnBack.typeface, Typeface.BOLD)
 
         btnBack.setOnClickListener {
-            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.calc_new_calc_title))
                 .setMessage(getString(R.string.calc_new_calc_message))
                 .setPositiveButton(getString(R.string.generic_yes)) { _, _ ->
@@ -1185,6 +1342,8 @@ class CalcRevestimentoFragment : Fragment() {
             etComp.text?.clear()
             etLarg.text?.clear()
             etAlt.text?.clear()
+            etParedeQtd.text?.clear()
+            etAbertura.text?.clear()
             etAreaInformada.text?.clear()
             etPecaComp.text?.clear()
             etPecaLarg.text?.clear()
@@ -1200,6 +1359,8 @@ class CalcRevestimentoFragment : Fragment() {
             tilComp.error = null
             tilLarg.error = null
             tilAltura.error = null
+            tilParedeQtd.error = null
+            tilAbertura.error = null
             tilAreaInformada.error = null
             tilPecaComp.error = null
             tilPecaLarg.error = null
@@ -1229,6 +1390,12 @@ class CalcRevestimentoFragment : Fragment() {
             syncField(etLarg, i.largM)
             syncField(etAlt, i.altM)
             syncField(etAreaInformada, i.areaInformadaM2)
+            i.paredeQtd?.let { qtd ->
+                val current = etParedeQtd.text?.toString()?.toIntOrNull()
+                if (current != qtd) etParedeQtd.setText(qtd.toString())
+            }
+
+            syncField(etAbertura, i.aberturaM2)
             syncFieldPeca(etPecaComp, i.pecaCompCm)
             syncFieldPeca(etPecaLarg, i.pecaLargCm)
             if (i.pecaEspMm != null) {
@@ -1346,12 +1513,38 @@ class CalcRevestimentoFragment : Fragment() {
             }
         }
 
-        tilAltura.isVisible = i.revest in setOf(
-            CalcRevestimentoViewModel.RevestimentoType.AZULEJO,
-            CalcRevestimentoViewModel.RevestimentoType.PASTILHA,
-            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
-            CalcRevestimentoViewModel.RevestimentoType.GRANITO
-        )
+        val isAzulejo = i.revest == CalcRevestimentoViewModel.RevestimentoType.AZULEJO
+        val isPastilha = i.revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
+        val isMG = i.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                i.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
+        val isParedeMG = isMG && i.aplicacao == CalcRevestimentoViewModel.AplicacaoType.PAREDE
+
+        val isParedeMode = isAzulejo || isPastilha || isParedeMG
+
+        // Campos de parede
+        tilAltura.isVisible = isParedeMode
+        tilParedeQtd.isVisible = isParedeMode
+        tilAbertura.isVisible = isParedeMode
+
+        // Largura só quando NÃO é parede
+        tilLarg.isVisible = !isParedeMode
+
+        if (!tilLarg.isVisible) {
+            etLarg.text?.clear()
+            tilLarg.error = null
+        }
+        if (!tilAltura.isVisible) {
+            etAlt.text?.clear()
+            tilAltura.error = null
+        }
+        if (!tilParedeQtd.isVisible) {
+            etParedeQtd.text?.clear()
+            tilParedeQtd.error = null
+        }
+        if (!tilAbertura.isVisible) {
+            etAbertura.text?.clear()
+            tilAbertura.error = null
+        }
 
         groupPecaTamanho.isVisible = (i.revest != CalcRevestimentoViewModel.RevestimentoType.PEDRA)
 
@@ -1361,7 +1554,6 @@ class CalcRevestimentoFragment : Fragment() {
             tilJunta.isVisible = true
         }
 
-        val isPastilha = (i.revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA)
         tilPecaEsp.isVisible = !isPastilha
         if (isPastilha) {
             etPecaEsp.text?.clear()
@@ -1377,8 +1569,6 @@ class CalcRevestimentoFragment : Fragment() {
             tilDesnivel.error = null // limpa erro quando oculto
         }
         // Ocultar "Peças por caixa" em Mármore, Granito, Pedra e Piso Intertravado
-        val isMG = i.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
-                i.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
 
         val hidePecasPorCaixa =
             isMG ||

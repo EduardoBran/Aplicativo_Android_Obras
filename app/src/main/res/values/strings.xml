@@ -1194,6 +1194,21 @@
     <string name="calc_step3_area_total">Área total (m²)</string>
     <string name="text_area_total_aviso">Usando a Área total informada; Comprimento, Largura e Altura serão ignorados no cálculo da área base.</string>
 
+    <string name="calc_step3_parede_qtd">Parede (qtd)</string>
+    <string name="calc_step3_parede_qtd_helper">Informe quantas paredes serão revestidas (1 a 20).</string>
+
+    <string name="calc_step3_abertura">Abertura (m²)</string>
+    <string name="calc_step3_abertura_helper">Área a ser descontada (portas, janelas, etc.). Opcional.</string>
+
+    <string name="calc_err_parede_qtd_range">Informe a quantidade de paredes entre 1 e 20.</string>
+    <string name="calc_err_abertura_negative">Abertura não pode ser negativa.</string>
+    <string name="calc_err_abertura_maior_area">A abertura não pode ser maior que a área total das paredes.</string>
+
+    <!-- Diálogo aplicação Mármore/Granito -->
+    <string name="calc_aplicacao_dialog_title_mg">Onde será aplicado?</string>
+    <string name="calc_aplicacao_option_piso">Piso</string>
+    <string name="calc_aplicacao_option_parede">Parede</string>
+
     <!-- TELA 4 -->
     <string name="calc_step4_title">Parâmetros do revestimento</string>
     <string name="calc_step4_peca_comp">Tamanho da peça – Comprimento (cm)</string>

@@ -313,7 +313,7 @@
                 </LinearLayout>
 
                 <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 3 – Medidas -->
+                <!-- TELA 3 – Medidas da Área -->
                 <!-- ═══════════════════════════════════════════ -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -372,6 +372,41 @@
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etAlt"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:digits="0123456789,."
+                            android:inputType="numberDecimal" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilParedeQtd"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:hint="@string/calc_step3_parede_qtd"
+                        android:visibility="gone"
+                        app:helperText="@string/calc_step3_parede_qtd_helper"
+                        app:helperTextEnabled="true">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etParedeQtd"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilAbertura"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:hint="@string/calc_step3_abertura"
+                        android:visibility="gone"
+                        app:helperText="@string/calc_step3_abertura_helper"
+                        app:helperTextEnabled="true">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAbertura"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:digits="0123456789,."
@@ -736,8 +771,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="monospace"
-                            android:padding="16dp"
                             android:lineSpacingExtra="44dp"
+                            android:padding="16dp"
                             android:textAppearance="?attr/textAppearanceBodyLarge"
                             tools:text="📋 REVISÃO DOS PARÂMETROS\n\n• Tipo: Piso Porcelanato\n• Ambiente: Molhado (ACIII)" />
                     </com.google.android.material.card.MaterialCardView>
