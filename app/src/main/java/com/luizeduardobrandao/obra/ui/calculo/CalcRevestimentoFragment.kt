@@ -178,7 +178,7 @@ class CalcRevestimentoFragment : Fragment() {
             tilParedeQtd, tilAbertura,
             tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta,
             tilPecasPorCaixa, tilDesnivel, tilSobra,
-            tilRodapeAltura, tilRodapeCompComercial
+            tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial
         ).forEach { it.isErrorEnabled = true }
 
         setupNavigationButtons()
@@ -751,6 +751,12 @@ class CalcRevestimentoFragment : Fragment() {
     private fun setupStep5Listeners() = with(binding) {
         switchRodape.setOnCheckedChangeListener { _, isChecked ->
             groupRodapeFields.isVisible = isChecked
+
+            if (!isChecked) {
+                etRodapeAbertura.text?.clear()
+                tilRodapeAbertura.error = null
+            }
+
             updateRodapeViewModel()
             updateRequiredIconsStep5()
             if (viewModel.step.value in 1..7) {
@@ -794,6 +800,42 @@ class CalcRevestimentoFragment : Fragment() {
             { mToCmIfLooksLikeMeters(getD(etRodapeAltura)) },
             3.0..30.0,
             getString(R.string.calc_err_rodape_altura)
+        )
+
+        // Validação do campo de aberturas
+        etRodapeAbertura.doAfterTextChanged {
+            updateRodapeViewModel()
+            updateRequiredIconsStep5()
+
+            val texto = etRodapeAbertura.text?.toString()
+            val aberturaM = getD(etRodapeAbertura)
+
+            val msg = if (texto.isNullOrBlank()) {
+                null // campo opcional: sem valor, sem erro
+            } else {
+                val maxRodape = viewModel.getRodapePerimetroPossivel()
+                if (aberturaM == null || aberturaM < 0.0) {
+                    getString(R.string.calc_err_rodape_abertura_maior_perimetro)
+                } else if (maxRodape != null && aberturaM > maxRodape) {
+                    getString(R.string.calc_err_rodape_abertura_maior_perimetro)
+                } else {
+                    null
+                }
+            }
+
+            validator.setInlineError(etRodapeAbertura, tilRodapeAbertura, msg)
+
+            if (viewModel.step.value in 1..7) {
+                refreshNextEnabled()
+            }
+        }
+
+        validator.validateRangeOnBlur(
+            etRodapeAbertura,
+            tilRodapeAbertura,
+            { getD(etRodapeAbertura) },
+            0.0..10000.0,
+            getString(R.string.calc_err_rodape_abertura_maior_perimetro)
         )
 
         etRodapeCompComercial.doAfterTextChanged {
@@ -952,15 +994,17 @@ class CalcRevestimentoFragment : Fragment() {
 
         val compProntaM =
             if (material == CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA)
-                getD(etRodapeCompComercial)?.div(100.0) // campo agora em cm → ViewModel continua recebendo em m
+                getD(etRodapeCompComercial)?.div(100.0)
             else
                 null
+
+        val aberturaM = getD(etRodapeAbertura)?.coerceAtLeast(0.0) ?: 0.0
 
         viewModel.setRodape(
             enable = switchRodape.isChecked,
             alturaCm = mToCmIfLooksLikeMeters(getD(etRodapeAltura)),
             perimetroManualM = null,
-            descontarVaoM = 0.0,
+            descontarVaoM = aberturaM,
             perimetroAuto = true,
             material = material,
             orientacaoMaior = true,
@@ -1046,7 +1090,8 @@ class CalcRevestimentoFragment : Fragment() {
                     getD(etDesnivel)
                 ) &&
                 tilParedeQtd.error.isNullOrEmpty() &&
-                tilAbertura.error.isNullOrEmpty()
+                tilAbertura.error.isNullOrEmpty() &&
+                tilRodapeAbertura.error.isNullOrEmpty()
 
         val inputs = viewModel.inputs.value
 
@@ -1353,6 +1398,7 @@ class CalcRevestimentoFragment : Fragment() {
             etPecasPorCaixa.text?.clear()
             etDesnivel.text?.clear()
             etRodapeAltura.text?.clear()
+            etRodapeAbertura.text?.clear()
             etRodapeCompComercial.text?.clear()
 
             // Limpa erros básicos
@@ -1370,6 +1416,7 @@ class CalcRevestimentoFragment : Fragment() {
             tilDesnivel.error = null
             tilSobra.error = null
             tilRodapeAltura.error = null
+            tilRodapeAbertura.error = null
             tilRodapeCompComercial.error = null
 
             tvAreaTotalAviso.isVisible = false
@@ -1409,6 +1456,7 @@ class CalcRevestimentoFragment : Fragment() {
             syncField(etJunta, i.juntaMm)
             syncField(etSobra, i.sobraPct)
             syncField(etRodapeAltura, i.rodapeAlturaCm)
+            syncField(etRodapeAbertura, i.rodapeDescontarVaoM.takeIf { it > 0.0 })
 
             i.pecasPorCaixa?.let {
                 val current = etPecasPorCaixa.text?.toString()?.toIntOrNull()
@@ -1421,6 +1469,11 @@ class CalcRevestimentoFragment : Fragment() {
         switchImp.isChecked = i.impermeabilizacaoOn
         switchRodape.isChecked = i.rodapeEnable
         groupRodapeFields.isVisible = i.rodapeEnable
+
+        if (!i.rodapeEnable) {
+            etRodapeAbertura.text?.clear()
+            tilRodapeAbertura.error = null
+        }
     }
 
     // Sincroniza campo simples

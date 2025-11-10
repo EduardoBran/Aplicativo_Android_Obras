@@ -105,7 +105,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val rodapeEnable: Boolean = false,
         val rodapeAlturaCm: Double? = null,
         val rodapePerimetroManualM: Double? = null,
-        val rodapeDescontarVaoM: Double? = 0.0,
+        val rodapeDescontarVaoM: Double = 0.0,
         val rodapePerimetroAuto: Boolean = true,
         val rodapeMaterial: RodapeMaterial = RodapeMaterial.MESMA_PECA,
         val rodapeOrientacaoMaior: Boolean = true,
@@ -343,21 +343,26 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     // Define os parâmetros do rodapé
     fun setRodape(
-        enable: Boolean, alturaCm: Double?, perimetroManualM: Double?,
-        descontarVaoM: Double?, perimetroAuto: Boolean, material: RodapeMaterial,
-        orientacaoMaior: Boolean, compComercialM: Double?
+        enable: Boolean,
+        alturaCm: Double?,
+        perimetroManualM: Double?,
+        descontarVaoM: Double,
+        perimetroAuto: Boolean,
+        material: RodapeMaterial,
+        orientacaoMaior: Boolean,
+        compComercialM: Double?
     ) = viewModelScope.launch {
         _inputs.value = _inputs.value.copy(
             rodapeEnable = enable,
             rodapeAlturaCm = alturaCm?.takeIf { it in 3.0..30.0 },
             rodapePerimetroManualM = perimetroManualM?.takeIf { it >= 0 },
-            rodapeDescontarVaoM = max(0.0, descontarVaoM ?: 0.0),
+            rodapeDescontarVaoM = max(0.0, descontarVaoM),
             rodapePerimetroAuto = perimetroAuto,
             rodapeMaterial = material,
             rodapeOrientacaoMaior = orientacaoMaior,
             rodapeCompComercialM =
                 if (material == RodapeMaterial.PECA_PRONTA)
-                    compComercialM?.takeIf { it in 0.05..3.0 } // 5 a 300 cm em metros
+                    compComercialM?.takeIf { it in 0.05..3.0 }
                 else
                     null
         )
@@ -960,13 +965,14 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val areaBase = areaBaseM2(i) ?: 0.0
         val areaBaseExibM2 = rodapeAreaBaseExibicaoM2(i)
 
-        // Rodapé: perímetros para exibição e compra
-        val perimetroExibidoMl =
-            max(0.0, (rodapePerimetroM(i) ?: 0.0) - (i.rodapeDescontarVaoM ?: 0.0))
-        val perimetroCompraMl = rodapePerimetroSeguroM(i) ?: 0.0
+        // Rodapé: cálculo simples aplicando APENAS o desconto informado pelo usuário
+        val rodapePerimetroBase = rodapePerimetroM(i) ?: 0.0
+        val descontoAberturaM = i.rodapeDescontarVaoM.coerceAtLeast(0.0)
+        val rodapePerimetroLiquido = max(0.0, rodapePerimetroBase - descontoAberturaM)
+
         val alturaRodapeM = (i.rodapeAlturaCm ?: 0.0) / 100.0
-        val areaRodapeExibM2 = if (i.rodapeEnable) perimetroExibidoMl * alturaRodapeM else 0.0
-        val areaRodapeCompraM2 = if (i.rodapeEnable) perimetroCompraMl * alturaRodapeM else 0.0
+        val areaRodapeExibM2 = if (i.rodapeEnable) rodapePerimetroLiquido * alturaRodapeM else 0.0
+        val areaRodapeCompraM2 = areaRodapeExibM2 // Sem margem extra automática
 
         // Área total para compra (inclui rodapé se "mesma peça")
         val areaRevestimentoM2 = areaBase +
@@ -995,7 +1001,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         // Adicionar rodapé e impermeabilização
         if (i.revest != RevestimentoType.PISO_INTERTRAVADO) {
-            adicionarRodape(i, areaRodapeCompraM2, perimetroCompraMl, sobra, itens)
+            adicionarRodape(i, areaRodapeCompraM2, rodapePerimetroLiquido, sobra, itens)
             adicionarImpermeabilizacao(i, areaBase + areaRodapeExibM2, itens)
         }
 
@@ -1572,41 +1578,63 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     private fun adicionarRodape(
         i: Inputs,
         areaCompraM2: Double,
-        perimetroCompraM: Double,
+        perimetroLiquidoM: Double,
         sobra: Double,
         itens: MutableList<MaterialItem>
     ) {
         if (!i.rodapeEnable || i.revest !in tiposComRodape()) return
+        val alturaCm = i.rodapeAlturaCm ?: return
+        if (areaCompraM2 <= 0.0 || perimetroLiquidoM <= 0.0) return
+
+        val aberturaM = i.rodapeDescontarVaoM.takeIf { it > 0.0 }
 
         if (i.rodapeMaterial == RodapeMaterial.MESMA_PECA) {
-            // Qtd = m² EXTRA de rodapé (já incluído na Qtd do piso principal)
+            // ✅ MESMA PEÇA: área já inclui sobra no cálculo principal
             val areaComSobra = areaCompraM2 * (1 + sobra / 100.0)
+
+            val obs = if (aberturaM != null) {
+                "Mesma peça • Altura: ${arred0(alturaCm)}cm • Abertura: ${arred2(aberturaM)}m.\nIncluso na quantidade de peças."
+            } else {
+                "Mesma peça • Altura: ${arred0(alturaCm)}cm.\nIncluso na quantidade de peças."
+            }
+
             itens += MaterialItem(
                 item = "Rodapé",
                 unid = "m²",
                 qtd = arred2(areaComSobra),
-                observacao = "Mesma peça • Incluso na quantidade de peças."
+                observacao = obs
             )
         } else {
-            // PEÇA PRONTA
+            // ✅ PEÇA PRONTA: calcula quantidade de peças necessárias
             val compM = i.rodapeCompComercialM ?: return
-            val alturaCm = i.rodapeAlturaCm ?: return
             val alturaM = alturaCm / 100.0
 
-            // Comprimento efetivo com sobra técnica aplicada
-            val mlEfetivo = perimetroCompraM * (1 + sobra / 100.0)
-            val qtdPecas = ceil(mlEfetivo / compM).toInt().coerceAtLeast(1)
+            // Perímetro líquido com sobra técnica
+            val perimetroComSobra = perimetroLiquidoM * (1 + sobra / 100.0)
 
-            // Área total coberta pelas peças compradas
+            // Quantidade de peças necessárias (arredonda para cima)
+            val qtdPecas = ceil(perimetroComSobra / compM).toInt().coerceAtLeast(1)
+
+            // Área total das peças compradas
             val areaTotalM2 = qtdPecas * compM * alturaM
 
             val compCm = compM * 100.0
+
+            val obs = if (aberturaM != null) {
+                "Peça pronta • ${arred0(alturaCm)} x ${arred0(compCm)} cm • Abertura: ${
+                    arred2(
+                        aberturaM
+                    )
+                }m.\n$qtdPecas peças."
+            } else {
+                "Peça pronta • ${arred0(alturaCm)} x ${arred0(compCm)} cm • $qtdPecas peças."
+            }
 
             itens += MaterialItem(
                 item = "Rodapé",
                 unid = "m²",
                 qtd = arred2(areaTotalM2),
-                observacao = "Peça pronta • ${arred0(alturaCm)}cm x ${arred0(compCm)}cm • $qtdPecas peças."
+                observacao = obs
             )
         }
     }
@@ -1853,6 +1881,34 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         return i.areaInformadaM2?.takeIf { it > 0 }?.let { k * 4 * sqrt(it) }
             ?: if (c != null && l != null) 2 * (c + l) else null
+    }
+
+    //Retorna o perímetro máximo possível de rodapé (em metros) para validação.
+    //Usado para verificar se o valor informado de aberturas não excede o total disponível.
+    fun getRodapePerimetroPossivel(): Double? {
+        val i = _inputs.value
+        if (!i.rodapeEnable) return null
+
+        // Se usuário informou perímetro manual, usa esse valor
+        if (!i.rodapePerimetroAuto && i.rodapePerimetroManualM != null && i.rodapePerimetroManualM > 0.0) {
+            return i.rodapePerimetroManualM
+        }
+
+        val comp = i.compM
+        val larg = i.largM
+
+        // Cálculo automático: 2 × (comp + larg)
+        if (comp != null && larg != null && comp > 0.0 && larg > 0.0) {
+            return 2.0 * (comp + larg)
+        }
+
+        // Área informada: assume ambiente quadrado para validação
+        val area = i.areaInformadaM2
+        if (area != null && area > 0.0) {
+            return 4.0 * sqrt(area)
+        }
+
+        return null
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════

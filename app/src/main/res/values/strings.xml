@@ -1167,13 +1167,18 @@
     <string name="calc_step1_opt_granito">Granito</string>
     <string name="calc_step1_placa_tipo">Tipo de Piso:</string>
     <string name="calc_step1_help">Cerâmicos, porcelanatos, azulejos e pastilhas usam argamassa colante. Pedra, mármore e granito usam colchão de cimento + areia (traço 1:4).</string>
+    <!-- Diálogo aplicação Mármore/Granito -->
+    <string name="calc_aplicacao_dialog_title_mg">Onde será aplicado?</string>
+    <string name="calc_aplicacao_option_piso">Piso</string>
+    <string name="calc_aplicacao_option_parede">Parede</string>
+
 
     <!-- TELA 2 -->
     <string name="calc_step2_title">Tipo de ambiente</string>
     <string name="calc_step2_opt_seco">Seco (interior)</string>
-    <string name="calc_step2_opt_semi">Semi-molhado (varanda coberta)</string>
+    <string name="calc_step2_opt_semi">Semi-Molhado (varanda coberta)</string>
     <string name="calc_step2_opt_molhado">Molhado (banheiro, área externa com água)</string>
-    <string name="calc_step2_opt_sempre">Sempre molhado (piscina, tanque)</string>
+    <string name="calc_step2_opt_sempre">Sempre Molhado (piscina, tanque)</string>
     <string name="calc_step2_help">O ambiente define a classe da argamassa e a necessidade de impermeabilização.</string>
     <string name="calc_step2_obs_porcelanato_ac3">Porcelanato em semi/molhado: fabricantes exigem ACIII.</string>
 
@@ -1204,10 +1209,10 @@
     <string name="calc_err_abertura_negative">Abertura não pode ser negativa.</string>
     <string name="calc_err_abertura_maior_area">A abertura não pode ser maior que a área total das paredes.</string>
 
-    <!-- Diálogo aplicação Mármore/Granito -->
-    <string name="calc_aplicacao_dialog_title_mg">Onde será aplicado?</string>
-    <string name="calc_aplicacao_option_piso">Piso</string>
-    <string name="calc_aplicacao_option_parede">Parede</string>
+    <!-- Medidas da área (step 3) -->
+    <string name="calc_err_medida_comp_larg_m">Valor inválido. Limites: 0,01 a 10.000 m.</string>
+    <string name="calc_err_medida_alt_m">Valor inválido. Limites: 0,01 a 100 m.</string>
+    <string name="calc_err_area_total">Valor inválido. Limites: 0,1 a 50.000 m².</string>
 
     <!-- TELA 4 -->
     <string name="calc_step4_title">Parâmetros do revestimento</string>
@@ -1217,6 +1222,7 @@
     <string name="calc_step4_junta">Espessura da junta (mm)</string>
     <string name="calc_step4_desnivel_label">Desnível a corrigir (cm)</string>
     <string name="calc_step4_sobra">Sobra técnica (%)</string>
+    <string name="calc_step4_sobra_helper">Sobra técnica padrão de 10% aplicada (pode ser alterada)</string>
     <string name="calc_step4_warn_piece">Sem tamanho de peça, não calcularemos quantidade de placas.</string>
     <string name="calc_step4_warn_porcelanato">Porcelanato externo requer ACIII.</string>
     <string name="calc_piece_applied">Parâmetros de peça aplicados.</string>
@@ -1264,11 +1270,6 @@
     <string name="calc_err_generic">Valor inválido</string>
     <string name="calc_err_esp_intertravado_range">Espessura inválida (permitido: 4 a 12 cm)</string>
 
-    <!-- Medidas da área (step 3) -->
-    <string name="calc_err_medida_comp_larg_m">Valor inválido. Limites: 0,01 a 10.000 m.</string>
-    <string name="calc_err_medida_alt_m">Valor inválido. Limites: 0,01 a 100 m.</string>
-    <string name="calc_err_area_total">Valor inválido. Limites: 0,1 a 50.000 m².</string>
-
     <!-- TELA 5 -->
     <string name="calc_step5_title">Rodapé</string>
     <string name="calc_step5_include">Incluir rodapé no cálculo</string>
@@ -1279,6 +1280,9 @@
     <string name="calc_step5_comp_pronta_cm">Comprimento da peça pronta (cm)</string>
     <string name="calc_step5_comp_pronta_cm_helper">Em centímetros • Ex: 30 para 30cm ou 100 para 1m</string>
     <string name="calc_err_rodape_comp_cm_range">Valor inválido. Informe entre 5 e 300cm.</string>
+    <string name="calc_step5_abertura_largura_total">Abertura (m) (opcional)</string>
+    <string name="calc_step5_abertura_largura_total_helper">Largura total do(s) vão(s) sem rodapé • Ex: 0,80 ou 1,60</string>
+    <string name="calc_err_rodape_abertura_maior_perimetro">O valor informado ultrapassa o total de rodapé possível no ambiente.</string>
 
     <!-- TELA 6 -->
     <string name="calc_step6_title">Impermeabilização</string>
@@ -1342,9 +1346,9 @@
     <string name="cont_btn_calcular">Calcular materiais</string>
     <string name="cont_novo_calculo">Iniciar novo cálculo</string>
     <string name="helper_junta_piso_ceramico">Em milímetros • Recomendado: 5mm</string>
-    <string name="helper_junta_piso_porcelanato">Em milímetros • Recomendado: 4mm</string>
-    <string name="helper_junta_pastilha">Em milímetros • Recomendado: 2mm</string>
-    <string name="helper_junta_azulejo">Em milímetros • Recomendado: 3mm</string>
+    <string name="helper_junta_piso_porcelanato">Em milímetros • Recomendado: 2mm</string>
+    <string name="helper_junta_pastilha">Em milímetros • Valor padrão: 2mm • </string>
+    <string name="helper_junta_azulejo">Em milímetros • Recomendado: 5mm</string>
     <string name="helper_junta_pedra_portuguesa">Em milímetros • Recomendado: 4mm</string>
     <string name="helper_junta_marmore_granito">Em milímetros • Recomendado: 2mm</string>
     <string name="helper_junta_piso_intertravado">Em milímetros • Recomendado: 4mm</string>
