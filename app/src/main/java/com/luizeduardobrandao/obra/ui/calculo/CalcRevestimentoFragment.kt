@@ -10,7 +10,7 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.core.view.isGone
+import androidx.core.view.get
 import androidx.core.view.isVisible
 import androidx.core.view.size
 import androidx.core.widget.doAfterTextChanged
@@ -26,8 +26,9 @@ import com.google.android.material.textfield.TextInputLayout
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentCalcRevestimentoBinding
-import com.luizeduardobrandao.obra.ui.calculo.ui.MaterialTableBuilder
-import com.luizeduardobrandao.obra.ui.calculo.ui.RequiredIconManager
+import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.ImpermeabilizacaoSpecifications
+import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
+import com.luizeduardobrandao.obra.ui.calculo.ui.*
 import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import com.luizeduardobrandao.obra.ui.calculo.utils.PdfGenerator
 import com.luizeduardobrandao.obra.ui.calculo.utils.UnitConverter
@@ -38,8 +39,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
-import androidx.core.view.get
 
+/**
+ * Fragment para cálculo de materiais de revestimento
+ *
+ * Wizard de 10 etapas:
+ * 0. Tela inicial
+ * 1. Tipo de revestimento
+ * 2. Tipo de ambiente
+ * 3. Tipo de tráfego (apenas Piso Intertravado)
+ * 4. Medidas do ambiente
+ * 5. Parâmetros da peça
+ * 6. Rodapé (opcional)
+ * 7. Impermeabilização (opcional)
+ * 8. Revisão
+ * 9. Resultado
+ */
 @AndroidEntryPoint
 class CalcRevestimentoFragment : Fragment() {
 
@@ -48,13 +63,17 @@ class CalcRevestimentoFragment : Fragment() {
 
     private val viewModel: CalcRevestimentoViewModel by viewModels()
 
-    // Helpers
+    // Gerenciadores de UI
     private lateinit var validator: FieldValidator
     private lateinit var iconManager: RequiredIconManager
     private lateinit var tableBuilder: MaterialTableBuilder
     private lateinit var pdfGenerator: PdfGenerator
+    private lateinit var radioSynchronizer: RadioGroupSynchronizer
+    private lateinit var fieldSynchronizer: FieldSynchronizer
+    private lateinit var visibilityManager: VisibilityManager
+    private lateinit var navigationHandler: StepNavigationHandler
 
-    // Controle de UX pós-share
+    // Controle de UX pós-compartilhamento
     private var pendingShareConfirm = false
     private var leftAppForShare = false
     private var skipFocusHijackOnce = false
@@ -77,12 +96,7 @@ class CalcRevestimentoFragment : Fragment() {
     ): View {
         _binding = FragmentCalcRevestimentoBinding.inflate(inflater, container, false)
 
-        // Inicializar helpers
-        validator = FieldValidator(viewModel)
-        iconManager = RequiredIconManager(requireContext())
-        tableBuilder = MaterialTableBuilder(requireContext(), layoutInflater)
-        pdfGenerator = PdfGenerator(requireContext()) { tableBuilder.buildComprarCell(it) }
-
+        initializeHelpers()
         setupToolbar()
         setupUi()
         setupObservers()
@@ -115,10 +129,26 @@ class CalcRevestimentoFragment : Fragment() {
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
-     * SETUP INICIAL
+     * INICIALIZAÇÃO
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    // Configura a toolbar com menu e navegação
+    /**
+     * Inicializa todos os gerenciadores de UI
+     */
+    private fun initializeHelpers() {
+        validator = FieldValidator(viewModel)
+        iconManager = RequiredIconManager(requireContext())
+        tableBuilder = MaterialTableBuilder(requireContext(), layoutInflater)
+        pdfGenerator = PdfGenerator(requireContext()) { tableBuilder.buildComprarCell(it) }
+        radioSynchronizer = RadioGroupSynchronizer()
+        fieldSynchronizer = FieldSynchronizer()
+        visibilityManager = VisibilityManager()
+        navigationHandler = StepNavigationHandler()
+    }
+
+    /**
+     * Configura a toolbar com menu e navegação
+     */
     private fun setupToolbar() = with(binding.toolbar) {
         setNavigationOnClickListener { findNavController().navigateUp() }
         inflateMenu(R.menu.menu_calc_revestimento)
@@ -139,7 +169,9 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    // Mostra menu popup de exportação
+    /**
+     * Mostra menu popup de exportação (Compartilhar/Download)
+     */
     private fun showExportMenu(anchor: View) {
         val popup = androidx.appcompat.widget.PopupMenu(requireContext(), anchor, Gravity.END)
         popup.menu.add(0, 1, 0, getString(R.string.export_share))
@@ -171,16 +203,14 @@ class CalcRevestimentoFragment : Fragment() {
      * SETUP DA UI
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    private fun setupUi() = with(binding) {
-        // Habilita slots de erro em todos os campos com TIL
-        listOf(
-            tilComp, tilLarg, tilAltura, tilAreaInformada,
-            tilParedeQtd, tilAbertura,
-            tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta,
-            tilPecasPorCaixa, tilDesnivel, tilSobra,
-            tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial
-        ).forEach { it.isErrorEnabled = true }
+    /**
+     * Configura todos os componentes da UI
+     */
+    private fun setupUi() {
+        // Habilita slots de erro em todos os TextInputLayouts
+        enableErrorSlotsForAllFields()
 
+        // Configura listeners por etapa
         setupNavigationButtons()
         setupStep1Listeners()  // Tipo de revestimento
         setupStep2Listeners()  // Ambiente
@@ -189,13 +219,45 @@ class CalcRevestimentoFragment : Fragment() {
         setupStep4Listeners()  // Peça
         setupStep5Listeners()  // Rodapé
         setupStep6Listeners()  // Impermeabilização
-        setupStep7Listeners()  // Revisão e cálculo
+        return setupStep7Listeners()  // Revisão e cálculo
     }
 
-    // Botões de navegação entre etapas
+    /**
+     * Habilita slots de erro para todos os campos
+     */
+    private fun enableErrorSlotsForAllFields() = with(binding) {
+        listOf(
+            tilComp, tilLarg, tilAltura, tilAreaInformada,
+            tilParedeQtd, tilAbertura,
+            tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta,
+            tilPecasPorCaixa, tilDesnivel, tilSobra,
+            tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial
+        ).forEach { it.isErrorEnabled = true }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+     * NAVEGAÇÃO
+     * ═══════════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * Configura botões de navegação (Iniciar/Voltar/Avançar/Cancelar)
+     */
     private fun setupNavigationButtons() = with(binding) {
-        btnNext.setOnClickListener {
+        btnNext.setOnClickListener { handleNextButtonClick() }
+        btnBack.setOnClickListener { rootCalc.post { viewModel.prevStep() } }
+        btnStart.setOnClickListener { rootCalc.post { viewModel.nextStep() } }
+        btnCancel.setOnClickListener { findNavController().navigateUp() }
+    }
+
+    /**
+     * Trata clique no botão "Avançar"
+     * Valida campos antes de prosseguir
+     */
+    private fun handleNextButtonClick() {
+        with(binding) {
             val step = viewModel.step.value
+
+            // Valida todos os campos da etapa atual
             val ok = viewModel.isStepValid(step) &&
                     !validator.hasAreaTotalErrorNow(etAreaInformada) &&
                     !validator.hasJuntaErrorNow(etJunta, juntaValueMm(), juntaRange()) &&
@@ -215,36 +277,32 @@ class CalcRevestimentoFragment : Fragment() {
 
             if (!ok) {
                 toast(getString(R.string.calc_validate_step))
-                return@setOnClickListener
+                return
             }
 
-            // Regra especial para Mármore/Granito: definir aplicação antes de seguir
-            if (step == 1) {
-                val i = viewModel.inputs.value
-                if ((i.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
-                            i.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO) &&
-                    i.aplicacao == null
-                ) {
-                    showAplicacaoDialogForMG()
-                    return@setOnClickListener
-                }
+            // Regra especial: Mármore/Granito precisa definir aplicação (Piso/Parede)
+            if (step == 1 && needsAplicacaoDialog()) {
+                showAplicacaoDialogForMG()
+                return
             }
 
             rootCalc.post { viewModel.nextStep() }
         }
-
-        btnBack.setOnClickListener {
-            rootCalc.post { viewModel.prevStep() }
-        }
-
-        btnStart.setOnClickListener {
-            rootCalc.post { viewModel.nextStep() }
-        }
-
-        btnCancel.setOnClickListener { findNavController().navigateUp() }
     }
 
-    // AlertDialog para Mármore / Granito
+    /**
+     * Verifica se precisa mostrar diálogo de aplicação (Mármore/Granito)
+     */
+    private fun needsAplicacaoDialog(): Boolean {
+        val i = viewModel.inputs.value
+        return (i.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                i.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO) &&
+                i.aplicacao == null
+    }
+
+    /**
+     * Mostra diálogo para escolher aplicação (Piso ou Parede) para Mármore/Granito
+     */
     private fun showAplicacaoDialogForMG() {
         val options = arrayOf(
             getString(R.string.calc_aplicacao_option_piso),
@@ -257,43 +315,27 @@ class CalcRevestimentoFragment : Fragment() {
         dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.calc_aplicacao_dialog_title_mg))
             .setSingleChoiceItems(options, -1) { _, which ->
-                // Atualiza seleção
                 selected = which
-
-                // Habilita o botão OK assim que o usuário escolher uma opção
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = true
             }
-            .setPositiveButton(getString(R.string.generic_ok), null) // tratamos o clique no onShow
-            .setNegativeButton(getString(R.string.generic_cancel)) { d, _ ->
-                // Cancelar → apenas fecha o diálogo, permanece na tela de revestimento
-                d.dismiss()
-            }
+            .setPositiveButton(getString(R.string.generic_ok), null)
+            .setNegativeButton(getString(R.string.generic_cancel)) { d, _ -> d.dismiss() }
             .create()
 
         dialog.setOnShowListener {
             val okBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-
-            // Inicialmente desabilitado até o usuário escolher Piso ou Parede
             okBtn.isEnabled = (selected != -1)
 
             okBtn.setOnClickListener {
-                if (selected == -1) {
-                    // Segurança extra: não deveria acontecer se o enable estiver correto
-                    return@setOnClickListener
-                }
+                if (selected == -1) return@setOnClickListener
 
-                val aplicacao =
-                    if (selected == 0)
-                        CalcRevestimentoViewModel.AplicacaoType.PISO
-                    else
-                        CalcRevestimentoViewModel.AplicacaoType.PAREDE
+                val aplicacao = if (selected == 0)
+                    CalcRevestimentoViewModel.AplicacaoType.PISO
+                else
+                    CalcRevestimentoViewModel.AplicacaoType.PAREDE
 
-                // Atualiza o ViewModel com o tipo de aplicação selecionado
                 viewModel.setAplicacao(aplicacao)
-
                 dialog.dismiss()
-
-                // Só depois de definido (Piso ou Parede) avança a etapa
                 binding.rootCalc.post { viewModel.nextStep() }
             }
         }
@@ -301,66 +343,56 @@ class CalcRevestimentoFragment : Fragment() {
         dialog.show()
     }
 
-    // Etapa 1: Tipo de revestimento
+    /* ═══════════════════════════════════════════════════════════════════════════
+     * LISTENERS DE ETAPAS
+     * ═══════════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * Etapa 1: Tipo de revestimento
+     */
     private fun setupStep1Listeners() = with(binding) {
         rgRevest.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
-            val type = when (id) {
-                R.id.rbPiso -> CalcRevestimentoViewModel.RevestimentoType.PISO
-                R.id.rbAzulejo -> CalcRevestimentoViewModel.RevestimentoType.AZULEJO
-                R.id.rbPastilha -> CalcRevestimentoViewModel.RevestimentoType.PASTILHA
-                R.id.rbPedra -> CalcRevestimentoViewModel.RevestimentoType.PEDRA
-                R.id.rbPisoIntertravado -> CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO
-                R.id.rbMarmore -> CalcRevestimentoViewModel.RevestimentoType.MARMORE
-                R.id.rbGranito -> CalcRevestimentoViewModel.RevestimentoType.GRANITO
-                else -> null
-            }
+
+            val type = mapRadioIdToRevestimento(id)
             type?.let { viewModel.setRevestimento(it) }
             groupPlacaTipo.isVisible = (type == CalcRevestimentoViewModel.RevestimentoType.PISO)
         }
 
         rgPlacaTipo.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
-            val placa = when (id) {
-                R.id.rbCeramica -> CalcRevestimentoViewModel.PlacaTipo.CERAMICA
-                R.id.rbPorcelanato -> CalcRevestimentoViewModel.PlacaTipo.PORCELANATO
-                else -> null
-            }
+
+            val placa = mapRadioIdToPlacaTipo(id)
             viewModel.setPlacaTipo(placa)
         }
     }
 
-    // Etapa 2: Ambiente
+    /**
+     * Etapa 2: Tipo de ambiente
+     */
     private fun setupStep2Listeners() = with(binding) {
         rgAmbiente.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
-            val amb = when (id) {
-                R.id.rbSeco -> CalcRevestimentoViewModel.AmbienteType.SECO
-                R.id.rbSemi -> CalcRevestimentoViewModel.AmbienteType.SEMI
-                R.id.rbMolhado -> CalcRevestimentoViewModel.AmbienteType.MOLHADO
-                R.id.rbSempre -> CalcRevestimentoViewModel.AmbienteType.SEMPRE
-                else -> null
-            }
+            val amb = mapRadioIdToAmbiente(id)
             amb?.let { viewModel.setAmbiente(it) }
         }
     }
 
-    // Etapa 2.1 Tipo de Tráfego (apenas Piso Intertravado)
+    /**
+     * Etapa 3: Tipo de tráfego (apenas Piso Intertravado)
+     */
     private fun setupStep3TrafegoListeners() = with(binding) {
         rgTrafego.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
-            val trafego = when (id) {
-                R.id.rbTrafegoLeve -> CalcRevestimentoViewModel.TrafegoType.LEVE
-                R.id.rbTrafegoMedio -> CalcRevestimentoViewModel.TrafegoType.MEDIO
-                R.id.rbTrafegoPesado -> CalcRevestimentoViewModel.TrafegoType.PESADO
-                else -> null
-            }
+            val trafego = mapRadioIdToTrafego(id)
             viewModel.setTrafego(trafego)
             refreshNextEnabled()
         }
     }
 
-    // Etapa 3: Medidas do ambiente
+    /**
+     * Etapa 4: Medidas do ambiente
+     */
     private fun setupStep3Listeners() = with(binding) {
         // Comprimento
         setupMedidaField(etComp, tilComp, 0.01..10000.0, R.string.calc_err_medida_comp_larg_m)
@@ -371,16 +403,60 @@ class CalcRevestimentoFragment : Fragment() {
         // Altura
         setupMedidaField(etAlt, tilAltura, 0.01..100.0, R.string.calc_err_medida_alt_m)
 
-        // Parede (qtd)
+        // Quantidade de paredes
+        setupParedeQtdField()
+
+        // Abertura (portas/janelas)
+        setupAberturaField()
+
+        // Área total informada
+        setupAreaInformadaField()
+    }
+
+    /**
+     * Configura campo de medida (Comp/Larg/Alt)
+     */
+    private fun setupMedidaField(
+        et: TextInputEditText,
+        til: TextInputLayout,
+        range: ClosedRange<Double>,
+        errorMsgRes: Int
+    ) {
+        validator.validateRangeOnBlur(et, til, { getD(et) }, range, getString(errorMsgRes))
+
+        et.doAfterTextChanged {
+            viewModel.setMedidas(
+                getD(binding.etComp),
+                getD(binding.etLarg),
+                getD(binding.etAlt),
+                getD(binding.etAreaInformada)
+            )
+
+            if (til.isVisible) {
+                validator.validateDimLive(
+                    et, til, range,
+                    getString(errorMsgRes),
+                    validator.isAreaTotalValidNow(binding.etAreaInformada)
+                )
+            } else {
+                validator.setInlineError(et, til, null)
+            }
+
+            updateRequiredIconsStep3()
+        }
+    }
+
+    /**
+     * Configura campo de quantidade de paredes
+     */
+    private fun setupParedeQtdField() = with(binding) {
         etParedeQtd.doAfterTextChanged {
             val qtd = etParedeQtd.text?.toString()?.toIntOrNull()
             viewModel.setParedeQtd(qtd)
 
             val msg = when {
                 etParedeQtd.text.isNullOrBlank() -> null
-                qtd == null || qtd !in 1..20 ->
-                    getString(R.string.calc_err_parede_qtd_range)
-
+                qtd == null || qtd !in 1..20 -> getString(R.string.calc_err_parede_qtd_range)
                 else -> null
             }
 
@@ -395,8 +471,12 @@ class CalcRevestimentoFragment : Fragment() {
             1.0..20.0,
             getString(R.string.calc_err_parede_qtd_range)
         )
+    }
 
-        // Abertura (m²)
+    /**
+     * Configura campo de abertura (portas/janelas)
+     */
+    private fun setupAberturaField() = with(binding) {
         etAbertura.doAfterTextChanged {
             val abertura = getD(etAbertura)
             viewModel.setAberturaM2(abertura)
@@ -410,12 +490,8 @@ class CalcRevestimentoFragment : Fragment() {
 
             val msg = when {
                 etAbertura.text.isNullOrBlank() -> null
-                abertura == null || abertura < 0.0 ->
-                    getString(R.string.calc_err_abertura_negative)
-
-                areaBruta != null && abertura > areaBruta ->
-                    getString(R.string.calc_err_abertura_maior_area)
-
+                abertura == null || abertura < 0.0 -> getString(R.string.calc_err_abertura_negative)
+                areaBruta != null && abertura > areaBruta -> getString(R.string.calc_err_abertura_maior_area)
                 else -> null
             }
 
@@ -430,8 +506,12 @@ class CalcRevestimentoFragment : Fragment() {
             0.0..50000.0,
             getString(R.string.calc_err_abertura_negative)
         )
+    }
 
-        // Área total
+    /**
+     * Configura campo de área total informada
+     */
+    private fun setupAreaInformadaField() = with(binding) {
         etAreaInformada.doAfterTextChanged {
             viewModel.setMedidas(getD(etComp), getD(etLarg), getD(etAlt), getD(etAreaInformada))
 
@@ -470,82 +550,49 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    // Configura campo de medida (C/L/A)
-    private fun setupMedidaField(
-        et: TextInputEditText,
-        til: TextInputLayout,
-        range: ClosedRange<Double>,
-        errorMsgRes: Int
-    ) {
-        validator.validateRangeOnBlur(
-            et, til,
-            { getD(et) },
-            range,
-            getString(errorMsgRes)
-        )
-
-        et.doAfterTextChanged {
-            viewModel.setMedidas(
-                getD(binding.etComp),
-                getD(binding.etLarg),
-                getD(binding.etAlt),
-                getD(binding.etAreaInformada)
-            )
-
-            if (til.isVisible) {
-                validator.validateDimLive(
-                    et, til, range,
-                    getString(errorMsgRes),
-                    validator.isAreaTotalValidNow(binding.etAreaInformada)
-                )
-            } else {
-                validator.setInlineError(et, til, null)
-            }
-
-            updateRequiredIconsStep3()
-        }
-    }
-
-    // Etapa 4: Parâmetros da peça
+    /**
+     * Etapa 5: Parâmetros da peça
+     */
     private fun setupStep4Listeners() = with(binding) {
-        // Comprimento da peça
+        // Comprimento e largura da peça
         setupPecaField(etPecaComp, tilPecaComp)
-        // Largura da peça
         setupPecaField(etPecaLarg, tilPecaLarg)
+
         // Espessura
         setupEspessuraField()
+
         // Junta
         setupJuntaField()
+
         // Peças por caixa
         setupPecasPorCaixaField()
+
         // Desnível
         setupDesnivelField()
-        // Sobra
+
+        // Sobra técnica
         setupSobraField()
 
-        // RadioGroup para tamanho de pastilha
+        // Tamanho de pastilha (RadioGroup)
         rgPastilhaTamanho.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
-            val formato = when (id) {
-                R.id.rbPastilha5 -> CalcRevestimentoViewModel.PastilhaFormato.P5
-                R.id.rbPastilha7_5 -> CalcRevestimentoViewModel.PastilhaFormato.P7_5
-                R.id.rbPastilha10 -> CalcRevestimentoViewModel.PastilhaFormato.P10
-                else -> null
-            }
+            val formato = mapRadioIdToPastilhaFormato(id)
             viewModel.setPastilhaFormato(formato)
             updateRequiredIconsStep4()
             refreshNextEnabled()
         }
     }
 
-    // Configura campo de peça (comp/larg)
+    /**
+     * Configura campo de peça (comprimento ou largura)
+     */
     private fun setupPecaField(et: TextInputEditText, til: TextInputLayout) {
         et.doAfterTextChanged {
             updatePecaParametros()
 
             val v = parsePecaToCm(getD(et))
             val inRange = when {
-                isMG() -> (v != null && v in 10.0..2000.0) // 0,1 m .. 20,0 m em cm
+                isMG() -> (v != null && v in 10.0..2000.0)
                 isPastilha() -> (v != null && v in 20.0..40.0)
                 else -> (v != null && v in 5.0..200.0)
             }
@@ -571,7 +618,9 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    // Configura campo de espessura da peça
+    /**
+     * Configura campo de espessura
+     */
     private fun setupEspessuraField() = with(binding) {
         etPecaEsp.doAfterTextChanged {
             if (isPastilha()) {
@@ -584,19 +633,18 @@ class CalcRevestimentoFragment : Fragment() {
 
             updatePecaParametros()
 
-            val (valorMm, minMm, maxMm, errMsg) =
-                if (isIntertravado()) {
-                    val cm = getD(etPecaEsp)
-                    val mm = cm?.times(10) // cm → mm
-                    Quad(mm, 40.0, 120.0, getString(R.string.calc_err_esp_intertravado_range))
-                } else {
-                    Quad(
-                        mToMmIfLooksLikeMeters(getD(etPecaEsp)),
-                        3.0,
-                        30.0,
-                        getString(R.string.calc_err_esp_range)
-                    )
-                }
+            val (valorMm, minMm, maxMm, errMsg) = if (isIntertravado()) {
+                val cm = getD(etPecaEsp)
+                val mm = cm?.times(10)
+                Quad(mm, 40.0, 120.0, getString(R.string.calc_err_esp_intertravado_range))
+            } else {
+                Quad(
+                    mToMmIfLooksLikeMeters(getD(etPecaEsp)),
+                    3.0,
+                    30.0,
+                    getString(R.string.calc_err_esp_range)
+                )
+            }
 
             val ok = (valorMm != null && valorMm in minMm..maxMm)
             val msg = when {
@@ -610,11 +658,11 @@ class CalcRevestimentoFragment : Fragment() {
             refreshNextEnabled()
         }
 
-        // validação "on blur"
+        // Validação on blur
         if (isIntertravado()) {
             validator.validateRangeOnBlur(
                 etPecaEsp, tilPecaEsp,
-                { getD(etPecaEsp)?.times(10) }, // cm → mm
+                { getD(etPecaEsp)?.times(10) },
                 40.0..120.0,
                 getString(R.string.calc_err_esp_intertravado_range)
             )
@@ -628,10 +676,9 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    // helper local para tupla simples
-    private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
-
-    // Configura campo de junta
+    /**
+     * Configura campo de junta
+     */
     private fun setupJuntaField() = with(binding) {
         etJunta.doAfterTextChanged {
             updatePecaParametros()
@@ -642,16 +689,11 @@ class CalcRevestimentoFragment : Fragment() {
             updateRequiredIconsStep4()
             refreshNextEnabled()
         }
-
-        validator.validateRangeOnBlur(
-            etJunta, tilJunta,
-            { juntaValueMm() },
-            juntaRange(),
-            juntaErrorMsg()
-        )
     }
 
-    // Configura campo de peças por caixa
+    /**
+     * Configura campo de peças por caixa
+     */
     private fun setupPecasPorCaixaField() = with(binding) {
         etPecasPorCaixa.doAfterTextChanged {
             updatePecaParametros()
@@ -664,17 +706,17 @@ class CalcRevestimentoFragment : Fragment() {
                 etPecasPorCaixa, tilPecasPorCaixa,
                 if (ok) null else getString(R.string.calc_err_ppc_range)
             )
-
             refreshNextEnabled()
         }
     }
 
-    // Configura o campo de desnível
+    /**
+     * Configura campo de desnível
+     */
     private fun setupDesnivelField() = with(binding) {
         etDesnivel.doAfterTextChanged {
             updateDesnivelViewModel()
 
-            // Validação inline dinâmica por tipo de revestimento
             val txtEmpty = etDesnivel.text.isNullOrBlank()
             val v = getD(etDesnivel)
             val (range, errRes) = desnivelRangeAndError()
@@ -684,7 +726,6 @@ class CalcRevestimentoFragment : Fragment() {
             refreshNextEnabled()
         }
 
-        // Validação "no blur" no mesmo padrão dos demais campos
         etDesnivel.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
             val txtEmpty = etDesnivel.text.isNullOrBlank()
@@ -695,60 +736,52 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    private fun updateDesnivelViewModel() = with(binding) {
-        viewModel.setDesnivelCm(getD(etDesnivel)) // valor já em cm
-    }
-
-    // Faixas e mensagens dinâmicas por revestimento
-    private fun desnivelRangeAndError(): Pair<ClosedRange<Double>, Int> {
-        return when (viewModel.inputs.value.revest) {
-            CalcRevestimentoViewModel.RevestimentoType.PEDRA ->
-                (4.0..8.0) to R.string.calc_err_desnivel_pedra_range
-
-            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
-            CalcRevestimentoViewModel.RevestimentoType.GRANITO ->
-                (0.0..3.0) to R.string.calc_err_desnivel_mg_range
-
-            else -> (Double.NEGATIVE_INFINITY..Double.POSITIVE_INFINITY) to R.string.calc_err_generic
-        }
-    }
-
-    // Configura campo de sobra
+    /**
+     * Configura campo de sobra técnica
+     */
     private fun setupSobraField() = with(binding) {
         etSobra.doAfterTextChanged {
             updatePecaParametros()
 
-            val s = getD(etSobra)
+            val raw = etSobra.text?.toString()?.replace(",", ".")
+            val s = raw?.toDoubleOrNull()
+
             val msg = when {
-                etSobra.text.isNullOrBlank() -> null
+                raw.isNullOrBlank() ->
+                    // Campo vazio passa a ser considerado inválido até o usuário sair do campo
+                    getString(R.string.calc_err_sobra_range)
+
                 s == null || s < 0.0 || s > 50.0 ->
                     getString(R.string.calc_err_sobra_range)
 
                 else -> null
             }
 
-            tilSobra.error = msg
+            validator.setInlineError(etSobra, tilSobra, msg)
 
             if (viewModel.step.value in 1..7) {
                 refreshNextEnabled()
             }
+
             updateRequiredIconsStep4()
         }
 
         etSobra.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
 
-            // Se usuário deixar em branco, aplicar automaticamente 10%
+            // Se vazio ao sair do campo, restaura automaticamente 10%
             if (etSobra.text.isNullOrBlank()) {
                 etSobra.setText(getString(R.string.valor_sobra_minima))
                 updatePecaParametros()
-                tilSobra.error = null
+                validator.setInlineError(etSobra, tilSobra, null)
+
                 if (viewModel.step.value in 1..7) {
                     refreshNextEnabled()
                 }
                 return@setOnFocusChangeListener
             }
 
+            // Revalida valor existente ao perder o foco
             val s = getD(etSobra)
             val msg = when {
                 s == null || s < 0.0 || s > 50.0 ->
@@ -758,24 +791,26 @@ class CalcRevestimentoFragment : Fragment() {
             }
 
             validator.setInlineError(etSobra, tilSobra, msg)
+
+            if (viewModel.step.value in 1..7) {
+                refreshNextEnabled()
+            }
         }
     }
 
-    // Etapa 5: Rodapé
+    /**
+     * Etapa 6: Rodapé
+     */
     private fun setupStep5Listeners() = with(binding) {
         switchRodape.setOnCheckedChangeListener { _, isChecked ->
             groupRodapeFields.isVisible = isChecked
-
             if (!isChecked) {
                 etRodapeAbertura.text?.clear()
                 tilRodapeAbertura.error = null
             }
-
             updateRodapeViewModel()
             updateRequiredIconsStep5()
-            if (viewModel.step.value in 1..7) {
-                refreshNextEnabled()
-            }
+            if (viewModel.step.value in 1..7) refreshNextEnabled()
         }
 
         rgRodapeMat.setOnCheckedChangeListener { _, checkedId ->
@@ -790,10 +825,7 @@ class CalcRevestimentoFragment : Fragment() {
 
             updateRodapeViewModel()
             updateRequiredIconsStep5()
-
-            if (viewModel.step.value in 1..7) {
-                refreshNextEnabled()
-            }
+            if (viewModel.step.value in 1..7) refreshNextEnabled()
         }
 
         etRodapeAltura.doAfterTextChanged {
@@ -816,7 +848,6 @@ class CalcRevestimentoFragment : Fragment() {
             getString(R.string.calc_err_rodape_altura)
         )
 
-        // Validação do campo de aberturas
         etRodapeAbertura.doAfterTextChanged {
             updateRodapeViewModel()
             updateRequiredIconsStep5()
@@ -825,7 +856,7 @@ class CalcRevestimentoFragment : Fragment() {
             val aberturaM = getD(etRodapeAbertura)
 
             val msg = if (texto.isNullOrBlank()) {
-                null // campo opcional: sem valor, sem erro
+                null
             } else {
                 val maxRodape = viewModel.getRodapePerimetroPossivel()
                 if (aberturaM == null || aberturaM < 0.0) {
@@ -838,15 +869,11 @@ class CalcRevestimentoFragment : Fragment() {
             }
 
             validator.setInlineError(etRodapeAbertura, tilRodapeAbertura, msg)
-
-            if (viewModel.step.value in 1..7) {
-                refreshNextEnabled()
-            }
+            if (viewModel.step.value in 1..7) refreshNextEnabled()
         }
 
         validator.validateRangeOnBlur(
-            etRodapeAbertura,
-            tilRodapeAbertura,
+            etRodapeAbertura, tilRodapeAbertura,
             { getD(etRodapeAbertura) },
             0.0..10000.0,
             getString(R.string.calc_err_rodape_abertura_maior_perimetro)
@@ -864,52 +891,43 @@ class CalcRevestimentoFragment : Fragment() {
             val compCm = getD(etRodapeCompComercial)
 
             val msg = when {
-                // Enquanto vazio, não mostra erro visual (só bloqueia o Avançar via refreshNextEnabled)
                 !isPecaProntaSelecionada || etRodapeCompComercial.text.isNullOrBlank() -> null
-                compCm == null || compCm !in 5.0..300.0 ->
-                    getString(R.string.calc_err_rodape_comp_cm_range)
-
+                compCm == null || compCm !in 5.0..300.0 -> getString(R.string.calc_err_rodape_comp_cm_range)
                 else -> null
             }
 
             validator.setInlineError(etRodapeCompComercial, tilRodapeCompComercial, msg)
-
-            if (viewModel.step.value in 1..7) {
-                refreshNextEnabled()
-            }
+            if (viewModel.step.value in 1..7) refreshNextEnabled()
         }
+
         validator.validateRangeOnBlur(
-            etRodapeCompComercial,
-            tilRodapeCompComercial,
+            etRodapeCompComercial, tilRodapeCompComercial,
             { getD(etRodapeCompComercial) },
             5.0..300.0,
             getString(R.string.calc_err_rodape_comp_cm_range)
         )
     }
 
-    // Etapa 6: Impermeabilização
+    /**
+     * Etapa 7: Impermeabilização
+     */
     private fun setupStep6Listeners() = with(binding) {
         switchImp.setOnCheckedChangeListener { _, on ->
             viewModel.setImpermeabilizacao(on)
             refreshNextEnabled()
         }
+
         rgIntertravadoImp.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
-            val tipo = when (id) {
-                R.id.rbImpMantaGeotextil ->
-                    CalcRevestimentoViewModel.ImpIntertravadoTipo.MANTA_GEOTEXTIL
-
-                R.id.rbImpAditivoSika1 ->
-                    CalcRevestimentoViewModel.ImpIntertravadoTipo.ADITIVO_SIKA1
-
-                else -> null
-            }
+            val tipo = mapRadioIdToImpTipo(id)
             tipo?.let { viewModel.setIntertravadoImpTipo(it) }
             refreshNextEnabled()
         }
     }
 
-    // Etapa 7: Revisão e cálculo
+    /**
+     * Etapa 8: Revisão e cálculo
+     */
     private fun setupStep7Listeners() = with(binding) {
         btnCalcular.setOnClickListener { viewModel.calcular() }
         btnVoltarResultado.setOnClickListener { viewModel.goTo(8) }
@@ -919,6 +937,9 @@ class CalcRevestimentoFragment : Fragment() {
      * OBSERVERS
      * ═══════════════════════════════════════════════════════════════════════════ */
 
+    /**
+     * Configura observers para StateFlow do ViewModel
+     */
     private fun setupObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -929,30 +950,31 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    // Observa mudanças na etapa atual
+    /**
+     * Observa mudanças na etapa atual
+     */
     private suspend fun observeStep() {
         viewModel.step.collect { step ->
             binding.viewFlipper.displayedChild = step
 
-            // garante que, assim que a tela aparece, radios reflitam inputs atuais
-            syncRadioGroups(viewModel.inputs.value)
-
-            handleStep0Layout(step)
+            syncRadioGroups()
+            handleStepLayout(step)
             handleStepIcons(step)
             handleStepButtons(step)
             handleStep7Resume(step)
-
             ensureTopNoFlicker(step)
             refreshNextEnabled()
         }
     }
 
-    // Observa mudanças nos inputs
+    /**
+     * Observa mudanças nos inputs
+     */
     private suspend fun observeInputs() {
         viewModel.inputs.collect { i ->
-            syncRadioGroups(i)
-            syncFieldValues(i)
-            updateUIVisibility(i)
+            syncRadioGroups()
+            syncFieldValues()
+            updateUIVisibility()
             updateHelperTexts(i)
             updateJuntaHelper(i)
 
@@ -960,7 +982,9 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    // Observa resultado do cálculo
+    /**
+     * Observa resultado do cálculo
+     */
     private suspend fun observeResultado() {
         viewModel.resultado.collect { ui ->
             when (ui) {
@@ -977,16 +1001,213 @@ class CalcRevestimentoFragment : Fragment() {
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
-     * HELPERS DE UI
+     * SINCRONIZAÇÃO DE UI
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    // Atualiza parâmetros da peça no ViewModel
+    /**
+     * Sincroniza RadioGroups com o estado do ViewModel
+     */
+    private fun syncRadioGroups() = with(binding) {
+        isSyncing = true
+        radioSynchronizer.syncAllRadioGroups(
+            viewModel.inputs.value,
+            rgRevest, rgPlacaTipo, rgAmbiente, rgRodapeMat,
+            rgTrafego, rgIntertravadoImp, rgPastilhaTamanho
+        )
+        isSyncing = false
+    }
+
+    /**
+     * Sincroniza campos de texto com o estado do ViewModel
+     */
+    private fun syncFieldValues() = with(binding) {
+        fieldSynchronizer.syncAllFields(
+            viewModel.inputs.value,
+            etComp, etLarg, etAlt, etParedeQtd, etAbertura, etAreaInformada,
+            etPecaComp, etPecaLarg, etPecaEsp, etJunta, etSobra, etPecasPorCaixa,
+            etDesnivel, etRodapeAltura, etRodapeAbertura, etRodapeCompComercial,
+            tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
+            tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa,
+            tilDesnivel, tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial,
+            rgPastilhaTamanho,
+            isMG()
+        )
+    }
+
+    /**
+     * Atualiza visibilidade de componentes conforme inputs
+     */
+    private fun updateUIVisibility() = with(binding) {
+        visibilityManager.updateAllVisibilities(
+            viewModel.inputs.value,
+            tvObsAc3,
+            tvAreaTotalAviso,
+            groupPlacaTipo,
+            groupPecaTamanho,
+            groupPastilhaTamanho,
+            groupRodapeFields,
+            groupIntertravadoImpOptions,
+            tilComp,
+            tilLarg,
+            tilAltura,
+            tilParedeQtd,
+            tilAbertura,
+            tilAreaInformada,
+            tilPecaComp,
+            tilPecaLarg,
+            tilPecaEsp,
+            tilJunta,
+            tilPecasPorCaixa,
+            tilDesnivel,
+            tilSobra,
+            tilRodapeAltura,
+            tilRodapeAbertura,
+            tilRodapeCompComercial,
+            etLarg,
+            etAlt,
+            etParedeQtd,
+            etAbertura,
+            etPecaEsp,
+            etJunta,
+            etPecasPorCaixa,
+            etRodapeAbertura,
+            rgPlacaTipo,
+            rgIntertravadoImp,
+            switchImp,
+            switchRodape
+        )
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+     * HANDLERS DE ETAPAS
+     * ═══════════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * Ajusta layout conforme etapa
+     */
+    private fun handleStepLayout(step: Int) = with(binding) {
+        val tela0 = viewFlipper.getChildAt(0) as LinearLayout
+
+        if (step == 0) {
+            bottomBar.isVisible = false
+            tela0.gravity = Gravity.CENTER
+            scrollContent.post {
+                val viewport = scrollContent.height
+                val paddings = contentColumn.paddingTop + contentColumn.paddingBottom
+                tela0.minimumHeight = (viewport - paddings).coerceAtLeast(0)
+            }
+        } else {
+            bottomBar.isVisible = true
+            tela0.gravity = Gravity.CENTER_HORIZONTAL
+            tela0.minimumHeight = 0
+        }
+    }
+
+    /**
+     * Inicializa ícones obrigatórios conforme etapa
+     */
+    private fun handleStepIcons(step: Int) = with(binding) {
+        when (step) {
+            4 -> {
+                iconManager.setRequiredIconVisible(etComp, true)
+                iconManager.setRequiredIconVisible(etLarg, true)
+                iconManager.setRequiredIconVisible(etAreaInformada, true)
+                if (tilAltura.isVisible) iconManager.setRequiredIconVisible(etAlt, true)
+                updateRequiredIconsStep3()
+            }
+
+            5 -> updateRequiredIconsStep4()
+            6 -> updateRequiredIconsStep5()
+        }
+    }
+
+    /**
+     * Configura botões conforme etapa
+     */
+    private fun handleStepButtons(step: Int) = with(binding) {
+        navigationHandler.handleStepNavigation(
+            step, btnBack, btnNext, btnCalcular, bottomBar, viewFlipper,
+            { visible -> toolbarMenuVisible(visible) },
+            { setupNovoCalculoButton() },
+            { restoreDefaultBackButton() }
+        )
+    }
+
+    /**
+     * Preenche resumo na etapa 8
+     */
+    private fun handleStep7Resume(step: Int) {
+        if (step == 8) {
+            binding.tvResumoRevisao.text = viewModel.getResumoRevisao()
+        }
+    }
+
+    /**
+     * Configura botão "Novo Cálculo"
+     */
+    private fun setupNovoCalculoButton() = with(binding) {
+        btnNext.isVisible = false
+        btnBack.text = getString(R.string.calc_novo_calculo)
+
+        try {
+            btnBack.setIconResource(R.drawable.ic_refresh)
+            btnBack.setIconSize(resources.getDimensionPixelSize(R.dimen.calc_btn_icon_large))
+        } catch (_: Throwable) {
+        }
+
+        val largeH = resources.getDimensionPixelSize(R.dimen.calc_btn_large_height)
+        btnBack.layoutParams = btnBack.layoutParams.apply { height = largeH }
+
+        val largeTextPx = resources.getDimension(R.dimen.calc_btn_large_text)
+        btnBack.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, largeTextPx)
+        btnBack.setTypeface(btnBack.typeface, Typeface.BOLD)
+
+        btnBack.setOnClickListener {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(getString(R.string.calc_new_calc_title))
+                .setMessage(getString(R.string.calc_new_calc_message))
+                .setPositiveButton(getString(R.string.generic_yes)) { _, _ ->
+                    navigateBackToCalcMaterial()
+                }
+                .setNegativeButton(getString(R.string.generic_cancel), null)
+                .show()
+        }
+    }
+
+    /**
+     * Restaura botão "Voltar" padrão
+     */
+    private fun restoreDefaultBackButton() = with(binding) {
+        btnBack.text = getString(R.string.generic_back)
+        try {
+            btnBack.setIconResource(0)
+        } catch (_: Throwable) {
+        }
+
+        btnBack.layoutParams = btnBack.layoutParams.apply {
+            height = ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+
+        val normalTextPx = resources.getDimension(R.dimen.calc_btn_normal_text)
+        btnBack.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, normalTextPx)
+        btnBack.setTypeface(btnBack.typeface, Typeface.NORMAL)
+
+        btnBack.setOnClickListener { viewModel.prevStep() }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+     * ATUALIZAÇÃO DE VIEWMODEL
+     * ═══════════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * Atualiza parâmetros da peça no ViewModel
+     */
     private fun updatePecaParametros() = with(binding) {
         val pc = parsePecaToCm(getD(etPecaComp))
         val pl = parsePecaToCm(getD(etPecaLarg))
         val esp = when {
             isPastilha() -> null
-            isIntertravado() -> getD(etPecaEsp)?.times(10) // cm → mm
+            isIntertravado() -> getD(etPecaEsp)?.times(10)
             else -> mToMmIfLooksLikeMeters(getD(etPecaEsp))
         }
         val junta = mToMmIfLooksLikeMeters(getD(etJunta))
@@ -996,21 +1217,26 @@ class CalcRevestimentoFragment : Fragment() {
         viewModel.setPecaParametros(pc, pl, esp, junta, sobra, ppc)
     }
 
-    private fun isIntertravado() =
-        viewModel.inputs.value.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO
+    /**
+     * Atualiza desnível no ViewModel
+     */
+    private fun updateDesnivelViewModel() {
+        viewModel.setDesnivelCm(getD(binding.etDesnivel))
+    }
 
-    // Atualiza rodapé no ViewModel
+    /**
+     * Atualiza rodapé no ViewModel
+     */
     private fun updateRodapeViewModel() = with(binding) {
         val material = if (rgRodapeMat.checkedRadioButtonId == R.id.rbRodapeMesma)
             CalcRevestimentoViewModel.RodapeMaterial.MESMA_PECA
         else
             CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA
 
-        val compProntaM =
-            if (material == CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA)
-                getD(etRodapeCompComercial)?.div(100.0)
-            else
-                null
+        val compProntaM = if (material == CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA)
+            getD(etRodapeCompComercial)?.div(100.0)
+        else
+            null
 
         val aberturaM = getD(etRodapeAbertura)?.coerceAtLeast(0.0) ?: 0.0
 
@@ -1026,20 +1252,23 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    // Atualiza ícones em campos obrigatórios
+    /* ═══════════════════════════════════════════════════════════════════════════
+     * ÍCONES OBRIGATÓRIOS
+     * ═══════════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * Atualiza ícones obrigatórios da Etapa 4 (Medidas)
+     */
     private fun updateRequiredIconsStep3() = with(binding) {
         iconManager.updateStep3Icons(
-            etComp,
-            etLarg,
-            etAlt,
-            etParedeQtd,
-            etAbertura,
-            etAreaInformada,
-            tilAltura.isVisible,
-            tilParedeQtd.isVisible
+            etComp, etLarg, etAlt, etParedeQtd, etAbertura, etAreaInformada,
+            tilAltura.isVisible, tilParedeQtd.isVisible
         )
     }
 
+    /**
+     * Atualiza ícones obrigatórios da Etapa 5 (Peça)
+     */
     private fun updateRequiredIconsStep4() = with(binding) {
         iconManager.updateStep4Icons(
             etPecaComp, etPecaLarg, etJunta, etPecaEsp, etPecasPorCaixa, etSobra,
@@ -1048,6 +1277,9 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
+    /**
+     * Atualiza ícones obrigatórios da Etapa 6 (Rodapé)
+     */
     private fun updateRequiredIconsStep5() = with(binding) {
         iconManager.updateStep5Icons(
             etRodapeAltura, etRodapeCompComercial,
@@ -1057,34 +1289,33 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    // Revalida todas as dimensões
+    /* ═══════════════════════════════════════════════════════════════════════════
+     * VALIDAÇÃO E HABILITAÇÃO
+     * ═══════════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * Revalida todas as dimensões (Comp/Larg/Alt)
+     */
     private fun validateAllDimensions() = with(binding) {
         validator.validateDimLive(
-            etComp,
-            tilComp,
-            0.01..10000.0,
-            getString(R.string.calc_err_medida_comp_larg_m),
-            false
+            etComp, tilComp, 0.01..10000.0,
+            getString(R.string.calc_err_medida_comp_larg_m), false
         )
         validator.validateDimLive(
-            etLarg,
-            tilLarg,
-            0.01..10000.0,
-            getString(R.string.calc_err_medida_comp_larg_m),
-            false
+            etLarg, tilLarg, 0.01..10000.0,
+            getString(R.string.calc_err_medida_comp_larg_m), false
         )
         if (tilAltura.isVisible) {
             validator.validateDimLive(
-                etAlt,
-                tilAltura,
-                0.01..100.0,
-                getString(R.string.calc_err_medida_alt_m),
-                false
+                etAlt, tilAltura, 0.01..100.0,
+                getString(R.string.calc_err_medida_alt_m), false
             )
         }
     }
 
-    // Recalcula habilitação do botão "Avançar"
+    /**
+     * Recalcula habilitação do botão "Avançar"
+     */
     private fun refreshNextEnabled() = with(binding) {
         val step = viewModel.step.value
         val validation = viewModel.validateStep(step)
@@ -1093,8 +1324,7 @@ class CalcRevestimentoFragment : Fragment() {
                 !validator.hasAreaTotalErrorNow(etAreaInformada) &&
                 !validator.hasJuntaErrorNow(etJunta, juntaValueMm(), juntaRange()) &&
                 !validator.hasEspessuraErrorNow(
-                    etPecaEsp,
-                    isPastilha(),
+                    etPecaEsp, isPastilha(),
                     mToMmIfLooksLikeMeters(getD(etPecaEsp))
                 ) &&
                 !validator.hasPecasPorCaixaErrorNow(etPecasPorCaixa) &&
@@ -1105,67 +1335,150 @@ class CalcRevestimentoFragment : Fragment() {
                 ) &&
                 tilParedeQtd.error.isNullOrEmpty() &&
                 tilAbertura.error.isNullOrEmpty() &&
-                tilRodapeAbertura.error.isNullOrEmpty()
+                tilRodapeAbertura.error.isNullOrEmpty() &&
+                tilSobra.error.isNullOrEmpty()
 
+        // Validação extra para rodapé peça pronta
         val inputs = viewModel.inputs.value
-
         if (inputs.rodapeEnable &&
             inputs.rodapeMaterial == CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA
         ) {
-            // Altura em cm (já tratada pelo helper existente)
             val alturaCm = mToCmIfLooksLikeMeters(getD(etRodapeAltura))
             val compCm = getD(etRodapeCompComercial)
 
-            val alturaOk = alturaCm != null &&
-                    alturaCm in 3.0..30.0 &&
+            val alturaOk = alturaCm != null && alturaCm in 3.0..30.0 &&
                     tilRodapeAltura.error.isNullOrEmpty()
-
-            // Obrigatório e entre 5 e 300cm
-            val compOk = compCm != null &&
-                    compCm in 5.0..300.0 &&
+            val compOk = compCm != null && compCm in 5.0..300.0 &&
                     tilRodapeCompComercial.error.isNullOrEmpty()
 
             btnNext.isEnabled = btnNext.isEnabled && alturaOk && compOk
         }
     }
 
-    // Exibe resultado do cálculo
+    /* ═══════════════════════════════════════════════════════════════════════════
+     * HELPER TEXTS
+     * ═══════════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * Atualiza helper texts dinâmicos
+     */
+    private fun updateHelperTexts(i: CalcRevestimentoViewModel.Inputs) = with(binding) {
+        val padraoEsp = viewModel.espessuraPadraoAtual()
+
+        // Espessura
+        if (i.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO) {
+            tilPecaEsp.hint = getString(R.string.calc_step4_peca_esp_intertravado_hint)
+            tilPecaEsp.setHelperTextSafely(getString(R.string.calc_step4_peca_esp_intertravado_helper))
+        } else {
+            tilPecaEsp.hint = getString(R.string.calc_step4_peca_esp)
+            tilPecaEsp.setHelperTextSafely(
+                getString(
+                    R.string.calc_step4_peca_esp_helper_with_default,
+                    NumberFormatter.format(padraoEsp)
+                )
+            )
+        }
+
+        val mg = i.revest in setOf(
+            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
+            CalcRevestimentoViewModel.RevestimentoType.GRANITO
+        )
+        val pastilha = (i.revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA)
+
+        // Peça
+        when {
+            pastilha -> {
+                tilJunta.setHelperTextSafely(getString(R.string.calc_pastilha_junta_helper))
+            }
+
+            else -> {
+                tilJunta.setHelperTextSafely(getString(R.string.calc_step4_junta_helper_default))
+                tilPecaComp.hint = getString(
+                    if (mg) R.string.calc_step4_peca_comp_m else R.string.calc_step4_peca_comp
+                )
+                tilPecaLarg.hint = getString(
+                    if (mg) R.string.calc_step4_peca_larg_m else R.string.calc_step4_peca_larg
+                )
+                tilPecaComp.setHelperTextSafely(
+                    getString(if (mg) R.string.calc_piece_helper_mg else R.string.calc_piece_helper_cm)
+                )
+                tilPecaLarg.setHelperTextSafely(
+                    getString(if (mg) R.string.calc_piece_helper_mg else R.string.calc_piece_helper_cm)
+                )
+            }
+        }
+
+        // Desnível
+        when (i.revest) {
+            CalcRevestimentoViewModel.RevestimentoType.PEDRA ->
+                tilDesnivel.setHelperTextSafely(getString(R.string.calc_step4_desnivel_helper_pedra))
+
+            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
+            CalcRevestimentoViewModel.RevestimentoType.GRANITO ->
+                tilDesnivel.setHelperTextSafely(getString(R.string.calc_step4_desnivel_helper_mg))
+
+            else -> tilDesnivel.setHelperTextSafely(null)
+        }
+    }
+
+    /**
+     * Atualiza helper text de junta
+     */
+    private fun updateJuntaHelper(i: CalcRevestimentoViewModel.Inputs) = with(binding) {
+        tilJunta.helperText = when (i.revest) {
+            CalcRevestimentoViewModel.RevestimentoType.PISO -> {
+                if (i.pisoPlacaTipo == CalcRevestimentoViewModel.PlacaTipo.PORCELANATO) {
+                    getString(R.string.helper_junta_piso_porcelanato)
+                } else {
+                    getString(R.string.helper_junta_piso_ceramico)
+                }
+            }
+
+            CalcRevestimentoViewModel.RevestimentoType.PASTILHA ->
+                getString(R.string.calc_pastilha_junta_helper)
+
+            CalcRevestimentoViewModel.RevestimentoType.AZULEJO ->
+                getString(R.string.helper_junta_azulejo)
+
+            CalcRevestimentoViewModel.RevestimentoType.PEDRA ->
+                getString(R.string.helper_junta_pedra_portuguesa)
+
+            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
+            CalcRevestimentoViewModel.RevestimentoType.GRANITO ->
+                getString(R.string.helper_junta_marmore_granito)
+
+            CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO ->
+                getString(R.string.helper_junta_piso_intertravado)
+
+            else -> null
+        }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+     * RESULTADO
+     * ═══════════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * Exibe resultado do cálculo
+     */
     private fun displayResultado(r: CalcRevestimentoViewModel.Resultado) = with(binding) {
         headerResumo.text = buildHeaderText(r)
-
         tableContainer.removeAllViews()
         tableContainer.addView(tableBuilder.makeHeaderRow())
         r.itens.forEach { tableContainer.addView(tableBuilder.makeDataRow(it)) }
     }
 
-    // Constrói texto do cabeçalho do resultado
+    /**
+     * Constrói texto do cabeçalho do resultado
+     */
     private fun buildHeaderText(r: CalcRevestimentoViewModel.Resultado): String = buildString {
         appendLine("📊 RESUMO DO CÁLCULO\n")
 
         append("🏗️ Revestimento: ")
-        appendLine(
-            when (r.header.tipo) {
-                "PISO" -> "Piso"
-                "AZULEJO" -> "Azulejo"
-                "PASTILHA" -> "Pastilha"
-                "PEDRA" -> "Pedra portuguesa/irregular"
-                "PISO_INTERTRAVADO" -> "Piso intertravado"
-                "MARMORE" -> "Mármore"
-                "GRANITO" -> "Granito"
-                else -> r.header.tipo
-            }
-        )
+        appendLine(mapTipoToLabel(r.header.tipo))
 
         append("🌡️ Ambiente: ")
-        appendLine(
-            when (r.header.ambiente) {
-                "SECO" -> "Seco"
-                "SEMI" -> "Semi-molhado"
-                "MOLHADO" -> "Molhado"
-                "SEMPRE" -> "Sempre molhado"
-                else -> r.header.ambiente
-            }
-        )
+        appendLine(mapAmbienteToLabel(r.header.ambiente))
 
         r.classeArgamassa?.let { appendLine("🧱 Argamassa: $it") }
 
@@ -1210,557 +1523,12 @@ class CalcRevestimentoFragment : Fragment() {
     }.trimEnd()
 
     /* ═══════════════════════════════════════════════════════════════════════════
-     * HANDLERS DE ETAPAS
-     * ═══════════════════════════════════════════════════════════════════════════ */
-
-    // Ajusta layout da tela 0
-    private fun handleStep0Layout(step: Int) = with(binding) {
-        val tela0 = viewFlipper.getChildAt(0) as LinearLayout
-
-        if (step == 0) {
-            bottomBar.isGone = true
-            tela0.gravity = Gravity.CENTER
-
-            scrollContent.post {
-                val viewport = scrollContent.height
-                val paddings = contentColumn.paddingTop + contentColumn.paddingBottom
-                tela0.minimumHeight = (viewport - paddings).coerceAtLeast(0)
-            }
-        } else {
-            bottomBar.isVisible = true
-            tela0.gravity = Gravity.CENTER_HORIZONTAL
-            tela0.minimumHeight = 0
-        }
-    }
-
-    // Inicializa ícones conforme etapa
-    private fun handleStepIcons(step: Int) = with(binding) {
-        when (step) {
-            4 -> { // Medidas
-                iconManager.setRequiredIconVisible(etComp, true)
-                iconManager.setRequiredIconVisible(etLarg, true)
-                iconManager.setRequiredIconVisible(etAreaInformada, true)
-                if (tilAltura.isVisible) iconManager.setRequiredIconVisible(etAlt, true)
-                updateRequiredIconsStep3()
-            }
-
-            5 -> updateRequiredIconsStep4() // Peça
-            6 -> updateRequiredIconsStep5() // Rodapé
-        }
-    }
-
-    // Configura botões conforme etapa
-    private fun handleStepButtons(step: Int) = with(binding) {
-        btnBack.isVisible = step > 0
-        btnNext.isVisible = step in 1..7
-        btnCalcular.isVisible = (step == 8)
-        toolbarMenuVisible(step == 9)
-
-        if (step == 9) {
-            setupNovoCalculoButton()
-        } else {
-            restoreDefaultBackButton()
-        }
-    }
-
-    // Configura botão "Novo Cálculo" na etapa 8
-    private fun setupNovoCalculoButton() = with(binding) {
-        btnNext.isVisible = false
-        btnBack.text = getString(R.string.calc_novo_calculo)
-
-        try {
-            btnBack.setIconResource(R.drawable.ic_refresh)
-            btnBack.setIconSize(resources.getDimensionPixelSize(R.dimen.calc_btn_icon_large))
-        } catch (_: Throwable) {
-        }
-
-        val largeH = resources.getDimensionPixelSize(R.dimen.calc_btn_large_height)
-        btnBack.layoutParams = btnBack.layoutParams.apply { height = largeH }
-
-        val largeTextPx = resources.getDimension(R.dimen.calc_btn_large_text)
-        btnBack.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, largeTextPx)
-        btnBack.setTypeface(btnBack.typeface, Typeface.BOLD)
-
-        btnBack.setOnClickListener {
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle(getString(R.string.calc_new_calc_title))
-                .setMessage(getString(R.string.calc_new_calc_message))
-                .setPositiveButton(getString(R.string.generic_yes)) { _, _ ->
-                    navigateBackToCalcMaterial()
-                }
-                .setNegativeButton(getString(R.string.generic_cancel), null)
-                .show()
-        }
-    }
-
-    // Restaura botão "Voltar" padrão
-    private fun restoreDefaultBackButton() = with(binding) {
-        btnBack.text = getString(R.string.generic_back)
-        try {
-            btnBack.setIconResource(0)
-        } catch (_: Throwable) {
-        }
-
-        btnBack.layoutParams = btnBack.layoutParams.apply {
-            height = ViewGroup.LayoutParams.WRAP_CONTENT
-        }
-
-        val normalTextPx = resources.getDimension(R.dimen.calc_btn_normal_text)
-        btnBack.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, normalTextPx)
-        btnBack.setTypeface(btnBack.typeface, Typeface.NORMAL)
-
-        btnBack.setOnClickListener { viewModel.prevStep() }
-    }
-
-    // Preenche resumo na etapa 7
-    private fun handleStep7Resume(step: Int) {
-        if (step == 8) {
-            binding.tvResumoRevisao.text = viewModel.getResumoRevisao()
-        }
-    }
-
-    private fun RadioGroup.setCheckedSafely(id: Int?) {
-        if (id == null) {
-            if (checkedRadioButtonId != View.NO_ID) {
-                clearCheck()
-            }
-        } else if (checkedRadioButtonId != id) {
-            check(id)
-        }
-    }
-
-    // Sincroniza radio groups
-    private fun syncRadioGroups(i: CalcRevestimentoViewModel.Inputs) = with(binding) {
-        isSyncing = true
-
-        // Revestimento
-        when (i.revest) {
-            CalcRevestimentoViewModel.RevestimentoType.PISO -> rgRevest.setCheckedSafely(R.id.rbPiso)
-            CalcRevestimentoViewModel.RevestimentoType.AZULEJO -> rgRevest.setCheckedSafely(R.id.rbAzulejo)
-            CalcRevestimentoViewModel.RevestimentoType.PASTILHA -> rgRevest.setCheckedSafely(R.id.rbPastilha)
-            CalcRevestimentoViewModel.RevestimentoType.PEDRA -> rgRevest.setCheckedSafely(R.id.rbPedra)
-            CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO -> rgRevest.setCheckedSafely(
-                R.id.rbPisoIntertravado
-            )
-
-            CalcRevestimentoViewModel.RevestimentoType.MARMORE -> rgRevest.setCheckedSafely(R.id.rbMarmore)
-            CalcRevestimentoViewModel.RevestimentoType.GRANITO -> rgRevest.setCheckedSafely(R.id.rbGranito)
-            null -> rgRevest.setCheckedSafely(null)
-        }
-
-        // Tipo placa piso
-        when (i.pisoPlacaTipo) {
-            CalcRevestimentoViewModel.PlacaTipo.CERAMICA -> rgPlacaTipo.setCheckedSafely(R.id.rbCeramica)
-            CalcRevestimentoViewModel.PlacaTipo.PORCELANATO -> rgPlacaTipo.setCheckedSafely(R.id.rbPorcelanato)
-            null -> rgPlacaTipo.setCheckedSafely(null)
-        }
-
-        // Ambiente
-        when (i.ambiente) {
-            CalcRevestimentoViewModel.AmbienteType.SECO -> rgAmbiente.setCheckedSafely(R.id.rbSeco)
-            CalcRevestimentoViewModel.AmbienteType.SEMI -> rgAmbiente.setCheckedSafely(R.id.rbSemi)
-            CalcRevestimentoViewModel.AmbienteType.MOLHADO -> rgAmbiente.setCheckedSafely(R.id.rbMolhado)
-            CalcRevestimentoViewModel.AmbienteType.SEMPRE -> rgAmbiente.setCheckedSafely(R.id.rbSempre)
-            null -> rgAmbiente.setCheckedSafely(null)
-        }
-
-        // Rodapé
-        when (i.rodapeMaterial) {
-            CalcRevestimentoViewModel.RodapeMaterial.MESMA_PECA -> rgRodapeMat.setCheckedSafely(R.id.rbRodapeMesma)
-            CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA -> rgRodapeMat.setCheckedSafely(R.id.rbRodapePeca)
-        }
-
-        // Tráfego
-        when (i.trafego) {
-            CalcRevestimentoViewModel.TrafegoType.LEVE -> rgTrafego.setCheckedSafely(R.id.rbTrafegoLeve)
-            CalcRevestimentoViewModel.TrafegoType.MEDIO -> rgTrafego.setCheckedSafely(R.id.rbTrafegoMedio)
-            CalcRevestimentoViewModel.TrafegoType.PESADO -> rgTrafego.setCheckedSafely(R.id.rbTrafegoPesado)
-            null -> rgTrafego.setCheckedSafely(null)
-        }
-
-        // Impermeabilização Intertravado
-        when (i.impIntertravadoTipo) {
-            CalcRevestimentoViewModel.ImpIntertravadoTipo.MANTA_GEOTEXTIL ->
-                rgIntertravadoImp.setCheckedSafely(R.id.rbImpMantaGeotextil)
-
-            CalcRevestimentoViewModel.ImpIntertravadoTipo.ADITIVO_SIKA1 ->
-                rgIntertravadoImp.setCheckedSafely(R.id.rbImpAditivoSika1)
-
-            else -> rgIntertravadoImp.setCheckedSafely(null)
-        }
-
-        // Tamanho Pastilha
-        when (i.pastilhaFormato) {
-            CalcRevestimentoViewModel.PastilhaFormato.P5 ->
-                rgPastilhaTamanho.setCheckedSafely(R.id.rbPastilha5)
-
-            CalcRevestimentoViewModel.PastilhaFormato.P7_5 ->
-                rgPastilhaTamanho.setCheckedSafely(R.id.rbPastilha7_5)
-
-            CalcRevestimentoViewModel.PastilhaFormato.P10 ->
-                rgPastilhaTamanho.setCheckedSafely(R.id.rbPastilha10)
-
-            null -> rgPastilhaTamanho.setCheckedSafely(null)
-        }
-
-        isSyncing = false
-    }
-
-    // Sincroniza valores dos campos
-    private fun syncFieldValues(i: CalcRevestimentoViewModel.Inputs) = with(binding) {
-
-        // Detecta reset geral (Inputs() padrão)
-        if (i == CalcRevestimentoViewModel.Inputs()) {
-            // Limpa textos
-            etComp.text?.clear()
-            etLarg.text?.clear()
-            etAlt.text?.clear()
-            etParedeQtd.text?.clear()
-            etAbertura.text?.clear()
-            etAreaInformada.text?.clear()
-            etPecaComp.text?.clear()
-            etPecaLarg.text?.clear()
-            etPecaEsp.text?.clear()
-            etJunta.text?.clear()
-            etSobra.text?.clear()
-            etPecasPorCaixa.text?.clear()
-            etDesnivel.text?.clear()
-            etRodapeAltura.text?.clear()
-            etRodapeAbertura.text?.clear()
-            etRodapeCompComercial.text?.clear()
-
-            // Limpa erros básicos
-            tilComp.error = null
-            tilLarg.error = null
-            tilAltura.error = null
-            tilParedeQtd.error = null
-            tilAbertura.error = null
-            tilAreaInformada.error = null
-            tilPecaComp.error = null
-            tilPecaLarg.error = null
-            tilPecaEsp.error = null
-            tilJunta.error = null
-            tilPecasPorCaixa.error = null
-            tilDesnivel.error = null
-            tilSobra.error = null
-            tilRodapeAltura.error = null
-            tilRodapeAbertura.error = null
-            tilRodapeCompComercial.error = null
-
-            tvAreaTotalAviso.isVisible = false
-
-            // Switches / grupos dependentes
-            switchImp.isChecked = false
-            switchRodape.isChecked = false
-            groupRodapeFields.isVisible = false
-
-            // Limpa RadioGroup de pastilha
-            rgPastilhaTamanho.clearCheck()
-
-            return@with
-        }
-
-        if (i.compM != null || i.largM != null || i.altM != null || i.areaInformadaM2 != null ||
-            i.pecaCompCm != null || i.pecaLargCm != null || i.juntaMm != null
-        ) {
-
-            syncField(etComp, i.compM)
-            syncField(etLarg, i.largM)
-            syncField(etAlt, i.altM)
-            syncField(etAreaInformada, i.areaInformadaM2)
-            i.paredeQtd?.let { qtd ->
-                val current = etParedeQtd.text?.toString()?.toIntOrNull()
-                if (current != qtd) etParedeQtd.setText(qtd.toString())
-            }
-
-            syncField(etAbertura, i.aberturaM2)
-            syncFieldPeca(etPecaComp, i.pecaCompCm)
-            syncFieldPeca(etPecaLarg, i.pecaLargCm)
-            if (i.pecaEspMm != null) {
-                if (i.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO) {
-                    // armazenado em mm, exibido em cm
-                    syncField(etPecaEsp, i.pecaEspMm / 10.0)
-                } else {
-                    syncField(etPecaEsp, i.pecaEspMm)
-                }
-            }
-            syncField(etJunta, i.juntaMm)
-            syncField(etSobra, i.sobraPct)
-            syncField(etRodapeAltura, i.rodapeAlturaCm)
-            syncField(etRodapeAbertura, i.rodapeDescontarVaoM.takeIf { it > 0.0 })
-
-            i.pecasPorCaixa?.let {
-                val current = etPecasPorCaixa.text?.toString()?.toIntOrNull()
-                if (current != it) etPecasPorCaixa.setText(it.toString())
-            }
-        }
-
-        tvAreaTotalAviso.isVisible = (i.areaInformadaM2 != null)
-        switchImp.isEnabled = !i.impermeabilizacaoLocked
-        switchImp.isChecked = i.impermeabilizacaoOn
-        switchRodape.isChecked = i.rodapeEnable
-        groupRodapeFields.isVisible = i.rodapeEnable
-
-        if (!i.rodapeEnable) {
-            etRodapeAbertura.text?.clear()
-            tilRodapeAbertura.error = null
-        }
-    }
-
-    // Sincroniza campo simples
-    private fun syncField(et: TextInputEditText, value: Double?) {
-        if (et.hasFocus()) return
-        if (value != null) {
-            val currentNum = et.text?.toString()?.replace(",", ".")?.toDoubleOrNull()
-            if (currentNum != value) {
-                et.setText(value.toString().replace(".", ","))
-            }
-        }
-    }
-
-    // Sincroniza campo de peça
-    private fun syncFieldPeca(et: TextInputEditText, valueCm: Double?) {
-        if (et.hasFocus() || valueCm == null) return
-
-        val raw = et.text?.toString()?.replace(",", ".")?.toDoubleOrNull()
-        if (!isMG() && raw != null && raw < 1.0) {
-            val asCm = raw * 100.0
-            if (kotlin.math.abs(asCm - valueCm) < 1e-6) return
-        }
-
-        val display = if (isMG()) valueCm / 100.0 else valueCm
-        if (raw == null || kotlin.math.abs(raw - display) > 1e-6) {
-            et.setText(display.toString().replace(".", ","))
-        }
-    }
-
-    // Atualiza visibilidades condicionais
-    private fun updateUIVisibility(i: CalcRevestimentoViewModel.Inputs) = with(binding) {
-        tvObsAc3.isVisible = (i.revest == CalcRevestimentoViewModel.RevestimentoType.PISO &&
-                i.pisoPlacaTipo == CalcRevestimentoViewModel.PlacaTipo.PORCELANATO &&
-                (i.ambiente == CalcRevestimentoViewModel.AmbienteType.SEMI ||
-                        i.ambiente == CalcRevestimentoViewModel.AmbienteType.MOLHADO))
-
-        groupPlacaTipo.isVisible = (i.revest == CalcRevestimentoViewModel.RevestimentoType.PISO)
-
-        if (i.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO) {
-            // Oculta campos não usados na peça
-            tilPecasPorCaixa.isVisible = false
-            etPecasPorCaixa.text?.clear()
-            tilPecasPorCaixa.error = null
-
-            tilJunta.isVisible = false
-            etJunta.text?.clear()
-            tilJunta.error = null
-
-            tilDesnivel.isVisible = false
-            tilDesnivel.error = null
-        }
-
-        // Impermeabilização Intertravado: controlar UI conforme regras
-        if (i.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO) {
-            val amb = i.ambiente
-            val traf = i.trafego
-
-            // Se ainda não tem ambiente ou tráfego, ou se for SECO → sem opções
-            if (amb == null || traf == null || amb == CalcRevestimentoViewModel.AmbienteType.SECO) {
-                switchImp.isVisible = false
-                groupIntertravadoImpOptions.isVisible = false
-                rgIntertravadoImp.clearCheck()
-            } else {
-                // Sempre mostrar switch para intertravado quando houver etapa
-                switchImp.isVisible = true
-                switchImp.isEnabled = true
-
-                val precisaEscolhaTipo =
-                    (amb == CalcRevestimentoViewModel.AmbienteType.MOLHADO ||
-                            amb == CalcRevestimentoViewModel.AmbienteType.SEMPRE) &&
-                            (traf == CalcRevestimentoViewModel.TrafegoType.LEVE ||
-                                    traf == CalcRevestimentoViewModel.TrafegoType.MEDIO)
-
-                val showRadios = precisaEscolhaTipo && i.impermeabilizacaoOn
-                groupIntertravadoImpOptions.isVisible = showRadios
-                if (!showRadios) {
-                    rgIntertravadoImp.clearCheck()
-                }
-            }
-        } else {
-            // Mantém comportamento atual para os demais revestimentos
-            switchImp.isVisible = true
-            switchImp.isEnabled = !i.impermeabilizacaoLocked
-            groupIntertravadoImpOptions.isVisible = false
-        }
-
-        if (i.revest != CalcRevestimentoViewModel.RevestimentoType.PISO || i.pisoPlacaTipo == null) {
-            if (rgPlacaTipo.checkedRadioButtonId != View.NO_ID) {
-                rgPlacaTipo.clearCheck()
-            }
-        }
-
-        val isAzulejo = i.revest == CalcRevestimentoViewModel.RevestimentoType.AZULEJO
-        val isPastilha = i.revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
-        val isMG = i.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
-                i.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
-        val isParedeMG = isMG && i.aplicacao == CalcRevestimentoViewModel.AplicacaoType.PAREDE
-
-        val isParedeMode = isAzulejo || isPastilha || isParedeMG
-
-        // Campos de parede
-        tilAltura.isVisible = isParedeMode
-        tilParedeQtd.isVisible = isParedeMode
-        tilAbertura.isVisible = isParedeMode
-
-        // Largura só quando NÃO é parede
-        tilLarg.isVisible = !isParedeMode
-
-        if (!tilLarg.isVisible) {
-            etLarg.text?.clear()
-            tilLarg.error = null
-        }
-        if (!tilAltura.isVisible) {
-            etAlt.text?.clear()
-            tilAltura.error = null
-        }
-        if (!tilParedeQtd.isVisible) {
-            etParedeQtd.text?.clear()
-            tilParedeQtd.error = null
-        }
-        if (!tilAbertura.isVisible) {
-            etAbertura.text?.clear()
-            tilAbertura.error = null
-        }
-
-        // Grupo de tamanho tradicional: ocultar para Pedra e Pastilha
-        groupPecaTamanho.isVisible = (i.revest != CalcRevestimentoViewModel.RevestimentoType.PEDRA && !isPastilha)
-
-        // Grupo de tamanho de pastilha: só visível para Pastilha
-        groupPastilhaTamanho.isVisible = isPastilha
-
-        if (i.revest != CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO &&
-            groupPecaTamanho.isVisible
-        ) {
-            tilJunta.isVisible = true
-        }
-
-        tilPecaEsp.isVisible = !isPastilha
-        if (isPastilha) {
-            etPecaEsp.text?.clear()
-            tilPecaEsp.error = null
-        }
-        // Visibilidade do Desnível (Pedra / Mármore / Granito)
-        tilDesnivel.isVisible = i.revest in setOf(
-            CalcRevestimentoViewModel.RevestimentoType.PEDRA,
-            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
-            CalcRevestimentoViewModel.RevestimentoType.GRANITO
-        )
-        if (!tilDesnivel.isVisible) {
-            tilDesnivel.error = null // limpa erro quando oculto
-        }
-        // Ocultar "Peças por caixa" em Mármore, Granito, Pedra e Piso Intertravado
-
-        val hidePecasPorCaixa =
-            isMG ||
-                    i.revest == CalcRevestimentoViewModel.RevestimentoType.PEDRA ||
-                    i.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO
-
-        tilPecasPorCaixa.isVisible = !hidePecasPorCaixa
-
-        if (hidePecasPorCaixa) {
-            etPecasPorCaixa.text?.clear()
-            tilPecasPorCaixa.error = null
-        }
-    }
-
-    // Atualiza helper texts dinâmicos
-    private fun updateHelperTexts(i: CalcRevestimentoViewModel.Inputs) = with(binding) {
-        val padraoEsp = viewModel.espessuraPadraoAtual()
-
-        if (i.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO) {
-            tilPecaEsp.hint = getString(R.string.calc_step4_peca_esp_intertravado_hint)
-            tilPecaEsp.setHelperTextSafely(
-                getString(R.string.calc_step4_peca_esp_intertravado_helper)
-            )
-        } else {
-            tilPecaEsp.hint = getString(R.string.calc_step4_peca_esp)
-            tilPecaEsp.setHelperTextSafely(
-                getString(
-                    R.string.calc_step4_peca_esp_helper_with_default,
-                    NumberFormatter.format(padraoEsp)
-                )
-            )
-        }
-
-        val mg = i.revest in setOf(
-            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
-            CalcRevestimentoViewModel.RevestimentoType.GRANITO
-        )
-        val pastilha = (i.revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA)
-
-        when {
-            pastilha -> {
-                // A junta usa helper fixo: "Em milímetros • Valor padrão: 3"
-                tilJunta.setHelperTextSafely(getString(R.string.calc_pastilha_junta_helper))
-            }
-
-            else -> {
-                tilJunta.setHelperTextSafely(getString(R.string.calc_step4_junta_helper_default))
-                tilPecaComp.hint =
-                    getString(if (mg) R.string.calc_step4_peca_comp_m else R.string.calc_step4_peca_comp)
-                tilPecaLarg.hint =
-                    getString(if (mg) R.string.calc_step4_peca_larg_m else R.string.calc_step4_peca_larg)
-                tilPecaComp.setHelperTextSafely(getString(if (mg) R.string.calc_piece_helper_mg else R.string.calc_piece_helper_cm))
-                tilPecaLarg.setHelperTextSafely(getString(if (mg) R.string.calc_piece_helper_mg else R.string.calc_piece_helper_cm))
-            }
-        }
-        when (i.revest) {
-            CalcRevestimentoViewModel.RevestimentoType.PEDRA -> {
-                tilDesnivel.setHelperTextSafely(getString(R.string.calc_step4_desnivel_helper_pedra))
-            }
-
-            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
-            CalcRevestimentoViewModel.RevestimentoType.GRANITO -> {
-                tilDesnivel.setHelperTextSafely(getString(R.string.calc_step4_desnivel_helper_mg))
-            }
-
-            else -> tilDesnivel.setHelperTextSafely(null)
-        }
-    }
-
-    // Atualiza helper texts dinâmicos para junta
-    private fun updateJuntaHelper(i: CalcRevestimentoViewModel.Inputs) = with(binding) {
-        tilJunta.helperText = when (i.revest) {
-            CalcRevestimentoViewModel.RevestimentoType.PISO -> {
-                if (i.pisoPlacaTipo == CalcRevestimentoViewModel.PlacaTipo.PORCELANATO) {
-                    getString(R.string.helper_junta_piso_porcelanato)
-                } else {
-                    getString(R.string.helper_junta_piso_ceramico)
-                }
-            }
-
-            CalcRevestimentoViewModel.RevestimentoType.PASTILHA ->
-                getString(R.string.calc_pastilha_junta_helper)
-
-            CalcRevestimentoViewModel.RevestimentoType.AZULEJO ->
-                getString(R.string.helper_junta_azulejo)
-
-            CalcRevestimentoViewModel.RevestimentoType.PEDRA ->
-                getString(R.string.helper_junta_pedra_portuguesa)
-
-            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
-            CalcRevestimentoViewModel.RevestimentoType.GRANITO ->
-                getString(R.string.helper_junta_marmore_granito)
-
-            CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO ->
-                getString(R.string.helper_junta_piso_intertravado)
-
-            else -> null
-        }
-    }
-
-    /* ═══════════════════════════════════════════════════════════════════════════
      * EXPORTAÇÃO DE PDF
      * ═══════════════════════════════════════════════════════════════════════════ */
 
+    /**
+     * Exporta resultado em PDF (compartilhar ou salvar)
+     */
     private fun export(share: Boolean) {
         val ui = (viewModel.resultado.value as? UiState.Success)?.data ?: run {
             toast(getString(R.string.calc_export_no_data))
@@ -1795,6 +1563,9 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
+    /**
+     * Compartilha PDF via Intent
+     */
     private fun sharePdf(bytes: ByteArray, fileName: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             val cacheFile = File(requireContext().cacheDir, fileName)
@@ -1827,6 +1598,9 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
+    /**
+     * Salva PDF em Downloads
+     */
     private suspend fun savePdf(bytes: ByteArray, fileName: String) {
         val saved = withContext(Dispatchers.IO) {
             try {
@@ -1847,6 +1621,82 @@ class CalcRevestimentoFragment : Fragment() {
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
+     * MAPPERS (RadioId → Enum)
+     * ═══════════════════════════════════════════════════════════════════════════ */
+
+    private fun mapRadioIdToRevestimento(id: Int) = when (id) {
+        R.id.rbPiso -> CalcRevestimentoViewModel.RevestimentoType.PISO
+        R.id.rbAzulejo -> CalcRevestimentoViewModel.RevestimentoType.AZULEJO
+        R.id.rbPastilha -> CalcRevestimentoViewModel.RevestimentoType.PASTILHA
+        R.id.rbPedra -> CalcRevestimentoViewModel.RevestimentoType.PEDRA
+        R.id.rbPisoIntertravado -> CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO
+        R.id.rbMarmore -> CalcRevestimentoViewModel.RevestimentoType.MARMORE
+        R.id.rbGranito -> CalcRevestimentoViewModel.RevestimentoType.GRANITO
+        else -> null
+    }
+
+    private fun mapRadioIdToPlacaTipo(id: Int) = when (id) {
+        R.id.rbCeramica -> CalcRevestimentoViewModel.PlacaTipo.CERAMICA
+        R.id.rbPorcelanato -> CalcRevestimentoViewModel.PlacaTipo.PORCELANATO
+        else -> null
+    }
+
+    private fun mapRadioIdToAmbiente(id: Int) = when (id) {
+        R.id.rbSeco -> CalcRevestimentoViewModel.AmbienteType.SECO
+        R.id.rbSemi -> CalcRevestimentoViewModel.AmbienteType.SEMI
+        R.id.rbMolhado -> CalcRevestimentoViewModel.AmbienteType.MOLHADO
+        R.id.rbSempre -> CalcRevestimentoViewModel.AmbienteType.SEMPRE
+        else -> null
+    }
+
+    private fun mapRadioIdToTrafego(id: Int) = when (id) {
+        R.id.rbTrafegoLeve -> CalcRevestimentoViewModel.TrafegoType.LEVE
+        R.id.rbTrafegoMedio -> CalcRevestimentoViewModel.TrafegoType.MEDIO
+        R.id.rbTrafegoPesado -> CalcRevestimentoViewModel.TrafegoType.PESADO
+        else -> null
+    }
+
+    private fun mapRadioIdToImpTipo(id: Int) = when (id) {
+        R.id.rbImpMantaGeotextil ->
+            ImpermeabilizacaoSpecifications.ImpIntertravadoTipo.MANTA_GEOTEXTIL
+
+        R.id.rbImpAditivoSika1 ->
+            ImpermeabilizacaoSpecifications.ImpIntertravadoTipo.ADITIVO_SIKA1
+
+        else -> null
+    }
+
+    private fun mapRadioIdToPastilhaFormato(id: Int) = when (id) {
+        R.id.rbPastilha5 -> RevestimentoSpecifications.PastilhaFormato.P5
+        R.id.rbPastilha7_5 -> RevestimentoSpecifications.PastilhaFormato.P7_5
+        R.id.rbPastilha10 -> RevestimentoSpecifications.PastilhaFormato.P10
+        else -> null
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+     * MAPPERS (Enum → Label)
+     * ═══════════════════════════════════════════════════════════════════════════ */
+
+    private fun mapTipoToLabel(tipo: String?) = when (tipo) {
+        "PISO" -> "Piso"
+        "AZULEJO" -> "Azulejo"
+        "PASTILHA" -> "Pastilha"
+        "PEDRA" -> "Pedra portuguesa/irregular"
+        "PISO_INTERTRAVADO" -> "Piso intertravado"
+        "MARMORE" -> "Mármore"
+        "GRANITO" -> "Granito"
+        else -> tipo ?: "-"
+    }
+
+    private fun mapAmbienteToLabel(ambiente: String?) = when (ambiente) {
+        "SECO" -> "Seco"
+        "SEMI" -> "Semi-molhado"
+        "MOLHADO" -> "Molhado"
+        "SEMPRE" -> "Sempre molhado"
+        else -> ambiente ?: "-"
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
      * HELPERS E UTILITÁRIOS
      * ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -1857,6 +1707,9 @@ class CalcRevestimentoFragment : Fragment() {
 
     private fun isPastilha() =
         viewModel.inputs.value.revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
+
+    private fun isIntertravado() =
+        viewModel.inputs.value.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO
 
     private fun parsePecaToCm(v: Double?) = UnitConverter.parsePecaToCm(v, isMG())
     private fun mToCmIfLooksLikeMeters(v: Double?) = UnitConverter.mToCmIfLooksLikeMeters(v)
@@ -1872,6 +1725,25 @@ class CalcRevestimentoFragment : Fragment() {
         else R.string.calc_err_junta_range
     )
 
+    /**
+     * Retorna range e mensagem de erro para desnível
+     */
+    private fun desnivelRangeAndError(): Pair<ClosedRange<Double>, Int> {
+        return when (viewModel.inputs.value.revest) {
+            CalcRevestimentoViewModel.RevestimentoType.PEDRA ->
+                (4.0..8.0) to R.string.calc_err_desnivel_pedra_range
+
+            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
+            CalcRevestimentoViewModel.RevestimentoType.GRANITO ->
+                (0.0..3.0) to R.string.calc_err_desnivel_mg_range
+
+            else -> (Double.NEGATIVE_INFINITY..Double.POSITIVE_INFINITY) to R.string.calc_err_generic
+        }
+    }
+
+    /**
+     * Define helper text de forma segura (preserva erro atual)
+     */
     private fun TextInputLayout.setHelperTextSafely(newText: CharSequence?) {
         if (helperText == newText) return
         val currentError = error
@@ -1901,6 +1773,9 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
+    /**
+     * Garante que o topo da tela está visível sem flicker
+     */
     private fun ensureTopNoFlicker(step: Int) {
         val sv = binding.scrollContent
         val root = binding.rootCalc
@@ -1928,4 +1803,7 @@ class CalcRevestimentoFragment : Fragment() {
             }
         })
     }
+
+    // Helper local para tupla simples
+    private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
 }

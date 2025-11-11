@@ -31,8 +31,20 @@ class FieldValidator(
         juntaValue: Double?,
         juntaRange: ClosedRange<Double>
     ): Boolean {
-        val empty = et.text.isNullOrBlank()
-        return !empty && (juntaValue == null || juntaValue !in juntaRange)
+        val txtEmpty = et.text.isNullOrBlank()
+        val revest = viewModel.inputs.value.revest
+
+        // Junta obrigatória para todos, exceto: Pastilha e Piso Intertravado (campo oculto na UI)
+        val juntaObrigatoria =
+            revest != CalcRevestimentoViewModel.RevestimentoType.PASTILHA &&
+                    revest != CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO
+
+        if (juntaObrigatoria && txtEmpty) return true // Se é obrigatória e está vazia → erro
+
+        if (txtEmpty) return false // Se não é obrigatória e está vazia → ok
+
+        // Se preenchida, valida o range normalmente
+        return juntaValue == null || juntaValue !in juntaRange
     }
 
     /**
@@ -50,6 +62,7 @@ class FieldValidator(
             CalcRevestimentoViewModel.RevestimentoType.PEDRA -> 4.0..8.0
             CalcRevestimentoViewModel.RevestimentoType.MARMORE,
             CalcRevestimentoViewModel.RevestimentoType.GRANITO -> 0.0..3.0
+
             else -> return false
         }
 
