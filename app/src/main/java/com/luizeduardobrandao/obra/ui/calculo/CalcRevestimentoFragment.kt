@@ -593,7 +593,6 @@ class CalcRevestimentoFragment : Fragment() {
             val v = parsePecaToCm(getD(et))
             val inRange = when {
                 isMG() -> (v != null && v in 10.0..2000.0)
-                isPastilha() -> (v != null && v in 20.0..40.0)
                 else -> (v != null && v in 5.0..200.0)
             }
 
@@ -601,7 +600,6 @@ class CalcRevestimentoFragment : Fragment() {
                 et.text.isNullOrBlank() -> null
                 inRange -> null
                 isMG() -> getString(R.string.calc_piece_err_mg)
-                isPastilha() -> getString(R.string.calc_piece_err_pastilha_range)
                 else -> getString(R.string.calc_piece_err_cm)
             }
 
@@ -610,11 +608,12 @@ class CalcRevestimentoFragment : Fragment() {
         }
 
         validator.validatePecaOnBlur(
-            et, til, isMG(), isPastilha(),
-            { parsePecaToCm(it) },
-            getString(R.string.calc_piece_err_mg),
-            getString(R.string.calc_piece_err_pastilha_range),
-            getString(R.string.calc_piece_err_cm)
+            et = et,
+            til = til,
+            isMGProvider = { isMG() },
+            parseFunc = { parsePecaToCm(it) },
+            errorMsgMG = getString(R.string.calc_piece_err_mg),
+            errorMsgDefault = getString(R.string.calc_piece_err_cm)
         )
     }
 
@@ -1319,6 +1318,7 @@ class CalcRevestimentoFragment : Fragment() {
     private fun refreshNextEnabled() = with(binding) {
         val step = viewModel.step.value
         val validation = viewModel.validateStep(step)
+        val inputs = viewModel.inputs.value
 
         btnNext.isEnabled = validation.isValid &&
                 !validator.hasAreaTotalErrorNow(etAreaInformada) &&
@@ -1338,8 +1338,22 @@ class CalcRevestimentoFragment : Fragment() {
                 tilRodapeAbertura.error.isNullOrEmpty() &&
                 tilSobra.error.isNullOrEmpty()
 
+        // Regra específica para Mármore/Granito
+        if ((inputs.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                    inputs.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO) &&
+            step >= 5
+        ) {
+            val hasPecaError =
+                !tilPecaComp.error.isNullOrEmpty() ||
+                        !tilPecaLarg.error.isNullOrEmpty()
+
+            val missingPeca =
+                inputs.pecaCompCm == null || inputs.pecaLargCm == null
+
+            btnNext.isEnabled = btnNext.isEnabled && !hasPecaError && !missingPeca
+        }
+
         // Validação extra para rodapé peça pronta
-        val inputs = viewModel.inputs.value
         if (inputs.rodapeEnable &&
             inputs.rodapeMaterial == CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA
         ) {

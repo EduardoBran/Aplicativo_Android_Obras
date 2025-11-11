@@ -59,7 +59,8 @@ object PastilhaCalculator {
 
         // Argamassa: usa dimensões da peça
         val iArg = inputs.copy(
-            juntaMm = (inputs.juntaMm ?: RevestimentoSpecifications.getJuntaPadraoMm(inputs)).coerceIn(1.0, 5.0),
+            juntaMm = (inputs.juntaMm
+                ?: RevestimentoSpecifications.getJuntaPadraoMm(inputs)).coerceIn(1.0, 5.0),
             pecaEspMm = RevestimentoSpecifications.getEspessuraPadraoMm(inputs)
         )
         MaterialCalculator.adicionarArgamassaColante(iArg, areaM2, sobra, itens)

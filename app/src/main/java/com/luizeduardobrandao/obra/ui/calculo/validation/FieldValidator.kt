@@ -141,11 +141,9 @@ class FieldValidator(
     fun validatePecaOnBlur(
         et: TextInputEditText,
         til: TextInputLayout,
-        isMG: Boolean,
-        isPastilha: Boolean,
+        isMGProvider: () -> Boolean,
         parseFunc: (Double?) -> Double?,
         errorMsgMG: String,
-        errorMsgPastilha: String,
         errorMsgDefault: String
     ) {
         et.setOnFocusChangeListener { _, hasFocus ->
@@ -160,15 +158,20 @@ class FieldValidator(
             val num = raw.toDoubleOrNull()
             val cm = parseFunc(num)
 
+            val isMG = isMGProvider()
+
+
             val ok = when {
-                isMG -> (cm != null && cm in 10.0..2000.0) // 0,1 m .. 20,0 m
-                isPastilha -> (cm != null && cm in 20.0..40.0)
+                // Mármore/Granito: valor digitado em metros → convertido pra cm em parseFunc
+                // Aceita 0,10 m a 20,0 m  (10 cm a 2000 cm)
+                isMG -> (cm != null && cm in 10.0..2000.1)
+
+                // Demais revestimentos: 5 a 200 cm
                 else -> (cm != null && cm in 5.0..200.0)
             }
 
             val msg = when {
                 isMG -> errorMsgMG
-                isPastilha -> errorMsgPastilha
                 else -> errorMsgDefault
             }
 

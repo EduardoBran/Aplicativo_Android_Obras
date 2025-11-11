@@ -118,7 +118,7 @@ object PisoIntertravadoCalculator {
                 item = "Cimento",
                 unid = "kg",
                 qtd = arred1(cimentoKg),
-                observacao = "Estabilização da base BGS com o impermeabilizante (Sika 1)."
+                observacao = "Estabilização da base BGS."
             )
 
             val litros = sacosRef

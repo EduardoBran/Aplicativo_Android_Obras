@@ -641,11 +641,31 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
                 appendLine("• ➖ Abertura (parede): ${arred2(abertura)} m²")
             }
 
-        if (i.revest != RevestimentoType.PEDRA &&
-            i.pecaCompCm != null &&
-            i.pecaLargCm != null
-        ) {
-            appendLine("• 🔲 Peça: ${arred0(i.pecaCompCm)} × ${arred0(i.pecaLargCm)} cm")
+        if (i.pecaCompCm != null && i.pecaLargCm != null) {
+            when (i.revest) {
+                RevestimentoType.MARMORE,
+                RevestimentoType.GRANITO -> {
+                    // Valores armazenados em cm → exibir em metros
+                    val compM = i.pecaCompCm / 100.0
+                    val largM = i.pecaLargCm / 100.0
+                    appendLine("• 🔲 Peça: ${arred2(compM)} × ${arred2(largM)} m")
+                }
+
+                // Mantém comportamento atual: não exibe dimensão padrão
+                RevestimentoType.PEDRA -> {}
+
+                RevestimentoType.PASTILHA -> {
+                    appendLine(
+                        "• 🔲 Peça: ${arred2(i.pecaCompCm)} × ${arred2(i.pecaLargCm)} cm"
+                    )
+                }
+
+                else -> {
+                    appendLine(
+                        "• 🔲 Peça: ${arred0(i.pecaCompCm)} × ${arred0(i.pecaLargCm)} cm"
+                    )
+                }
+            }
         }
 
         i.pecaEspMm?.let { espMm ->
@@ -680,8 +700,8 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             appendLine("• 💧 Impermeabilização: Sim")
         }
 
-        if (i.sobraPct != null && i.sobraPct > 0) {
-            append("• ➕ Sobra Técnica: ${arred2(i.sobraPct)}%")
+        if (i.sobraPct != null && i.sobraPct >= 0) {
+            append("• ➕ Sobra Técnica: ${arred2(i.sobraPct)} %")
         }
     }
 
