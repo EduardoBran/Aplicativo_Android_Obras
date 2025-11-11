@@ -1171,7 +1171,10 @@
     <string name="calc_aplicacao_dialog_title_mg">Onde será aplicado?</string>
     <string name="calc_aplicacao_option_piso">Piso</string>
     <string name="calc_aplicacao_option_parede">Parede</string>
-
+    <!-- Diálogo aplicação ícone Home na toolbar -->
+    <string name="calc_home_title">Tela Principal</string>
+    <string name="calc_home_dialog_title">Retornar a Tela Principal</string>
+    <string name="calc_home_dialog_message">Deseja retornar a tela principal do app?</string>
 
     <!-- TELA 2 -->
     <string name="calc_step2_title">Tipo de ambiente</string>
@@ -1197,7 +1200,7 @@
     <string name="calc_step3_alt">Altura (m) (somente parede)</string>
     <string name="calc_step3_or">Ou informe diretamente:</string>
     <string name="calc_step3_area_total">Área total (m²)</string>
-    <string name="text_area_total_aviso">Usando a Área total informada; Comprimento, Largura e Altura serão ignorados no cálculo da área base.</string>
+    <string name="text_area_total_aviso">Com Área total informada, as medidas acima são ignoradas no cálculo da área base.</string>
 
     <string name="calc_step3_parede_qtd">Parede (qtd)</string>
     <string name="calc_step3_parede_qtd_helper">Informe quantas paredes serão revestidas (1 a 20).</string>
@@ -1300,10 +1303,6 @@
 
     <!-- TELA 7 -->
     <string name="calc_step7_title">📋 Revisão dos Parâmetros </string>
-    <string name="calc_step7_arg_consumo">Argamassa (consumo típico): ≤ 30×30 → 4–5 kg/m² • 60×60 → 5–7 kg/m² • ≥ 90×90 → 7–9 kg/m² (dupla colagem)</string>
-    <string name="calc_step7_rej">Rejunte: consumo varia com junta e espessura.</string>
-    <string name="calc_step7_pedra">Pedra/Mármore/Granito: colchão 1:4 • espessura 2,5 cm.</string>
-    <string name="calc_step7_imp">Impermeabilizante: Semi (0,70 L/m²) • Molhado (2,0 kg/m²) • Sempre (3,0 kg/m²).</string>
     <string name="generic_calculate">Calcular</string>
 
     <!-- TELA 8 -->
@@ -1354,7 +1353,7 @@
     <string name="helper_junta_pastilha">Em milímetros • Valor padrão: 2mm • </string>
     <string name="helper_junta_azulejo">Em milímetros • Recomendado: 5mm</string>
     <string name="helper_junta_pedra_portuguesa">Em milímetros • Recomendado: 4mm</string>
-    <string name="helper_junta_marmore_granito">Em milímetros • Recomendado: 2mm</string>
+    <string name="helper_junta_marmore_granito">Em milímetros • Recomendado: 2,5mm</string>
     <string name="helper_junta_piso_intertravado">Em milímetros • Recomendado: 4mm</string>
     <string name="valor_sobra_minima">10</string>
 

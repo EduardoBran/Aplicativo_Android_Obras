@@ -150,10 +150,13 @@ class CalcRevestimentoFragment : Fragment() {
      * Configura a toolbar com menu e navegação
      */
     private fun setupToolbar() = with(binding.toolbar) {
-        setNavigationOnClickListener { findNavController().navigateUp() }
+        // Navegação: comportamento depende da etapa (ver handleToolbarNavigationClick)
+        setNavigationOnClickListener { handleToolbarNavigationClick() }
+
         inflateMenu(R.menu.menu_calc_revestimento)
         setTitleTextColor(ContextCompat.getColor(context, R.color.white))
 
+        // Garante ícones sempre brancos
         for (i in 0 until menu.size) {
             menu[i].icon?.setTint(ContextCompat.getColor(context, R.color.white))
         }
@@ -163,10 +166,40 @@ class CalcRevestimentoFragment : Fragment() {
                 R.id.action_export_calc -> {
                     showExportMenu(this); true
                 }
-
+                R.id.action_home_calc -> {
+                    showHomeConfirmDialog(); true
+                }
                 else -> false
             }
         }
+    }
+
+    /**
+     * Clique do ícone de navegação da toolbar.
+     * - Step 0 (tela "Começar"): comportamento original (navigateUp).
+     * - Step >= 1: mesmo comportamento do botão "Voltar" do wizard (prevStep()).
+     */
+    private fun handleToolbarNavigationClick() {
+        val step = viewModel.step.value
+        if (step == 0) {
+            findNavController().navigateUp()
+        } else {
+            viewModel.prevStep()
+        }
+    }
+
+    /**
+     * Mostra diálogo para retornar à tela principal do app
+     */
+    private fun showHomeConfirmDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.calc_home_dialog_title))
+            .setMessage(getString(R.string.calc_home_dialog_message))
+            .setPositiveButton(getString(R.string.generic_yes)) { _, _ ->
+                navigateToHomeFragment()
+            }
+            .setNegativeButton(getString(R.string.generic_cancel), null)
+            .show()
     }
 
     /**
@@ -960,6 +993,7 @@ class CalcRevestimentoFragment : Fragment() {
             handleStepLayout(step)
             handleStepIcons(step)
             handleStepButtons(step)
+            updateToolbarIconsForStep()
             handleStep7Resume(step)
             ensureTopNoFlicker(step)
             refreshNextEnabled()
@@ -1031,6 +1065,25 @@ class CalcRevestimentoFragment : Fragment() {
             rgPastilhaTamanho,
             isMG()
         )
+        // Normaliza exibição dos valores padrão auto-preenchidos
+        normalizePredefinedDefaults()
+    }
+    private fun normalizePredefinedDefaults() = with(binding) {
+        val i = viewModel.inputs.value
+
+        normalizeAutoField(etPecaEsp, i.pecaEspMm)
+        normalizeAutoField(etJunta, i.juntaMm)
+        normalizeAutoField(etSobra, i.sobraPct)
+    }
+    private fun normalizeAutoField(editText: TextInputEditText, value: Double?) {
+        val adjusted = NumberFormatter.adjustDefaultFieldText(
+            editText.text?.toString(),
+            value
+        )
+
+        if (adjusted != null && adjusted != editText.text?.toString()) {
+            editText.setText(adjusted)
+        }
     }
 
     /**
@@ -1771,8 +1824,16 @@ class CalcRevestimentoFragment : Fragment() {
     private fun toast(msg: String) =
         Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
 
+    // Visibilidade ícone download
     private fun toolbarMenuVisible(visible: Boolean) {
         binding.toolbar.menu.findItem(R.id.action_export_calc)?.isVisible = visible
+    }
+
+    // Visibilidade ícone home
+    private fun updateToolbarIconsForStep() {
+        val menu = binding.toolbar.menu
+        val homeItem = menu.findItem(R.id.action_home_calc)
+        homeItem?.isVisible = true
     }
 
     private fun navigateBackToCalcMaterial() {
@@ -1784,6 +1845,29 @@ class CalcRevestimentoFragment : Fragment() {
             } catch (_: IllegalArgumentException) {
                 nav.navigateUp()
             }
+        }
+    }
+
+    /**
+     * Navega para a tela principal do app.
+     * Prioriza voltar para Home se estiver na pilha; caso contrário, tenta Work.
+     */
+    private fun navigateToHomeFragment() {
+        val nav = findNavController()
+
+        // Tenta voltar até Home, se já existir na pilha
+        val poppedHome = nav.popBackStack(R.id.homeFragment, false)
+        if (poppedHome) return
+
+        // Se não tiver Home na pilha, tenta voltar até Work (lista de obras)
+        val poppedWork = nav.popBackStack(R.id.workFragment, false)
+        if (poppedWork) return
+
+        // Fallback seguro
+        try {
+            nav.navigate(R.id.workFragment)
+        } catch (_: IllegalArgumentException) {
+            nav.navigateUp()
         }
     }
 
