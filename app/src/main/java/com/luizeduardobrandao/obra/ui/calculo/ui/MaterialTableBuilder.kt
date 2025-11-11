@@ -189,7 +189,7 @@ class MaterialTableBuilder(
         }
 
         // Argamassa colante → sacos 20kg
-        if (nome.startsWith("Argamassa colante", ignoreCase = true) &&
+        if (nome.startsWith("Argamassa", ignoreCase = true) &&
             unid.equals("kg", true)
         ) {
             val n20 = ceil(alvo / 20.0).toInt()
@@ -246,7 +246,7 @@ class MaterialTableBuilder(
         }
 
         // Rejunte cimentício → 5kg
-        if (nome.contains("Rejunte cimentício", ignoreCase = true) &&
+        if (nome.contains("Rejunte comum", ignoreCase = true) &&
             unid.equals("kg", true)
         ) {
             val n5 = ceil(alvo / 5.0).toInt()
@@ -281,6 +281,49 @@ class MaterialTableBuilder(
         ) {
             val pack = bestPackCombo(alvo, listOf(18.0, 4.0))
             return pack.toCompraString(unidade = "kg", label = null)
+        }
+
+        // PASTILHA - Usa observação "Mantas por m²: X • Y peças." para montar "Nmn ou Ypc"
+        if (nome.contains("Pastilha", ignoreCase = true) &&
+            (unid.equals("m²", true) || unid.equals("m2", true)) &&
+            obs != null
+        ) {
+            // Extrai "Mantas por m²: X"
+            val mantasPorM2Match = Regex(
+                pattern = """mantas por m²:\s*([\d.,]+)""",
+                option = RegexOption.IGNORE_CASE
+            ).find(obs)
+
+            val mantasPorM2 = mantasPorM2Match
+                ?.groupValues?.get(1)
+                ?.replace(",", ".")
+                ?.toDoubleOrNull()
+
+            // Extrai "[totalPecas] peças"
+            val totalPecas = Regex("""(\d+)\s+peças""")
+                .find(obs)
+                ?.groupValues
+                ?.get(1)
+                ?.toIntOrNull()
+
+            // item.qtd = área total em m² já com sobra → calcula total de mantas
+            val totalMantas = mantasPorM2
+                ?.let { ceil(alvo * it).toInt().coerceAtLeast(1) }
+
+            when {
+                totalMantas != null && totalPecas != null -> {
+                    return "$totalMantas mantas ou $totalPecas pc"
+                }
+
+                totalMantas != null -> {
+                    return "$totalMantas mantas"
+                }
+
+                totalPecas != null -> {
+                    return "${totalPecas}pc"
+                }
+            }
+            // Se por algum motivo não conseguir extrair, deixa cair no fallback abaixo
         }
 
         // ---------------- HEURÍSTICAS BASEADAS NA OBS ----------------

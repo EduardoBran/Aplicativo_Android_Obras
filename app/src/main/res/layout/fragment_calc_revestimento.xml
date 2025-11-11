@@ -464,6 +464,59 @@
                         android:text="@string/calc_step4_title"
                         android:textAppearance="?attr/textAppearanceTitleLarge" />
 
+                    <!-- Grupo específico para Pastilha -->
+                    <LinearLayout
+                        android:id="@+id/groupPastilhaTamanho"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/calc_pastilha_tamanho_title"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                        <RadioGroup
+                            android:id="@+id/rgPastilhaTamanho"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbPastilha5"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/calc_pastilha_5x5" />
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbPastilha7_5"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="16dp"
+                                android:text="@string/calc_pastilha_7_5x7_5" />
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbPastilha10"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="16dp"
+                                android:text="@string/calc_pastilha_10x10" />
+                        </RadioGroup>
+
+                        <TextView
+                            android:id="@+id/tvPastilhaHint"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/calc_pastilha_tamanho_helper"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+                    </LinearLayout>
+
                     <LinearLayout
                         android:id="@+id/groupPecaTamanho"
                         android:layout_width="match_parent"
@@ -788,7 +841,6 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="monospace"
-                            android:lineSpacingExtra="44dp"
                             android:padding="16dp"
                             android:textAppearance="?attr/textAppearanceBodyLarge"
                             tools:text="📋 REVISÃO DOS PARÂMETROS\n\n• Tipo: Piso Porcelanato\n• Ambiente: Molhado (ACIII)" />

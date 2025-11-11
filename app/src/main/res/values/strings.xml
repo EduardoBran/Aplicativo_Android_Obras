@@ -1231,13 +1231,18 @@
     <string name="calc_step4_peca_esp_intertravado_hint">Espessura da peça (cm)</string>
     <string name="calc_step4_peca_esp_intertravado_helper">Em centímetros • Ex: 6</string>
 
-    <!-- Pastilha: labels/hints -->
-    <string name="calc_step4_pastilha_comp_hint">Tamanho da manta – Largura (cm)</string>
-    <string name="calc_step4_pastilha_larg_hint">Tamanho da manta – Altura (cm)</string>
+    <!-- Pastilha - parâmetros -->
+    <string name="calc_pastilha_tamanho_title">Tamanho da Pastilha (cm)</string>
+    <string name="calc_pastilha_5x5">5 x 5</string>
+    <string name="calc_pastilha_7_5x7_5">7,5 x 7,5</string>
+    <string name="calc_pastilha_10x10">10 x 10</string>
+    <string name="calc_pastilha_tamanho_helper">Escolha os parâmetros para sua pastilha.</string>
 
-    <!-- Pastilha: helpers -->
-    <string name="calc_piece_helper_pastilha">Em centímetros • Ex: 30 (limite: 20 a 40 cm)</string>
-    <string name="calc_step4_junta_helper_pastilha">Em milímetros • Ex: 2 (opcional) • padrão atual: %s</string>
+    <!-- Pastilha - junta -->
+    <string name="calc_pastilha_junta_helper">Em milímetros • Valor padrão: 3</string>
+    <string name="calc_pastilha_error_select_size">Selecione o tamanho da pastilha</string>
+    <string name="calc_pastilha_error_junta_min">Junta muito fina (mínimo 1 mm)</string>
+    <string name="calc_pastilha_error_sobra">Sobra técnica deve ser entre 0% e 50%</string>
 
     <!-- Helper default da junta (para materiais que não são pastilha) -->
     <string name="calc_step4_junta_helper_default">Em milímetros • Ex: 5</string>
@@ -1262,7 +1267,6 @@
     <string name="calc_err_sobra_range">Valor inválido (0 a 50%).</string>
     <string name="calc_err_rodape_altura">Altura inválida (3 a 30 cm).</string>
     <string name="calc_err_rodape_comp">Valor inválido. Informe o comprimento comercial em metros.</string>
-    <string name="calc_err_sobra_min">Sobra mínima para este revestimento: %1$s%%</string>
     <string name="calc_step4_desnivel_helper_pedra">Em centímetros • Ex: 5 (se vazio, será utilizado 4 cm)</string>
     <string name="calc_step4_desnivel_helper_mg">Em centímetros • Ex: 1 cm (se vazio, será utilizado 0 cm)</string>
     <string name="calc_err_desnivel_pedra_range">Informe entre 4 e 8 cm</string>

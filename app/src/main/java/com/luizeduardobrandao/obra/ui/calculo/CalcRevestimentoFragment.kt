@@ -522,6 +522,20 @@ class CalcRevestimentoFragment : Fragment() {
         setupDesnivelField()
         // Sobra
         setupSobraField()
+
+        // RadioGroup para tamanho de pastilha
+        rgPastilhaTamanho.setOnCheckedChangeListener { _, id ->
+            if (isSyncing) return@setOnCheckedChangeListener
+            val formato = when (id) {
+                R.id.rbPastilha5 -> CalcRevestimentoViewModel.PastilhaFormato.P5
+                R.id.rbPastilha7_5 -> CalcRevestimentoViewModel.PastilhaFormato.P7_5
+                R.id.rbPastilha10 -> CalcRevestimentoViewModel.PastilhaFormato.P10
+                else -> null
+            }
+            viewModel.setPastilhaFormato(formato)
+            updateRequiredIconsStep4()
+            refreshNextEnabled()
+        }
     }
 
     // Configura campo de peça (comp/larg)
@@ -1375,6 +1389,20 @@ class CalcRevestimentoFragment : Fragment() {
             else -> rgIntertravadoImp.setCheckedSafely(null)
         }
 
+        // Tamanho Pastilha
+        when (i.pastilhaFormato) {
+            CalcRevestimentoViewModel.PastilhaFormato.P5 ->
+                rgPastilhaTamanho.setCheckedSafely(R.id.rbPastilha5)
+
+            CalcRevestimentoViewModel.PastilhaFormato.P7_5 ->
+                rgPastilhaTamanho.setCheckedSafely(R.id.rbPastilha7_5)
+
+            CalcRevestimentoViewModel.PastilhaFormato.P10 ->
+                rgPastilhaTamanho.setCheckedSafely(R.id.rbPastilha10)
+
+            null -> rgPastilhaTamanho.setCheckedSafely(null)
+        }
+
         isSyncing = false
     }
 
@@ -1425,6 +1453,9 @@ class CalcRevestimentoFragment : Fragment() {
             switchImp.isChecked = false
             switchRodape.isChecked = false
             groupRodapeFields.isVisible = false
+
+            // Limpa RadioGroup de pastilha
+            rgPastilhaTamanho.clearCheck()
 
             return@with
         }
@@ -1599,7 +1630,11 @@ class CalcRevestimentoFragment : Fragment() {
             tilAbertura.error = null
         }
 
-        groupPecaTamanho.isVisible = (i.revest != CalcRevestimentoViewModel.RevestimentoType.PEDRA)
+        // Grupo de tamanho tradicional: ocultar para Pedra e Pastilha
+        groupPecaTamanho.isVisible = (i.revest != CalcRevestimentoViewModel.RevestimentoType.PEDRA && !isPastilha)
+
+        // Grupo de tamanho de pastilha: só visível para Pastilha
+        groupPastilhaTamanho.isVisible = isPastilha
 
         if (i.revest != CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO &&
             groupPecaTamanho.isVisible
@@ -1663,16 +1698,8 @@ class CalcRevestimentoFragment : Fragment() {
 
         when {
             pastilha -> {
-                tilPecaComp.hint = getString(R.string.calc_step4_pastilha_comp_hint)
-                tilPecaLarg.hint = getString(R.string.calc_step4_pastilha_larg_hint)
-                tilPecaComp.setHelperTextSafely(getString(R.string.calc_piece_helper_pastilha))
-                tilPecaLarg.setHelperTextSafely(getString(R.string.calc_piece_helper_pastilha))
-                tilJunta.setHelperTextSafely(
-                    getString(
-                        R.string.calc_step4_junta_helper_pastilha,
-                        NumberFormatter.format(viewModel.juntaPadraoAtual())
-                    )
-                )
+                // A junta usa helper fixo: "Em milímetros • Valor padrão: 3"
+                tilJunta.setHelperTextSafely(getString(R.string.calc_pastilha_junta_helper))
             }
 
             else -> {
@@ -1711,7 +1738,7 @@ class CalcRevestimentoFragment : Fragment() {
             }
 
             CalcRevestimentoViewModel.RevestimentoType.PASTILHA ->
-                getString(R.string.helper_junta_pastilha)
+                getString(R.string.calc_pastilha_junta_helper)
 
             CalcRevestimentoViewModel.RevestimentoType.AZULEJO ->
                 getString(R.string.helper_junta_azulejo)
@@ -1839,7 +1866,7 @@ class CalcRevestimentoFragment : Fragment() {
         et.text?.toString()?.replace(",", ".")?.toDoubleOrNull()
 
     private fun juntaValueMm() = mToMmIfLooksLikeMeters(getD(binding.etJunta))
-    private fun juntaRange() = if (isPastilha()) 1.0..3.0 else 0.5..20.0
+    private fun juntaRange() = if (isPastilha()) 1.0..5.0 else 0.5..20.0
     private fun juntaErrorMsg() = getString(
         if (isPastilha()) R.string.calc_err_junta_pastilha_range
         else R.string.calc_err_junta_range

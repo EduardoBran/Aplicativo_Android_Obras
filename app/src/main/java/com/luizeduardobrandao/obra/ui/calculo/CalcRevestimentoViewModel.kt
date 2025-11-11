@@ -32,6 +32,17 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     /** Tipos de impermeabilização específicos do intertravado */
     enum class ImpIntertravadoTipo { MANTA_GEOTEXTIL, ADITIVO_SIKA1, MANTA_ASFALTICA }
 
+    /** Formatos suportados para pastilha */
+    enum class PastilhaFormato(
+        val ladoCm: Double,
+        val mantaLadoCm: Double,
+        val espMmPadrao: Double
+    ) {
+        P5(5.0, 32.5, 5.0),
+        P7_5(7.5, 31.5, 6.0),
+        P10(10.0, 31.0, 6.0)
+    }
+
     // Constantes de densidade e embalagens
     private companion object {
         const val DENS_EPOXI = 1700.0
@@ -112,7 +123,8 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val rodapeCompComercialM: Double? = null,
         // Piso intertravado
         val trafego: TrafegoType? = null,
-        val impIntertravadoTipo: ImpIntertravadoTipo? = null
+        val impIntertravadoTipo: ImpIntertravadoTipo? = null,
+        val pastilhaFormato: PastilhaFormato? = null
     )
 
     data class ResultResultado(val resultado: Resultado)
@@ -189,7 +201,8 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             altM = null,
             areaInformadaM2 = null,
             paredeQtd = null,
-            aberturaM2 = null
+            aberturaM2 = null,
+            pastilhaFormato = null
         )
 
         // Se o novo tipo não suporta rodapé, zera configuração de rodapé
@@ -261,25 +274,114 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     // Define o ambiente e ajusta argamassa e impermeabilização
     fun setAmbiente(amb: AmbienteType) = viewModelScope.launch {
         val cur = _inputs.value
+
+        // Piso intertravado: lógica específica (mantida)
         if (cur.revest == RevestimentoType.PISO_INTERTRAVADO) {
             val updated = cur.copy(ambiente = amb)
             _inputs.value = applyIntertravadoImpConfig(updated)
             return@launch
         }
-        val (classe, impOn, impLocked) = when (amb) {
+
+        // Regras padrão de impermeabilização (igual antes)
+        val (classeBase, impOn, impLocked) = when (amb) {
             AmbienteType.SECO -> Triple("ACI", false, true)
             AmbienteType.SEMI -> Triple("ACII", false, false)
             AmbienteType.MOLHADO -> Triple("ACIII", false, false)
             AmbienteType.SEMPRE -> Triple("ACIII", false, false)
         }
 
-        val sugereAc3 = _inputs.value.revest == RevestimentoType.PISO &&
-                _inputs.value.pisoPlacaTipo == PlacaTipo.PORCELANATO &&
-                (amb == AmbienteType.SEMI || amb == AmbienteType.MOLHADO)
+        // Proteção contra valores nulos usando fallback padrão (ex: 30 cm)
+        val ladoMax = max(cur.pecaCompCm ?: 0.0, cur.pecaLargCm ?: 0.0)
 
-        _inputs.value = _inputs.value.copy(
+        // =========================
+        // CLASSE POR TIPO / AMBIENTE
+        // =========================
+        val classeNova: String = when (cur.revest) {
+            // Pastilha → manter lógica que já funcionava: seco = ACII, demais = ACIII
+            RevestimentoType.PASTILHA -> when (amb) {
+                AmbienteType.SECO -> "ACII"
+                AmbienteType.SEMI -> "ACII"
+                AmbienteType.MOLHADO,
+                AmbienteType.SEMPRE -> "ACIII"
+            }
+
+            // Piso comum (cerâmico ou porcelanato)
+            RevestimentoType.PISO -> {
+                when (cur.pisoPlacaTipo) {
+                    // Piso cerâmico
+                    PlacaTipo.CERAMICA, null -> when (amb) {
+                        // 🌵 Ambiente seco:
+                        // <30 cm → ACI | ≥30 cm → ACII | ≥45 cm → ACIII
+                        AmbienteType.SECO -> when {
+                            ladoMax < 30.0 -> "ACI"
+                            ladoMax < 45.0 -> "ACII"
+                            else -> "ACIII"
+                        }
+
+                        // 💧 Ambiente semi-molhado:
+                        // <45 cm → ACII | ≥45 cm → ACIII
+                        AmbienteType.SEMI -> if (ladoMax < 45.0) "ACII" else "ACIII"
+
+                        // 🧱 Molhado / Sempre molhado:
+                        // Qualquer tamanho → ACIII
+                        AmbienteType.MOLHADO,
+                        AmbienteType.SEMPRE -> "ACIII"
+                    }
+
+                    // Piso porcelanato
+                    PlacaTipo.PORCELANATO -> when (amb) {
+                        // 🌵 Ambiente seco:
+                        // regra: ≥45 cm → ACII
+                        // Para <45 cm, mantemos ACII (mais conservador para porcelanato)
+                        AmbienteType.SECO -> "ACII"
+
+                        // 💧 Ambiente semi-molhado:
+                        // Qualquer tamanho → ACIII
+                        AmbienteType.SEMI -> "ACIII"
+
+                        // 🧱 Ambiente molhado ou sempre molhado:
+                        // Qualquer tamanho → ACIII
+                        AmbienteType.MOLHADO,
+                        AmbienteType.SEMPRE -> "ACIII"
+                    }
+                }
+            }
+
+            // Azulejo
+            RevestimentoType.AZULEJO -> when (amb) {
+                // 🌵 Ambiente seco:
+                // <30 cm → ACI | ≥30 cm → ACII | ≥45 cm → ACIII
+                AmbienteType.SECO -> when {
+                    ladoMax < 30.0 -> "ACI"
+                    ladoMax < 45.0 -> "ACII"
+                    else -> "ACIII"
+                }
+
+                // 💧 Ambiente semi-molhado:
+                // <45 cm → ACII | ≥45 cm → ACIII
+                AmbienteType.SEMI -> if (ladoMax < 45.0) "ACII" else "ACIII"
+
+                // 🧱 Molhado / Sempre molhado:
+                // Qualquer tamanho → ACIII
+                AmbienteType.MOLHADO,
+                AmbienteType.SEMPRE -> "ACIII"
+            }
+
+            // Pedra, Mármore, Granito, etc → classe não é usada aqui
+            else -> classeBase
+        }
+
+        val classeFinal = when {
+            // Pedra Portuguesa, Mármore e Granito → não guardamos código de classe
+            isPedraOuSimilares() -> null
+
+            // Piso intertravado já saiu antes
+            else -> classeNova
+        }
+
+        _inputs.value = cur.copy(
             ambiente = amb,
-            classeArgamassa = if (isPedraOuSimilares()) null else if (sugereAc3) "ACIII" else classe,
+            classeArgamassa = classeFinal,
             impermeabilizacaoOn = impOn,
             impermeabilizacaoLocked = impLocked
         )
@@ -295,6 +397,31 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     fun setIntertravadoImpTipo(tipo: ImpIntertravadoTipo) = viewModelScope.launch {
         val updated = _inputs.value.copy(impIntertravadoTipo = tipo)
         _inputs.value = applyIntertravadoImpConfig(updated)
+    }
+
+    // Define o formato da pastilha (5x5, 7,5x7,5 ou 10x10)
+    fun setPastilhaFormato(formato: PastilhaFormato?) = viewModelScope.launch {
+        var i = _inputs.value
+        if (i.revest != RevestimentoType.PASTILHA) return@launch
+
+        i = i.copy(pastilhaFormato = formato)
+
+        // Para pastilha, os campos geométricos passam a representar a PEÇA (não a manta)
+        i = if (formato != null) {
+            i.copy(
+                pecaCompCm = formato.ladoCm,
+                pecaLargCm = formato.ladoCm,
+                pecaEspMm = formato.espMmPadrao
+            )
+        } else {
+            i.copy(
+                pecaCompCm = null,
+                pecaLargCm = null,
+                pecaEspMm = null
+            )
+        }
+
+        _inputs.value = i
     }
 
     // Define as medidas do ambiente (com validação de limites)
@@ -314,15 +441,25 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         juntaMm: Double?, sobraPct: Double?, pecasPorCaixa: Int?
     ) = viewModelScope.launch {
         val cur = _inputs.value
+
+        // Pastilha: aqui só tratamos junta (opcional) e sobra técnica.
+        if (cur.revest == RevestimentoType.PASTILHA) {
+            val juntaValida = juntaMm?.takeIf { it in 1.0..5.0 }
+
+            _inputs.value = cur.copy(
+                juntaMm = juntaValida,
+                sobraPct = (sobraPct ?: cur.sobraPct ?: 10.0).takeIf { it in 0.0..50.0 }
+            )
+            return@launch
+        }
+
         val (minCm, maxCm) = when (cur.revest) {
             RevestimentoType.MARMORE, RevestimentoType.GRANITO -> 10.0 to 2000.0
-            RevestimentoType.PASTILHA -> 20.0 to 40.0
             else -> 5.0 to 200.0
         }
 
         val espFinal = when (cur.revest) {
-            RevestimentoType.PASTILHA -> null
-            RevestimentoType.PISO_INTERTRAVADO -> espMm?.takeIf { it in 40.0..120.0 } // 4–12 cm em mm
+            RevestimentoType.PISO_INTERTRAVADO -> espMm?.takeIf { it in 40.0..120.0 }
             else -> espMm?.takeIf { it in 3.0..30.0 }
         }
 
@@ -731,25 +868,28 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     // Valida pastilha especificamente
     private fun validatePastilha(i: Inputs): StepValidation {
-        return when {
-            i.pecaCompCm == null || i.pecaLargCm == null ->
-                StepValidation(false, "Informe o tamanho da manta (largura × altura)")
-
-            i.pecaCompCm !in 20.0..40.0 || i.pecaLargCm !in 20.0..40.0 ->
-                StepValidation(false, "Manta fora do limite (20 a 40 cm)")
-
-            i.juntaMm != null && i.juntaMm < 1.0 ->
-                StepValidation(false, "Junta muito fina (mínimo 1 mm)")
-
-            i.juntaMm != null && i.juntaMm > 3.0 ->
-                StepValidation(false, "Junta muito larga (máximo 3 mm)")
-
-            // Sobra técnica: apenas valida faixa 0% a 50%
-            i.sobraPct != null && i.sobraPct !in 0.0..50.0 ->
-                StepValidation(false, "Sobra técnica deve ser entre 0% e 50%")
-
-            else -> StepValidation(true)
+        // 1) Obrigatório escolher um formato
+        if (i.pastilhaFormato == null) {
+            return StepValidation(false, "Selecione o tamanho da pastilha")
         }
+
+        // 2) Junta opcional: se preenchida, 1 a 5 mm
+        i.juntaMm?.let { junta ->
+            if (junta < 1.0) {
+                return StepValidation(false, "Junta muito fina (mínimo 1 mm)")
+            }
+            if (junta > 5.0) {
+                return StepValidation(false, "Junta muito larga (máximo 5 mm)")
+            }
+        }
+
+        // 3) Sobra técnica: usa padrão 10% se vazio
+        val sobra = i.sobraPct ?: 10.0
+        if (sobra !in 0.0..50.0) {
+            return StepValidation(false, "Sobra técnica deve ser entre 0% e 50%")
+        }
+
+        return StepValidation(true)
     }
 
     // Valida pedra/mármore/granito
@@ -846,7 +986,6 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
      * ═══════════════════════════════════════════════════════════════════════════ */
 
     fun espessuraPadraoAtual(): Double = getEspessuraPadraoMm(_inputs.value)
-    fun juntaPadraoAtual(): Double = getJuntaPadraoMm(_inputs.value)
 
     // Gera resumo textual para revisão do usuário
     fun getResumoRevisao(): String = buildString {
@@ -854,7 +993,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         //appendLine("📋 REVISÃO DOS PARÂMETROS\n\n")
 
         // Tipo de revestimento
-        append("• 🏗️ Revestimento: ")
+        append("• 🧱 Revestimento: ")
         append(
             when (i.revest) {
                 RevestimentoType.PISO -> "Piso ${if (i.pisoPlacaTipo == PlacaTipo.PORCELANATO) "Porcelanato" else "Cerâmico"}"
@@ -923,28 +1062,6 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         // Rodapé
         if (i.rodapeEnable && i.revest in tiposComRodape() && i.rodapeAlturaCm != null) {
             appendRodapeInfo(i)
-        }
-
-        // Argamassa
-        val classeArg = when (i.revest) {
-            RevestimentoType.PEDRA,
-            RevestimentoType.PISO_INTERTRAVADO -> null // não exibe
-
-            RevestimentoType.MARMORE,
-            RevestimentoType.GRANITO -> {
-                // Se NÃO for leito espesso → força ACIII (como já fazia)
-                val usaLeitoEspesso = mgIsAreiaCimento(i)
-                if (!usaLeitoEspesso) "ACIII" else null
-            }
-
-            else -> {
-                val classe = i.classeArgamassa
-                if (classe != null && shouldShowClasse(i)) classe else null
-            }
-        }
-
-        classeArg?.let {
-            appendLine("• 🧱 Argamassa: $it")
         }
 
         // Impermeabilização
@@ -1042,6 +1159,12 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         sobra: Double,
         itens: MutableList<MaterialItem>
     ) {
+        // Pastilha tem regras específicas (formato fixo + manta)
+        if (i.revest == RevestimentoType.PASTILHA) {
+            processarPastilha(i, areaM2, sobra, itens)
+            return
+        }
+
         val nomeRev = when (i.revest) {
             RevestimentoType.PISO -> when (i.pisoPlacaTipo) {
                 PlacaTipo.PORCELANATO -> "Piso porcelanato"
@@ -1049,7 +1172,6 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             }
 
             RevestimentoType.AZULEJO -> "Azulejo (parede)"
-            RevestimentoType.PASTILHA -> "Pastilha"
             else -> "Revestimento"
         }
 
@@ -1079,6 +1201,63 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         // Adicionar espaçadores e cunhas
         adicionarEspacadoresECunhas(i, areaM2, sobra, itens)
+    }
+
+    // Processa apenas Pastilha com formatos pré-definidos
+    private fun processarPastilha(
+        i: Inputs,
+        areaM2: Double,
+        sobra: Double,
+        itens: MutableList<MaterialItem>
+    ) {
+        val formato = i.pastilhaFormato ?: return
+        if (areaM2 <= 0.0) return
+
+        val ladoPecaCm = formato.ladoCm
+        val ladoMantaCm = formato.mantaLadoCm
+
+        val areaPecaM2 = (ladoPecaCm / 100.0) * (ladoPecaCm / 100.0)
+        val areaMantaM2 = (ladoMantaCm / 100.0) * (ladoMantaCm / 100.0)
+
+        // Peças por manta (aproximação por área, sempre >= 1)
+        val pecasPorManta = max(1, kotlin.math.floor(areaMantaM2 / areaPecaM2).toInt())
+
+        val areaCompraM2 = areaM2 * (1 + sobra / 100.0)
+
+        // ✅ CORREÇÃO: Calcula mantas por m² (não peças por m²)
+        val mantasPorM2 = 1.0 / areaMantaM2
+        val totalMantas = ceil(areaCompraM2 * mantasPorM2).toInt()
+        val totalPecas = totalMantas * pecasPorManta
+
+        val nome = when (formato) {
+            PastilhaFormato.P5 -> "Pastilha 5cm × 5cm (32,5cm × 32,5cm)"
+            PastilhaFormato.P7_5 -> "Pastilha 7,5cm × 7,5cm (31,5cm × 31,5cm)"
+            PastilhaFormato.P10 -> "Pastilha 10cm × 10cm (31cm × 31cm)"
+        }
+
+        // ✅ NOVA OBSERVAÇÃO: Ordem comercial (mantas → peças)
+        val observacao = buildString {
+            append("Mantas por m²: ${arred2(mantasPorM2)}")
+            append(" • $totalPecas peças.")
+        }
+
+        // Qtd em m² permanece como antes
+        itens += MaterialItem(
+            item = nome,
+            unid = "m²",
+            qtd = arred2(areaCompraM2),
+            observacao = observacao
+        )
+
+        // Argamassa: usa dimensões da peça (já setadas em setPastilhaFormato)
+        val iArg = i.copy(
+            juntaMm = (i.juntaMm ?: getJuntaPadraoMm(i)).coerceIn(1.0, 5.0),
+            pecaEspMm = getEspessuraPadraoMm(i)
+        )
+        adicionarArgamassaColante(iArg, areaM2, sobra, itens)
+
+        // Rejunte: baseado na geometria da peça, não da manta
+        adicionarRejunte(iArg, areaM2, itens)
     }
 
     // Processa pedra/mármore/granito
@@ -1472,10 +1651,11 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     ) {
         val consumoArgKgM2 = consumoArgamassaKgM2(i)
         val totalArgKg = (consumoArgKgM2 * areaM2 * (1 + sobra / 100.0)) + extraKg
-        val classe = i.classeArgamassa ?: "ACI"
+
+        val nomeItem = "Argamassa"
 
         itens += MaterialItem(
-            item = "Argamassa colante $classe",
+            item = nomeItem,
             unid = "kg",
             qtd = arred1(max(0.0, totalArgKg)),
             observacao = "Consumo estimado para assentamento do revestimento."
@@ -1521,6 +1701,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         sobra: Double,
         itens: MutableList<MaterialItem>
     ) {
+        if (i.revest == RevestimentoType.PASTILHA) return
         if (i.revest == RevestimentoType.PEDRA ||
             i.pecaCompCm == null || i.pecaLargCm == null ||
             (i.juntaMm ?: 0.0) <= 0.0
@@ -1542,8 +1723,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             observacao = obsPacEsp
         )
 
-        // Cunhas apenas se NÃO for pastilha
-        if (i.revest != RevestimentoType.PASTILHA) {
+        if (i.revest == RevestimentoType.PISO || i.revest == RevestimentoType.AZULEJO) {
             itens += MaterialItem(
                 item = "Cunhas",
                 unid = "un",
@@ -1692,15 +1872,26 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val isPorc = i.revest == RevestimentoType.PISO && i.pisoPlacaTipo == PlacaTipo.PORCELANATO
         val esp = i.pecaEspMm ?: getEspessuraPadraoMm(i)
 
+        // 🧱 Tratamento especial para pastilhas
+        if (i.revest == RevestimentoType.PASTILHA) {
+            return when (i.pecaCompCm) {
+                5.0 -> 7.0
+                7.5 -> 7.0
+                10.0 -> 7.0
+                else -> 5.5 // valor padrão de segurança para pastilhas fora do padrão
+            }
+        }
+
         val consumoBase = when {
-            maxLado <= 15.0 -> 4.5
+            maxLado <= 15.0 -> 4.0
             maxLado <= 20.0 -> 5.0
-            maxLado <= 32.0 -> 5.5
-            maxLado <= 45.0 -> 6.5
+            maxLado <= 32.0 -> 6.0
+            maxLado <= 45.0 -> 7.0
             maxLado <= 60.0 -> 8.0
+            maxLado <= 75.0 -> 9.0
             maxLado <= 90.0 -> 10.0
-            maxLado <= 120.0 -> 13.0
-            else -> 15.0
+            maxLado <= 120.0 -> 12.0
+            else -> 14.0
         }
 
         val fatorPorcelanato = if (isPorc) when {
@@ -1727,12 +1918,22 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     // Calcula consumo de rejunte em kg/m²
     private fun consumoRejunteKgM2(i: Inputs, densidadeKgDm3: Double): Double {
-        val compM = (i.pecaCompCm ?: 30.0) / 100.0
-        val largM = (i.pecaLargCm ?: 30.0) / 100.0
-        val juntaM = ((i.juntaMm ?: getJuntaPadraoMm(i)).coerceAtLeast(0.5)) / 1000.0
-        val espM = when (i.revest) {
-            RevestimentoType.PASTILHA -> 3.0 / 1000.0   // fixa 3 mm; ignora espessura
-            else -> ((i.pecaEspMm ?: getEspessuraPadraoMm(i)).coerceAtLeast(3.0)) / 1000.0
+        val juntaMm = (i.juntaMm ?: getJuntaPadraoMm(i))
+        val juntaM = (juntaMm.coerceAtLeast(0.5)) / 1000.0
+
+        val (compM, largM, espM) = if (i.revest == RevestimentoType.PASTILHA) {
+            // Para pastilha usamos o tamanho da PEÇA, não da manta
+            val formato = i.pastilhaFormato
+            val ladoCm = formato?.ladoCm ?: 5.0
+            val comp = ladoCm / 100.0
+            val larg = ladoCm / 100.0
+            val esp = ((i.pecaEspMm ?: getEspessuraPadraoMm(i)).coerceAtLeast(3.0)) / 1000.0
+            Triple(comp, larg, esp)
+        } else {
+            val comp = (i.pecaCompCm ?: 30.0) / 100.0
+            val larg = (i.pecaLargCm ?: 30.0) / 100.0
+            val esp = ((i.pecaEspMm ?: getEspessuraPadraoMm(i)).coerceAtLeast(3.0)) / 1000.0
+            Triple(comp, larg, esp)
         }
 
         val consumo = ((compM + largM) / (compM * largM)) * juntaM * espM * densidadeKgDm3
@@ -1964,18 +2165,23 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     // Retorna especificação de rejunte conforme ambiente
     private fun rejunteSpec(i: Inputs) = when (i.ambiente) {
         AmbienteType.SEMPRE ->
-            RejunteSpec("Rejunte epóxi", DENS_EPOXI, EMB_EPOXI_KG)
+            RejunteSpec("Rejunte Epóxi", DENS_EPOXI, EMB_EPOXI_KG)
 
         AmbienteType.SEMI, AmbienteType.MOLHADO ->
-            RejunteSpec("Rejunte cimentício Tipo 2", DENS_CIMENTICIO, EMB_CIME_KG)
+            RejunteSpec("Rejunte Comum Tipo 2", DENS_CIMENTICIO, EMB_CIME_KG)
 
         else ->
-            RejunteSpec("Rejunte cimentício Tipo 1", DENS_CIMENTICIO, EMB_CIME_KG)
+            RejunteSpec("Rejunte Comum Tipo 1", DENS_CIMENTICIO, EMB_CIME_KG)
     }
 
     // Retorna espessura padrão em mm conforme tipo de revestimento
     private fun getEspessuraPadraoMm(i: Inputs) = when (i.revest) {
-        RevestimentoType.PASTILHA -> 5.0
+        RevestimentoType.PASTILHA -> when (i.pastilhaFormato) {
+            PastilhaFormato.P5 -> 5.0
+            PastilhaFormato.P7_5, PastilhaFormato.P10 -> 6.0
+            null -> 5.0
+        }
+
         RevestimentoType.PEDRA -> 20.0
         RevestimentoType.PISO_INTERTRAVADO -> 60.0
         RevestimentoType.MARMORE, RevestimentoType.GRANITO -> 12.0
@@ -1995,8 +2201,8 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     // Retorna junta padrão em mm conforme tipo de revestimento
     private fun getJuntaPadraoMm(i: Inputs) = when (i.revest) {
-        // Pastilha: já era 2mm e continua
-        RevestimentoType.PASTILHA -> 2.0
+        // Pastilha
+        RevestimentoType.PASTILHA -> 3.0
 
         // Pedra Portuguesa
         RevestimentoType.PEDRA -> 4.0
@@ -2018,19 +2224,6 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         // Genérico / fallback
         else -> 3.0
-    }
-
-    // Verifica se deve mostrar classe de argamassa no resumo
-    private fun shouldShowClasse(i: Inputs): Boolean {
-        val espUsadaMm = (i.pecaEspMm ?: getEspessuraPadraoMm(i)).coerceAtLeast(3.0)
-        val usarLeitoEspesso =
-            (i.revest == RevestimentoType.MARMORE || i.revest == RevestimentoType.GRANITO) &&
-                    espUsadaMm > 20.0
-        return when (i.revest) {
-            RevestimentoType.PEDRA -> false
-            RevestimentoType.MARMORE, RevestimentoType.GRANITO -> !usarLeitoEspesso
-            else -> true
-        }
     }
 
     // Adiciona informações do rodapé ao resumo
