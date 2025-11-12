@@ -8,11 +8,8 @@ import android.os.Bundle
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.core.view.get
 import androidx.core.view.isVisible
-import androidx.core.view.size
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -44,16 +41,10 @@ import java.io.FileOutputStream
  * Fragment para cálculo de materiais de revestimento
  *
  * Wizard de 10 etapas:
- * 0. Tela inicial
- * 1. Tipo de revestimento
- * 2. Tipo de ambiente
- * 3. Tipo de tráfego (apenas Piso Intertravado)
- * 4. Medidas do ambiente
- * 5. Parâmetros da peça
- * 6. Rodapé (opcional)
- * 7. Impermeabilização (opcional)
- * 8. Revisão
- * 9. Resultado
+ * 0. Tela inicial ; 1. Tipo de revestimento ; 2. Tipo de ambiente
+ * 3. Tipo de tráfego (apenas Piso Intertravado) ; 4. Medidas do ambiente
+ * 5. Parâmetros da peça ; 6. Rodapé (opcional) ; 7. Impermeabilização (opcional)
+ * 8. Revisão ; 9. Resultado
  */
 @AndroidEntryPoint
 class CalcRevestimentoFragment : Fragment() {
@@ -132,9 +123,7 @@ class CalcRevestimentoFragment : Fragment() {
      * INICIALIZAÇÃO
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Inicializa todos os gerenciadores de UI
-     */
+    /** Inicializa todos os gerenciadores de UI */
     private fun initializeHelpers() {
         validator = FieldValidator(viewModel)
         iconManager = RequiredIconManager(requireContext())
@@ -146,36 +135,28 @@ class CalcRevestimentoFragment : Fragment() {
         navigationHandler = StepNavigationHandler()
     }
 
-    /**
-     * Configura a toolbar com menu e navegação
-     */
+    /** Configura a toolbar com menu e navegação */
     private fun setupToolbar() = with(binding.toolbar) {
-        // Navegação: comportamento depende da etapa (ver handleToolbarNavigationClick)
+        // Navegação: comportamento depende da etapa
         setNavigationOnClickListener { handleToolbarNavigationClick() }
 
-        inflateMenu(R.menu.menu_calc_revestimento)
-        setTitleTextColor(ContextCompat.getColor(context, R.color.white))
+        // Configura os botões customizados
+        setupCustomToolbarButtons()
+    }
 
-        // Garante ícones sempre brancos
-        for (i in 0 until menu.size) {
-            menu[i].icon?.setTint(ContextCompat.getColor(context, R.color.white))
+    /** Configura os botões customizados da toolbar */
+    private fun setupCustomToolbarButtons() = with(binding.toolbarCustomActions) {
+        btnToolbarHome.setOnClickListener {
+            showHomeConfirmDialog()
         }
 
-        setOnMenuItemClickListener {
-            when (it.itemId) {
-                R.id.action_export_calc -> {
-                    showExportMenu(this); true
-                }
-                R.id.action_home_calc -> {
-                    showHomeConfirmDialog(); true
-                }
-                else -> false
-            }
+        btnToolbarExport.setOnClickListener {
+            showExportMenu(it)
         }
     }
 
     /**
-     * Clique do ícone de navegação da toolbar.
+     * Clique do ícone voltar da toolbar.
      * - Step 0 (tela "Começar"): comportamento original (navigateUp).
      * - Step >= 1: mesmo comportamento do botão "Voltar" do wizard (prevStep()).
      */
@@ -188,9 +169,36 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Mostra diálogo para retornar à tela principal do app
-     */
+    /** Ir para a tela principal. (Prioriza Home se estiver na pilha; caso contrário, tenta Work.) */
+    private fun navigateToHomeFragment() {
+        val nav = findNavController()
+
+        // Tenta voltar até Home, se já existir na pilha
+        val poppedHome = nav.popBackStack(R.id.homeFragment, false)
+        if (poppedHome) return
+
+        // Se não tiver Home na pilha, tenta voltar até Work (lista de obras)
+        val poppedWork = nav.popBackStack(R.id.workFragment, false)
+        if (poppedWork) return
+
+        // Fallback seguro
+        try {
+            nav.navigate(R.id.workFragment)
+        } catch (_: IllegalArgumentException) {
+            nav.navigateUp()
+        }
+    }
+
+    /** Visibilidade Ícone Toolbar (Download) / Troca de Título */
+    private fun updateToolbarIconAndTitleForStep() = with(binding.toolbarCustomActions) {
+        val step = viewModel.step.value
+
+        btnToolbarExport.isVisible = (step == 9)
+        binding.toolbar.title =
+            if (step == 9) getString(R.string.calc_title_result) else getString(R.string.calc_title)
+    }
+
+    /** Mostra diálogo para retornar à tela principal do app */
     private fun showHomeConfirmDialog() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.calc_home_dialog_title))
@@ -202,15 +210,13 @@ class CalcRevestimentoFragment : Fragment() {
             .show()
     }
 
-    /**
-     * Mostra menu popup de exportação (Compartilhar/Download)
-     */
+    /** Mostra menu popup de exportação (Compartilhar/Download) */
     private fun showExportMenu(anchor: View) {
         val popup = androidx.appcompat.widget.PopupMenu(requireContext(), anchor, Gravity.END)
         popup.menu.add(0, 1, 0, getString(R.string.export_share))
             .setIcon(R.drawable.ic_export_share)
         popup.menu.add(0, 2, 1, getString(R.string.export_download))
-            .setIcon(R.drawable.ic_download2)
+            .setIcon(R.drawable.ic_download_24)
 
         try {
             popup.setForceShowIcon(true)
@@ -236,9 +242,7 @@ class CalcRevestimentoFragment : Fragment() {
      * SETUP DA UI
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Configura todos os componentes da UI
-     */
+    /** Configura todos os componentes da UI */
     private fun setupUi() {
         // Habilita slots de erro em todos os TextInputLayouts
         enableErrorSlotsForAllFields()
@@ -255,9 +259,7 @@ class CalcRevestimentoFragment : Fragment() {
         return setupStep7Listeners()  // Revisão e cálculo
     }
 
-    /**
-     * Habilita slots de erro para todos os campos
-     */
+    /** Habilita slots de erro para todos os campos */
     private fun enableErrorSlotsForAllFields() = with(binding) {
         listOf(
             tilComp, tilLarg, tilAltura, tilAreaInformada,
@@ -272,9 +274,7 @@ class CalcRevestimentoFragment : Fragment() {
      * NAVEGAÇÃO
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Configura botões de navegação (Iniciar/Voltar/Avançar/Cancelar)
-     */
+    /** Configura botões de navegação (Iniciar/Voltar/Avançar/Cancelar) */
     private fun setupNavigationButtons() = with(binding) {
         btnNext.setOnClickListener { handleNextButtonClick() }
         btnBack.setOnClickListener { rootCalc.post { viewModel.prevStep() } }
@@ -282,10 +282,7 @@ class CalcRevestimentoFragment : Fragment() {
         btnCancel.setOnClickListener { findNavController().navigateUp() }
     }
 
-    /**
-     * Trata clique no botão "Avançar"
-     * Valida campos antes de prosseguir
-     */
+    /** * Trata clique no botão "Avançar" ; Valida campos antes de prosseguir */
     private fun handleNextButtonClick() {
         with(binding) {
             val step = viewModel.step.value
@@ -323,9 +320,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Verifica se precisa mostrar diálogo de aplicação (Mármore/Granito)
-     */
+    /** Verifica se precisa mostrar diálogo de aplicação (Mármore/Granito) */
     private fun needsAplicacaoDialog(): Boolean {
         val i = viewModel.inputs.value
         return (i.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
@@ -333,9 +328,7 @@ class CalcRevestimentoFragment : Fragment() {
                 i.aplicacao == null
     }
 
-    /**
-     * Mostra diálogo para escolher aplicação (Piso ou Parede) para Mármore/Granito
-     */
+    /** Mostra diálogo para escolher aplicação (Piso ou Parede) para Mármore/Granito */
     private fun showAplicacaoDialogForMG() {
         val options = arrayOf(
             getString(R.string.calc_aplicacao_option_piso),
@@ -380,9 +373,7 @@ class CalcRevestimentoFragment : Fragment() {
      * LISTENERS DE ETAPAS
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Etapa 1: Tipo de revestimento
-     */
+    /** Etapa 1: Tipo de revestimento */
     private fun setupStep1Listeners() = with(binding) {
         rgRevest.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
@@ -400,9 +391,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Etapa 2: Tipo de ambiente
-     */
+    /** Etapa 2: Tipo de ambiente */
     private fun setupStep2Listeners() = with(binding) {
         rgAmbiente.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
@@ -411,9 +400,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Etapa 3: Tipo de tráfego (apenas Piso Intertravado)
-     */
+    /** Etapa 3: Tipo de tráfego (apenas Piso Intertravado) */
     private fun setupStep3TrafegoListeners() = with(binding) {
         rgTrafego.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
@@ -423,32 +410,23 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Etapa 4: Medidas do ambiente
-     */
+    /** Etapa 4: Medidas do ambiente */
     private fun setupStep3Listeners() = with(binding) {
         // Comprimento
         setupMedidaField(etComp, tilComp, 0.01..10000.0, R.string.calc_err_medida_comp_larg_m)
-
         // Largura
         setupMedidaField(etLarg, tilLarg, 0.01..10000.0, R.string.calc_err_medida_comp_larg_m)
-
         // Altura
         setupMedidaField(etAlt, tilAltura, 0.01..100.0, R.string.calc_err_medida_alt_m)
-
         // Quantidade de paredes
         setupParedeQtdField()
-
-        // Abertura (portas/janelas)
+        // Abertura (vãos)
         setupAberturaField()
-
         // Área total informada
         setupAreaInformadaField()
     }
 
-    /**
-     * Configura campo de medida (Comp/Larg/Alt)
-     */
+    /** Configura campo de medida (Comp/Larg/Alt) */
     private fun setupMedidaField(
         et: TextInputEditText,
         til: TextInputLayout,
@@ -479,9 +457,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Configura campo de quantidade de paredes
-     */
+    /** Configura campo de quantidade de paredes */
     private fun setupParedeQtdField() = with(binding) {
         etParedeQtd.doAfterTextChanged {
             val qtd = etParedeQtd.text?.toString()?.toIntOrNull()
@@ -506,9 +482,7 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    /**
-     * Configura campo de abertura (portas/janelas)
-     */
+    /** Configura campo de abertura (portas/janelas) */
     private fun setupAberturaField() = with(binding) {
         etAbertura.doAfterTextChanged {
             val abertura = getD(etAbertura)
@@ -541,9 +515,7 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    /**
-     * Configura campo de área total informada
-     */
+    /** Configura campo de área total informada */
     private fun setupAreaInformadaField() = with(binding) {
         etAreaInformada.doAfterTextChanged {
             viewModel.setMedidas(getD(etComp), getD(etLarg), getD(etAlt), getD(etAreaInformada))
@@ -583,28 +555,15 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    /**
-     * Etapa 5: Parâmetros da peça
-     */
+    /** Etapa 5: Parâmetros da peça */
     private fun setupStep4Listeners() = with(binding) {
-        // Comprimento e largura da peça
-        setupPecaField(etPecaComp, tilPecaComp)
-        setupPecaField(etPecaLarg, tilPecaLarg)
-
-        // Espessura
-        setupEspessuraField()
-
-        // Junta
-        setupJuntaField()
-
-        // Peças por caixa
-        setupPecasPorCaixaField()
-
-        // Desnível
-        setupDesnivelField()
-
-        // Sobra técnica
-        setupSobraField()
+        setupPecaField(etPecaComp, tilPecaComp) // Comprimento da peça
+        setupPecaField(etPecaLarg, tilPecaLarg) // Largura da peça
+        setupEspessuraField()                   // Espessura da peça
+        setupJuntaField()                       // Junta da peça
+        setupPecasPorCaixaField()               // Peças por caixa
+        setupDesnivelField()                    // Desnível
+        setupSobraField()                       // Sobra técnica
 
         // Tamanho de pastilha (RadioGroup)
         rgPastilhaTamanho.setOnCheckedChangeListener { _, id ->
@@ -616,9 +575,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Configura campo de peça (comprimento ou largura)
-     */
+    /** Configura campo de peça (comprimento ou largura) */
     private fun setupPecaField(et: TextInputEditText, til: TextInputLayout) {
         et.doAfterTextChanged {
             updatePecaParametros()
@@ -650,9 +607,7 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    /**
-     * Configura campo de espessura
-     */
+    /** Configura campo de espessura */
     private fun setupEspessuraField() = with(binding) {
         etPecaEsp.doAfterTextChanged {
             if (isPastilha()) {
@@ -708,9 +663,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Configura campo de junta
-     */
+    /** Configura campo de junta */
     private fun setupJuntaField() = with(binding) {
         etJunta.doAfterTextChanged {
             updatePecaParametros()
@@ -723,9 +676,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Configura campo de peças por caixa
-     */
+    /** Configura campo de peças por caixa */
     private fun setupPecasPorCaixaField() = with(binding) {
         etPecasPorCaixa.doAfterTextChanged {
             updatePecaParametros()
@@ -742,9 +693,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Configura campo de desnível
-     */
+    /** Configura campo de desnível */
     private fun setupDesnivelField() = with(binding) {
         etDesnivel.doAfterTextChanged {
             updateDesnivelViewModel()
@@ -768,9 +717,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Configura campo de sobra técnica
-     */
+    /**  Configura campo de sobra técnica */
     private fun setupSobraField() = with(binding) {
         etSobra.doAfterTextChanged {
             updatePecaParametros()
@@ -830,9 +777,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Etapa 6: Rodapé
-     */
+    /** Etapa 6: Rodapé */
     private fun setupStep5Listeners() = with(binding) {
         switchRodape.setOnCheckedChangeListener { _, isChecked ->
             groupRodapeFields.isVisible = isChecked
@@ -940,9 +885,7 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    /**
-     * Etapa 7: Impermeabilização
-     */
+    /**  Etapa 7: Impermeabilização */
     private fun setupStep6Listeners() = with(binding) {
         switchImp.setOnCheckedChangeListener { _, on ->
             viewModel.setImpermeabilizacao(on)
@@ -957,9 +900,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Etapa 8: Revisão e cálculo
-     */
+    /** Etapa 8: Revisão e cálculo */
     private fun setupStep7Listeners() = with(binding) {
         btnCalcular.setOnClickListener { viewModel.calcular() }
         btnVoltarResultado.setOnClickListener { viewModel.goTo(8) }
@@ -969,9 +910,7 @@ class CalcRevestimentoFragment : Fragment() {
      * OBSERVERS
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Configura observers para StateFlow do ViewModel
-     */
+    /** Configura observers para StateFlow do ViewModel */
     private fun setupObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -982,9 +921,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Observa mudanças na etapa atual
-     */
+    /** Observa mudanças na etapa atual */
     private suspend fun observeStep() {
         viewModel.step.collect { step ->
             binding.viewFlipper.displayedChild = step
@@ -993,16 +930,14 @@ class CalcRevestimentoFragment : Fragment() {
             handleStepLayout(step)
             handleStepIcons(step)
             handleStepButtons(step)
-            updateToolbarIconsForStep()
+            updateToolbarIconAndTitleForStep()
             handleStep7Resume(step)
             ensureTopNoFlicker(step)
             refreshNextEnabled()
         }
     }
 
-    /**
-     * Observa mudanças nos inputs
-     */
+    /** Observa mudanças nos inputs */
     private suspend fun observeInputs() {
         viewModel.inputs.collect { i ->
             syncRadioGroups()
@@ -1015,9 +950,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Observa resultado do cálculo
-     */
+    /** Observa resultado do cálculo */
     private suspend fun observeResultado() {
         viewModel.resultado.collect { ui ->
             when (ui) {
@@ -1037,9 +970,7 @@ class CalcRevestimentoFragment : Fragment() {
      * SINCRONIZAÇÃO DE UI
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Sincroniza RadioGroups com o estado do ViewModel
-     */
+    /** Sincroniza RadioGroups com o estado do ViewModel */
     private fun syncRadioGroups() = with(binding) {
         isSyncing = true
         radioSynchronizer.syncAllRadioGroups(
@@ -1050,9 +981,7 @@ class CalcRevestimentoFragment : Fragment() {
         isSyncing = false
     }
 
-    /**
-     * Sincroniza campos de texto com o estado do ViewModel
-     */
+    /** Sincroniza campos de texto com o estado do ViewModel */
     private fun syncFieldValues() = with(binding) {
         fieldSynchronizer.syncAllFields(
             viewModel.inputs.value,
@@ -1065,9 +994,11 @@ class CalcRevestimentoFragment : Fragment() {
             rgPastilhaTamanho,
             isMG()
         )
-        // Normaliza exibição dos valores padrão auto-preenchidos
-        normalizePredefinedDefaults()
+
+        normalizePredefinedDefaults() // Normaliza exibição dos valores padrão auto-preenchidos
     }
+
+    /** Funções para normalizar exibição dos valores padrão auto-preenchidos */
     private fun normalizePredefinedDefaults() = with(binding) {
         val i = viewModel.inputs.value
 
@@ -1075,6 +1006,7 @@ class CalcRevestimentoFragment : Fragment() {
         normalizeAutoField(etJunta, i.juntaMm)
         normalizeAutoField(etSobra, i.sobraPct)
     }
+
     private fun normalizeAutoField(editText: TextInputEditText, value: Double?) {
         val adjusted = NumberFormatter.adjustDefaultFieldText(
             editText.text?.toString(),
@@ -1086,47 +1018,18 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Atualiza visibilidade de componentes conforme inputs
-     */
+    /** Atualiza visibilidade de componentes conforme inputs */
     private fun updateUIVisibility() = with(binding) {
         visibilityManager.updateAllVisibilities(
-            viewModel.inputs.value,
-            tvObsAc3,
-            tvAreaTotalAviso,
-            groupPlacaTipo,
-            groupPecaTamanho,
-            groupPastilhaTamanho,
-            groupRodapeFields,
-            groupIntertravadoImpOptions,
-            tilComp,
-            tilLarg,
-            tilAltura,
-            tilParedeQtd,
-            tilAbertura,
-            tilAreaInformada,
-            tilPecaComp,
-            tilPecaLarg,
-            tilPecaEsp,
-            tilJunta,
-            tilPecasPorCaixa,
-            tilDesnivel,
-            tilSobra,
-            tilRodapeAltura,
-            tilRodapeAbertura,
-            tilRodapeCompComercial,
-            etLarg,
-            etAlt,
-            etParedeQtd,
-            etAbertura,
-            etPecaEsp,
-            etJunta,
-            etPecasPorCaixa,
-            etRodapeAbertura,
-            rgPlacaTipo,
-            rgIntertravadoImp,
-            switchImp,
-            switchRodape
+            viewModel.inputs.value, tvObsAc3, tvAreaTotalAviso, groupPlacaTipo, groupPecaTamanho,
+            groupPastilhaTamanho, groupRodapeFields, groupIntertravadoImpOptions, tilComp,
+            tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
+            tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa, tilDesnivel,
+            tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial,
+            etLarg, etAlt, etParedeQtd, etAbertura,
+            etPecaEsp, etJunta, etPecasPorCaixa, etRodapeAbertura,
+            rgPlacaTipo, rgIntertravadoImp,
+            switchImp, switchRodape
         )
     }
 
@@ -1134,9 +1037,7 @@ class CalcRevestimentoFragment : Fragment() {
      * HANDLERS DE ETAPAS
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Ajusta layout conforme etapa
-     */
+    /** Ajusta layout conforme etapa */
     private fun handleStepLayout(step: Int) = with(binding) {
         val tela0 = viewFlipper.getChildAt(0) as LinearLayout
 
@@ -1155,9 +1056,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Inicializa ícones obrigatórios conforme etapa
-     */
+    /** Inicializa ícones obrigatórios conforme etapa */
     private fun handleStepIcons(step: Int) = with(binding) {
         when (step) {
             4 -> {
@@ -1173,30 +1072,24 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Configura botões conforme etapa
-     */
+    /** Configura botões conforme etapa */
     private fun handleStepButtons(step: Int) = with(binding) {
         navigationHandler.handleStepNavigation(
-            step, btnBack, btnNext, btnCalcular, bottomBar, viewFlipper,
-            { visible -> toolbarMenuVisible(visible) },
-            { setupNovoCalculoButton() },
-            { restoreDefaultBackButton() }
+            step = step, btnBack = btnBack, btnNext = btnNext, btnCalcular = btnCalcular,
+            bottomBar = bottomBar, viewFlipper = viewFlipper,
+            onSetupNovoCalculo = { setupNovoCalculoButton() },
+            onRestoreDefaultBack = { restoreDefaultBackButton() }
         )
     }
 
-    /**
-     * Preenche resumo na etapa 8
-     */
+    /** Preenche resumo na etapa 8 */
     private fun handleStep7Resume(step: Int) {
         if (step == 8) {
             binding.tvResumoRevisao.text = viewModel.getResumoRevisao()
         }
     }
 
-    /**
-     * Configura botão "Novo Cálculo"
-     */
+    /** Configura botão "Novo Cálculo" */
     private fun setupNovoCalculoButton() = with(binding) {
         btnNext.isVisible = false
         btnBack.text = getString(R.string.calc_novo_calculo)
@@ -1226,9 +1119,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Restaura botão "Voltar" padrão
-     */
+    /** Restaura botão "Voltar" padrão */
     private fun restoreDefaultBackButton() = with(binding) {
         btnBack.text = getString(R.string.generic_back)
         try {
@@ -1251,9 +1142,7 @@ class CalcRevestimentoFragment : Fragment() {
      * ATUALIZAÇÃO DE VIEWMODEL
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Atualiza parâmetros da peça no ViewModel
-     */
+    /** Atualiza parâmetros da peça no ViewModel */
     private fun updatePecaParametros() = with(binding) {
         val pc = parsePecaToCm(getD(etPecaComp))
         val pl = parsePecaToCm(getD(etPecaLarg))
@@ -1269,16 +1158,12 @@ class CalcRevestimentoFragment : Fragment() {
         viewModel.setPecaParametros(pc, pl, esp, junta, sobra, ppc)
     }
 
-    /**
-     * Atualiza desnível no ViewModel
-     */
+    /** Atualiza desnível no ViewModel */
     private fun updateDesnivelViewModel() {
         viewModel.setDesnivelCm(getD(binding.etDesnivel))
     }
 
-    /**
-     * Atualiza rodapé no ViewModel
-     */
+    /** Atualiza rodapé no ViewModel */
     private fun updateRodapeViewModel() = with(binding) {
         val material = if (rgRodapeMat.checkedRadioButtonId == R.id.rbRodapeMesma)
             CalcRevestimentoViewModel.RodapeMaterial.MESMA_PECA
@@ -1308,9 +1193,7 @@ class CalcRevestimentoFragment : Fragment() {
      * ÍCONES OBRIGATÓRIOS
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Atualiza ícones obrigatórios da Etapa 4 (Medidas)
-     */
+    /** Atualiza ícones obrigatórios da Etapa 4 (Medidas) */
     private fun updateRequiredIconsStep3() = with(binding) {
         iconManager.updateStep3Icons(
             etComp, etLarg, etAlt, etParedeQtd, etAbertura, etAreaInformada,
@@ -1318,9 +1201,7 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    /**
-     * Atualiza ícones obrigatórios da Etapa 5 (Peça)
-     */
+    /** Atualiza ícones obrigatórios da Etapa 5 (Peça) */
     private fun updateRequiredIconsStep4() = with(binding) {
         iconManager.updateStep4Icons(
             etPecaComp, etPecaLarg, etJunta, etPecaEsp, etPecasPorCaixa, etSobra,
@@ -1329,9 +1210,7 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    /**
-     * Atualiza ícones obrigatórios da Etapa 6 (Rodapé)
-     */
+    /** Atualiza ícones obrigatórios da Etapa 6 (Rodapé) */
     private fun updateRequiredIconsStep5() = with(binding) {
         iconManager.updateStep5Icons(
             etRodapeAltura, etRodapeCompComercial,
@@ -1345,9 +1224,7 @@ class CalcRevestimentoFragment : Fragment() {
      * VALIDAÇÃO E HABILITAÇÃO
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Revalida todas as dimensões (Comp/Larg/Alt)
-     */
+    /** Revalida todas as dimensões (Comp/Larg/Alt) */
     private fun validateAllDimensions() = with(binding) {
         validator.validateDimLive(
             etComp, tilComp, 0.01..10000.0,
@@ -1365,9 +1242,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Recalcula habilitação do botão "Avançar"
-     */
+    /** Recalcula habilitação do botão "Avançar" */
     private fun refreshNextEnabled() = with(binding) {
         val step = viewModel.step.value
         val validation = viewModel.validateStep(step)
@@ -1386,10 +1261,8 @@ class CalcRevestimentoFragment : Fragment() {
                     tilDesnivel.isVisible,
                     getD(etDesnivel)
                 ) &&
-                tilParedeQtd.error.isNullOrEmpty() &&
-                tilAbertura.error.isNullOrEmpty() &&
-                tilRodapeAbertura.error.isNullOrEmpty() &&
-                tilSobra.error.isNullOrEmpty()
+                tilParedeQtd.error.isNullOrEmpty() && tilAbertura.error.isNullOrEmpty() &&
+                tilRodapeAbertura.error.isNullOrEmpty() && tilSobra.error.isNullOrEmpty()
 
         // Regra específica para Mármore/Granito
         if ((inputs.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
@@ -1426,9 +1299,7 @@ class CalcRevestimentoFragment : Fragment() {
      * HELPER TEXTS
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Atualiza helper texts dinâmicos
-     */
+    /** Atualiza helper texts dinâmicos */
     private fun updateHelperTexts(i: CalcRevestimentoViewModel.Inputs) = with(binding) {
         val padraoEsp = viewModel.espessuraPadraoAtual()
 
@@ -1488,9 +1359,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Atualiza helper text de junta
-     */
+    /** Atualiza helper text de junta */
     private fun updateJuntaHelper(i: CalcRevestimentoViewModel.Inputs) = with(binding) {
         tilJunta.helperText = when (i.revest) {
             CalcRevestimentoViewModel.RevestimentoType.PISO -> {
@@ -1525,9 +1394,7 @@ class CalcRevestimentoFragment : Fragment() {
      * RESULTADO
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Exibe resultado do cálculo
-     */
+    /** Exibe resultado do cálculo */
     private fun displayResultado(r: CalcRevestimentoViewModel.Resultado) = with(binding) {
         headerResumo.text = buildHeaderText(r)
         tableContainer.removeAllViews()
@@ -1535,9 +1402,7 @@ class CalcRevestimentoFragment : Fragment() {
         r.itens.forEach { tableContainer.addView(tableBuilder.makeDataRow(it)) }
     }
 
-    /**
-     * Constrói texto do cabeçalho do resultado
-     */
+    /** Constrói texto do cabeçalho do resultado */
     private fun buildHeaderText(r: CalcRevestimentoViewModel.Resultado): String = buildString {
         appendLine("📊 RESUMO DO CÁLCULO\n")
 
@@ -1593,9 +1458,7 @@ class CalcRevestimentoFragment : Fragment() {
      * EXPORTAÇÃO DE PDF
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Exporta resultado em PDF (compartilhar ou salvar)
-     */
+    /** Exporta resultado em PDF (compartilhar ou salvar) */
     private fun export(share: Boolean) {
         val ui = (viewModel.resultado.value as? UiState.Success)?.data ?: run {
             toast(getString(R.string.calc_export_no_data))
@@ -1630,9 +1493,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Compartilha PDF via Intent
-     */
+    /** Compartilha PDF via Intent */
     private fun sharePdf(bytes: ByteArray, fileName: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             val cacheFile = File(requireContext().cacheDir, fileName)
@@ -1665,9 +1526,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Salva PDF em Downloads
-     */
+    /** Salva PDF em Downloads */
     private suspend fun savePdf(bytes: ByteArray, fileName: String) {
         val saved = withContext(Dispatchers.IO) {
             try {
@@ -1792,9 +1651,7 @@ class CalcRevestimentoFragment : Fragment() {
         else R.string.calc_err_junta_range
     )
 
-    /**
-     * Retorna range e mensagem de erro para desnível
-     */
+    /** Retorna range e mensagem de erro para desnível */
     private fun desnivelRangeAndError(): Pair<ClosedRange<Double>, Int> {
         return when (viewModel.inputs.value.revest) {
             CalcRevestimentoViewModel.RevestimentoType.PEDRA ->
@@ -1808,9 +1665,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Define helper text de forma segura (preserva erro atual)
-     */
+    /** Define helper text de forma segura (preserva erro atual) */
     private fun TextInputLayout.setHelperTextSafely(newText: CharSequence?) {
         if (helperText == newText) return
         val currentError = error
@@ -1824,18 +1679,6 @@ class CalcRevestimentoFragment : Fragment() {
     private fun toast(msg: String) =
         Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
 
-    // Visibilidade ícone download
-    private fun toolbarMenuVisible(visible: Boolean) {
-        binding.toolbar.menu.findItem(R.id.action_export_calc)?.isVisible = visible
-    }
-
-    // Visibilidade ícone home
-    private fun updateToolbarIconsForStep() {
-        val menu = binding.toolbar.menu
-        val homeItem = menu.findItem(R.id.action_home_calc)
-        homeItem?.isVisible = true
-    }
-
     private fun navigateBackToCalcMaterial() {
         val nav = findNavController()
         val popped = nav.popBackStack(R.id.calcMaterialFragment, false)
@@ -1848,32 +1691,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /**
-     * Navega para a tela principal do app.
-     * Prioriza voltar para Home se estiver na pilha; caso contrário, tenta Work.
-     */
-    private fun navigateToHomeFragment() {
-        val nav = findNavController()
-
-        // Tenta voltar até Home, se já existir na pilha
-        val poppedHome = nav.popBackStack(R.id.homeFragment, false)
-        if (poppedHome) return
-
-        // Se não tiver Home na pilha, tenta voltar até Work (lista de obras)
-        val poppedWork = nav.popBackStack(R.id.workFragment, false)
-        if (poppedWork) return
-
-        // Fallback seguro
-        try {
-            nav.navigate(R.id.workFragment)
-        } catch (_: IllegalArgumentException) {
-            nav.navigateUp()
-        }
-    }
-
-    /**
-     * Garante que o topo da tela está visível sem flicker
-     */
+    /** Garante que o topo da tela está visível sem flicker */
     private fun ensureTopNoFlicker(step: Int) {
         val sv = binding.scrollContent
         val root = binding.rootCalc

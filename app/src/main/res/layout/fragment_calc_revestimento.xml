@@ -21,9 +21,19 @@
         app:navigationIconTint="@color/white"
         app:title="@string/calc_title"
         app:titleCentered="true"
-        app:titleTextColor="@color/white" />
+        app:titleTextAppearance="@style/TextAppearance.CalcToolbarTitle"
+        app:titleTextColor="@color/white">
 
-    <!-- Conteúdo CENTRALIZADO -->
+        <include
+            android:id="@+id/toolbarCustomActions"
+            layout="@layout/fragment_calc_toolbar_custom"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end" />
+
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <!-- Conteúdo CENTRALIZADO PROGRAMATICAMENTE -->
     <ScrollView
         android:id="@+id/scrollContent"
         android:layout_width="0dp"

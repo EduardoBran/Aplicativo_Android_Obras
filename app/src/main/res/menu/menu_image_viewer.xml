@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_image_save"
-        android:icon="@drawable/ic_download"
+        android:icon="@drawable/ic_download_28"
         android:title="@string/image_viewer_menu_save"
         android:iconTint="@color/white"
         app:showAsAction="always" />

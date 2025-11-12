@@ -7,5 +7,5 @@
     android:background="?attr/selectableItemBackgroundBorderless"
     android:contentDescription="@string/gantt_menu_export"
     android:padding="16dp"
-    android:src="@drawable/ic_download"
+    android:src="@drawable/ic_download_28"
     app:tint="@android:color/white" />

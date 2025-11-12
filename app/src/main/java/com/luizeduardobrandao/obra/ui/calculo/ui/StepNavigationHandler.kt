@@ -29,7 +29,6 @@ class StepNavigationHandler {
         btnCalcular: MaterialButton,
         bottomBar: View,
         viewFlipper: ViewFlipper,
-        onToolbarMenuVisibilityChange: (Boolean) -> Unit,
         onSetupNovoCalculo: () -> Unit,
         onRestoreDefaultBack: () -> Unit
     ) {
@@ -37,7 +36,6 @@ class StepNavigationHandler {
         btnBack.isVisible = step > 0
         btnNext.isVisible = step in 1..7
         btnCalcular.isVisible = (step == 8)
-        onToolbarMenuVisibilityChange(step == 9)
 
         // Configura botão especial "Novo Cálculo" na etapa 9
         if (step == 9) {

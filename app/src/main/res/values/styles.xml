@@ -180,6 +180,11 @@
         <item name="colorSecondary">@color/md_theme_light_tertiary</item>
     </style>
 
+    <!-- Toolbar Cálculo de Material -->
+    <style name="TextAppearance.CalcToolbarTitle" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textSize">@dimen/title_toolbar_calc</item>
+    </style>
+
 
     <style name="TextAppearance.ObrasApp.TitleMedium18" parent="TextAppearance.Material3.TitleMedium">
         <item name="android:textSize">18sp</item>

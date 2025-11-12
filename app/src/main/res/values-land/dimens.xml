@@ -46,11 +46,16 @@
     <!-- Text Botton Header Home -->
     <dimen name="home_btn_cronograma_min_width">110dp</dimen>
 
-    <!-- Lista -->
+    <!-- Lista Home -->
     <dimen name="home_list_margin_vertical">10dp</dimen>
     <dimen name="home_list_padding_bottom">10dp</dimen>
 
-    <!-- Item da lista -->
+    <!-- Itens da lista Home -->
     <dimen name="home_item_horz_padding">16dp</dimen>
     <dimen name="home_item_vert_padding">12dp</dimen>
+
+    <!-- Tamanho Texto Toolbar Cálculo de Materiais -->
+    <dimen name="title_toolbar_calc">24sp</dimen>
+    <dimen name="width_icon_toolbar_calc_download">42dp</dimen>
+    <dimen name="width_icon_toolbar_calc_home">40dp</dimen>
 </resources>

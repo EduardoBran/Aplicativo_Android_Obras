@@ -11,7 +11,7 @@
     <group android:id="@+id/group_download">
         <item
             android:id="@+id/action_export_download"
-            android:icon="@drawable/ic_download2"
+            android:icon="@drawable/ic_download_24"
             android:title="@string/export_popup_download" />
     </group>
 

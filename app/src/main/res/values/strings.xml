@@ -1148,6 +1148,7 @@
     <string name="home_sub_calc_material">Estimativas para diversos materiais</string>
     <!-- Título / Toolbar -->
     <string name="calc_title">Cálculo de Material</string>
+    <string name="calc_title_result">Resultado</string>
     <string name="calc_material_title">Cálculo de Material</string>
     <string name="calc_material_go_revest">Cálculo de Revestimento</string>
 
