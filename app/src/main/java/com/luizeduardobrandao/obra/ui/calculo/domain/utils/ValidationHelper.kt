@@ -220,8 +220,8 @@ object ValidationHelper {
 
     private fun validatePedra(inputs: Inputs): StepValidation {
         if (inputs.revest == RevestimentoType.MARMORE || inputs.revest == RevestimentoType.GRANITO) {
-            val okComp = inputs.pecaCompCm == null || inputs.pecaCompCm in 10.0..2000.0
-            val okLarg = inputs.pecaLargCm == null || inputs.pecaLargCm in 10.0..2000.0
+            val okComp = inputs.pecaCompCm == null || inputs.pecaCompCm in 10.0..2000.1
+            val okLarg = inputs.pecaLargCm == null || inputs.pecaLargCm in 10.0..2000.1
             if (!okComp || !okLarg) {
                 return StepValidation(false, "Peça fora do limite (0,10 a 20,00 m)")
             }

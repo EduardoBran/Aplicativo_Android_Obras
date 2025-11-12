@@ -160,7 +160,6 @@ class FieldValidator(
 
             val isMG = isMGProvider()
 
-
             val ok = when {
                 // Mármore/Granito: valor digitado em metros → convertido pra cm em parseFunc
                 // Aceita 0,10 m a 20,0 m  (10 cm a 2000 cm)

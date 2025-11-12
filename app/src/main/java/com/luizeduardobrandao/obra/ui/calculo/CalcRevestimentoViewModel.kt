@@ -347,7 +347,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         }
 
         val (minCm, maxCm) = when (cur.revest) {
-            RevestimentoType.MARMORE, RevestimentoType.GRANITO -> 10.0 to 2000.0
+            RevestimentoType.MARMORE, RevestimentoType.GRANITO -> 10.0 to 2000.1
             else -> 5.0 to 200.0
         }
 
