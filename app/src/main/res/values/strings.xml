@@ -1158,7 +1158,7 @@
     <string name="generic_start">Começar</string>
 
     <!-- TELA 1 -->
-    <string name="calc_step1_title">Escolha o tipo de revestimento</string>
+    <string name="calc_step1_title">Escolha o Tipo de Revestimento</string>
     <string name="calc_step1_opt_piso">Piso (cerâmico ou porcelanato)</string>
     <string name="calc_step1_opt_azulejo">Azulejo (parede)</string>
     <string name="calc_step1_opt_pastilha">Pastilha</string>
@@ -1177,22 +1177,31 @@
     <string name="calc_home_dialog_title">Retornar a Tela Principal</string>
     <string name="calc_home_dialog_message">Deseja retornar a tela principal do app?</string>
 
+    <string name="calc_step_help_title">Como escolher?</string>
+
     <!-- TELA 2 -->
-    <string name="calc_step2_title">Tipo de ambiente</string>
-    <string name="calc_step2_opt_seco">Seco (interior)</string>
-    <string name="calc_step2_opt_semi">Semi-Molhado (varanda coberta)</string>
-    <string name="calc_step2_opt_molhado">Molhado (banheiro, área externa com água)</string>
-    <string name="calc_step2_opt_sempre">Sempre Molhado (piscina, tanque)</string>
-    <string name="calc_step2_help">O ambiente define a classe da argamassa e a necessidade de impermeabilização.</string>
+    <string name="calc_step2_title">Tipo de Ambiente</string>
+    <string name="calc_step2_opt_seco">Seco</string>
+    <string name="calc_amb_desc_seco">Ambientes internos, sem contato com água, vapor ou respingos.</string>
+    <string name="calc_step2_opt_semi">Semi Molhado</string>
+    <string name="calc_amb_desc_semi">Contato eventual com respingos ou umidade leve, sem encharcamento.</string>
+    <string name="calc_step2_opt_molhado">Molhado</string>
+    <string name="calc_amb_desc_molhado">Exposição frequente à água (ex: chuveiros, cozinhas), sem submersão constante.</string>
+    <string name="calc_step2_opt_sempre">Sempre Molhado</string>
+    <string name="calc_amb_desc_sempre">Contato permanente ou retenção prolongada de água (ex: piscinas, áreas externas, calçadas).</string>
+    <string name="calc_step2_help">O tipo de ambiente define se precisa impermeabilizar e qual o melhor jeito de assentar o piso ou revestimento.</string>
     <string name="calc_step2_obs_porcelanato_ac3">Porcelanato em semi/molhado: fabricantes exigem ACIII.</string>
 
+
     <!-- Tipo de Tráfego -->
-    <string name="calc_step_trafego_title">Selecione o tipo de tráfego</string>
-    <string name="calc_step_trafego_leve">Leve (calçadas residenciais, jardins)</string>
-    <string name="calc_step_trafego_medio">Médio (garagens, estacionamentos)</string>
-    <string name="calc_step_trafego_pesado">Pesado (caminhões, área industrial)</string>
-    <string name="calc_step_trafego_hint">Esta escolha define as camadas de base, concreto e impermeabilização.</string>
-    <string name="calc_err_trafego_required">Selecione o tipo de tráfego para continuar.</string>
+    <string name="calc_step_trafego_title">Selecione o Tipo de Tráfego</string>
+    <string name="calc_step_trafego_leve">Leve</string>
+    <string name="calc_step_trafego_leve_desc">Áreas de pedestres e veículos leves (calçadas, jardins, varandas e vagas com uso ocasional).</string>
+    <string name="calc_step_trafego_medio">Médio</string>
+    <string name="calc_step_trafego_medio_desc">Garagens, acessos de condomínio e vagas com circulação frequente de carros e utilitários leves.</string>
+    <string name="calc_step_trafego_pesado">Pesado</string>
+    <string name="calc_step_trafego_pesado_desc">Acessos de caminhões, rampas de carga, docas e áreas sujeitas a tráfego intenso e cargas elevadas.</string>
+    <string name="calc_step_trafego_help">Escolha o tipo de tráfego conforme o peso e a frequência dos veículos sobre o piso intertravado; isso ajusta a espessura das camadas e o tipo de impermeabilização recomendados.</string>
 
     <!-- TELA 3 -->
     <string name="calc_step3_title">Informe as medidas da área</string>
@@ -1309,10 +1318,9 @@
     <!-- TELA 8 -->
     <string name="icon_card_informação">ℹ️</string>
     <string name="calc_table_hint">Os valores consideram consumos técnicos conforme NBR 14081, TCPO e especificações de fabricantes.\n\nA coluna "Comprar" indica as embalagens comerciais necessárias (arredondadas para cima).</string>
-    <string name="col_item">Material</string>
+    <string name="col_item">Item</string>
     <string name="col_unid">Unid</string>
     <string name="col_qtd">Qtd</string>
-    <string name="col_obs">Observação</string>
     <string name="col_usado">Usar</string>
     <string name="col_comprar">Comprar</string>
 

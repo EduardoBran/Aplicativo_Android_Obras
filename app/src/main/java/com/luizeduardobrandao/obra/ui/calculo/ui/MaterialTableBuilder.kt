@@ -21,6 +21,8 @@ class MaterialTableBuilder(
     private val context: Context,
     private val layoutInflater: LayoutInflater
 ) {
+    // ✅ Helper de responsividade
+    private val responsiveHelper = TableResponsiveHelper(context)
 
     /**
      * Cria linha de cabeçalho da tabela
@@ -29,7 +31,20 @@ class MaterialTableBuilder(
     fun makeHeaderRow(): View {
         val row = layoutInflater.inflate(R.layout.item_material_row, null, false)
 
+        // Background do header
         row.setBackgroundColor(ContextCompat.getColor(context, R.color.tableHeaderBg))
+
+        // Padding responsivo
+        row.setPadding(
+            responsiveHelper.headerPaddingHorizontal,
+            responsiveHelper.headerPaddingVertical,
+            responsiveHelper.headerPaddingHorizontal,
+            responsiveHelper.headerPaddingVertical
+        )
+
+        // Altura mínima responsiva
+        row.minimumHeight = responsiveHelper.headerMinHeight
+
         val headerTextColor = ContextCompat.getColor(context, R.color.tableHeaderText)
 
         val tvItem = row.findViewById<TextView>(R.id.tvItem)
@@ -38,29 +53,69 @@ class MaterialTableBuilder(
         val tvQtdComprar = row.findViewById<TextView>(R.id.tvQtdComprar)
         val tvObs = row.findViewById<TextView>(R.id.tvObservacao)
 
+        // Coluna Item com texto responsivo
         tvItem.apply {
             text = context.getString(R.string.col_item)
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(headerTextColor)
+            responsiveHelper.setTextSizeSp(this, responsiveHelper.headerTextSize)
+            letterSpacing = responsiveHelper.headerLetterSpacing
+            gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
+
+            val params =
+                layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+            params.topToTop =
+                androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+            params.bottomToBottom =
+                androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+            params.verticalBias = 0.5f
+            layoutParams = params
         }
 
-        // Coluna "Unid" deixa de ser exibida (ids preservados)
         tvUnid.visibility = View.GONE
 
-        // Nova coluna combinada: Qtd = valor + unidade
+        // Coluna Qtd com texto responsivo
         tvQtdUsada.apply {
             text = context.getString(R.string.col_qtd)
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(headerTextColor)
+            responsiveHelper.setTextSizeSp(this, responsiveHelper.headerTextSize)
+            letterSpacing = responsiveHelper.headerLetterSpacing
+            gravity = android.view.Gravity.CENTER
+
+            val params =
+                layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+            params.topToTop =
+                androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+            params.bottomToBottom =
+                androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+            params.verticalBias = 0.5f
+            layoutParams = params
         }
 
+        // Coluna Comprar com texto responsivo
         tvQtdComprar.apply {
             text = context.getString(R.string.col_comprar)
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(headerTextColor)
+            responsiveHelper.setTextSizeSp(this, responsiveHelper.headerTextSize)
+            letterSpacing = responsiveHelper.headerLetterSpacing
+            gravity = android.view.Gravity.END or android.view.Gravity.CENTER_VERTICAL
+
+            val params =
+                layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+            params.topToTop =
+                androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+            params.bottomToBottom =
+                androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+            params.verticalBias = 0.5f
+            layoutParams = params
         }
 
         tvObs.visibility = View.GONE
+
+        // ✅ Atualizar guidelines
+        updateRowGuidelines(row)
 
         return row
     }
@@ -72,41 +127,40 @@ class MaterialTableBuilder(
     fun makeDataRow(item: CalcRevestimentoViewModel.MaterialItem): View {
         val row = layoutInflater.inflate(R.layout.item_material_row, null, false)
 
+        // Padding e altura mínima responsivos
+        row.setPadding(
+            responsiveHelper.rowPaddingHorizontal,
+            responsiveHelper.rowPaddingVertical,
+            responsiveHelper.rowPaddingHorizontal,
+            responsiveHelper.rowPaddingVertical
+        )
+        row.minimumHeight = responsiveHelper.rowMinHeight
+
         val tvItem = row.findViewById<TextView>(R.id.tvItem)
         val tvUnid = row.findViewById<TextView>(R.id.tvUnid)
         val tvQtdUsada = row.findViewById<TextView>(R.id.tvQtdUsada)
         val tvQtdComprar = row.findViewById<TextView>(R.id.tvQtdComprar)
         val tvObs = row.findViewById<TextView>(R.id.tvObservacao)
 
-        tvItem.text = item.item
+        // Aplicar tamanhos de texto responsivos
+        responsiveHelper.setTextSizeSp(tvItem, responsiveHelper.rowTextSize)
+        responsiveHelper.setTextSizeSp(tvQtdUsada, responsiveHelper.rowTextSize)
+        responsiveHelper.setTextSizeSp(tvQtdComprar, responsiveHelper.rowComprarTextSize)
+        responsiveHelper.setTextSizeSp(tvObs, responsiveHelper.observacaoTextSize)
 
-        // Esconde a coluna "Unid": a unidade agora vai junto na Qtd
+        tvItem.text = item.item
         tvUnid.visibility = View.GONE
 
         val obsLower = item.observacao?.lowercase(Locale.getDefault()) ?: ""
 
         val isRodapeMesmaPeca =
-            item.item.equals("Rodapé", ignoreCase = true) &&
-                    obsLower.contains("mesma peça")
-
+            item.item.equals("Rodapé", ignoreCase = true) && obsLower.contains("mesma peça")
         val isRodapePecaPronta =
-            item.item.equals("Rodapé", ignoreCase = true) &&
-                    obsLower.contains("peça pronta")
+            item.item.equals("Rodapé", ignoreCase = true) && obsLower.contains("peça pronta")
 
-        // Qtd = [valor usado][unidade], ex: "96,8kg"
         val qtdStr = when {
-            // MESMA PEÇA: mostra o m² extra considerado (já incluso no piso)
-            isRodapeMesmaPeca -> {
-                val valor = formatQtdRaw(item.qtd)
-                "${valor}m²"
-            }
-
-            // PEÇA PRONTA: mostra o m² coberto pelas peças prontas
-            isRodapePecaPronta -> {
-                val valor = formatQtdRaw(item.qtd)
-                "${valor}m²"
-            }
-
+            isRodapeMesmaPeca -> "${formatQtdRaw(item.qtd)}m²"
+            isRodapePecaPronta -> "${formatQtdRaw(item.qtd)}m²"
             else -> {
                 val unidade = item.unid.trim()
                 val valor = formatQtdRaw(item.qtd)
@@ -114,24 +168,56 @@ class MaterialTableBuilder(
             }
         }
         tvQtdUsada.text = qtdStr
-
         tvQtdComprar.text = buildComprarCell(item)
 
         if (!item.observacao.isNullOrBlank()) {
             tvObs.text = item.observacao
             tvObs.visibility = View.VISIBLE
+
+            // Margens e constraints da observação
+            val obsParams =
+                tvObs.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+            obsParams.topMargin = responsiveHelper.observacaoMarginTop
+            tvObs.layoutParams = obsParams
         } else {
             tvObs.visibility = View.GONE
         }
 
+        // Atualizar guidelines
+        updateRowGuidelines(row)
+
         return row
+    }
+
+    /**
+     * Atualiza guidelines de uma linha específica
+     */
+    private fun updateRowGuidelines(row: View) {
+        val guidelineItemEnd =
+            row.findViewById<androidx.constraintlayout.widget.Guideline>(R.id.guidelineItemEnd)
+        val guidelineQtdEnd =
+            row.findViewById<androidx.constraintlayout.widget.Guideline>(R.id.guidelineQtdEnd)
+
+        guidelineItemEnd?.let { guideline ->
+            val params =
+                guideline.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+            params.guidePercent = responsiveHelper.guidelineItemEnd
+            guideline.layoutParams = params
+        }
+
+        guidelineQtdEnd?.let { guideline ->
+            val params =
+                guideline.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+            params.guidePercent = responsiveHelper.guidelineQtdEnd
+            guideline.layoutParams = params
+        }
     }
 
     private fun formatQtdRaw(v: Double): String {
         // Sem arredondar pra inteiro.
         // Mostra:
         // - sem casas se for exato (18.0 -> "18")
-        // - até 2 casas se tiver decimal (17.6 -> "17,6"; 1.3333 -> "1,333")
+        // - até 2 casas se tiver decimal (17.6 -> "17,6"; 1.3333 -> "1,33")
         val abs = kotlin.math.abs(v)
         return when {
             abs == kotlin.math.floor(abs) -> abs.toInt().toString()
@@ -185,7 +271,7 @@ class MaterialTableBuilder(
         if (nome.equals("Areia", ignoreCase = true) && unid.equals("m³", true)) {
             val areiaKg = alvo * 1400.0
             val sacos20 = ceil(areiaKg / 20.0).toInt().coerceAtLeast(1)
-            return if (sacos20 == 1) "1 saco 20kg" else "$sacos20 sacos 20kg"
+            return if (sacos20 == 1) "1 sc 20kg" else "$sacos20 sc 20kg"
         }
 
         // Argamassa colante → sacos 20kg
@@ -193,7 +279,7 @@ class MaterialTableBuilder(
             unid.equals("kg", true)
         ) {
             val n20 = ceil(alvo / 20.0).toInt()
-            return if (n20 == 1) "1 saco 20kg" else "$n20 sacos 20kg"
+            return if (n20 == 1) "1 sc 20kg" else "$n20 sc 20kg"
         }
 
         // Piso intertravado: areia assentamento m³ → sacos 20kg
@@ -202,7 +288,7 @@ class MaterialTableBuilder(
         ) {
             val areiaKg = alvo * 1400.0
             val sacos20 = ceil(areiaKg / 20.0).toInt().coerceAtLeast(1)
-            return if (sacos20 == 1) "1 saco 20kg" else "$sacos20 sacos 20kg"
+            return if (sacos20 == 1) "1 sc 20kg" else "$sacos20 sc 20kg"
         }
 
         // Piso intertravado: Manta Asfáltica → rolos 10 m²
@@ -548,7 +634,7 @@ class MaterialTableBuilder(
         return when {
             kg <= 25.0 -> {
                 val sacos = ceil(kg / 25.0).toInt()
-                if (sacos == 1) "1 saco 25kg" else "$sacos sacos 25kg"
+                if (sacos == 1) "1 sc 25kg" else "$sacos sc 25kg"
             }
 
             kg <= 50.0 -> {
@@ -556,8 +642,8 @@ class MaterialTableBuilder(
                 val total25 = sacos25 * 25.0
                 val sobra50 = 50.0 - kg
                 val sobra25 = total25 - kg
-                if (sobra50 <= sobra25) "1 saco 50kg"
-                else if (sacos25 == 1) "1 saco 25kg" else "$sacos25 sacos 25kg"
+                if (sobra50 <= sobra25) "1 sc 50kg"
+                else if (sacos25 == 1) "1 sc 25kg" else "$sacos25 sc 25kg"
             }
 
             else -> {
@@ -567,13 +653,13 @@ class MaterialTableBuilder(
 
                 val partes = mutableListOf<String>()
                 if (sacos50 > 0)
-                    partes += if (sacos50 == 1) "1 saco 50kg" else "$sacos50 sacos 50kg"
+                    partes += if (sacos50 == 1) "1 sc 50kg" else "$sacos50 sc 50kg"
                 if (sacos25 > 0)
-                    partes += if (sacos25 == 1) "1 saco 25kg" else "$sacos25 sacos 25kg"
+                    partes += if (sacos25 == 1) "1 sc 25kg" else "$sacos25 sc 25kg"
 
                 if (partes.isEmpty()) {
                     val sacos = ceil(kg / 25.0).toInt()
-                    if (sacos == 1) "1 saco 25kg" else "$sacos sacos 25kg"
+                    if (sacos == 1) "1 sc 25kg" else "$sacos sc 25kg"
                 } else {
                     partes.joinToString(" + ")
                 }

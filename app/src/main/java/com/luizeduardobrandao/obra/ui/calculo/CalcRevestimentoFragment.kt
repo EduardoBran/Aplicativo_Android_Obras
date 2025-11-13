@@ -871,6 +871,7 @@ class CalcRevestimentoFragment : Fragment() {
         normalizeAutoField(etJunta, i.juntaMm)
         normalizeAutoField(etSobra, i.sobraPct)
     }
+
     private fun normalizeAutoField(editText: TextInputEditText, value: Double?) {
         val adjusted = NumberFormatter.adjustDefaultFieldText(editText.text?.toString(), value)
         if (adjusted != null && adjusted != editText.text?.toString()) {
@@ -881,7 +882,7 @@ class CalcRevestimentoFragment : Fragment() {
     /** Atualiza visibilidade de componentes conforme inputs */
     private fun updateUIVisibility() = with(binding) {
         visibilityManager.updateAllVisibilities(
-            viewModel.inputs.value, tvObsAc3, tvAreaTotalAviso, groupPlacaTipo, groupPecaTamanho,
+            viewModel.inputs.value, tvAreaTotalAviso, groupPlacaTipo, groupPecaTamanho,
             groupPastilhaTamanho, groupRodapeFields, groupIntertravadoImpOptions, tilComp,
             tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
             tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa, tilDesnivel,
@@ -1253,63 +1254,98 @@ class CalcRevestimentoFragment : Fragment() {
 
     /** Exibe resultado do cálculo */
     private fun displayResultado(r: CalcRevestimentoViewModel.Resultado) = with(binding) {
-        headerResumo.text = buildHeaderText(r)
         tableContainer.removeAllViews()
         tableContainer.addView(tableBuilder.makeHeaderRow())
         r.itens.forEach { tableContainer.addView(tableBuilder.makeDataRow(it)) }
+
+        // ✅ Aplicar responsividade após renderização
+        tableContainer.post {
+            applyTableResponsiveness()
+        }
     }
 
-    /** Constrói texto do cabeçalho do resultado */
-    private fun buildHeaderText(r: CalcRevestimentoViewModel.Resultado): String = buildString {
-        appendLine("📊 RESUMO DO CÁLCULO\n")
+    /** Aplica responsividade aos elementos da tabela */
+    private fun applyTableResponsiveness() = with(binding) {
+        val responsiveHelper = TableResponsiveHelper(requireContext())
 
-        append("🏗️ Revestimento: ")
-        appendLine(mapTipoToLabel(r.header.tipo))
+        // Título "Lista de Materiais"
+        val titleViews =
+            (viewFlipper.getChildAt(9) as? LinearLayout)?.children?.filterIsInstance<TextView>()
+        titleViews?.firstOrNull { it.text == getString(R.string.calc_table_title) }
+            ?.let { tvTitulo ->
+                responsiveHelper.setTextSizeSp(tvTitulo, responsiveHelper.titleTextSize)
+                (tvTitulo.layoutParams as? ViewGroup.MarginLayoutParams)?.apply {
+                    topMargin = responsiveHelper.titleMarginTop
+                    bottomMargin = responsiveHelper.titleMarginBottom
+                    tvTitulo.layoutParams = this
+                }
+            }
 
-        append("🌡️ Ambiente: ")
-        appendLine(mapAmbienteToLabel(r.header.ambiente))
-
-        r.classeArgamassa?.let { appendLine("🧱 Argamassa: $it") }
-
-        val areaTotalHeader = r.header.areaM2 + r.header.rodapeAreaM2
-        appendLine("📐 Área total: ${NumberFormatter.format(areaTotalHeader)} m²")
-
-        if (r.header.rodapeAreaM2 > 0) {
-            appendLine(
-                "📏 Rodapé: ${NumberFormatter.format(r.header.rodapeBaseM2)} m² + ${
-                    NumberFormatter.format(r.header.rodapeAlturaCm)
-                } cm = ${NumberFormatter.format(r.header.rodapeAreaM2)} m²"
-            )
+        // Card da tabela
+        val cardTabela = tableContainer.parent as? com.google.android.material.card.MaterialCardView
+        cardTabela?.apply {
+            radius = responsiveHelper.cardCornerRadius
+            cardElevation = responsiveHelper.cardElevation
         }
 
-        val espMm = viewModel.inputs.value.pecaEspMm
-        if (espMm != null) {
-            if (viewModel.inputs.value.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO) {
-                val espCm = espMm / 10.0
-                appendLine("🧩 Espessura: ${NumberFormatter.format(espCm)} cm")
-            } else {
-                appendLine("🧩 Espessura: ${NumberFormatter.format(espMm)} mm")
+        // Card de informação
+        cardInformation.apply {
+            radius = responsiveHelper.infoCardCornerRadius
+            setPadding(
+                responsiveHelper.infoCardPadding,
+                responsiveHelper.infoCardPadding,
+                responsiveHelper.infoCardPadding,
+                responsiveHelper.infoCardPadding
+            )
+            (layoutParams as? ViewGroup.MarginLayoutParams)?.apply {
+                topMargin = responsiveHelper.infoCardMarginTop
+                cardInformation.layoutParams = this
             }
         }
 
-        viewModel.inputs.value.pecasPorCaixa?.let {
-            appendLine("📦 Peças por caixa: $it")
+        // Texto do card de informação
+        val tvInfoText = cardInformation.findViewById(android.R.id.text1)
+            ?: cardInformation.findViewTreeDescendants<TextView>()
+                .firstOrNull { it.text == getString(R.string.calc_table_hint) }
+        tvInfoText?.let {
+            responsiveHelper.setTextSizeSp(it, responsiveHelper.infoCardTextSize)
         }
 
-        if (viewModel.inputs.value.revest != CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO &&
-            r.header.juntaMm > 0.0
-        ) {
-            appendLine("🔗 Junta: ${NumberFormatter.format(r.header.juntaMm)} mm")
+        // Divider
+        (dividerTabelaInfo.layoutParams as? ViewGroup.MarginLayoutParams)?.apply {
+            topMargin = responsiveHelper.infoCardMarginTop
+            dividerTabelaInfo.layoutParams = this
         }
 
-        viewModel.inputs.value.desnivelCm?.let {
-            appendLine("📉 Desnível: ${NumberFormatter.format(it)} cm")
+        // Margens extras apenas no primeiro e último item de dados (ignorando o cabeçalho)
+        responsiveHelper.applyEdgeItemMargins(tableContainer, skipHeader = true)
+    }
+
+    // Helper para encontrar views descendentes
+    private inline fun <reified T : View> View.findViewTreeDescendants(): List<T> {
+        val result = mutableListOf<T>()
+        val stack = ArrayDeque<View>()
+        stack.add(this)
+
+        while (stack.isNotEmpty()) {
+            val view = stack.removeFirst()
+
+            if (view is T) {
+                result.add(view)
+            }
+
+            if (view is ViewGroup) {
+                for (i in 0 until view.childCount) {
+                    stack.add(view.getChildAt(i))
+                }
+            }
         }
 
-        if (r.header.sobraPct > 0) {
-            appendLine("➕ Sobra técnica: ${NumberFormatter.format(r.header.sobraPct)}%")
-        }
-    }.trimEnd()
+        return result
+    }
+
+    private val ViewGroup.children: Sequence<View>
+        get() = (0 until childCount).asSequence().map { getChildAt(it) }
 
     /* ═══════════════════════════════════════════════════════════════════════════
      * EXPORTAÇÃO DE PDF
@@ -1450,29 +1486,6 @@ class CalcRevestimentoFragment : Fragment() {
         R.id.rbPastilha7_5 -> RevestimentoSpecifications.PastilhaFormato.P7_5
         R.id.rbPastilha10 -> RevestimentoSpecifications.PastilhaFormato.P10
         else -> null
-    }
-
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * MAPPERS (Enum → Label)
-     * ═══════════════════════════════════════════════════════════════════════════ */
-
-    private fun mapTipoToLabel(tipo: String?) = when (tipo) {
-        "PISO" -> "Piso"
-        "AZULEJO" -> "Azulejo"
-        "PASTILHA" -> "Pastilha"
-        "PEDRA" -> "Pedra portuguesa/irregular"
-        "PISO_INTERTRAVADO" -> "Piso intertravado"
-        "MARMORE" -> "Mármore"
-        "GRANITO" -> "Granito"
-        else -> tipo ?: "-"
-    }
-
-    private fun mapAmbienteToLabel(ambiente: String?) = when (ambiente) {
-        "SECO" -> "Seco"
-        "SEMI" -> "Semi-molhado"
-        "MOLHADO" -> "Molhado"
-        "SEMPRE" -> "Sempre molhado"
-        else -> ambiente ?: "-"
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════

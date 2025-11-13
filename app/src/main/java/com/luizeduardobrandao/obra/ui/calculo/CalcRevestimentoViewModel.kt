@@ -608,7 +608,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         append("• 🌦️ Tipo de Ambiente: ")
         val ambienteLabel = when (i.ambiente) {
             AmbienteType.SECO -> "Seco"
-            AmbienteType.SEMI -> "Semi-Molhado"
+            AmbienteType.SEMI -> "Semi Molhado"
             AmbienteType.MOLHADO -> "Molhado"
             AmbienteType.SEMPRE -> "Sempre Molhado"
             null -> "—"

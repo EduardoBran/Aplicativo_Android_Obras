@@ -33,7 +33,7 @@
 
     </com.google.android.material.appbar.MaterialToolbar>
 
-    <!-- Conteúdo CENTRALIZADO PROGRAMATICAMENTE -->
+    <!-- Conteúdo -->
     <ScrollView
         android:id="@+id/scrollContent"
         android:layout_width="0dp"
@@ -51,9 +51,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="24dp"
+            android:paddingHorizontal="16dp"
             android:paddingTop="16dp"
-            android:paddingEnd="24dp"
             android:paddingBottom="0dp">
 
             <ViewFlipper
@@ -66,13 +65,14 @@
                 tools:ignore="UselessParent">
 
                 <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 0 – Abertura -->
+                <!-- TELA 0 – Abertura (Centralizado Programaticamente) -->
                 <!-- ═══════════════════════════════════════════ -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_horizontal"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:paddingHorizontal="12dp">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -120,13 +120,17 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:paddingHorizontal="4dp">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
                         android:text="@string/calc_step1_title"
-                        android:textAppearance="?attr/textAppearanceTitleLarge" />
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textStyle="bold" />
 
                     <RadioGroup
                         android:id="@+id/rgRevest"
@@ -138,50 +142,64 @@
                             android:id="@+id/rbPiso"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step1_opt_piso" />
+                            android:layout_marginTop="4dp"
+                            android:text="@string/calc_step1_opt_piso"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
 
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbAzulejo"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step1_opt_azulejo" />
+                            android:layout_marginTop="4dp"
+                            android:text="@string/calc_step1_opt_azulejo"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
 
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbPastilha"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step1_opt_pastilha" />
+                            android:layout_marginTop="4dp"
+                            android:text="@string/calc_step1_opt_pastilha"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
 
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbPedra"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step1_opt_pedra" />
+                            android:layout_marginTop="4dp"
+                            android:text="@string/calc_step1_opt_pedra"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
 
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbPisoIntertravado"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step1_opt_piso_intertravado" />
+                            android:layout_marginTop="4dp"
+                            android:text="@string/calc_step1_opt_piso_intertravado"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
 
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbMarmore"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step1_opt_marmore" />
+                            android:layout_marginTop="4dp"
+                            android:text="@string/calc_step1_opt_marmore"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
 
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbGranito"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step1_opt_granito" />
+                            android:layout_marginTop="4dp"
+                            android:text="@string/calc_step1_opt_granito"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
                     </RadioGroup>
 
                     <LinearLayout
                         android:id="@+id/groupPlacaTipo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="18dp"
                         android:baselineAligned="false"
                         android:orientation="vertical"
                         android:visibility="gone">
@@ -224,13 +242,17 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:paddingHorizontal="4dp">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
                         android:text="@string/calc_step2_title"
-                        android:textAppearance="?attr/textAppearanceTitleLarge" />
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textStyle="bold" />
 
                     <RadioGroup
                         android:id="@+id/rgAmbiente"
@@ -238,39 +260,151 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp">
 
+                        <!-- Seco -->
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbSeco"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step2_opt_seco" />
+                            android:text="@string/calc_step2_opt_seco"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
 
+                        <TextView
+                            android:id="@+id/tvAmbDescSeco"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="8dp"
+                            android:text="@string/calc_amb_desc_seco"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                        <!-- Semi Molhado -->
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbSemi"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step2_opt_semi" />
+                            android:layout_marginTop="2dp"
+                            android:text="@string/calc_step2_opt_semi"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
 
+                        <TextView
+                            android:id="@+id/tvAmbDescSemi"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="8dp"
+                            android:text="@string/calc_amb_desc_semi"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                        <!-- Molhado -->
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbMolhado"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step2_opt_molhado" />
+                            android:layout_marginTop="2dp"
+                            android:text="@string/calc_step2_opt_molhado"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
 
+                        <TextView
+                            android:id="@+id/tvAmbDescMolhado"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="8dp"
+                            android:text="@string/calc_amb_desc_molhado"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                        <!-- Sempre Molhado -->
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbSempre"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step2_opt_sempre" />
+                            android:layout_marginTop="2dp"
+                            android:text="@string/calc_step2_opt_sempre"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                        <TextView
+                            android:id="@+id/tvAmbDescSempre"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="0dp"
+                            android:text="@string/calc_amb_desc_sempre"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
                     </RadioGroup>
 
-                    <TextView
-                        android:id="@+id/tvObsAc3"
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardAmbienteHelp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/calc_step2_obs_porcelanato_ac3"
-                        android:textColor="?attr/colorPrimary"
-                        android:visibility="gone" />
+                        android:layout_marginTop="32dp"
+                        app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="?attr/colorOutlineVariant"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:baselineAligned="false"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:padding="16dp">
+
+                            <!-- Ícone em um container circular -->
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="4dp"
+                                android:background="@drawable/calc_circle_info_background">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:text="@string/icon_card_informação"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:textSize="20sp" />
+                            </FrameLayout>
+
+                            <!-- Conteúdo -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:lineSpacingExtra="2dp"
+                                    android:text="@string/calc_step_help_title"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:lineSpacingExtra="4dp"
+                                    android:text="@string/calc_step2_help"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                                    android:textColor="?attr/colorOnSurfaceVariant" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
                 </LinearLayout>
 
                 <!-- ═══════════════════════════════════════════ -->
@@ -279,13 +413,16 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:paddingHorizontal="4dp">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/calc_step_trafego_title"
-                        android:textAppearance="?attr/textAppearanceTitleLarge" />
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textStyle="bold" />
 
                     <RadioGroup
                         android:id="@+id/rgTrafego"
@@ -297,29 +434,124 @@
                             android:id="@+id/rbTrafegoLeve"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step_trafego_leve" />
+                            android:text="@string/calc_step_trafego_leve"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                        <TextView
+                            android:id="@+id/tvTrafDescLeve"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="8dp"
+                            android:text="@string/calc_step_trafego_leve_desc"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
 
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbTrafegoMedio"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step_trafego_medio" />
+                            android:layout_marginTop="2dp"
+                            android:text="@string/calc_step_trafego_medio"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                        <TextView
+                            android:id="@+id/tvTrafDescMedio"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="8dp"
+                            android:text="@string/calc_step_trafego_medio_desc"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
 
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbTrafegoPesado"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calc_step_trafego_pesado" />
+                            android:layout_marginTop="2dp"
+                            android:text="@string/calc_step_trafego_pesado"
+                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                        <TextView
+                            android:id="@+id/tvTrafDescPesado"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="0dp"
+                            android:text="@string/calc_step_trafego_pesado_desc"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
                     </RadioGroup>
 
-                    <TextView
-                        android:id="@+id/tvTrafegoHint"
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardTrafegoHelp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/calc_step_trafego_hint"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:layout_marginTop="32dp"
+                        app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="?attr/colorOutlineVariant"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:baselineAligned="false"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:padding="16dp">
+
+                            <!-- Ícone em um container circular -->
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="4dp"
+                                android:background="@drawable/calc_circle_info_background">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:text="@string/icon_card_informação"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:textSize="20sp" />
+                            </FrameLayout>
+
+                            <!-- Conteúdo -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:lineSpacingExtra="2dp"
+                                    android:text="@string/calc_step_help_title"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:lineSpacingExtra="4dp"
+                                    android:text="@string/calc_step_trafego_help"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                                    android:textColor="?attr/colorOnSurfaceVariant" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
                 </LinearLayout>
 
                 <!-- ═══════════════════════════════════════════ -->
@@ -328,7 +560,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:paddingHorizontal="8dp">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -466,7 +699,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:paddingHorizontal="8dp">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -660,7 +894,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:paddingHorizontal="8dp">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -771,7 +1006,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:paddingHorizontal="8dp">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -858,12 +1094,19 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnCalcular"
-                        android:layout_width="wrap_content"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="20dp"
+                        android:backgroundTint="?attr/colorPrimary"
                         android:contentDescription="@string/cont_btn_calcular"
-                        android:minWidth="200dp"
-                        android:text="@string/generic_calculate" />
+                        android:insetTop="10dp"
+                        android:insetBottom="10dp"
+                        android:text="@string/generic_calculate"
+                        android:textAllCaps="false"
+                        android:textColor="?attr/colorOnPrimary"
+                        android:textSize="@dimen/calc_btn_normal_text"
+                        app:cornerRadius="12dp" />
                 </LinearLayout>
 
                 <!-- ═══════════════════════════════════════════ -->
@@ -874,64 +1117,36 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- Card Resumo -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:cardBackgroundColor="?attr/colorPrimaryContainer"
-                        app:cardCornerRadius="12dp"
-                        app:cardElevation="2dp">
-
-                        <TextView
-                            android:id="@+id/headerResumo"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:includeFontPadding="false"
-                            android:lineSpacingExtra="4dp"
-                            android:paddingStart="16dp"
-                            android:paddingTop="16dp"
-                            android:paddingEnd="16dp"
-                            android:paddingBottom="16dp"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            android:textColor="?attr/colorOnPrimaryContainer"
-                            tools:text="📊 RESUMO DO CÁLCULO\n\n🏗️ Revestimento: Piso\n🌡️ Ambiente: Molhado" />
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <com.google.android.material.divider.MaterialDivider
-                        android:id="@+id/dividerResumoTabela"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
-                        app:dividerColor="?attr/colorOutline"
-                        app:dividerInsetEnd="8dp"
-                        app:dividerInsetStart="8dp"
-                        app:dividerThickness="1dp" />
-
                     <!-- Título Tabela -->
                     <TextView
+                        android:id="@+id/tvTabelaTitulo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginBottom="12dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.02"
                         android:text="@string/calc_table_title"
+                        android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceTitleLarge"
                         android:textColor="?attr/colorPrimary" />
 
                     <!-- Card Tabela -->
                     <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardTabela"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:cardCornerRadius="12dp"
-                        app:cardElevation="4dp"
-                        app:strokeColor="?attr/colorOutline"
+                        app:cardBackgroundColor="?attr/colorSurface"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
+                        app:strokeColor="?attr/colorOutlineVariant"
                         app:strokeWidth="1dp">
 
                         <LinearLayout
                             android:id="@+id/tableContainer"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:divider="@drawable/table_divider"
+                            android:divider="@drawable/calc_table_divider"
                             android:orientation="vertical"
+                            android:paddingVertical="0dp"
                             android:showDividers="middle" />
                     </com.google.android.material.card.MaterialCardView>
 
@@ -939,21 +1154,23 @@
                         android:id="@+id/dividerTabelaInfo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
+                        android:layout_marginTop="16dp"
                         app:dividerColor="?attr/colorOutline"
                         app:dividerInsetEnd="8dp"
                         app:dividerInsetStart="8dp"
                         app:dividerThickness="1dp" />
 
-                    <!-- Card de Informação - CRÍTICO: paddingBottom no LinearLayout pai -->
+                    <!-- Card de Informação -->
                     <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardInformation"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                        app:cardCornerRadius="8dp"
-                        app:cardElevation="0dp"
-                        app:cardPreventCornerOverlap="false">
+                        android:layout_marginTop="16dp"
+                        app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
+                        app:strokeColor="?attr/colorOutlineVariant"
+                        app:strokeWidth="1dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -962,22 +1179,32 @@
                             android:orientation="horizontal"
                             android:padding="16dp">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
                                 android:layout_marginEnd="12dp"
-                                android:text="@string/icon_card_informação"
-                                android:textSize="18sp" />
+                                android:background="@drawable/calc_circle_info_background">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:text="@string/icon_card_informação"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:textSize="20sp" />
+                            </FrameLayout>
 
                             <TextView
+                                android:id="@android:id/text1"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:lineSpacingExtra="4dp"
                                 android:text="@string/calc_table_hint"
-                                android:textAppearance="?attr/textAppearanceBodySmall"
-                                android:textColor="?attr/colorOnSurfaceVariant" />
+                                android:textAlignment="center"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:textSize="14sp" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 

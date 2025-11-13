@@ -26,7 +26,6 @@ class VisibilityManager {
     fun updateAllVisibilities(
         inputs: CalcRevestimentoViewModel.Inputs,
         // TextViews informativos
-        tvObsAc3: View,
         tvAreaTotalAviso: View,
         // Grupos de componentes
         groupPlacaTipo: View,
@@ -70,7 +69,6 @@ class VisibilityManager {
         switchRodape: CompoundButton
     ) {
         // Atualiza avisos informativos
-        updateObsAc3Visibility(inputs, tvObsAc3)
         updateAreaTotalAvisoVisibility(inputs, tvAreaTotalAviso)
 
         // Atualiza grupos principais
@@ -100,16 +98,6 @@ class VisibilityManager {
 
         // Limpa RadioGroup de placa se necessário
         clearPlacaTipoIfNeeded(inputs, rgPlacaTipo)
-    }
-
-    /**
-     * Atualiza visibilidade do aviso de AC3 (Piso Porcelanato em ambientes semi/molhados)
-     */
-    private fun updateObsAc3Visibility(inputs: CalcRevestimentoViewModel.Inputs, tvObsAc3: View) {
-        tvObsAc3.isVisible = inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PISO &&
-                inputs.pisoPlacaTipo == CalcRevestimentoViewModel.PlacaTipo.PORCELANATO &&
-                (inputs.ambiente == CalcRevestimentoViewModel.AmbienteType.SEMI ||
-                        inputs.ambiente == CalcRevestimentoViewModel.AmbienteType.MOLHADO)
     }
 
     /**
