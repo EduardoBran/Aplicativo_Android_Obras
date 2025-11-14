@@ -184,20 +184,10 @@ class CalcRevestimentoFragment : Fragment() {
         with(binding) {
             val step = viewModel.step.value
 
-            // Valida todos os campos da etapa atual
-            val ok = viewModel.isStepValid(step) &&
-                    !validator.hasAreaTotalErrorNow(etAreaInformada) &&
-                    !validator.hasJuntaErrorNow(etJunta, juntaValueMm(), juntaRange()) &&
-                    !validator.hasEspessuraErrorNow(
-                        etPecaEsp, isPastilha(), mToMmIfLooksLikeMeters(getD(etPecaEsp))
-                    ) &&
-                    !validator.hasPecasPorCaixaErrorNow(etPecasPorCaixa) &&
-                    !validator.hasDesnivelErrorNow(
-                        etDesnivel, tilDesnivel.isVisible, getD(etDesnivel)
-                    ) &&
-                    tilParedeQtd.error.isNullOrEmpty() && tilAbertura.error.isNullOrEmpty()
+            // Recalcula estado do botão com todas as regras por etapa
+            refreshNextEnabled()
 
-            if (!ok) {
+            if (!btnNext.isEnabled) {
                 toast(getString(R.string.calc_validate_step))
                 return
             }
@@ -229,15 +219,16 @@ class CalcRevestimentoFragment : Fragment() {
         var selected = -1
         lateinit var dialog: AlertDialog
 
-        dialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle(getString(R.string.calc_aplicacao_dialog_title_mg))
-            .setSingleChoiceItems(options, -1) { _, which ->
-                selected = which
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = true
-            }
-            .setPositiveButton(getString(R.string.generic_ok_upper_case), null)
-            .setNegativeButton(getString(R.string.generic_cancel)) { d, _ -> d.dismiss() }
-            .create()
+        dialog =
+            MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_ObrasApp_FuncDialog)
+                .setTitle(getString(R.string.calc_aplicacao_dialog_title_mg))
+                .setSingleChoiceItems(options, -1) { _, which ->
+                    selected = which
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = true
+                }
+                .setPositiveButton(getString(R.string.generic_ok_upper_case), null)
+                .setNegativeButton(getString(R.string.generic_cancel)) { d, _ -> d.dismiss() }
+                .create()
 
         dialog.setOnShowListener {
             val okBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
@@ -490,7 +481,9 @@ class CalcRevestimentoFragment : Fragment() {
 
     /** Configura campo de espessura */
     private fun setupEspessuraField() = with(binding) {
+        // Validação em tempo real
         etPecaEsp.doAfterTextChanged {
+            // Pastilha não usa espessura para validação
             if (isPastilha()) {
                 updatePecaParametros()
                 validator.setInlineError(etPecaEsp, tilPecaEsp, null)
@@ -501,22 +494,59 @@ class CalcRevestimentoFragment : Fragment() {
 
             updatePecaParametros()
 
-            val (valorMm, minMm, maxMm, errMsg) = if (isIntertravado()) {
-                val cm = getD(etPecaEsp)
-                val mm = cm?.times(10)
-                Quad(mm, 40.0, 120.0, getString(R.string.calc_err_esp_intertravado_range))
-            } else {
-                Quad(
-                    mToMmIfLooksLikeMeters(getD(etPecaEsp)),
-                    3.0,
-                    30.0,
-                    getString(R.string.calc_err_esp_range)
-                )
+            val isInter = isIntertravado()
+            val isMGNow = isMG()
+            val inputsNow = viewModel.inputs.value
+
+            val quad = when {
+                isInter -> {
+                    val cm = getD(etPecaEsp)
+                    val mm = cm?.times(10)
+                    Quad(mm, 40.0, 120.0, getString(R.string.calc_err_esp_intertravado_range))
+                }
+
+                isMGNow -> {
+                    val mm = mToMmIfLooksLikeMeters(getD(etPecaEsp))
+
+                    val (min, max, msg) =
+                        if (inputsNow.aplicacao == CalcRevestimentoViewModel.AplicacaoType.PAREDE) {
+                            Triple(
+                                10.0,
+                                40.0,
+                                getString(R.string.calc_err_esp_range_mg_parede) // 10–40 mm
+                            )
+                        } else {
+                            Triple(
+                                15.0,
+                                40.0,
+                                getString(R.string.calc_err_esp_range_mg_piso) // 15–40 mm
+                            )
+                        }
+
+                    Quad(mm, min, max, msg)
+                }
+
+                else -> {
+                    Quad(
+                        mToMmIfLooksLikeMeters(getD(etPecaEsp)),
+                        3.0,
+                        30.0,
+                        getString(R.string.calc_err_esp_range)
+                    )
+                }
             }
 
+            val valorMm = quad.a
+            val minMm = quad.b
+            val maxMm = quad.c
+            val errMsg = quad.d
+
+            val textEmpty = etPecaEsp.text.isNullOrBlank()
             val ok = (valorMm != null && valorMm in minMm..maxMm)
+
             val msg = when {
-                etPecaEsp.text.isNullOrBlank() -> null
+                isMGNow && textEmpty -> getString(R.string.calc_err_esp_mg_required)
+                textEmpty -> null
                 ok -> null
                 else -> errMsg
             }
@@ -526,21 +556,74 @@ class CalcRevestimentoFragment : Fragment() {
             refreshNextEnabled()
         }
 
-        // Validação on blur
-        if (isIntertravado()) {
-            validator.validateRangeOnBlur(
-                etPecaEsp, tilPecaEsp,
-                { getD(etPecaEsp)?.times(10) },
-                40.0..120.0,
-                getString(R.string.calc_err_esp_intertravado_range)
-            )
-        } else {
-            validator.validateRangeOnBlur(
-                etPecaEsp, tilPecaEsp,
-                { mToMmIfLooksLikeMeters(getD(etPecaEsp)) },
-                3.0..30.0,
-                getString(R.string.calc_err_esp_range)
-            )
+        // Validação ao perder o foco (reforça as mesmas regras)
+        etPecaEsp.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) return@setOnFocusChangeListener
+
+            if (isPastilha()) {
+                validator.setInlineError(etPecaEsp, tilPecaEsp, null)
+                return@setOnFocusChangeListener
+            }
+
+            val isInter = isIntertravado()
+            val isMGNow = isMG()
+            val inputsNow = viewModel.inputs.value
+
+            val quad = when {
+                isInter -> {
+                    val cm = getD(etPecaEsp)
+                    val mm = cm?.times(10)
+                    Quad(mm, 40.0, 120.0, getString(R.string.calc_err_esp_intertravado_range))
+                }
+
+                isMGNow -> {
+                    val mm = mToMmIfLooksLikeMeters(getD(etPecaEsp))
+
+                    val (min, max, msg) =
+                        if (inputsNow.aplicacao == CalcRevestimentoViewModel.AplicacaoType.PAREDE) {
+                            Triple(
+                                10.0,
+                                40.0,
+                                getString(R.string.calc_err_esp_range_mg_parede)
+                            )
+                        } else {
+                            Triple(
+                                15.0,
+                                40.0,
+                                getString(R.string.calc_err_esp_range_mg_piso)
+                            )
+                        }
+
+                    Quad(mm, min, max, msg)
+                }
+
+                else -> {
+                    Quad(
+                        mToMmIfLooksLikeMeters(getD(etPecaEsp)),
+                        3.0,
+                        30.0,
+                        getString(R.string.calc_err_esp_range)
+                    )
+                }
+            }
+
+            val valorMm = quad.a
+            val minMm = quad.b
+            val maxMm = quad.c
+            val errMsg = quad.d
+
+            val textEmpty = etPecaEsp.text.isNullOrBlank()
+            val ok = (valorMm != null && valorMm in minMm..maxMm)
+
+            val msg = when {
+                isMGNow && textEmpty -> getString(R.string.calc_err_esp_mg_required)
+                textEmpty -> null
+                ok -> null
+                else -> errMsg
+            }
+
+            validator.setInlineError(etPecaEsp, tilPecaEsp, msg)
+            refreshNextEnabled()
         }
     }
 
@@ -809,6 +892,7 @@ class CalcRevestimentoFragment : Fragment() {
             syncRadioGroups()
             syncFieldValues()
             updateUIVisibility()
+            ensureDefaultMgEspessura(i)
             updateHelperTexts(i)
             updateJuntaHelper(i)
 
@@ -867,9 +951,17 @@ class CalcRevestimentoFragment : Fragment() {
     /** Normaliza exibição dos valores padrão auto-preenchidos */
     private fun normalizePredefinedDefaults() = with(binding) {
         val i = viewModel.inputs.value
-        normalizeAutoField(etPecaEsp, i.pecaEspMm)
+        // Piso Intertravado, a espessura é armazenada em mm e exibida em cm (÷10)
+        val espDisplay = when (i.revest) {
+            CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO ->
+                i.pecaEspMm?.div(10.0) // mm → cm
+            else ->
+                i.pecaEspMm           // demais revestimentos continuam em mm
+        }
+        normalizeAutoField(etPecaEsp, espDisplay)
         normalizeAutoField(etJunta, i.juntaMm)
         normalizeAutoField(etSobra, i.sobraPct)
+        normalizeAutoField(etDesnivel, i.desnivelCm)
     }
 
     private fun normalizeAutoField(editText: TextInputEditText, value: Double?) {
@@ -891,6 +983,24 @@ class CalcRevestimentoFragment : Fragment() {
             etPecaEsp, etJunta, etPecasPorCaixa, etRodapeAbertura,
             rgPlacaTipo, rgIntertravadoImp,
             switchImp, switchRodape
+        )
+    }
+
+    /** Garante valor padrão de espessura para Mármore/Granito conforme regras */
+    private fun ensureDefaultMgEspessura(i: CalcRevestimentoViewModel.Inputs) {
+        val isMG = i.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                i.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
+
+        if (!isMG) return
+        if (i.pecaEspMm != null) return                       // usuário já definiu
+        if (i.ambiente == null || i.aplicacao == null) return // ainda não tem contexto completo
+
+        // Usa as mesmas regras centralizadas em RevestimentoSpecifications
+        val defaultMm = RevestimentoSpecifications.getEspessuraPadraoMm(i)
+
+        // Atualiza apenas espessura, preservando demais parâmetros já preenchidos
+        viewModel.setPecaParametros(
+            i.pecaCompCm, i.pecaLargCm, defaultMm, i.juntaMm, i.sobraPct, i.pecasPorCaixa
         )
     }
 
@@ -1118,49 +1228,67 @@ class CalcRevestimentoFragment : Fragment() {
         val validation = viewModel.validateStep(step)
         val inputs = viewModel.inputs.value
 
-        btnNext.isEnabled = validation.isValid &&
-                !validator.hasAreaTotalErrorNow(etAreaInformada) &&
-                !validator.hasJuntaErrorNow(etJunta, juntaValueMm(), juntaRange()) &&
-                !validator.hasEspessuraErrorNow(
-                    etPecaEsp,
-                    isPastilha(),
-                    mToMmIfLooksLikeMeters(getD(etPecaEsp))
-                ) &&
-                !validator.hasPecasPorCaixaErrorNow(etPecasPorCaixa) &&
-                !validator.hasDesnivelErrorNow(
-                    etDesnivel,
-                    tilDesnivel.isVisible,
-                    getD(etDesnivel)
-                ) &&
-                tilParedeQtd.error.isNullOrEmpty() && tilAbertura.error.isNullOrEmpty() &&
-                tilRodapeAbertura.error.isNullOrEmpty() && tilSobra.error.isNullOrEmpty()
+        var enabled = validation.isValid
 
-        // Regra específica para Mármore/Granito
+        // ----- Etapa 4 (Medidas / Área total) -----
+        if (enabled && step >= 4) {
+            enabled =
+                !validator.hasAreaTotalErrorNow(etAreaInformada) &&
+                        tilParedeQtd.error.isNullOrEmpty() &&
+                        tilAbertura.error.isNullOrEmpty()
+        }
+
+        // ----- Etapa 5 (Peça: junta, espessura, ppc, desnível, sobra) -----
+        if (enabled && step >= 5) {
+            enabled =
+                !validator.hasJuntaErrorNow(etJunta, juntaValueMm(), juntaRange()) &&
+                        !validator.hasEspessuraErrorNow(
+                            etPecaEsp,
+                            isPastilha(),
+                            mToMmIfLooksLikeMeters(getD(etPecaEsp))
+                        ) &&
+                        !validator.hasPecasPorCaixaErrorNow(etPecasPorCaixa) &&
+                        !validator.hasDesnivelErrorNow(
+                            etDesnivel,
+                            tilDesnivel.isVisible,
+                            getD(etDesnivel)
+                        ) &&
+                        tilSobra.error.isNullOrEmpty()
+        }
+
+        // ----- Etapa 6 (Rodapé) -----
+        if (enabled && step >= 6) {
+            var rodapeOk = tilRodapeAbertura.error.isNullOrEmpty()
+
+            // Validação extra para rodapé com peça pronta
+            if (inputs.rodapeEnable &&
+                inputs.rodapeMaterial == CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA
+            ) {
+                val alturaCm = mToCmIfLooksLikeMeters(getD(etRodapeAltura))
+                val compCm = getD(etRodapeCompComercial)
+
+                val alturaOk =
+                    alturaCm != null && alturaCm in 3.0..30.0 && tilRodapeAltura.error.isNullOrEmpty()
+                val compOk =
+                    compCm != null && compCm in 5.0..300.0 && tilRodapeCompComercial.error.isNullOrEmpty()
+
+                rodapeOk = rodapeOk && alturaOk && compOk
+            }
+
+            enabled = rodapeOk
+        }
+
+        btnNext.isEnabled = enabled
+
+        // ----- Ajuste extra para dimensões de Mármore/Granito (Etapa 5+) -----
         if ((inputs.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
                     inputs.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO) &&
             step >= 5
         ) {
-            // ✅ Validação direta pelos valores atuais digitados (m → cm)
             val compValid = parsePecaToCm(getD(etPecaComp))?.let { it in 10.0..2000.1 } == true
             val largValid = parsePecaToCm(getD(etPecaLarg))?.let { it in 10.0..2000.1 } == true
 
-            // Ignora o estado textual de erro (que pode estar “grudado”)
             btnNext.isEnabled = btnNext.isEnabled && compValid && largValid
-        }
-
-        // Validação extra para rodapé peça pronta
-        if (inputs.rodapeEnable &&
-            inputs.rodapeMaterial == CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA
-        ) {
-            val alturaCm = mToCmIfLooksLikeMeters(getD(etRodapeAltura))
-            val compCm = getD(etRodapeCompComercial)
-
-            val alturaOk =
-                alturaCm != null && alturaCm in 3.0..30.0 && tilRodapeAltura.error.isNullOrEmpty()
-            val compOk =
-                compCm != null && compCm in 5.0..300.0 && tilRodapeCompComercial.error.isNullOrEmpty()
-
-            btnNext.isEnabled = btnNext.isEnabled && alturaOk && compOk
         }
     }
 
@@ -1170,12 +1298,28 @@ class CalcRevestimentoFragment : Fragment() {
 
     /** Atualiza helper texts dinâmicos */
     private fun updateHelperTexts(i: CalcRevestimentoViewModel.Inputs) = with(binding) {
-        val padraoEsp = viewModel.espessuraPadraoAtual()
+        val padraoEsp = i.pecaEspMm ?: viewModel.espessuraPadraoAtual()
+
+        val mg = i.revest in setOf(
+            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
+            CalcRevestimentoViewModel.RevestimentoType.GRANITO
+        )
 
         // Espessura
         if (i.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO) {
             tilPecaEsp.hint = getString(R.string.calc_step4_peca_esp_intertravado_hint)
-            tilPecaEsp.setHelperTextSafely(getString(R.string.calc_step4_peca_esp_intertravado_helper))
+            tilPecaEsp.setHelperTextSafely(
+                getString(R.string.calc_step4_peca_esp_intertravado_helper)
+            )
+        } else if (mg) {
+            // Mármore/Granito: campo em mm e obrigatório
+            tilPecaEsp.hint = getString(R.string.calc_step4_peca_esp_mg_hint)
+            tilPecaEsp.setHelperTextSafely(
+                getString(
+                    R.string.calc_step4_peca_esp_mg_helper_with_default,
+                    NumberFormatter.format(padraoEsp)
+                )
+            )
         } else {
             tilPecaEsp.hint = getString(R.string.calc_step4_peca_esp)
             tilPecaEsp.setHelperTextSafely(
@@ -1186,10 +1330,6 @@ class CalcRevestimentoFragment : Fragment() {
             )
         }
 
-        val mg = i.revest in setOf(
-            CalcRevestimentoViewModel.RevestimentoType.MARMORE,
-            CalcRevestimentoViewModel.RevestimentoType.GRANITO
-        )
         val pastilha = (i.revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA)
 
         // Peça

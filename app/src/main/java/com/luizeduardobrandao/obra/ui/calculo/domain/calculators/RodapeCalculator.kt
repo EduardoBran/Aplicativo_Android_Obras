@@ -14,7 +14,7 @@ object RodapeCalculator {
      * Calcula perímetro do rodapé para exibição
      */
     fun rodapePerimetroM(inputs: Inputs): Double? {
-        if (!inputs.rodapeEnable || inputs.revest !in RevestimentoSpecifications.tiposComRodape()) return 0.0
+        if (!inputs.rodapeEnable || !RevestimentoSpecifications.hasRodapeStep(inputs)) return 0.0
 
         return if (inputs.rodapePerimetroAuto) {
             inputs.areaInformadaM2?.takeIf { it > 0 }?.let { 4 * sqrt(it) }
@@ -26,7 +26,7 @@ object RodapeCalculator {
      * Calcula área base do rodapé para exibição em m²
      */
     fun rodapeAreaBaseExibicaoM2(inputs: Inputs): Double {
-        if (!inputs.rodapeEnable || inputs.revest !in RevestimentoSpecifications.tiposComRodape()) return 0.0
+        if (!inputs.rodapeEnable || !RevestimentoSpecifications.hasRodapeStep(inputs)) return 0.0
 
         inputs.areaInformadaM2?.takeIf { it > 0 }?.let { return it }
 
@@ -38,7 +38,7 @@ object RodapeCalculator {
      * Calcula perímetro seguro do rodapé para compra (com margem de segurança)
      */
     fun rodapePerimetroSeguroM(inputs: Inputs): Double? {
-        if (!inputs.rodapeEnable || inputs.revest !in RevestimentoSpecifications.tiposComRodape()) return 0.0
+        if (!inputs.rodapeEnable || !RevestimentoSpecifications.hasRodapeStep(inputs)) return 0.0
         if (!inputs.rodapePerimetroAuto) return inputs.rodapePerimetroManualM
 
         val (c, l) = inputs.compM to inputs.largM
@@ -62,7 +62,7 @@ object RodapeCalculator {
         sobra: Double,
         itens: MutableList<MaterialItem>
     ) {
-        if (!inputs.rodapeEnable || inputs.revest !in RevestimentoSpecifications.tiposComRodape()) return
+        if (!inputs.rodapeEnable || !RevestimentoSpecifications.hasRodapeStep(inputs)) return
         val alturaCm = inputs.rodapeAlturaCm ?: return
         if (areaCompraM2 <= 0.0 || perimetroLiquidoM <= 0.0) return
 

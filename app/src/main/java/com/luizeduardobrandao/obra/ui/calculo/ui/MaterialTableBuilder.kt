@@ -339,6 +339,14 @@ class MaterialTableBuilder(
             return if (n5 <= 0) "0" else if (n5 == 1) "1 pct 5kg" else "$n5 pct 5kg"
         }
 
+        // ---------------- Fixador Mecânico (pino ou grampo) ----------------
+        if (nome.contains("Fixador Mecânico", ignoreCase = true) &&
+            unid.equals("un", ignoreCase = true)
+        ) {
+            val n = alvo.toInt().coerceAtLeast(0)
+            return if (n <= 0) "0un" else "${n}un"
+        }
+
         // ---------------- IMPERMEABILIZANTES (EXCETO INTERTRAVADO) ----------------
 
         // 1) Membrana Acrílica → 18L, 3,6L, 1L

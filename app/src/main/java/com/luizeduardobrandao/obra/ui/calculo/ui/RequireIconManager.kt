@@ -140,11 +140,11 @@ class RequiredIconManager(private val context: Context) {
     fun updateStep4Icons(
         etPecaComp: TextInputEditText, etPecaLarg: TextInputEditText, etJunta: TextInputEditText,
         etPecaEsp: TextInputEditText, etPecasPorCaixa: TextInputEditText,
-        etSobra: TextInputEditText,  revest: CalcRevestimentoViewModel.RevestimentoType?,
+        etSobra: TextInputEditText, revest: CalcRevestimentoViewModel.RevestimentoType?,
         groupPecaTamanhoVisible: Boolean
     ) {
-        val exigeTamanhoPeca = (revest != CalcRevestimentoViewModel.RevestimentoType.PEDRA) &&
-                groupPecaTamanhoVisible
+        val exigeTamanhoPeca =
+            (revest != CalcRevestimentoViewModel.RevestimentoType.PEDRA) && groupPecaTamanhoVisible
 
         if (revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO) {
             val compFilled = !etPecaComp.text.isNullOrBlank()
@@ -176,11 +176,19 @@ class RequiredIconManager(private val context: Context) {
         }
 
         // Junta obrigatória exceto para Pastilha
-        val juntaObrigatoria = (revest != CalcRevestimentoViewModel.RevestimentoType.PASTILHA)
+        val juntaObrigatoria =
+            (revest != CalcRevestimentoViewModel.RevestimentoType.PASTILHA)
         setRequiredIconVisible(etJunta, juntaObrigatoria && !juntaFilled)
 
+        // Mármore/Granito: espessura obrigatória
+        val espObrigatoria =
+            revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                    revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
+        val espFilled = !etPecaEsp.text.isNullOrBlank()
+
+        setRequiredIconVisible(etPecaEsp, espObrigatoria && !espFilled)
+
         // Opcionais
-        setRequiredIconVisible(etPecaEsp, false)
         setRequiredIconVisible(etPecasPorCaixa, false)
         setRequiredIconVisible(etSobra, false)
     }

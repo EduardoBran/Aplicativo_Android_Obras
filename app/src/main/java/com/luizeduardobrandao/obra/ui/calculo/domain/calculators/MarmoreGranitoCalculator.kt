@@ -121,6 +121,9 @@ object MarmoreGranitoCalculator {
         MaterialCalculator.adicionarRejunte(inputs, areaM2, itens)
         MaterialCalculator.adicionarEspacadoresECunhas(inputs, areaM2, sobra, itens)
 
+        // Fixador mecânico (pino ou grampo) – apenas parede e peças > 30 kg
+        adicionarFixadorMecanicoSeNecessario(inputs, areaM2, sobra, itens)
+
         // Sempre retornamos ACIII para MG
         return "ACIII"
     }
@@ -166,6 +169,53 @@ object MarmoreGranitoCalculator {
         val d = inputs.desnivelCm ?: 0.0
         val leito = max(3.0, d + 0.5)
         return arred1(leito)
+    }
+
+    /**
+     * Adiciona item "Fixador Mecânico (pino ou grampo)" quando aplicável
+     * - Apenas Mármore / Granito em PAREDE
+     * - Apenas se peso da peça > 30 kg
+     */
+    private fun adicionarFixadorMecanicoSeNecessario(
+        inputs: Inputs,
+        areaM2: Double,
+        sobra: Double,
+        itens: MutableList<MaterialItem>
+    ) {
+        // Apenas Parede
+        if (inputs.aplicacao != AplicacaoType.PAREDE) return
+
+        // Garantir que estamos em Mármore ou Granito
+        if (inputs.revest != RevestimentoType.MARMORE &&
+            inputs.revest != RevestimentoType.GRANITO
+        ) return
+
+        val compCm = inputs.pecaCompCm ?: return
+        val largCm = inputs.pecaLargCm ?: return
+        val espMm = inputs.pecaEspMm ?: return
+
+        // Conversão para metros
+        val compM = compCm / 100.0
+        val largM = largCm / 100.0
+        val espM = espMm / 1000.0
+
+        // Peso em kg (densidade aproximada 2.700 kg/m³)
+        val pesoKg = compM * largM * espM * 2700.0
+        if (pesoKg <= 30.0) return
+
+        // Quantidade de fixadores
+        val fixadoresPorM2 = 4.0
+        val areaCompraM2 = areaM2 * (1 + sobra / 100.0)
+        val qtdFixadores = kotlin.math.ceil(areaCompraM2 * fixadoresPorM2).toInt()
+
+        if (qtdFixadores <= 0) return
+
+        itens += MaterialItem(
+            item = "Fixador Mecânico (pino ou grampo)",
+            unid = "un",
+            qtd = qtdFixadores.toDouble(),
+            observacao = "Recomendado para peças pesadas. Definir o tipo em obra."
+        )
     }
 
     private fun arred1(v: Double) = kotlin.math.round(v * 10.0) / 10.0

@@ -30,8 +30,42 @@ object RevestimentoSpecifications {
             }
 
             RevestimentoType.PEDRA -> 20.0
+
             RevestimentoType.PISO_INTERTRAVADO -> 60.0
-            RevestimentoType.MARMORE, RevestimentoType.GRANITO -> 20.0
+
+            RevestimentoType.MARMORE,
+            RevestimentoType.GRANITO -> {
+                val amb = inputs.ambiente
+                val aplic = inputs.aplicacao
+
+                when {
+                    // Fallback neutro enquanto ainda não escolheu tudo
+                    amb == null || aplic == null -> 20.0
+
+                    // Piso
+                    aplic == AplicacaoType.PISO && (amb == AmbienteType.SECO || amb == AmbienteType.SEMI) ->
+                        18.0
+
+                    aplic == AplicacaoType.PISO && amb == AmbienteType.MOLHADO ->
+                        20.0
+
+                    aplic == AplicacaoType.PISO && amb == AmbienteType.SEMPRE ->
+                        22.0
+
+                    // Parede
+                    aplic == AplicacaoType.PAREDE && (amb == AmbienteType.SECO || amb == AmbienteType.SEMI) ->
+                        15.0
+
+                    aplic == AplicacaoType.PAREDE && amb == AmbienteType.MOLHADO ->
+                        18.0
+
+                    aplic == AplicacaoType.PAREDE && amb == AmbienteType.SEMPRE ->
+                        22.0
+
+                    else -> 20.0
+                }
+            }
+
             RevestimentoType.PISO -> {
                 if (inputs.pisoPlacaTipo == PlacaTipo.PORCELANATO) {
                     val maxLado =
@@ -67,13 +101,19 @@ object RevestimentoSpecifications {
     }
 
     /**
-     * Tipos de revestimento que suportam rodapé
+     * Tipos de revestimento que suportam rodapé (tratamento especial para Mármore e Granito)
      */
-    fun tiposComRodape() = setOf(
-        RevestimentoType.PISO,
-        RevestimentoType.MARMORE,
-        RevestimentoType.GRANITO
-    )
+    fun hasRodapeStep(inputs: Inputs): Boolean {
+        return when (inputs.revest) {
+            RevestimentoType.PISO -> true
+
+            RevestimentoType.MARMORE,
+            RevestimentoType.GRANITO ->
+                inputs.aplicacao == AplicacaoType.PISO
+
+            else -> false
+        }
+    }
 
     /**
      * Verifica se é pedra ou similares (mármore/granito)

@@ -65,6 +65,7 @@ class FieldSynchronizer {
             syncEspessuraField(etPecaEsp, inputs.pecaEspMm, inputs.revest)
             syncField(etJunta, inputs.juntaMm)
             syncField(etSobra, inputs.sobraPct)
+            syncField(etDesnivel, inputs.desnivelCm)
             syncField(etRodapeAltura, inputs.rodapeAlturaCm)
             syncField(etRodapeAbertura, inputs.rodapeDescontarVaoM.takeIf { it > 0.0 })
             syncIntField(etPecasPorCaixa, inputs.pecasPorCaixa)

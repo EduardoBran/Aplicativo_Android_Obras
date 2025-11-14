@@ -54,15 +54,13 @@ class StepNavigationHandler {
     private fun adjustStep0Layout(
         step: Int,
         bottomBar: View,
-        viewFlipper: ViewFlipper // ✅ CORRIGIDO: android.widget.ViewFlipper
+        viewFlipper: ViewFlipper
     ) {
-        // ✅ CORRIGIDO: Cast normal 'as' ao invés de 'as?' com return
         val tela0 = viewFlipper.getChildAt(0) as LinearLayout
 
         if (step == 0) {
             bottomBar.isGone = true
             tela0.gravity = Gravity.CENTER
-            // Nota: ajuste de minimumHeight deve ser feito no Fragment
         } else {
             bottomBar.isVisible = true
             tela0.gravity = Gravity.CENTER_HORIZONTAL

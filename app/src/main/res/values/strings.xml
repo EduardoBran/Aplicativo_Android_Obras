@@ -1001,9 +1001,14 @@
     <!-- Mensagem de erro para range especial da pastilha -->
     <string name="calc_err_junta_pastilha_range">Para pastilha, use entre 1 e 3 mm.</string>
 
-    <!-- Hints específicos para Mármore/Granito (metros) -->
+    <!-- Hints/Mensagens de erro específicos para Mármore/Granito -->
     <string name="calc_step4_peca_comp_m">Tamanho da peça – Comprimento (m)</string>
     <string name="calc_step4_peca_larg_m">Tamanho da peça – Largura (m)</string>
+    <string name="calc_step4_peca_esp_mg_hint">Espessura da peça (mm)</string>
+    <string name="calc_step4_peca_esp_mg_helper_with_default">Em milímetros • Ex: %1$s mm.</string>
+    <string name="calc_err_esp_mg_required">Informe a espessura da peça em mm.</string>
+    <string name="calc_err_esp_range_mg_piso">Valor inválido. Limites: 15mm a 40mm.</string>
+    <string name="calc_err_esp_range_mg_parede">Valor inválido. Limites: 10mm a 40mm.</string>
 
     <!-- Mensagens genéricas de faixa para helper texts e inline errors -->
     <string name="calc_step4_peca_esp_helper_with_default">Em milímetros • Ex: 8 (opcional) • padrão atual: %s</string>
@@ -1016,7 +1021,7 @@
     <string name="calc_err_ppc_range">Valor inválido (1 a 50).</string>
     <string name="calc_err_sobra_range">Valor inválido (0 a 50%).</string>
     <string name="calc_err_rodape_altura">Altura inválida (3 a 30 cm).</string>
-    <string name="calc_step4_desnivel_helper_pedra">Em centímetros • Ex: 5 (se vazio, será utilizado 4 cm)</string>
+    <string name="calc_step4_desnivel_helper_pedra">Em centímetros • Ex: 4 (se vazio, será utilizado 4 cm)</string>
     <string name="calc_step4_desnivel_helper_mg">Em centímetros • Ex: 1 cm (se vazio, será utilizado 0 cm)</string>
     <string name="calc_err_desnivel_pedra_range">Informe entre 4 e 8 cm</string>
     <string name="calc_err_desnivel_mg_range">Informe entre 0 e 3 cm</string>

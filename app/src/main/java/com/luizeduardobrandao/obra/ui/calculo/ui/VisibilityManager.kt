@@ -7,6 +7,7 @@ import androidx.core.view.isVisible
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel
+import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
 
 /**
  * Gerencia a visibilidade condicional de componentes da UI
@@ -28,45 +29,27 @@ class VisibilityManager {
         // TextViews informativos
         tvAreaTotalAviso: View,
         // Grupos de componentes
-        groupPlacaTipo: View,
-        groupPecaTamanho: View,
-        groupPastilhaTamanho: View,
-        groupRodapeFields: View,
-        groupIntertravadoImpOptions: View,
+        groupPlacaTipo: View, groupPecaTamanho: View, groupPastilhaTamanho: View,
+        groupRodapeFields: View, groupIntertravadoImpOptions: View,
         // Campos individuais - Medidas
-        tilComp: TextInputLayout,
-        tilLarg: TextInputLayout,
-        tilAltura: TextInputLayout,
-        tilParedeQtd: TextInputLayout,
-        tilAbertura: TextInputLayout,
+        tilComp: TextInputLayout, tilLarg: TextInputLayout, tilAltura: TextInputLayout,
+        tilParedeQtd: TextInputLayout, tilAbertura: TextInputLayout,
         tilAreaInformada: TextInputLayout,
         // Campos individuais - Peça
-        tilPecaComp: TextInputLayout,
-        tilPecaLarg: TextInputLayout,
-        tilPecaEsp: TextInputLayout,
-        tilJunta: TextInputLayout,
-        tilPecasPorCaixa: TextInputLayout,
-        tilDesnivel: TextInputLayout,
-        tilSobra: TextInputLayout,
+        tilPecaComp: TextInputLayout, tilPecaLarg: TextInputLayout, tilPecaEsp: TextInputLayout,
+        tilJunta: TextInputLayout, tilPecasPorCaixa: TextInputLayout,
+        tilDesnivel: TextInputLayout, tilSobra: TextInputLayout,
         // Campos individuais - Rodapé
-        tilRodapeAltura: TextInputLayout,
-        tilRodapeAbertura: TextInputLayout,
+        tilRodapeAltura: TextInputLayout, tilRodapeAbertura: TextInputLayout,
         tilRodapeCompComercial: TextInputLayout,
         // EditTexts (para limpar quando ocultar)
-        etLarg: TextInputEditText,
-        etAlt: TextInputEditText,
-        etParedeQtd: TextInputEditText,
-        etAbertura: TextInputEditText,
-        etPecaEsp: TextInputEditText,
-        etJunta: TextInputEditText,
-        etPecasPorCaixa: TextInputEditText,
-        etRodapeAbertura: TextInputEditText,
+        etLarg: TextInputEditText, etAlt: TextInputEditText, etParedeQtd: TextInputEditText,
+        etAbertura: TextInputEditText, etPecaEsp: TextInputEditText, etJunta: TextInputEditText,
+        etPecasPorCaixa: TextInputEditText, etRodapeAbertura: TextInputEditText,
         // RadioGroups
-        rgPlacaTipo: RadioGroup,
-        rgIntertravadoImp: RadioGroup,
-        // Switches - ✅ CORRIGIDO: CompoundButton ao invés de Switch
-        switchImp: CompoundButton,
-        switchRodape: CompoundButton
+        rgPlacaTipo: RadioGroup, rgIntertravadoImp: RadioGroup,
+        // Switches
+        switchImp: CompoundButton, switchRodape: CompoundButton
     ) {
         // Atualiza avisos informativos
         updateAreaTotalAvisoVisibility(inputs, tvAreaTotalAviso)
@@ -136,8 +119,11 @@ class VisibilityManager {
         groupPastilhaTamanho.isVisible =
             inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
 
-        // Grupo de campos de rodapé
-        groupRodapeFields.isVisible = inputs.rodapeEnable
+        // Mármore/Granito em PAREDE NÃO têm etapa de rodapé
+        val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
+
+        switchRodape.isVisible = hasRodapeStep
+        groupRodapeFields.isVisible = hasRodapeStep && inputs.rodapeEnable
 
         // Impermeabilização para Piso Intertravado
         updateIntertravadoImpVisibility(
@@ -301,9 +287,11 @@ class VisibilityManager {
         etRodapeAbertura: TextInputEditText,
         tilRodapeAbertura: TextInputLayout
     ) {
-        groupRodapeFields.isVisible = inputs.rodapeEnable
+        val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
 
-        if (!inputs.rodapeEnable) {
+        groupRodapeFields.isVisible = hasRodapeStep && inputs.rodapeEnable
+
+        if (!inputs.rodapeEnable || !hasRodapeStep) {
             etRodapeAbertura.text?.clear()
             tilRodapeAbertura.error = null
         }
@@ -314,12 +302,24 @@ class VisibilityManager {
      */
     private fun updateSwitchStates(
         inputs: CalcRevestimentoViewModel.Inputs,
-        switchImp: CompoundButton, // ✅ CORRIGIDO
-        switchRodape: CompoundButton // ✅ CORRIGIDO
+        switchImp: CompoundButton,
+        switchRodape: CompoundButton
     ) {
         switchImp.isEnabled = !inputs.impermeabilizacaoLocked
         switchImp.isChecked = inputs.impermeabilizacaoOn
-        switchRodape.isChecked = inputs.rodapeEnable
+
+        val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
+
+        if (!hasRodapeStep) {
+            // Garante que rodapé esteja sempre desligado e travado
+            if (switchRodape.isChecked) {
+                switchRodape.isChecked = false   // dispara listener e zera no ViewModel
+            }
+            switchRodape.isEnabled = false
+        } else {
+            switchRodape.isEnabled = true
+            switchRodape.isChecked = inputs.rodapeEnable
+        }
     }
 
     /**

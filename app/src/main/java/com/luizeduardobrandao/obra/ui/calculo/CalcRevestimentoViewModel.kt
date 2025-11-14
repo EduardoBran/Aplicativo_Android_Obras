@@ -129,43 +129,26 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
                 RevestimentoType.MARMORE,
                 RevestimentoType.GRANITO -> null
             },
-            ambiente = null,
-            classeArgamassa = null,
-            impermeabilizacaoOn = false,
-            impermeabilizacaoLocked = false,
-            trafego = null,
-            impIntertravadoTipo = null,
-            compM = null,
-            largM = null,
-            altM = null,
-            areaInformadaM2 = null,
-            paredeQtd = null,
-            aberturaM2 = null,
-            pastilhaFormato = null,
-            pecaCompCm = null,
-            pecaLargCm = null,
-            pecaEspMm = null,
-            juntaMm = null,
-            pecasPorCaixa = null,
-            desnivelCm = null
+            ambiente = null, classeArgamassa = null, impermeabilizacaoOn = false,
+            impermeabilizacaoLocked = false, trafego = null, impIntertravadoTipo = null,
+            compM = null, largM = null, altM = null, areaInformadaM2 = null, paredeQtd = null,
+            aberturaM2 = null, pastilhaFormato = null, pecaCompCm = null, pecaLargCm = null,
+            pecaEspMm = null, juntaMm = null, pecasPorCaixa = null, desnivelCm = null
         )
 
-        if (type !in RevestimentoSpecifications.tiposComRodape()) {
+        if (!RevestimentoSpecifications.hasRodapeStep(newInputs)) {
             newInputs = newInputs.copy(
-                rodapeEnable = false,
-                rodapeAlturaCm = null,
-                rodapePerimetroManualM = null,
-                rodapeDescontarVaoM = 0.0,
-                rodapePerimetroAuto = true,
+                rodapeEnable = false, rodapeAlturaCm = null, rodapePerimetroManualM = null,
+                rodapeDescontarVaoM = 0.0, rodapePerimetroAuto = true,
                 rodapeMaterial = RodapeMaterial.MESMA_PECA,
-                rodapeOrientacaoMaior = true,
-                rodapeCompComercialM = null
+                rodapeOrientacaoMaior = true, rodapeCompComercialM = null
             )
         }
 
         _inputs.value = newInputs
             .withDefaultEspessuraIfNeeded()
             .withDefaultJuntaIfNeeded()
+            .withDefaultDesnivelIfNeeded()
     }
 
     fun setAplicacao(aplicacao: AplicacaoType?) = viewModelScope.launch {
@@ -183,6 +166,17 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             null -> {
                 i.copy(paredeQtd = null, aberturaM2 = null)
             }
+        }
+
+        // Se neste cenário não existe etapa de rodapé, limpa o estado de rodapé
+        if (!RevestimentoSpecifications.hasRodapeStep(i)) {
+            i = i.copy(
+                rodapeEnable = false, rodapeAlturaCm = null, rodapePerimetroManualM = null,
+                rodapeDescontarVaoM = 0.0, rodapePerimetroAuto = true,
+                rodapeMaterial = RodapeMaterial.MESMA_PECA,
+                rodapeOrientacaoMaior = true,
+                rodapeCompComercialM = null
+            )
         }
 
         _inputs.value = i
@@ -276,12 +270,28 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             else -> classeNova
         }
 
-        _inputs.value = cur.copy(
+        // Atualiza Inputs levando Mármore/Granito em conta
+        var updated = cur.copy(
             ambiente = amb,
             classeArgamassa = classeFinal,
             impermeabilizacaoOn = impOn,
             impermeabilizacaoLocked = impLocked
         )
+
+        // Se for Mármore/Granito, decidir se devemos recalcular espessura
+        if (cur.revest == RevestimentoType.MARMORE || cur.revest == RevestimentoType.GRANITO) {
+            // Default anterior, dado o contexto antigo (antes da mudança de ambiente)
+            val oldDefaultEsp = RevestimentoSpecifications.getEspessuraPadraoMm(cur)
+            val currentEsp = cur.pecaEspMm
+
+            // Consideramos "automático" se: ainda não tinha espessura OU spessura atual == default antigo
+            val isEspAuto = currentEsp == null || currentEsp == oldDefaultEsp
+            if (isEspAuto) {
+                updated =
+                    updated.copy(pecaEspMm = null) // Limpa o Fragment e recalcula com novo ambiente
+            }
+        }
+        _inputs.value = updated
     }
 
     fun setTrafego(trafego: TrafegoType?) = viewModelScope.launch {
@@ -474,7 +484,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             next = 4
         }
 
-        if (next == 6 && i.revest !in RevestimentoSpecifications.tiposComRodape()) {
+        if (next == 6 && !RevestimentoSpecifications.hasRodapeStep(i)) {
             next = 7
         }
 
@@ -514,13 +524,13 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             }
 
             6 -> {
-                if (i.revest !in RevestimentoSpecifications.tiposComRodape()) {
+                if (!RevestimentoSpecifications.hasRodapeStep(i)) {
                     prev = 5
                 }
             }
 
             7 -> {
-                prev = if (i.revest in RevestimentoSpecifications.tiposComRodape()) 6 else 5
+                prev = if (RevestimentoSpecifications.hasRodapeStep(i)) 6 else 5
             }
 
             8 -> {
@@ -532,7 +542,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
                     }
 
                     i.ambiente == AmbienteType.SECO ->
-                        if (i.revest in RevestimentoSpecifications.tiposComRodape()) 6 else 5
+                        if (RevestimentoSpecifications.hasRodapeStep(i)) 6 else 5
 
                     else -> 7
                 }
@@ -575,8 +585,6 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             else -> StepValidation(false)
         }
     }
-
-    fun isStepValid(step: Int): Boolean = validateStep(step).isValid
 
     /* ═══════════════════════════════════════════════════════════════════════════
      * FUNÇÕES AUXILIARES PÚBLICAS
@@ -682,13 +690,13 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         i.desnivelCm?.let { appendLine("• 📉 Desnível: ${arred1(it)} cm") }
 
         if (i.rodapeEnable &&
-            i.revest in RevestimentoSpecifications.tiposComRodape() &&
+            RevestimentoSpecifications.hasRodapeStep(i) &&
             i.rodapeAlturaCm != null
         ) {
             RodapeCalculator.appendRodapeInfo(this, i)
         }
 
-        if (i.rodapeEnable && i.revest in RevestimentoSpecifications.tiposComRodape()) {
+        if (i.rodapeEnable && RevestimentoSpecifications.hasRodapeStep(i)) {
             i.rodapeDescontarVaoM
                 .takeIf { it > 0.0 }
                 ?.let { aberturaRodape ->
@@ -859,14 +867,16 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
      * HELPERS
      * ═══════════════════════════════════════════════════════════════════════════ */
 
-    // Adiciona Valores Padrão em Espessura da Peça e Espessura da Junta
+    // Adiciona Valores Padrão em Espessura da Peça, Espessura da Junta e Desnível
     private fun Inputs.withDefaultEspessuraIfNeeded(): Inputs {
         if (pecaEspMm != null) return this
         val padrao = RevestimentoSpecifications.getEspessuraPadraoMm(this)
 
         return when (revest) {
             RevestimentoType.PASTILHA,
-            RevestimentoType.PEDRA -> this
+            RevestimentoType.PEDRA,
+            RevestimentoType.MARMORE,
+            RevestimentoType.GRANITO -> this // MG será definido pelo fragmento conforme Ambiente + Aplicação
 
             else -> copy(pecaEspMm = padrao)
         }
@@ -880,6 +890,21 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         return copy(juntaMm = padrao)
     }
+
+    private fun Inputs.withDefaultDesnivelIfNeeded(): Inputs {
+        if (desnivelCm != null) return this
+
+        val default = when (revest) {
+            RevestimentoType.PEDRA -> 4.0
+            RevestimentoType.MARMORE,
+            RevestimentoType.GRANITO -> 0.0
+
+            else -> null
+        }
+
+        return if (default != null) copy(desnivelCm = default) else this
+    }
+
 
     private fun resetAllInternal() {
         _inputs.value = Inputs()

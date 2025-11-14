@@ -66,15 +66,37 @@ class FieldValidator(
     }
 
     /**
-     * Verifica se há erro na espessura (Pastilha nunca bloqueia)
+     * Verifica se há erro na espessura (Pastilha nunca bloqueia / Mármore e Granita obrigatórios)
      */
     fun hasEspessuraErrorNow(
         et: TextInputEditText, isPastilha: Boolean, espValue: Double?
     ): Boolean {
         if (isPastilha) return false
+
         val txt = et.text
-        if (txt.isNullOrBlank()) return false
-        return espValue == null || espValue !in 3.0..30.0
+        val inputs = viewModel.inputs.value
+        val revest = inputs.revest
+        val aplicacao = inputs.aplicacao
+
+        val isMG = revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
+
+        // Para Mármore/Granito o campo é obrigatório
+        if (isMG && txt.isNullOrBlank()) return true
+
+        // Demais revestimentos: campo opcional
+        if (!isMG && txt.isNullOrBlank()) return false
+
+        val range: ClosedRange<Double> = when {
+            isMG && aplicacao == CalcRevestimentoViewModel.AplicacaoType.PAREDE ->
+                10.0..40.0        // Parede MG
+            isMG && aplicacao == CalcRevestimentoViewModel.AplicacaoType.PISO ->
+                15.0..40.0        // Piso MG
+            else ->
+                3.0..30.0         // Regras atuais para outros revestimentos
+        }
+
+        return espValue == null || espValue !in range
     }
 
     /**
