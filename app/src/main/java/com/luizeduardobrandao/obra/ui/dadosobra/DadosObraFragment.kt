@@ -195,9 +195,9 @@ class DadosObraFragment : Fragment() {
         btnExcluirObra.setOnClickListener {
             showSnackbarFragment(
                 type = Constants.SnackType.WARNING.name,
-                title = getString(R.string.snack_warning),
+                title = getString(R.string.generic_warning),
                 msg = getString(R.string.obra_data_snack_delete_msg),
-                btnText = getString(R.string.snack_button_yes),
+                btnText = getString(R.string.generic_yes_upper_case),
                 onAction = {
                     // ⬇️ INÍCIO DO LOADING AO EXCLUIR
                     isDeleting = true
@@ -206,7 +206,7 @@ class DadosObraFragment : Fragment() {
                     // ⬆️
                     viewModel.excluirObra()
                 },
-                btnNegativeText = getString(R.string.snack_button_no),
+                btnNegativeText = getString(R.string.generic_no_upper_case),
                 onNegative = { /* nada */ }
             )
         }
@@ -544,9 +544,9 @@ class DadosObraFragment : Fragment() {
 
                                 showSnackbarFragment(
                                     Constants.SnackType.ERROR.name,
-                                    getString(R.string.snack_error),
+                                    getString(R.string.generic_error),
                                     getString(msgRes),
-                                    getString(R.string.snack_button_ok)
+                                    getString(R.string.generic_ok_upper_case)
                                 )
                                 isDeleting = false
                                 viewModel.resetOpState()
@@ -599,9 +599,9 @@ class DadosObraFragment : Fragment() {
                                 // Em erro durante flush, avise e ABORTE o flush (nao navega)
                                 showSnackbarFragment(
                                     Constants.SnackType.ERROR.name,
-                                    getString(R.string.snack_error),
+                                    getString(R.string.generic_error),
                                     getString(ui.resId),
-                                    getString(R.string.snack_button_ok)
+                                    getString(R.string.generic_ok_upper_case)
                                 )
                                 flushingAportes = false
                                 // limpar snapshots (ja que voltamos a reprocessar normalmente)
@@ -642,9 +642,9 @@ class DadosObraFragment : Fragment() {
         if (!isDeleting) {
             showSnackbarFragment(
                 Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
+                getString(R.string.generic_error),
                 getString(resId),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_ok_upper_case)
             )
         }
     }
@@ -832,11 +832,11 @@ class DadosObraFragment : Fragment() {
         if (hasUnsavedChanges()) {
             showSnackbarFragment(
                 type = Constants.SnackType.WARNING.name,
-                title = getString(R.string.snack_attention),
-                msg = getString(R.string.unsaved_confirm_msg),
-                btnText = getString(R.string.snack_button_yes), // SIM
+                title = getString(R.string.generic_attention),
+                msg = getString(R.string.generic_unsaved_confirm_msg),
+                btnText = getString(R.string.generic_yes_upper_case), // SIM
                 onAction = { findNavController().navigateUp() },
-                btnNegativeText = getString(R.string.snack_button_no), // NÃO
+                btnNegativeText = getString(R.string.generic_no_upper_case), // NÃO
                 onNegative = { /* permanece na tela */ }
             )
         } else {

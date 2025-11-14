@@ -78,7 +78,7 @@ class MaterialRegisterFragment : Fragment() {
 
             // Botão salvar / atualizar
             btnSaveMaterial.text = getString(
-                if (isEdit) R.string.material_reg_button_edit else R.string.generic_add
+                if (isEdit) R.string.generic_update else R.string.generic_add
             )
             btnSaveMaterial.isEnabled = false
 
@@ -166,7 +166,7 @@ class MaterialRegisterFragment : Fragment() {
                             rbStatusInativoMat.isChecked = true
                         }
 
-                        btnSaveMaterial.text = getString(R.string.material_reg_button_edit)
+                        btnSaveMaterial.text = getString(R.string.generic_update)
                     }
                     // Anti-flash: só agora liberamos validação + watchers
                     dataLoaded = true
@@ -245,9 +245,9 @@ class MaterialRegisterFragment : Fragment() {
         if (!validateForm()) {
             showSnackbarFragment(
                 Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
+                getString(R.string.generic_error),
                 getString(R.string.material_save_error),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_ok_upper_case)
             )
             return
         }
@@ -256,9 +256,9 @@ class MaterialRegisterFragment : Fragment() {
         if (viewModel.isDuplicateName(nome, args.materialId)) {
             showSnackbarFragment(
                 Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
+                getString(R.string.generic_error),
                 getString(R.string.material_duplicate_name),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_ok_upper_case)
             )
             return
         }
@@ -332,9 +332,9 @@ class MaterialRegisterFragment : Fragment() {
                             binding.btnSaveMaterial.isEnabled = true
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(state.resId),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             )
                         }
 
@@ -351,11 +351,11 @@ class MaterialRegisterFragment : Fragment() {
         if (hasUnsavedChanges()) {
             showSnackbarFragment(
                 type = Constants.SnackType.WARNING.name,
-                title = getString(R.string.snack_attention),
-                msg = getString(R.string.unsaved_confirm_msg),
-                btnText = getString(R.string.snack_button_yes), // SIM
+                title = getString(R.string.generic_attention),
+                msg = getString(R.string.generic_unsaved_confirm_msg),
+                btnText = getString(R.string.generic_yes_upper_case), // SIM
                 onAction = { findNavController().navigateUp() },
-                btnNegativeText = getString(R.string.snack_button_no), // NÃO
+                btnNegativeText = getString(R.string.generic_no_upper_case), // NÃO
                 onNegative = { /* permanece nesta tela */ }
             )
         } else {

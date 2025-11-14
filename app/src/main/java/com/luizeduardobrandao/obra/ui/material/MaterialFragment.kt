@@ -87,9 +87,9 @@ class MaterialFragment : Fragment(), MaterialActions {
                     if (ui is UiState.ErrorRes) {
                         showSnackbarFragment(
                             Constants.SnackType.ERROR.name,
-                            getString(R.string.snack_error),
+                            getString(R.string.generic_error),
                             getString(ui.resId),
-                            getString(R.string.snack_button_ok)
+                            getString(R.string.generic_ok_upper_case)
                         )
                     }
                 }
@@ -116,9 +116,9 @@ class MaterialFragment : Fragment(), MaterialActions {
     override fun onDelete(material: Material) {
         showSnackbarFragment(
             type = Constants.SnackType.WARNING.name,
-            title = getString(R.string.snack_warning),
+            title = getString(R.string.generic_warning),
             msg = getString(R.string.material_delete_confirm),
-            btnText = getString(R.string.snack_button_yes),          // SIM
+            btnText = getString(R.string.generic_yes_upper_case),          // SIM
             onAction = {
                 viewModel.deleteMaterial(material.id)
                 Toast.makeText(
@@ -127,7 +127,7 @@ class MaterialFragment : Fragment(), MaterialActions {
                     Toast.LENGTH_SHORT
                 ).show()
             },
-            btnNegativeText = getString(R.string.snack_button_no),   // NÃO
+            btnNegativeText = getString(R.string.generic_no_upper_case),   // NÃO
             onNegative = { /* nada: fecha o SnackbarFragment */ }
         )
     }

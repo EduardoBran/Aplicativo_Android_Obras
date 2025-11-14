@@ -222,9 +222,9 @@ class ResumoNotasFragment : Fragment() {
                             progress(false)
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(ui.resId),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             )
                         }
 
@@ -397,9 +397,9 @@ class ResumoNotasFragment : Fragment() {
         if (cachedNotas.isEmpty()) {
             showSnackbarFragment(
                 Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
+                getString(R.string.generic_error),
                 getString(R.string.resumo_export_no_notes),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_ok_upper_case)
             )
             return
         }
@@ -449,9 +449,9 @@ class ResumoNotasFragment : Fragment() {
 
         showSnackbarFragment(
             type = Constants.SnackType.WARNING.name,
-            title = getString(R.string.snack_attention),
+            title = getString(R.string.generic_attention),
             msg = msg,
-            btnText = getString(R.string.snack_button_yes),
+            btnText = getString(R.string.generic_yes_upper_case),
             onAction = {
                 val targetStatus = if (isReceber) "A Pagar" else "Pago"
                 val notas = cachedNotas.filter { it.status == targetStatus }
@@ -459,16 +459,16 @@ class ResumoNotasFragment : Fragment() {
                     view?.post {
                         showSnackbarFragment(
                             Constants.SnackType.ERROR.name,
-                            getString(R.string.snack_error),
+                            getString(R.string.generic_error),
                             getString(R.string.resumo_export_no_notes_in_filter),
-                            getString(R.string.snack_button_ok)
+                            getString(R.string.generic_ok_upper_case)
                         )
                     }
                     return@showSnackbarFragment
                 }
                 exportNotas(notas, origin) // gera/salva e (se share) abre chooser
             },
-            btnNegativeText = getString(R.string.snack_button_no),
+            btnNegativeText = getString(R.string.generic_no_upper_case),
             onNegative = { /* nada */ }
         )
     }
@@ -479,9 +479,9 @@ class ResumoNotasFragment : Fragment() {
             ?: run {
                 showSnackbarFragment(
                     Constants.SnackType.ERROR.name,
-                    getString(R.string.snack_error),
+                    getString(R.string.generic_error),
                     getString(R.string.resumo_export_no_notes),
-                    getString(R.string.snack_button_ok)
+                    getString(R.string.generic_ok_upper_case)
                 )
                 return
             }
@@ -493,9 +493,9 @@ class ResumoNotasFragment : Fragment() {
             }
             showSnackbarFragment(
                 type = Constants.SnackType.WARNING.name,
-                title = getString(R.string.snack_attention),
+                title = getString(R.string.generic_attention),
                 msg = msg,
-                btnText = getString(R.string.snack_button_yes),
+                btnText = getString(R.string.generic_yes_upper_case),
                 onAction = {
                     // Filtra "A Pagar" OU "Pago" dentro do intervalo escolhido
                     val notas = cachedNotas.filter { n ->
@@ -510,16 +510,16 @@ class ResumoNotasFragment : Fragment() {
                         view?.post {
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(R.string.resumo_export_no_notes_in_range),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             )
                         }
                         return@showSnackbarFragment
                     }
                     exportNotas(notas, origin, customRange = startBr to endBr)
                 },
-                btnNegativeText = getString(R.string.snack_button_no),
+                btnNegativeText = getString(R.string.generic_no_upper_case),
                 onNegative = { }
             )
         }
@@ -588,9 +588,9 @@ class ResumoNotasFragment : Fragment() {
                 view?.post {
                     showSnackbarFragment(
                         Constants.SnackType.ERROR.name,
-                        getString(R.string.snack_error),
+                        getString(R.string.generic_error),
                         getString(R.string.resumo_export_error_save),
-                        getString(R.string.snack_button_ok)
+                        getString(R.string.generic_ok_upper_case)
                     )
                 }
                 return
@@ -599,9 +599,9 @@ class ResumoNotasFragment : Fragment() {
             view?.post {
                 showSnackbarFragment(
                     Constants.SnackType.SUCCESS.name,
-                    getString(R.string.snack_success),
+                    getString(R.string.generic_success),
                     getString(R.string.resumo_export_saved_ok),
-                    getString(R.string.snack_button_ok)
+                    getString(R.string.generic_ok_upper_case)
                 )
             }
         }
@@ -820,9 +820,9 @@ class ResumoNotasFragment : Fragment() {
             leftAppForShare = false
             showSnackbarFragment(
                 Constants.SnackType.SUCCESS.name,
-                getString(R.string.snack_success),
+                getString(R.string.generic_success),
                 getString(R.string.resumo_export_shared_ok),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_ok_upper_case)
             )
         }
     }

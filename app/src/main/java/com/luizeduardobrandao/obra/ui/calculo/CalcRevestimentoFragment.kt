@@ -235,7 +235,7 @@ class CalcRevestimentoFragment : Fragment() {
                 selected = which
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = true
             }
-            .setPositiveButton(getString(R.string.generic_ok), null)
+            .setPositiveButton(getString(R.string.generic_ok_upper_case), null)
             .setNegativeButton(getString(R.string.generic_cancel)) { d, _ -> d.dismiss() }
             .create()
 
@@ -972,7 +972,7 @@ class CalcRevestimentoFragment : Fragment() {
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.calc_new_calc_title))
                 .setMessage(getString(R.string.calc_new_calc_message))
-                .setPositiveButton(getString(R.string.generic_yes)) { _, _ ->
+                .setPositiveButton(getString(R.string.generic_yes_lower_case)) { _, _ ->
                     navigateBackToCalcMaterial()
                 }
                 .setNegativeButton(getString(R.string.generic_cancel), null)

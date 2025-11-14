@@ -125,13 +125,13 @@ class HistorySolutionFragment : Fragment() {
             type = Constants.SnackType.WARNING.name,
             title = getString(R.string.history_delete_title),
             msg = getString(R.string.history_delete_msg),
-            btnText = getString(R.string.snack_button_yes),
+            btnText = getString(R.string.generic_yes_upper_case),
             onAction = {
                 viewLifecycleOwner.lifecycleScope.launch {
                     viewModel.delete(item.id)
                 }
             },
-            btnNegativeText = getString(R.string.snack_button_no),
+            btnNegativeText = getString(R.string.generic_no_upper_case),
             onNegative = { /* nada */ }
         )
     }
@@ -156,7 +156,7 @@ class HistorySolutionFragment : Fragment() {
             )
             android.widget.Toast.makeText(
                 requireContext(),
-                getString(R.string.ia_copy_success),
+                getString(R.string.generic_copy_success),
                 android.widget.Toast.LENGTH_SHORT
             ).show()
         }

@@ -674,7 +674,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
-        android:contentDescription="@string/scroll_to_bottom"
+        android:contentDescription="@string/generic_scroll_to_bottom"
         android:src="@drawable/ic_arrow_downward"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"

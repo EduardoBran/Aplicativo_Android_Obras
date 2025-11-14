@@ -230,7 +230,7 @@ class SnackbarFragment : BottomSheetDialogFragment() {
 
                         Constants.SnackType.WARNING -> ContextCompat.getColor(
                             requireContext(),
-                            R.color.btn_bg_warning_no2 // AQUI
+                            R.color.btn_bg_warning_no // AQUI
                         )
 
                         Constants.SnackType.ERROR -> ContextCompat.getColor(

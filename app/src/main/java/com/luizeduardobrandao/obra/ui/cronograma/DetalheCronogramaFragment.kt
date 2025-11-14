@@ -144,9 +144,9 @@ class DetalheCronogramaFragment : Fragment() {
                             is UiState.ErrorRes -> {
                                 showSnackbarFragment(
                                     Constants.SnackType.ERROR.name,
-                                    getString(R.string.snack_error),
+                                    getString(R.string.generic_error),
                                     getString(ui.resId),
-                                    getString(R.string.snack_button_ok)
+                                    getString(R.string.generic_ok_upper_case)
                                 )
                             }
 

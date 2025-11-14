@@ -67,9 +67,9 @@ class LoginFragment : Fragment() {
         if (!requireContext().isConnectedToInternet()) {
             showSnackbarFragment(
                 Constants.SnackType.WARNING.name,
-                getString(R.string.snack_warning),
-                getString(R.string.error_no_internet),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_warning),
+                getString(R.string.generic_error_no_internet),
+                getString(R.string.generic_ok_upper_case)
             )
         }
 
@@ -83,9 +83,9 @@ class LoginFragment : Fragment() {
                 if (view != null) {
                     showSnackbarFragment(
                         Constants.SnackType.WARNING.name,
-                        getString(R.string.snack_warning),
-                        getString(R.string.error_no_internet),
-                        getString(R.string.snack_button_ok)
+                        getString(R.string.generic_warning),
+                        getString(R.string.generic_error_no_internet),
+                        getString(R.string.generic_ok_upper_case)
                     )
                 }
             }
@@ -241,9 +241,9 @@ class LoginFragment : Fragment() {
         binding.etPassword.isEnabled = true
         showSnackbarFragment(
             type = Constants.SnackType.ERROR.name,
-            title = getString(R.string.snack_error),
+            title = getString(R.string.generic_error),
             msg = message,
-            btnText = getString(R.string.snack_button_ok)
+            btnText = getString(R.string.generic_ok_upper_case)
         )
         viewModel.resetState()
     }

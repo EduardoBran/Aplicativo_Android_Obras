@@ -79,9 +79,9 @@ class FotosFragment : Fragment() {
         if (granted) startCameraCapture() else {
             showSnackbarFragment(
                 Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
+                getString(R.string.generic_error),
                 getString(R.string.nota_photo_error_permission_camera),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_ok_upper_case)
             )
         }
     }
@@ -101,17 +101,17 @@ class FotosFragment : Fragment() {
             } else {
                 showSnackbarFragment(
                     Constants.SnackType.ERROR.name,
-                    getString(R.string.snack_error),
+                    getString(R.string.generic_error),
                     getString(R.string.nota_photo_error_camera),
-                    getString(R.string.snack_button_ok)
+                    getString(R.string.generic_ok_upper_case)
                 )
             }
         } catch (_: Exception) {
             showSnackbarFragment(
                 Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
+                getString(R.string.generic_error),
                 getString(R.string.nota_photo_error_camera),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_ok_upper_case)
             )
         } finally {
             tempCameraUri = null
@@ -307,9 +307,9 @@ class FotosFragment : Fragment() {
         if (!FileUtils.hasCameraApp(requireContext())) {
             showSnackbarFragment(
                 Constants.SnackType.ERROR.name,
-                getString(R.string.snack_attention),
+                getString(R.string.generic_attention),
                 getString(R.string.nota_photo_error_camera),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_ok_upper_case)
             )
             return
         }
@@ -354,9 +354,9 @@ class FotosFragment : Fragment() {
                                 } else {
                                     showSnackbarFragment(
                                         Constants.SnackType.ERROR.name,
-                                        getString(R.string.snack_error),
+                                        getString(R.string.generic_error),
                                         getString(ui.resId),
-                                        getString(R.string.snack_button_ok)
+                                        getString(R.string.generic_ok_upper_case)
                                     )
                                 }
                             }

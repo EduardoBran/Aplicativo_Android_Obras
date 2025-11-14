@@ -49,9 +49,9 @@ class DetalheMaterialFragment : Fragment() {
                         .catch {
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(R.string.material_load_error),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             )
                         }
                         .collect { material ->
@@ -59,9 +59,9 @@ class DetalheMaterialFragment : Fragment() {
                                 // Não encontrado — mostra feedback e volta
                                 showSnackbarFragment(
                                     Constants.SnackType.ERROR.name,
-                                    getString(R.string.snack_error),
+                                    getString(R.string.generic_error),
                                     getString(R.string.material_load_error),
-                                    getString(R.string.snack_button_ok)
+                                    getString(R.string.generic_ok_upper_case)
                                 )
                                 return@collect
                             }

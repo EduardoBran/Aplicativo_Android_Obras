@@ -503,9 +503,9 @@ class CronogramaRegisterFragment : Fragment() {
                             binding.btnSaveEtapa.isEnabled = true
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(ui.resId),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             )
                         }
 
@@ -683,9 +683,9 @@ class CronogramaRegisterFragment : Fragment() {
 
             showSnackbarFragment(
                 Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
+                getString(R.string.generic_error),
                 getString(R.string.etapa_error_duplicate_title),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_ok_upper_case)
             )
             return
         }
@@ -776,9 +776,9 @@ class CronogramaRegisterFragment : Fragment() {
     private fun showError(@androidx.annotation.StringRes res: Int) {
         showSnackbarFragment(
             Constants.SnackType.ERROR.name,
-            getString(R.string.snack_error),
+            getString(R.string.generic_error),
             getString(res),
-            getString(R.string.snack_button_ok)
+            getString(R.string.generic_ok_upper_case)
         )
     }
 
@@ -985,11 +985,11 @@ class CronogramaRegisterFragment : Fragment() {
         if (hasUnsavedChanges()) {
             showSnackbarFragment(
                 type = Constants.SnackType.WARNING.name,
-                title = getString(R.string.snack_attention),
-                msg = getString(R.string.unsaved_confirm_msg),
-                btnText = getString(R.string.snack_button_yes),
+                title = getString(R.string.generic_attention),
+                msg = getString(R.string.generic_unsaved_confirm_msg),
+                btnText = getString(R.string.generic_yes_upper_case),
                 onAction = { navigateUpReturningToCallerAndRestartGanttIfNeeded() },
-                btnNegativeText = getString(R.string.snack_button_no),
+                btnNegativeText = getString(R.string.generic_no_upper_case),
                 onNegative = { /* permanece nesta tela */ }
             )
         } else {
@@ -1112,9 +1112,9 @@ class CronogramaRegisterFragment : Fragment() {
             // aqui você já mostra o snackbar "Sem funcionários cadastrados" e retorna
             showSnackbarFragment(
                 type = Constants.SnackType.WARNING.name,
-                title = getString(R.string.snack_attention),
+                title = getString(R.string.generic_attention),
                 msg = getString(R.string.cron_func_no_employees),
-                btnText = getString(R.string.snack_button_ok)
+                btnText = getString(R.string.generic_ok_upper_case)
             )
             return
         }

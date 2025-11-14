@@ -27,9 +27,7 @@ class FieldValidator(
      * Verifica se há erro na junta atualmente
      */
     fun hasJuntaErrorNow(
-        et: TextInputEditText,
-        juntaValue: Double?,
-        juntaRange: ClosedRange<Double>
+        et: TextInputEditText, juntaValue: Double?, juntaRange: ClosedRange<Double>
     ): Boolean {
         val txtEmpty = et.text.isNullOrBlank()
         val revest = viewModel.inputs.value.revest
@@ -51,9 +49,7 @@ class FieldValidator(
      * Verifica se há erro no desnível (considera visibilidade e tipo do revestimento)
      */
     fun hasDesnivelErrorNow(
-        et: TextInputEditText,
-        tilVisible: Boolean,
-        desnivelCm: Double?
+        et: TextInputEditText, tilVisible: Boolean, desnivelCm: Double?
     ): Boolean {
         if (!tilVisible) return false
         if (et.text.isNullOrBlank()) return false
@@ -73,9 +69,7 @@ class FieldValidator(
      * Verifica se há erro na espessura (Pastilha nunca bloqueia)
      */
     fun hasEspessuraErrorNow(
-        et: TextInputEditText,
-        isPastilha: Boolean,
-        espValue: Double?
+        et: TextInputEditText, isPastilha: Boolean, espValue: Double?
     ): Boolean {
         if (isPastilha) return false
         val txt = et.text
@@ -115,11 +109,8 @@ class FieldValidator(
      * Valida range simples e mostra erro no blur
      */
     fun validateRangeOnBlur(
-        et: TextInputEditText,
-        til: TextInputLayout?,
-        parse: () -> Double?,
-        range: ClosedRange<Double>,
-        errMsg: String
+        et: TextInputEditText, til: TextInputLayout?, parse: () -> Double?,
+        range: ClosedRange<Double>, errMsg: String
     ) {
         et.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
@@ -139,12 +130,8 @@ class FieldValidator(
      * Valida peça no blur com lógica específica por tipo
      */
     fun validatePecaOnBlur(
-        et: TextInputEditText,
-        til: TextInputLayout,
-        isMGProvider: () -> Boolean,
-        parseFunc: (Double?) -> Double?,
-        errorMsgMG: String,
-        errorMsgDefault: String
+        et: TextInputEditText, til: TextInputLayout, isMGProvider: () -> Boolean,
+        parseFunc: (Double?) -> Double?, errorMsgMG: String, errorMsgDefault: String
     ) {
         et.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
@@ -182,11 +169,8 @@ class FieldValidator(
      * Valida dimensão em tempo real (suprime erros se área total estiver válida)
      */
     fun validateDimLive(
-        et: TextInputEditText,
-        til: TextInputLayout,
-        range: ClosedRange<Double>,
-        errMsg: String,
-        isAreaTotalValid: Boolean
+        et: TextInputEditText, til: TextInputLayout, range: ClosedRange<Double>,
+        errMsg: String, isAreaTotalValid: Boolean
     ) {
         val v = et.text?.toString()?.replace(",", ".")?.toDoubleOrNull()
         val ok = et.text.isNullOrBlank() || (v != null && v in range)

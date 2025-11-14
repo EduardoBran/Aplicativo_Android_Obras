@@ -10,11 +10,8 @@
     <!-- Imagem Solução de Problemas -->
     <dimen name="img_iafragment">220dp</dimen>
 
-    <!-- Se quiser, pode repetir spacings aqui; se não, herdará do base -->
-    <dimen name="spacing_1">4dp</dimen>
-    <dimen name="spacing_2">8dp</dimen>
-    <dimen name="spacing_3">12dp</dimen>
-    <dimen name="spacing_4">16dp</dimen>
+    <!-- Spacing Export Summary Fragment -->
+    <dimen name="spacing_export_summary">8dp</dimen>
 
     <dimen name="screen_padding_h">24dp</dimen>
     <dimen name="screen_padding_v">28dp</dimen>
@@ -48,23 +45,23 @@
     <dimen name="home_header_padding_horizontal">12dp</dimen>
     <dimen name="home_header_padding_vertical">8dp</dimen>
     <dimen name="home_header_content_gap">12dp</dimen>
-    <dimen name="progress_status_height_home">32dp</dimen>
 
     <!-- Barra de Progresso Header Home -->
     <dimen name="home_header_elevation">2dp</dimen>
-    <dimen name="home_header_stroke_width">1dp</dimen>
     <dimen name="home_header_radius">12dp</dimen>
 
     <!-- Text Botton Header Home -->
     <dimen name="home_btn_cronograma_min_width">94dp</dimen>
 
-    <!-- Lista Home-->
+    <!-- Lista Home -->
     <dimen name="home_list_margin_vertical">16dp</dimen>
-    <dimen name="home_list_padding_bottom">16dp</dimen>
 
     <!-- Itens da lista Home-->
     <dimen name="home_item_horz_padding">16dp</dimen>
     <dimen name="home_item_vert_padding">12dp</dimen>
+
+
+    <!-- ========= Cálculo de Materiais ========= -->
 
     <!-- Tamanho Texto Toolbar Cálculo de Materiais -->
     <dimen name="title_toolbar_calc">22sp</dimen>

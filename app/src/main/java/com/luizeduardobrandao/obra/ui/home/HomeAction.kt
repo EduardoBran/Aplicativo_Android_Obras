@@ -24,7 +24,7 @@ data class HomeAction(
             ),
             HomeAction(
                 Id.NOTAS,
-                R.string.home_btn_notas2,
+                R.string.home_btn_notas,
                 R.drawable.ic_edit,
                 R.string.home_sub_notas
             ),

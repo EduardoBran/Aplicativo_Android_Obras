@@ -318,7 +318,7 @@ class FuncionarioRegisterFragment : Fragment() {
                         type = Constants.SnackType.WARNING.name,
                         title = getString(R.string.snack_delete_pagamento_title),
                         msg = getString(R.string.snack_delete_pagamento_msg),
-                        btnText = getString(R.string.snack_button_yes),
+                        btnText = getString(R.string.generic_yes_upper_case),
                         onAction = {
                             cachedPagamentos = cachedPagamentos.filter { it.id != pagamento.id }
                             pagamentoAdapter.submitList(cachedPagamentos) {
@@ -332,7 +332,7 @@ class FuncionarioRegisterFragment : Fragment() {
                                 binding.tvEmptyPagamentos.isVisible = true
                             }
                         },
-                        btnNegativeText = getString(R.string.snack_button_no),
+                        btnNegativeText = getString(R.string.generic_no_upper_case),
                         onNegative = { }
                     )
                 },
@@ -511,7 +511,7 @@ class FuncionarioRegisterFragment : Fragment() {
                     is UiState.Success -> {
                         isSaving = false
                         if (shouldCloseAfterSave) {
-                            val msgRes = if (isEdit) R.string.func_updated else R.string.func_added
+                            val msgRes = if (isEdit) R.string.func_toast_msg_updated else R.string.func_toast_msg_added
                             Toast.makeText(
                                 requireContext(),
                                 getString(msgRes, binding.etNomeFunc.text.toString().trim()),
@@ -535,9 +535,9 @@ class FuncionarioRegisterFragment : Fragment() {
                         binding.btnSaveFuncionario.isEnabled = true
                         showSnackbarFragment(
                             Constants.SnackType.ERROR.name,
-                            getString(R.string.snack_error),
+                            getString(R.string.generic_error),
                             getString(state.resId),
-                            getString(R.string.snack_button_ok)
+                            getString(R.string.generic_ok_upper_case)
                         )
                     }
 
@@ -630,9 +630,9 @@ class FuncionarioRegisterFragment : Fragment() {
         if (valor == null || valor <= 0.0) {
             showSnackbarFragment(
                 type = Constants.SnackType.ERROR.name,
-                title = getString(R.string.snack_error),
+                title = getString(R.string.generic_error),
                 msg = getString(R.string.erro_pagamento_valor),
-                btnText = getString(R.string.snack_button_ok)
+                btnText = getString(R.string.generic_ok_upper_case)
             )
             return@with
         }
@@ -737,9 +737,9 @@ class FuncionarioRegisterFragment : Fragment() {
         if (valorNovo == null || valorNovo <= 0.0 || dataIsoNova.isNullOrBlank()) {
             showSnackbarFragment(
                 type = Constants.SnackType.ERROR.name,
-                title = getString(R.string.snack_error),
+                title = getString(R.string.generic_error),
                 msg = getString(R.string.erro_pagamento_valor),
-                btnText = getString(R.string.snack_button_ok)
+                btnText = getString(R.string.generic_ok_upper_case)
             )
             return
         }
@@ -791,9 +791,9 @@ class FuncionarioRegisterFragment : Fragment() {
         if (!validateForm()) {
             showSnackbarFragment(
                 Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
+                getString(R.string.generic_error),
                 getString(R.string.func_reg_error_required),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_ok_upper_case)
             )
             return
         }
@@ -940,11 +940,11 @@ class FuncionarioRegisterFragment : Fragment() {
         if (hasUnsavedChanges()) {
             showSnackbarFragment(
                 type = Constants.SnackType.WARNING.name,
-                title = getString(R.string.snack_attention),
-                msg = getString(R.string.unsaved_confirm_msg),
-                btnText = getString(R.string.snack_button_yes),
+                title = getString(R.string.generic_attention),
+                msg = getString(R.string.generic_unsaved_confirm_msg),
+                btnText = getString(R.string.generic_yes_upper_case),
                 onAction = { findNavController().navigateUp() },
-                btnNegativeText = getString(R.string.snack_button_no),
+                btnNegativeText = getString(R.string.generic_no_upper_case),
                 onNegative = { /* permanece nesta tela */ }
             )
         } else {

@@ -380,7 +380,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
-        android:contentDescription="@string/scroll_to_bottom"
+        android:contentDescription="@string/generic_scroll_to_bottom"
         android:src="@drawable/ic_arrow_downward"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -444,7 +444,7 @@
                     android:layout_gravity="end|top"
                     android:layout_margin="8dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/snack_button_ok"
+                    android:contentDescription="@string/generic_ok_upper_case"
                     android:src="@drawable/ic_close"
                     app:tint="?attr/colorOnSurface" />
             </FrameLayout>

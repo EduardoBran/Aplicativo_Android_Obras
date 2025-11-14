@@ -38,7 +38,7 @@ enum class TipoNota(
             }
         }
 
-        fun normalize(s: String): String =
+        private fun normalize(s: String): String =
             s.lowercase()
                 .replace("[áàâã]".toRegex(), "a")
                 .replace("[éê]".toRegex(), "e")

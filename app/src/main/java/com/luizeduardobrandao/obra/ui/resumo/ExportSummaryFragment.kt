@@ -92,9 +92,9 @@ class ExportSummaryFragment : Fragment() {
             type = Constants.SnackType.WARNING.name,
             title = getString(R.string.export_summary_snack_title),
             msg = getString(R.string.export_summary_snack_msg),
-            btnText = getString(R.string.export_summary_snack_yes),
+            btnText = getString(R.string.generic_yes_upper_case),
             onAction = { savePdfNow() },
-            btnNegativeText = getString(R.string.export_summary_snack_no),
+            btnNegativeText = getString(R.string.generic_no_upper_case),
             onNegative = { /* fica na página */ }
         )
     }
@@ -122,9 +122,9 @@ class ExportSummaryFragment : Fragment() {
                             binding.scrollExportSummary.isVisible = false
                             showSnackbarFragment(
                                 type = Constants.SnackType.ERROR.name,
-                                title = getString(R.string.snack_error),
+                                title = getString(R.string.generic_error),
                                 msg = getString(ui.resId),
-                                btnText = getString(R.string.snack_button_ok)
+                                btnText = getString(R.string.generic_ok_upper_case)
                             )
                         }
 
@@ -417,9 +417,9 @@ class ExportSummaryFragment : Fragment() {
             if (pdfBytes == null) {
                 showSnackbarFragment(
                     type = Constants.SnackType.ERROR.name,
-                    title = getString(R.string.snack_error),
+                    title = getString(R.string.generic_error),
                     msg = getString(R.string.export_pdf_error_toast),
-                    btnText = getString(R.string.snack_button_ok)
+                    btnText = getString(R.string.generic_ok_upper_case)
                 )
                 return@post
             }
@@ -432,16 +432,16 @@ class ExportSummaryFragment : Fragment() {
             if (uri != null) {
                 showSnackbarFragment(
                     type = Constants.SnackType.SUCCESS.name,
-                    title = getString(R.string.snack_success),
+                    title = getString(R.string.generic_success),
                     msg = getString(R.string.export_pdf_saved_toast),
-                    btnText = getString(R.string.snack_button_ok)
+                    btnText = getString(R.string.generic_ok_upper_case)
                 )
             } else {
                 showSnackbarFragment(
                     type = Constants.SnackType.ERROR.name,
-                    title = getString(R.string.snack_error),
+                    title = getString(R.string.generic_error),
                     msg = getString(R.string.export_pdf_error_toast),
-                    btnText = getString(R.string.snack_button_ok)
+                    btnText = getString(R.string.generic_ok_upper_case)
                 )
             }
         }
@@ -609,7 +609,7 @@ class ExportSummaryFragment : Fragment() {
             if (italic) {
                 setTypeface(typeface, android.graphics.Typeface.ITALIC)
             }
-            val pad = resources.getDimensionPixelSize(R.dimen.spacing_2)
+            val pad = resources.getDimensionPixelSize(R.dimen.spacing_export_summary)
             setPadding(0, pad, 0, 0)
         }
         parent.addView(tv)

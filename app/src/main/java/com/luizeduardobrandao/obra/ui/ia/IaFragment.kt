@@ -263,13 +263,13 @@ class IaFragment : Fragment() {
                 .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboard.setPrimaryClip(ClipData.newPlainText("IA Answer (Markdown)", toCopy))
 
-            Toast.makeText(requireContext(), getString(R.string.ia_copy_success), Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.generic_copy_success), Toast.LENGTH_SHORT).show()
 
             // feedback visual
-            binding.btnCopyAnswer.text = getString(R.string.ia_copied)
+            binding.btnCopyAnswer.text = getString(R.string.generic_copied)
             binding.btnCopyAnswer.isEnabled = false
             binding.btnCopyAnswer.postDelayed({
-                binding.btnCopyAnswer.text = getString(R.string.ia_copy_label)
+                binding.btnCopyAnswer.text = getString(R.string.generic_copy)
                 binding.btnCopyAnswer.isEnabled = true
             }, 2000)
         }
@@ -369,7 +369,7 @@ class IaFragment : Fragment() {
                 type = Constants.SnackType.WARNING.name,
                 title = getString(R.string.ia_snack_save_title),
                 msg = getString(R.string.ia_snack_save_msg),
-                btnText = getString(R.string.snack_button_yes),
+                btnText = getString(R.string.generic_yes_upper_case),
                 onAction = {
                     viewModel.saveToHistory(
                         title = text.take(500),
@@ -381,7 +381,7 @@ class IaFragment : Fragment() {
                         Toast.LENGTH_SHORT
                     ).show()
                 },
-                btnNegativeText = getString(R.string.snack_button_no),
+                btnNegativeText = getString(R.string.generic_no_upper_case),
                 onNegative = { /* nada */ }
             )
         }
@@ -391,9 +391,9 @@ class IaFragment : Fragment() {
                 type = Constants.SnackType.WARNING.name,
                 title = getString(R.string.ia_snack_new_title),
                 msg = getString(R.string.ia_snack_new_msg),
-                btnText = getString(R.string.snack_button_yes),
+                btnText = getString(R.string.generic_yes_upper_case),
                 onAction = { resetAll() },
-                btnNegativeText = getString(R.string.snack_button_no),
+                btnNegativeText = getString(R.string.generic_no_upper_case),
                 onNegative = { /* nada */ }
             )
         }
@@ -533,9 +533,9 @@ class IaFragment : Fragment() {
         binding.root.context?.let {
             showSnackbarFragment(
                 type = Constants.SnackType.ERROR.name,
-                title = getString(R.string.snack_error),
+                title = getString(R.string.generic_error),
                 msg = msg,
-                btnText = getString(R.string.snack_button_ok)
+                btnText = getString(R.string.generic_ok_upper_case)
             )
         }
     }

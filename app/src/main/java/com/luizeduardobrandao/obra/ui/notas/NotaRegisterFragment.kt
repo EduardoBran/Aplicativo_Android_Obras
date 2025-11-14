@@ -120,9 +120,9 @@ class NotaRegisterFragment : Fragment() {
         if (granted) startCameraCapture() else {
             showSnackbarFragment(
                 type = Constants.SnackType.ERROR.name,
-                title = getString(R.string.snack_error),
+                title = getString(R.string.generic_error),
                 msg = getString(R.string.nota_photo_error_permission_camera),
-                btnText = getString(R.string.snack_button_ok)
+                btnText = getString(R.string.generic_ok_upper_case)
             )
         }
     }
@@ -300,9 +300,9 @@ class NotaRegisterFragment : Fragment() {
         if (nome.isBlank() || data.isBlank() || tipos.isEmpty() || valor <= 0.0) {
             showSnackbarFragment(
                 Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
+                getString(R.string.generic_error),
                 getString(R.string.nota_reg_error_required),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_ok_upper_case)
             )
             return
         }
@@ -402,9 +402,9 @@ class NotaRegisterFragment : Fragment() {
                             binding.btnSaveNota.isEnabled = true
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(ui.resId),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             )
                         }
 
@@ -460,18 +460,18 @@ class NotaRegisterFragment : Fragment() {
 
                                     showSnackbarFragment(
                                         type = Constants.SnackType.ERROR.name,
-                                        title = getString(R.string.snack_error),
+                                        title = getString(R.string.generic_error),
                                         msg = getString(R.string.ia_autofill_error_message),
-                                        btnText = getString(R.string.snack_button_ok)
+                                        btnText = getString(R.string.generic_ok_upper_case)
                                     )
                                 }
                                 // Fallback: erro sem ter vindo do fluxo do diálogo (raro)
                                 else -> {
                                     showSnackbarFragment(
                                         type = Constants.SnackType.ERROR.name,
-                                        title = getString(R.string.snack_error),
+                                        title = getString(R.string.generic_error),
                                         msg = getString(R.string.ia_autofill_error_message),
-                                        btnText = getString(R.string.snack_button_ok)
+                                        btnText = getString(R.string.generic_ok_upper_case)
                                     )
                                 }
                             }
@@ -769,11 +769,11 @@ class NotaRegisterFragment : Fragment() {
         )
             .setCustomTitle(titleView)
             .setMessage(getString(R.string.ia_autofill_message))
-            .setNegativeButton(R.string.snack_button_no) { _, _ -> // "Não" (esquerda)
+            .setNegativeButton(R.string.generic_no_upper_case) { _, _ -> // "Não" (esquerda)
                 autofillAttemptCount = 0
                 viewModel.resetAutofillFlow()
             }
-            .setPositiveButton(R.string.snack_button_yes) { _, _ -> // "Sim" (direita)
+            .setPositiveButton(R.string.generic_yes_upper_case) { _, _ -> // "Sim" (direita)
                 // 1ª tentativa
                 autofillAttemptCount = 1
                 viewModel.requestAutofillFromPendingPhoto()
@@ -786,7 +786,7 @@ class NotaRegisterFragment : Fragment() {
     /** Diálogo (MaterialAlertDialogBuilder) de re-tentativa em caso de erro (máx. 3x). */
     private fun showAutofillRetryDialog() {
         val titleView = TextView(requireContext()).apply {
-            text = getString(R.string.snack_error) // "Erro"
+            text = getString(R.string.generic_error) // "Erro"
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
             setTypeface(typeface, Typeface.BOLD)
             setPadding(48, 32, 48, 8) // igual ao Cronograma
@@ -798,11 +798,11 @@ class NotaRegisterFragment : Fragment() {
         )
             .setCustomTitle(titleView)
             .setMessage(getString(R.string.ia_autofill_retry_message))
-            .setNegativeButton(R.string.snack_button_no) { _, _ ->  // "Não" (esquerda)
+            .setNegativeButton(R.string.generic_no_upper_case) { _, _ ->  // "Não" (esquerda)
                 autofillAttemptCount = 0
                 viewModel.resetAutofillFlow()
             }
-            .setPositiveButton(R.string.snack_button_yes) { _, _ -> // "Sim" (direita)
+            .setPositiveButton(R.string.generic_yes_upper_case) { _, _ -> // "Sim" (direita)
                 // próxima tentativa
                 autofillAttemptCount += 1
                 viewModel.requestAutofillFromPendingPhoto()
@@ -826,9 +826,9 @@ class NotaRegisterFragment : Fragment() {
         if (!FileUtils.hasCameraApp(requireContext())) {
             showSnackbarFragment(
                 type = Constants.SnackType.ERROR.name,
-                title = getString(R.string.snack_attention),
+                title = getString(R.string.generic_attention),
                 msg = getString(R.string.nota_photo_error_camera),
-                btnText = getString(R.string.snack_button_ok)
+                btnText = getString(R.string.generic_ok_upper_case)
             )
             return
         }
@@ -857,9 +857,9 @@ class NotaRegisterFragment : Fragment() {
 
         showSnackbarFragment(
             type = Constants.SnackType.WARNING.name,
-            title = getString(R.string.snack_attention),
+            title = getString(R.string.generic_attention),
             msg = getString(titleRes),
-            btnText = getString(R.string.snack_button_yes),
+            btnText = getString(R.string.generic_yes_upper_case),
             onAction = {
                 // guarda no ViewModel como pendente para subir no salvar
                 viewModel.setPendingPhoto(bytes, mime)
@@ -888,7 +888,7 @@ class NotaRegisterFragment : Fragment() {
                 // ➜ Abre o MaterialAlertDialog
                 binding.root.post { showAutofillConfirmDialog() }
             },
-            btnNegativeText = getString(R.string.snack_button_no),
+            btnNegativeText = getString(R.string.generic_no_upper_case),
             onNegative = { /* nada: mantém estado anterior */ }
         )
     }
@@ -899,7 +899,7 @@ class NotaRegisterFragment : Fragment() {
             type = Constants.SnackType.WARNING.name,
             title = getString(R.string.nota_photo_delete_confirm_title),
             msg = getString(R.string.nota_photo_delete_confirm_msg),
-            btnText = getString(R.string.snack_button_yes),
+            btnText = getString(R.string.generic_yes_upper_case),
             onAction = {
                 if (hasLocalPreview) {
                     // Cancelar a foto local pendente (volta ao estado anterior)
@@ -938,7 +938,7 @@ class NotaRegisterFragment : Fragment() {
                     reevalScrollFab()
                 }
             },
-            btnNegativeText = getString(R.string.snack_button_no),
+            btnNegativeText = getString(R.string.generic_no_upper_case),
             onNegative = { /* nada */ }
         )
     }
@@ -1018,11 +1018,11 @@ class NotaRegisterFragment : Fragment() {
         if (hasUnsavedChanges()) {
             showSnackbarFragment(
                 type = Constants.SnackType.WARNING.name,
-                title = getString(R.string.snack_attention),
-                msg = getString(R.string.unsaved_confirm_msg),
-                btnText = getString(R.string.snack_button_yes),
+                title = getString(R.string.generic_attention),
+                msg = getString(R.string.generic_unsaved_confirm_msg),
+                btnText = getString(R.string.generic_yes_upper_case),
                 onAction = { findNavController().navigateUp() }, // SIM
-                btnNegativeText = getString(R.string.snack_button_no),
+                btnNegativeText = getString(R.string.generic_no_upper_case),
                 onNegative = { /* NÃO → permanece na tela */ }
             )
         } else {

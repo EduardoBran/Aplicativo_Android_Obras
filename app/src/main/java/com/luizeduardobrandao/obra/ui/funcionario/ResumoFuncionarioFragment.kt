@@ -184,9 +184,9 @@ class ResumoFuncionarioFragment : Fragment() {
         binding.progressFuncList.visibility = View.GONE
         showSnackbarFragment(
             Constants.SnackType.ERROR.name,
-            getString(R.string.snack_error),
+            getString(R.string.generic_error),
             getString(resId),
-            getString(R.string.snack_button_ok)
+            getString(R.string.generic_ok_upper_case)
         )
     }
 

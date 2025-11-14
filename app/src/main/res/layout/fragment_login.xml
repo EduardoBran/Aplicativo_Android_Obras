@@ -48,7 +48,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/login_gap_between"
                     android:adjustViewBounds="true"
-                    android:contentDescription="@string/cd_login_illustration"
+                    android:contentDescription="@string/generic_image_illustration"
                     android:maxHeight="@dimen/login_logo_max_height"
                     android:scaleType="fitCenter"
                     android:src="@drawable/img_login"
@@ -95,7 +95,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/form_field_gap"
                         android:hint="@string/login_password_hint"
-                        app:endIconContentDescription="@string/cd_toggle_password_visibility"
+                        app:endIconContentDescription="@string/generic_toggle_password_visibility"
                         app:endIconMode="password_toggle"
                         app:endIconTint="@color/md_theme_light_onSurface">
 

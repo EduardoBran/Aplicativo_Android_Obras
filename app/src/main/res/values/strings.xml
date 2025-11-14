@@ -1,41 +1,34 @@
 <resources>
-
     <string name="app_name">Gestão Obra</string>
 
-    <!-- GERAL-->
-    <string name="generic_save">Salvar</string>
-    <string name="generic_update">Atualizar</string>
+    <!-- GENÉRICOS -->
     <string name="generic_add">Adicionar</string>
+    <string name="generic_attention">Atenção</string>
+    <string name="generic_update">Atualizar</string>
+    <string name="generic_warning">Aviso</string>
     <string name="generic_cancel">Cancelar</string>
-    <string name="generic_back">Voltar</string>
-    <string name="generic_ok">OK</string>
-    <string name="generic_yes">Sim</string>
-    <string name="generic_no">Não</string>
+    <string name="generic_loading">Carregando</string>
     <string name="generic_continue">Continuar</string>
-    <string name="generic_new">Nova</string>
-    <string name="generic_loading">Carregando…</string>
     <string name="generic_copy">Copiar</string>
-    <string name="error_no_internet">Você está sem conexão à internet.</string>
-    <string name="menu_title">Menu</string>
-    <string name="unsaved_confirm_msg">Nenhuma alteração será salva. Quer mesmo retornar?</string>
-    <string name="loading">Carregando</string>
-    <string name="scroll_to_bottom">Rolar para o final</string>
-    <string name="cd_toggle_password_visibility">Mostrar ou ocultar senha</string>
-    <string name="cd_login_illustration">Ilustração de login</string>
+    <string name="generic_copied">Copiado</string>
+    <string name="generic_copy_success">Copiado para a área de transferência</string>
+    <string name="generic_error">Erro</string>
+    <string name="generic_image_illustration">Imagem</string>
+    <string name="generic_toggle_password_visibility">Mostrar ou ocultar senha</string>
+    <string name="generic_no_lower_case">Não</string>
+    <string name="generic_no_upper_case">NÃO</string>
+    <string name="generic_unsaved_confirm_msg">Nenhuma alteração será salva. Quer mesmo retornar?</string>
+    <string name="generic_ok_upper_case">OK</string>
+    <string name="generic_scroll_to_bottom">Rolar para o final</string>
+    <string name="generic_save">Salvar</string>
+    <string name="generic_yes_lower_case">Sim</string>
+    <string name="generic_yes_upper_case">SIM</string>
+    <string name="generic_success">Sucesso</string>
+    <string name="generic_error_no_internet">Você está sem conexão à internet.</string>
+    <string name="generic_back">Voltar</string>
 
-
-    <!-- SnackbarFragment -->
-    <string name="snack_attention">Atenção</string>
-    <string name="snack_error">Erro</string>
-    <string name="snack_success">Sucesso</string>
-    <string name="snack_warning">Aviso</string>
-    <string name="snack_title">Aviso</string>
-    <string name="snack_button_ok">OK</string>
-    <string name="snack_button_yes">SIM</string>
-    <string name="snack_button_no">NÃO</string>
 
     <!-- LoginFragment -->
-    <string name="login_title">Entrar</string>
     <string name="login_email_hint">E‑mail</string>
     <string name="login_email_error">E‑mail inválido.</string>
     <string name="login_password_hint">Senha</string>
@@ -44,9 +37,8 @@
     <string name="login_create_account">Criar conta</string>
     <string name="login_forgot_password">Recuperar senha</string>
     <string name="login_toast_success">Usuário logado.</string>
-    <string name="login_error_user_not_found">Usuário não encontrado.</string>
-    <string name="login_error_wrong_password">Senha incorreta.</string>
     <string name="login_error_generic">Falha ao logar. Tente novamente.</string>
+
 
     <!-- RegisterFragment -->
     <string name="register_title">Registrar Conta</string>
@@ -69,9 +61,8 @@
     <string name="reset_toast_success">Verifique seu e‑mail cadastrado.</string>
     <string name="reset_error_email_not_found">E‑mail não encontrado.</string>
     <string name="reset_password_email_error">E-mail inválido.</string>
-    <string name="reset_password_error_generic">
-        Falha ao enviar e-mail de redefinição. Tente novamente.
-    </string>
+    <string name="reset_password_error_generic">Falha ao enviar e-mail de redefinição. Tente novamente.</string>
+
 
     <!-- WorkFragment -->
     <string name="work_title">Obras</string>
@@ -81,60 +72,37 @@
     <string name="work_dropdown_hint">Obras Cadastradas</string>
     <string name="work_toast_selected">Obra %1$s selecionada.</string>
     <string name="work_toast_saved">Informações da obra salvas.</string>
-    <string name="work_load_error">
-        Não foi possível carregar as obras. Verifique sua conexão.
-    </string>
-    <string name="work_error_save">Erro ao salvar obra. Verifique sua conexão.</string>
+    <string name="work_load_error">Não foi possível carregar as obras. Verifique sua conexão.</string>
     <string name="work_error_nome">Nome deve ter pelo menos 3 caracteres.</string>
     <string name="work_error_endereco">Informe o endereço da obra.</string>
     <string name="work_error_desc">Informe a descrição da obra.</string>
-    <string name="work_error_saldo">Valor de saldo inválido.</string>
     <string name="work_error_data_inicio">Informe uma data de início.</string>
     <string name="work_error_data_fim">Informe uma data de término.</string>
-    <string name="work_create_error">
-        Falha ao salvar a obra. Tente novamente mais tarde.
-    </string>
+    <string name="work_create_error">Falha ao salvar a obra. Tente novamente mais tarde.</string>
     <string name="work_error_date_order">Data de término deve ser igual ou posterior à data de início.</string>
     <string name="work_error_contato">Informe um telefone.</string>
     <string name="obra_data_contact_hint">Contato</string>
     <string name="work_error_saldo_format">Formato inválido. Use "20.500,00".</string>
 
+
     <!-- HomeFragment -->
     <string name="home_toolbar_title">Obra: %1$s</string>
     <string name="home_toolbar_edit">Editar Dados da Obra</string>
-    <string name="home_logout">Sair</string>
     <string name="home_toast_logout">Usuário deslogado.</string>
-    <string name="home_btn_funcionarios">Funcionários</string>
-    <string name="home_btn_notas">Notas de Materiais</string>
-    <string name="home_btn_notas2">Notas</string>
+    <string name="home_btn_notas">Notas</string>
     <string name="home_btn_cronograma">Cronograma</string>
-    <string name="home_btn_dados_obra">Dados da Obra</string>
-    <string name="home_btn_resumo">Resumo</string>
-    <string name="home_btn_fotos">Fotos da Obra</string>
-    <string name="home_fotos_not_impl">Funcionalidade ainda não implementada.</string>
     <string name="home_error_missing_obra">Obra não encontrada.</string>
     <string name="home_error_load">Não foi possível carregar os dados da obra. Tente novamente.</string>
     <string name="home_logout_confirm_msg">Deseja sair da conta?</string>
     <string name="home_logout_confirm_action">Sair</string>
-    <string name="home_btn_materiais">Materiais</string>
     <string name="home_btn_change_work">Trocar de Obra</string>
-    <string name="home_change_work_confirm_msg">Deseja voltar ao menu com a lista de obras?</string>
-
     <string name="home_sub_cron">Planejar e acompanhar etapas</string>
     <string name="home_sub_ia">Soluções com IA</string>
     <string name="home_sub_fotos">Registrar andamento com imagens</string>
     <string name="home_sub_notas">Gerir notas e comprovantes</string>
     <string name="home_sub_materiais">Cadastrar e controlar materiais</string>
     <string name="home_sub_func">Cadastrar e gerenciar equipe</string>
-    <string name="home_sub_dados">Informações e ajustes do projeto</string>
     <string name="home_sub_resumo">Tudo da obra num só lugar</string>
-    <string name="home_sub_level">Ferramentas de nível/inclinação</string>
-    <string name="home_sub_trocar">Voltar à seleção de obras</string>
-
-    <string name="notas_register_quick">Nova Nota</string>
-    <string name="imagens_add_photo">Adicionar Foto</string>
-
-    <string name="home_progress_fmt">%1$d%% concluído</string>
     <string name="cd_section_icon">Ícone da seção</string>
     <string name="cd_navigate">Ir para a seção</string>
     <string name="search">Buscar</string>
@@ -145,30 +113,26 @@
     <string name="search_result_title">Resultado da Pesquisa</string>
     <string name="search_results_subtitle">Resultados da busca: %1$s</string>
     <string name="search_empty">Não foi encontrado nenhum item com esta(s) palavra(s).</string>
-
     <!-- Títulos das seções -->
     <string name="search_section_cronograma">Cronograma</string>
     <string name="search_section_funcionario">Funcionário</string>
     <string name="search_section_material">Material</string>
     <string name="search_section_nota">Nota</string>
-
     <!-- Plural do total -->
     <plurals name="search_total_elements">
         <item quantity="one">Total de elementos encontrados: %1$d elemento.</item>
         <item quantity="other">Total de elementos encontrados: %1$d elementos.</item>
     </plurals>
 
+
     <!-- FuncionarioFragment -->
     <string name="func_title">Funcionários</string>
     <string name="func_no_items">Sem funcionários cadastrados.</string>
-    <string name="func_tab_all">Todos</string>
     <string name="func_tab_active">Ativos</string>
     <string name="func_tab_inactive">Inativos</string>
     <string name="func_menu_summary">Resumo</string>
     <string name="func_snack_delete_msg">Tem certeza que deseja excluir o funcionário %1$s? Todos os dados e gastos relacionados serão removidos do resumo da obra.</string>
     <string name="func_toast_removed">Funcionário %1$s removido com sucesso.</string>
-    <string name="func_toast_added">Funcionário adicionado.</string>
-    <string name="func_toast_updated">Dados do funcionário atualizados.</string>
     <string name="func_load_error">Não foi possível carregar funcionários.</string>
     <string name="func_list_salary_format">%1$s (%2$s)</string>
     <string name="func_save_error">Erro ao salvar funcionário. Verifique sua conexão.</string>
@@ -177,29 +141,20 @@
     <string name="func_payment_add_error">Erro ao adicionar pagamento. Verifique sua conexão.</string>
     <string name="func_payment_update_error">Erro ao atualizar pagamento. Verifique sua conexão.</string>
     <string name="func_payment_delete_error">Erro ao excluir pagamento. Verifique sua conexão.</string>
-    <!-- Singular -->
-    <string name="func_dias_trabalhados_singular">%1$d dia trabalhado</string>
-    <!-- Plural -->
-    <string name="func_dias_trabalhados_plural">%1$d dias trabalhados</string>
-
     <string name="func_label_funcao">Função:</string>
     <string name="func_label_funcoes">Funções:</string>
-
     <plurals name="func_period_days">
         <item quantity="one">%d dia trabalhado</item>
         <item quantity="other">%d dias trabalhados</item>
     </plurals>
-
     <plurals name="func_period_weeks">
         <item quantity="one">%d semana trabalhada</item>
         <item quantity="other">%d semanas trabalhadas</item>
     </plurals>
-
     <plurals name="func_period_months">
         <item quantity="one">%d mês trabalhado</item>
         <item quantity="other">%d meses trabalhados</item>
     </plurals>
-
     <plurals name="func_period_days_tarefeiro">
         <item quantity="one">%d dia (tarefeiro)</item>
         <item quantity="other">%d dias (tarefeiro)</item>
@@ -221,15 +176,9 @@
     <string name="func_reg_role">Função</string>
     <string name="func_reg_payment">Forma de Pagamento</string>
     <string name="func_reg_status">Status</string>
-    <string name="func_reg_button_save">Salvar</string>
-    <string name="func_reg_button_update">Salvar</string>
     <string name="func_reg_error_required">Preencha todos os campos obrigatórios.</string>
-    <string name="func_error_nome">O nome deve ter ao menos 3 caracteres.</string>
-    <string name="func_error_salario">Informe um salário válido (> 0).</string>
-    <string name="func_error_funcao">Selecione a função.</string>
-    <string name="func_error_pagamento">Selecione a forma de pagamento.</string>
-    <string name="func_added">Funcionário %1$s adicionado.</string>
-    <string name="func_updated">Dados do %1$s alterado.</string>
+    <string name="func_toast_msg_added">Funcionário %1$s adicionado.</string>
+    <string name="func_toast_msg_updated">Dados do %1$s alterado.</string>
     <string name="func_reg_error_nome">Informe o nome (mín. %1$d caracteres).</string>
     <string name="func_reg_error_salario">Informe um salário válido</string>
     <string name="func_reg_error_role">Selecione ao menos uma função.</string>
@@ -238,11 +187,6 @@
     <string name="func_toast_pix_copy_empty">Sem pix adicionado.</string>
     <!-- Rótulo quando for tarefeiro -->
     <string name="func_reg_task_fixed_hint">Dias Trabalhados (pagamento fixo)</string>
-    <!-- Cadastro de Funcionário – Adicional -->
-    <string name="func_reg_additional">Adicional</string>
-    <string name="func_reg_additional_hint">Valor adicional (opcional)</string>
-    <string name="func_reg_error_additional_negative">O adicional não pode ser negativo</string>
-    <string name="func_reg_additional_total">Adicional acumulado: %1$s</string>
 
     <string name="func_pintor">Pintor</string>
     <string name="func_pedreiro">Pedreiro</string>
@@ -253,46 +197,28 @@
     <string name="dias_trabalhados_qtd">0</string>
 
     <string name="pagamento">Pagamento</string>
-    <string name="adicionar">Adicionar</string>
     <string name="historico_pagamento">Histórico de Pagamento</string>
     <string name="historico_pagamentos">Histórico de Pagamentos</string>
-    <string name="total_pago">Total Pago: %s</string>
     <string name="nenhum_pagamento">Nenhum pagamento cadastrado.</string>
     <string name="erro_pagamento_valor">O valor do pagamento deve ser maior que 0.</string>
-    <string name="selecione_data">Selecione a data</string>
     <string name="editar_data">Clique para editar a data</string>
     <string name="editar_pagamento">Editar Pagamento</string>
-
     <string name="snack_delete_pagamento_title">Excluir pagamento</string>
     <string name="snack_delete_pagamento_msg">Deseja realmente excluir este pagamento?</string>
 
-    <!-- Plural de pagamento(s) -->
-    <plurals name="qtd_pagamentos">
-        <item quantity="one">%d pagamento</item>
-        <item quantity="other">%d pagamentos</item>
-    </plurals>
-
     <!-- DetalheFuncionarioFragment -->
     <string name="func_detail_title">Funcionário %1$s</string>
-    <string name="func_detail_total">Total Gasto: R$ %1$s</string>
-    <string name="money_mask">R$ %1$.2f</string>
-    <string name="func_detail_additional">Adicional:</string>
-    <string name="func_detail_additional_none">Nenhum adicional informado</string>
-    <string name="func_detail_additional_none2">-</string>
     <string name="func_reg_pix_detail">Pix</string>
     <string name="func_total_gasto">Total Gasto com o Funcionário</string>
-    <!-- Quando não há pagamentos no detalhe -->
     <string name="nenhum_pagamento_efetuado">Nenhum pagamento efetuado.</string>
-    <!-- Rótulo do rodapé no card (sem %s aqui; o valor está no TextView ao lado) -->
     <string name="total_pago_func_detail">Total Pago:</string>
-
 
     <!-- ResumoFuncionarioFragment -->
     <string name="func_sum_title">Resumo de Funcionários</string>
     <string name="total_geral">Total geral:</string>
     <string name="func_sum_total">R$ %1$s</string>
     <string name="func_sum_header_gastos">Gastos por funcionário</string>
-    <string name="resumo_funcionario_item">%1$s — %2$s</string>
+
 
     <!-- NotasFragment -->
     <string name="nota_title">Notas de Materiais</string>
@@ -319,7 +245,6 @@
     <string name="nota_status_paid_client">Pago</string>
     <string name="label_loja"><![CDATA[<b>Loja:</b> %1$s]]></string>
 
-
     <!-- NotaRegisterFragment -->
     <string name="nota_reg_title">Cadastro de Notas</string>
     <string name="nota_reg_material_hint">Nome do Material</string>
@@ -331,20 +256,15 @@
     <string name="nota_reg_value_hint">Valor</string>
     <string name="nota_reg_type">Tipo</string>
     <string name="nota_reg_status">Status</string>
-    <string name="nota_reg_error_required2">Preencha todos os campos obrigatórios.</string>
-    <string name="nota_reg_error_value">Valor inválido.</string>
     <string name="nota_reg_error_required">Preencha: material, loja, data, pelo menos um tipo e valor &gt; 0.</string>
     <string name="nota_past_date_warning">Você selecionou uma data no passado.</string>
     <string name="nota_reg_error_nome">Informe o nome do material.</string>
-    <string name="nota_reg_error_loja">Informe o nome da loja</string>
     <string name="nota_reg_error_data">Selecione a data</string>
     <string name="nota_reg_error_valor">Informe um valor maior que zero.</string>
     <string name="nota_reg_error_tipo">Selecione ao menos um tipo.</string>
-    <string name="nota_reg_type_hint_multi">Selecione mais de um tipo, se desejar.</string>
     <string name="nota_reg_type_hint_multi_bold">
         <![CDATA[Selecione mais de <b>um tipo</b>, se desejar.]]>
     </string>
-
     <string name="nota_pintura">Pintura</string>
     <string name="nota_pedreiro">Pedreiro</string>
     <string name="nota_hidraulica">Hidráulica</string>
@@ -357,52 +277,32 @@
     <string name="nota_btn_take_photo">Tirar foto</string>
     <string name="nota_btn_pick_image_replace">Editar</string>
     <string name="nota_btn_take_photo_replace">Nova foto</string>
-
     <string name="nota_photo_preview_content_desc">Pré-visualização da foto da nota.</string>
     <string name="nota_photo_delete_content_desc">Excluir foto</string>
-    <string name="nota_photo_none_selected">Nenhuma foto selecionada</string>
-
     <string name="nota_photo_confirm_title">Salvar foto?</string>
     <string name="nota_photo_confirm_msg">Deseja salvar esta foto na nota?</string>
-
     <string name="nota_photo_delete_confirm_title">Excluir foto?</string>
     <string name="nota_photo_delete_confirm_msg">A foto atual será removida da nota. Deseja continuar?</string>
-
-    <string name="nota_photo_added_toast">Foto selecionada. Toque em "Alterar" para salvar.</string>
-    <string name="nota_photo_replaced_toast">A foto será substituída. Toque em "Alterar" para salvar.</string>
     <string name="nota_photo_removed_toast">A foto será removida. Toque em "Alterar" para confirmar.</string>
-    <string name="nota_photo_local_clear_info">Pré-visualização removida.</string>
-
-    <string name="nota_photo_error_pick">Não foi possível carregar a imagem.</string>
     <string name="nota_photo_error_camera">Não foi possível capturar a foto.</string>
     <string name="nota_photo_error_permission_camera">Permissão da câmera negada.</string>
-    <string name="nota_photo_error_permission_storage">Permissão de armazenamento negada.</string>
 
-    <!-- Foto: avisos de alteração pendente -->
     <string name="nota_photo_pending_generic_toast">Foto selecionada.</string>
     <string name="nota_photo_pending_delete_generic_toast">A foto será removida. Toque em “%1$s” para confirmar.</string>
-    <!-- Confirmação específica para substituir foto existente -->
     <string name="nota_photo_confirm_replace_title">Deseja substituir esta foto da nota?</string>
 
     <!-- DetalheNotaFragment -->
     <string name="nota_detail_title">Nota %1$s</string>
-
     <string name="nota_view_image">Visualizar imagem</string>
-    <string name="nota_view_image_content_desc">Abrir imagem da nota</string>
     <string name="nota_view_image_error_open">Não foi possível abrir a imagem.</string>
     <string name="nota_view_image_no_photo">Sem imagem anexada.</string>
 
     <!-- ResumoNotasFragment -->
     <string name="nota_sum_title">Resumo das Notas</string>
     <string name="nota_sum_total">R$ %1$s</string>
-    <string name="nota_sum_type">Totais por Tipo de Material</string>
-    <string name="tipo_valor_mask">%1$s – R$ %2$.2f</string>
     <string name="nota_empty_message">Sem notas cadastradas.</string>
-    <string name="money_mask_notas">R$ %1$.2f</string>
     <string name="nota_sum_total_due">Total a receber:</string>
     <string name="nota_sum_total_paid">Total pago:</string>
-    <string name="nota_sum_type_due">Totais por tipo (a receber)</string>
-    <string name="nota_sum_type_paid">Totais por tipo (pago)</string>
     <string name="nota_a_receber">A Receber</string>
     <string name="nota_pago">Pago</string>
     <string name="total_geral_title_totais">Totais</string>
@@ -412,25 +312,19 @@
     <string name="nota_sum_all_paid_msg">Todas as notas pagas.</string>
     <string name="nota_sum_none_paid_msg">Nenhuma nota paga.</string>
 
-    <!-- Linha "Tipo — R$ 1.234,56" recebendo o valor já formatado -->
-    <string name="tipo_valor_mask_money">%1$s — %2$s</string>
-
     <!-- Export Resumo Notas -->
     <string name="export_popup_share">Compartilhar</string>
     <string name="export_popup_download">Download</string>
     <string name="export_share_chooser">Compartilhar PDF</string>
-
     <string name="resumo_export_choose_title">Selecione uma das opções:</string>
     <string name="resumo_export_opt_due">A Receber</string>
     <string name="resumo_export_opt_paid">Pago</string>
     <string name="resumo_export_opt_date">Data</string>
-
     <string name="resumo_export_no_notes">Não há nenhuma nota cadastrada.</string>
     <string name="resumo_export_no_notes_in_filter">Não há notas para o filtro selecionado.</string>
     <string name="resumo_export_no_notes_in_range">Não existem notas no período de datas selecionado.</string>
     <string name="resumo_export_error_save">Falha ao salvar o PDF.</string>
     <string name="resumo_export_saved_ok">PDF salvo com sucesso.</string>
-
     <string name="resumo_export_confirm_due">Deseja salvar as notas do tipo “A Receber” em um arquivo PDF?</string>
     <string name="resumo_export_confirm_paid">Deseja salvar as notas do tipo “Pago” em um arquivo PDF?</string>
     <string name="resumo_export_confirm_range">Deseja salvar as notas da(s) data(s) escolhida(s) em um arquivo PDF?</string>
@@ -458,14 +352,9 @@
     <string name="cron_tab_done">Concluído</string>
     <string name="cron_snack_delete_msg">Você quer mesmo excluir esta etapa?</string>
     <string name="cron_toast_removed">Etapa removida com sucesso.</string>
-    <string name="cron_toast_added">Etapa adicionada.</string>
-    <string name="cron_toast_updated">Dados da etapa atualizados.</string>
     <string name="cron_reg_button_save">Adicionar cronograma</string>
-    <string name="cron_reg_button_edit">Editar cronograma</string>
     <string name="cronograma_load_error">Não foi possível carregar as etapas do cronograma.</string>
     <string name="cronograma_date_range">%1$s → %2$s</string>
-    <string name="cronograma_funcionario_singular">Funcionário: %1$s</string>
-    <string name="cronograma_funcionarios_plural">Funcionários: %1$s</string>
     <string name="cronograma_descricao_prefix">Descrição:</string>
     <string name="cronograma_funcionario_prefix">Funcionário:</string>
     <string name="cronograma_funcionarios_prefix">Funcionários:</string>
@@ -473,54 +362,32 @@
 
     <!-- ► Gantt / Visualização do Cronograma -->
     <string name="gantt_title">Cronogramas</string>
-    <string name="gantt_menu_open">Visualização do Cronograma</string>
     <string name="gantt_menu_export">Exportar PDF</string>
     <string name="gantt_empty">Sem etapas no período</string>
     <string name="gantt_valor_prefix">Valor: %1$s</string>
 
     <!-- Cabeçalho/colunas da tabela/linha -->
     <string name="gantt_col_tarefa">Tarefa</string>
-    <string name="gantt_col_responsavel">Responsável</string>
-    <string name="gantt_col_progresso">Progresso</string>
-    <string name="gantt_col_inicio">Início</string>
-    <string name="gantt_col_termino">Término</string>
-    <string name="gantt_today">Hoje</string>
 
     <!-- Formatos -->
-    <string name="gantt_week_header_fmt">Semana de %1$s</string> <!-- ex.: Semana de 01/09/2025 -->
     <string name="gantt_progress_fmt">%1$d%%</string>
 
     <!-- Feedback exportação -->
-    <string name="gantt_export_success">PDF gerado com sucesso.</string>
     <string name="gantt_export_error">Não foi possível gerar o PDF.</string>
-
-    <!-- Acessibilidade / descrições -->
-    <string name="gantt_row_a11y">Tarefa %1$s, %2$s até %3$s, %4$d%% concluído</string>
-
-    <!-- Plurals úteis -->
-    <plurals name="gantt_days_selected">
-        <item quantity="one">%d dia selecionado</item>
-        <item quantity="other">%d dias selecionados</item>
-    </plurals>
 
     <!-- Cronograma Gantt - Resumo no rodapé -->
     <string name="crg_footer_title">Resumo Cronogramas</string>
     <string name="crg_footer_andamento_title">Andamento da Obra</string>
     <string name="crg_footer_status_placeholder">Status</string>
-    <string name="crg_footer_status_value">Status: %1$d%% / 100%%</string>
     <string name="progress_status_value">%1$d%% / 100%%</string>
 
-    <string name="crg_footer_values_title">Financeiro</string>
-    <string name="crg_footer_saldo_inicial_placeholder">Saldo Inicial: -</string>
     <string name="crg_footer_saldo_inicial_mask"><![CDATA[Saldo Inicial: <b>%1$s</b>]]></string>
     <string name="crg_footer_financeiro_title">Financeiro</string>
     <string name="crg_footer_saldo_aporte_mask"><![CDATA[Saldo com Aporte(s): <b>%1$s</b>]]></string>
     <string name="crg_footer_saldo_restante_mask">Saldo Restante: %1$s</string>
 
     <!-- Gantt export -->
-    <string name="gantt_export_csv">Salvar em CSV</string>
     <string name="gantt_export_pdf">Salvar em PDF</string>
-    <string name="gantt_export_csv_ok">CSV salvo em Download/ObraApp.</string>
     <string name="gantt_export_pdf_ok">PDF salvo em Download/ObraApp.</string>
 
     <!-- Arquivo PDF -->
@@ -542,16 +409,11 @@
     <string name="etapa_reg_title_edit">Editar Etapa</string>
     <string name="etapa_reg_name_hint">Título da Etapa</string>
     <string name="etapa_reg_desc_hint">Descrição (opcional)</string>
-    <string name="etapa_reg_employee_hint">Funcionário(s) (opcional)</string>
     <string name="etapa_reg_date_start_hint">Data para Início</string>
     <string name="etapa_reg_date_end_hint">Data para Término</string>
     <string name="etapa_reg_status">Status</string>
-    <string name="etapa_reg_error_required">Preencha todos os campos obrigatórios.</string>
-    <string name="etapa_reg_error_date">Data de término anterior à data de início.</string>
     <!-- Feedback de salvamento -->
-    <string name="generic_saving">Salvando…</string>
     <string name="etapa_error_date_order">A data de término deve ser igual ou posterior à data de início.</string>
-    <string name="etapa_reg_employee_helper">Separe os nomes com vírgula (,).</string>
     <string name="etapa_error_title_required">Informe o título da etapa.</string>
     <string name="etapa_error_date_start_required">Selecione a data de início.</string>
     <string name="etapa_error_date_end_required">Selecione a data de término.</string>
@@ -565,27 +427,19 @@
     <string name="etapa_error_duplicate_title">
     Já existe uma etapa com este título. Escolha outro nome.
 </string>
-
     <!-- Cabeçalho da função (sublinhado via paint flag) -->
     <string name="cron_func_role_header_underline">%1$s</string>
-
     <!-- Linha do funcionário: Nome (R$ X / forma) -->
     <string name="cron_func_item_line">%1$s (%2$s / %3$s)</string>
-
-    <!-- Nenhum funcionário ativo -->
-    <string name="cron_func_none">Sem funcionários cadastrados.</string>
-
     <!-- Financeiro: Valor Total -->
     <string name="crg_footer_valor_total_integral_mask"><![CDATA[Total (Integral): <b>%1$s</b>]]></string>
     <string name="crg_footer_valor_total_integral_exp">
     Soma integral de todas as etapas, sem remover funcionários duplicados no mesmo dia.
 </string>
-
     <string name="crg_footer_valor_total_sem_dupla_mask"><![CDATA[Total (Único/Dia): <b>%1$s</b>]]></string>
     <string name="crg_footer_valor_total_sem_dupla_exp">
     Considera apenas um pagamento por funcionário no mesmo dia, mesmo que ele trabalhe em várias etapas.
 </string>
-
     <string name="crg_footer_saldo_restante_exp">
     <![CDATA[
         O valor exibido considera o somatório de <b>Saldo Inicial</b> + <b>Saldo com Aportes (se houver)</b> − <b>Valor Total (Único/Dia)</b>.<br/><br/>
@@ -630,32 +484,24 @@
     <string name="etapa_update_success">Etapa atualizada com sucesso!</string>
 
     <!-- DetalheCronogramaFragment -->
-    <string name="etapa_detail_title">Etapa %1$s</string>
     <string name="cron_reg_desc_hint">Descrição</string>
     <string name="cron_reg_func_hint">Funcionário(s)</string>
     <string name="cronograma_funcionarios_title">Funcionários</string>
     <string name="det_empresa_label">Nome da Empresa</string>
     <string name="det_valor_label">Valor</string>
-
     <!-- fragment_material -->
     <string name="material_title">Material da Obra</string>
     <string name="material_reg_button_save">Adicionar Material</string>
-    <string name="material_reg_button_edit">Atualizar</string>
-
     <!-- fragment_material_list -->
     <string name="material_list_title">Materiais</string>
     <string name="material_load_error">Erro ao carregar materiais</string>
     <string name="material_empty_list">Nenhum material cadastrado.</string>
-
     <!-- fragment_material_register -->
     <string name="material_register_title">Novo Material</string>
     <string name="material_edit_title">Editar Material</string>
-    <string name="material_label_name">Nome</string>
-    <string name="material_label_description">Descrição</string>
     <string name="material_label_quantity">Quantidade</string>
     <string name="material_hint_name">Informe o nome do material.</string>
     <string name="material_hint_description">Descrição (opcional)</string>
-    <string name="material_hint_quantity">Informe a quantidade</string>
     <string name="material_save_error">Erro ao salvar material</string>
     <string name="material_update_error">Erro ao atualizar material</string>
     <string name="material_save_success">Material salvo com sucesso.</string>
@@ -666,7 +512,6 @@
     <string name="material_status_inactive">Inativo</string>
     <string name="material_duplicate_name">Já existe um material com esse nome.</string>
     <string name="material_name_hint">Nome do material</string>
-
     <!-- fragment_detalhe_material -->
     <string name="material_detail_title">Detalhes do Material</string>
     <string name="material_delete_confirm">Deseja realmente excluir este material?</string>
@@ -677,81 +522,52 @@
     <string name="material_reg_quantity_label">Quantidade</string>
     <string name="material_reg_status">Status</string>
 
+
     <!-- DadosObraFragment -->
     <string name="obra_data_title">Dados da obra de %1$s</string>
     <string name="obra_data_client_hint">Nome do Cliente</string>
     <string name="obra_data_address_hint">Endereço da obra</string>
     <string name="obra_data_desc_hint">Descrição da obra</string>
     <string name="obra_data_balance_hint">Saldo Inicial</string>
-    <string name="obra_data_balance_current">Saldo Atual</string>
     <string name="obra_data_date_start_hint">Data de Início</string>
     <string name="obra_data_date_end_hint">Data de Término</string>
     <string name="obra_data_button_delete">Excluir obra</string>
     <string name="obra_data_snack_delete_msg">Você quer mesmo excluir esta obra e todos os seus dados?</string>
-    <string name="obra_data_toast_deleted">Obra excluída.</string>
     <string name="obra_data_toast_updated">Dados da obra atualizados.</string>
-    <string name="dados_obra_balance_updated">Saldo atualizado.</string>
-    <string name="obra_data_error_required">Preencha todos os campos obrigatórios antes de salvar.</string>
-    <string name="resumo_button_update_balance">Atualizar Saldo</string>
     <string name="obra_data_balance_initial_label">Saldo Inicial:</string>
-    <string name="obra_data_balance_updated_hint">Informe o novo saldo.</string>
     <string name="obra_data_balance_with_aportes_label">Saldo total com aporte</string>
-
-    <string name="obra_data_balance_adjust_hint">Valor de ajuste (positivo ou negativo)</string>
-    <string name="obra_button_update_balance">Atualizar Saldo</string>
-    <string name="saldo_ajustado_prefix">0%s</string>
-
     <string name="dados_obra_not_found">Obra não encontrada.</string>
     <string name="dados_obra_load_error">Erro ao carregar dados da obra.</string>
     <string name="dados_obra_update_error">Falha ao atualizar dados da obra.</string>
     <string name="dados_obra_update_balance_error">Falha ao atualizar saldo.</string>
     <string name="dados_obra_delete_error">Falha ao excluir obra.</string>
     <string name="date_picker_title">Selecione a data</string>
-
     <string name="dados_obra_name_error">O nome do cliente deve ter pelo menos 3 letras.</string>
     <string name="dados_obra_address_error">Informe o endereço da obra.</string>
     <string name="dados_obra_date_start_error">Informe a data de início.</string>
     <string name="dados_obra_date_end_error">Informe a data de término.</string>
-
     <string name="aporte_toast_new_added">Novo aporte adicionado (será salvo ao clicar em "Salvar" da obra).</string>
     <string name="dados_obra_date_end_before_start">A data de término não pode ser anterior à data de início.</string>
 
+
     <!-- ResumoFragment -->
     <string name="resumo_title">Resumo</string>
-    <string name="resumo_menu_view_export">Ver resumo</string>
-    <string name="resumo_total_workers">Total Funcionários: %1$d</string>
-    <string name="resumo_total_worker_cost">Custo com Funcionários: R$ %1$s</string>
-    <string name="resumo_total_notes">Total Notas: %1$d</string>
-    <string name="resumo_total_material_cost">Custo com Materiais: R$ %1$s</string>
-    <string name="resumo_balance_initial">Saldo Inicial: R$ %1$s</string>
-    <string name="resumo_balance_remaining">Saldo Restante: R$ %1$s</string>
     <string name="resumo_initial_balance_header">Saldo Inicial</string>
     <!-- Cabeçalho do card de Aporte -->
-    <string name="resumo_saldo_updated_header">Saldo Atualizado</string>
     <string name="resumo_adjusted_balance_header">Saldo total com aporte</string>
-    <string name="resumo_adjusted_balance_header_plural">Saldo total com aportes</string>
     <!-- Cabeçalho do card de Saldo Restante -->
     <string name="resumo_saldo_remaining_header">Saldo Restante</string>
     <!-- Funcionários -->
     <string name="resumo_func_header">Funcionários</string>
-    <string name="resumo_obra_not_found">Obra não encontrada.</string>
     <string name="resumo_generic_error">Erro ao gerar o resumo.</string>
     <string name="nota_sum_title_resumo">Notas</string>
     <string name="cronograma_title">Cronograma</string>
     <string name="resumo_balance_header">Financeiro</string>
-    <string name="resumo_func_count_mask">Quantidade: %1$s</string>
     <string name="resumo_func_total_mask">Total gasto: %1$s</string>
-    <string name="cd_resumo_illustration">Imagem resumo</string>
 
     <!-- Seções de Notas -->
     <string name="nota_due_title">A Receber</string>
     <string name="nota_paid_title">Pago</string>
-
-    <!-- Contadores genéricos de "materiais" -->
-    <plurals name="resumo_materiais_qtd">
-        <item quantity="one">%d material</item>
-        <item quantity="other">%d materiais</item>
-    </plurals>
 
     <!-- Cronograma: mensagens -->
     <string name="cron_none_pending">Nenhum cronograma cadastrado.</string>
@@ -784,33 +600,6 @@
         <item quantity="other">%d tipos de materiais inativos.</item>
     </plurals>
 
-    <!-- Plural de quantidade de funcionários -->
-    <plurals name="resumo_func_qtd">
-        <item quantity="one">%d funcionário</item>
-        <item quantity="other">%d funcionários</item>
-    </plurals>
-
-    <!-- Plural de total de dias -->
-    <plurals name="resumo_func_days">
-        <item quantity="one">%d dia</item>
-        <item quantity="other">%d dias</item>
-    </plurals>
-
-    <!-- Plural de quantidade de materiais -->
-    <plurals name="resumo_mat_qtd">
-        <item quantity="one">%d material</item>
-        <item quantity="other">%d materiais</item>
-    </plurals>
-
-    <!-- Mensagem quando não há tipos de material -->
-    <string name="resumo_mat_no_types">Nenhum tipo de material</string>
-
-    <!-- Materiais -->
-    <string name="resumo_mat_header">Total Gasto com Materiais</string>
-
-    <!-- Saldo -->
-    <string name="resumo_saldo_atual">Saldo Atual da Obra</string>
-
     <string name="aporte_load_error">Falha ao carregar os aportes.</string>
     <string name="aporte_create_error">Falha ao adicionar o aporte.</string>
     <string name="aporte_update_error">Falha ao atualizar o aporte.</string>
@@ -839,7 +628,6 @@
     <string name="resumo_aportes_empty">Nenhum aporte cadastrado.</string>
     <string name="delete_aporte">Deletar aporte</string>
     <string name="resumo_aporte_delete_confirm">Você quer deletar este aporte?</string>
-    <string name="resumo_aporte_deleted_ok">OK</string>
     <string name="aporte_deleted_toast">Aporte excluído.</string>
     <string name="aporte_toast_added">Aporte adicionado!</string>
 
@@ -879,7 +667,6 @@
     <string name="image_viewer_title">Visualizar imagem</string>
     <string name="image_viewer_content_desc">Foto da nota</string>
     <string name="image_viewer_error_loading">Não foi possível carregar a imagem.</string>
-    <string name="image_viewer_menu_save">Salvar</string>
 
     <string name="image_save_confirm_title">Salvar imagem?</string>
     <string name="image_save_confirm_msg">Deseja salvar esta imagem na sua galeria?</string>
@@ -902,7 +689,6 @@
     <string name="imagens_filter_hidraulica">Hidráulica</string>
     <string name="imagens_filter_eletrica">Elétrica</string>
     <string name="imagens_filter_outro">Outro</string>
-    <string name="imagens_filter_title">%1$s</string>
 
     <!-- Ações -->
     <string name="imagens_btn_send">Enviar</string>
@@ -918,21 +704,6 @@
 
     <!-- Detalhe -->
     <string name="imagem_detail_title">Imagem</string>
-    <string name="imagem_detail_date">Data:</string>
-    <string name="imagem_detail_type">Tipo:</string>
-    <string name="imagem_detail_desc">Descrição:</string>
-    <string name="imagem_detail_desc_empty">-</string>
-    <string name="imagem_menu_save">Salvar</string>
-    <string name="imagem_menu_delete">Excluir</string>
-    <string name="imagem_save_confirm_title">Salvar imagem</string>
-    <string name="imagem_save_confirm_msg">Deseja salvar esta imagem na sua galeria?</string>
-    <string name="imagem_delete_confirm_title">Excluir imagem</string>
-    <string name="imagem_delete_confirm_msg">Deseja excluir esta imagem?</string>
-    <string name="imagem_save_success_toast">Imagem salva na galeria.</string>
-    <string name="imagem_save_error_toast">Não foi possível salvar a imagem.</string>
-    <string name="imagem_delete_success_toast">Imagem excluída.</string>
-    <string name="imagem_error_load">Não foi possível carregar a imagem.</string>
-
     <string name="imagens_detail_date_fmt">Data: %1$s</string>
     <string name="imagens_detail_type_fmt">Tipo: %1$s</string>
     <string name="imagens_delete_confirm_msg">Deseja excluir esta imagem?</string>
@@ -944,8 +715,6 @@
     <string name="export_summary_action_pdf">Salvar em PDF</string>
     <string name="export_summary_snack_title">Confirmar</string>
     <string name="export_summary_snack_msg">Deseja salvar este resumo em PDF no seu dispositivo?</string>
-    <string name="export_summary_snack_yes">SIM</string>
-    <string name="export_summary_snack_no">NÃO</string>
     <string name="export_summary_doc_name_fmt">resumo_obra_%1$s_%2$s.pdf</string>
 
     <!-- Cabeçalho do preview -->
@@ -959,7 +728,6 @@
     <string name="export_description">Descrição da obra: %1$s</string>
     <string name="export_date_start_line">Data de Início: %1$s</string>
     <string name="export_date_end_line">Data de Término: %1$s</string>
-    <string name="export_dates">Data de início: %1$s     Data de término: %2$s</string>
 
     <!-- Funcionários -->
     <string name="export_section_func">Funcionários</string>
@@ -1010,7 +778,6 @@
     <string name="export_saldo_inicial_val">Valor: %1$s</string>
     <string name="export_section_aportes">Aportes</string>
     <string name="export_aporte_line">%1$s  —  %2$s  —  %3$s</string>
-    <string name="export_aportes_empty">Sem aportes cadastrados.</string>
     <string name="export_saldo_com_aportes">Saldo com Aportes: %1$s</string>
     <string name="export_section_saldo_restante">Saldo Restante</string>
     <string name="export_saldo_restante_val">Valor: %1$s</string>
@@ -1033,35 +800,22 @@
     <!-- 🔹 IA: Mensagem de erro -->
     <string name="ia_autofill_error_message">Erro no preenchimento automático.</string>
     <string name="ia_autofill_retry_message">Deseja tentar mais uma vez?</string>
-    <string name="ia_autofill_error_ok">OK</string>
 
     <!-- 🔹 IA: Acessibilidade / contentDescription do ícone de robô -->
     <string name="ia_robot_icon_desc">Analisando imagem com IA</string>
 
-    <!-- 🔹 IA: Texto opcional para overlay de loading -->
-    <string name="ia_autofill_loading">Analisando nota…</string>
-
     <!-- IA / Solução de Problemas -->
-    <string name="home_btn_solution">Solução de Problemas</string>
     <string name="ia_title">Tirar Dúvidas</string>
     <string name="ia_hint_problem">Descreva seu problema…</string>
     <string name="ia_btn_pick_image">Enviar foto (opcional)</string>
     <string name="ia_photo_loaded">Foto carregada.</string>
     <string name="ia_btn_send">Enviar</string>
-    <string name="ia_loading_cd">Carregando IA</string>
-    <string name="ia_response_title">Resposta</string>
-    <string name="ia_btn_save">Salvar</string>
     <string name="ia_btn_new">Nova dúvida</string>
     <string name="ia_toast_saved">Dúvida salva no histórico.</string>
     <string name="ia_problem_length_error">A dúvida deve ter entre 8 e 500 caracteres.</string>
 
-    <string name="ia_copy_label">Copiar</string>
-    <string name="ia_copied">Copiado</string>
-    <string name="ia_copy_success">Copiado para a área de transferência</string>
-
     <!-- Botões / UI -->
     <string name="ia_btn_tipo_duvida">Tipo de Dúvida</string>
-    <string name="ia_hint_problem_default">Descreva seu problema…</string>
     <string name="ia_hint_problem_calc">Informe as medidas</string>
 
     <!-- Diálogos -->
@@ -1078,34 +832,23 @@
     <string name="ia_cat_planejamento_construcao">Planejamento e Construção</string>
     <string name="ia_cat_limpeza_pos_obra">Limpeza Pós-Obra</string>
     <string name="ia_cat_pesquisa_loja">Pesquisa de Loja</string>
-
     <!-- Subopções de Cálculo -->
     <string name="ia_sub_alvenaria_estrutura">Alvenaria e Estrutura</string>
     <string name="ia_sub_eletrica">Elétrica</string>
     <string name="ia_sub_hidraulica">Hidráulica</string>
     <string name="ia_sub_pintura">Pintura</string>
     <string name="ia_sub_piso">Piso</string>
-
     <!-- Mensagens auxiliares para Cálculo -->
     <string name="ia_calc_hint_alvenaria">Informe dimensões de paredes, tipo de bloco, pilares e lajes.</string>
     <string name="ia_calc_hint_eletrica">Informe pontos de luz, tomadas, distâncias e bitolas de fios.</string>
     <string name="ia_calc_hint_hidraulica">Informe pontos de água, distâncias e diâmetros de tubos.</string>
     <string name="ia_calc_hint_pintura">Informe medidas de paredes/tetos, número de demãos e tipo de tinta.</string>
     <string name="ia_calc_hint_piso">Informe área, tamanho das peças, tipo de piso e largura do rejunte.</string>
-
-    <!-- Localização / Pesquisa de Loja -->
-    <string name="ia_store_location_format">Localização atual (lat, lon): %1$.5f, %2$.5f</string>
-    <string name="ia_store_location_unavailable">Localização indisponível. Prossiga com a busca baseada no texto.</string>
-    <string name="ia_location_permission_denied">Permissão de localização negada. Não foi possível usar sua localização atual.</string>
-
     <string name="ia_chosen_type_generic">Tipo de Dúvida escolhida: %1$s</string>
     <string name="ia_chosen_type_calc">Tipo de Dúvida escolhida: Cálculo de Material para %1$s</string>
     <string name="ia_chosen_type_sample">Tipo de Dúvida escolhida: Cálculo de Material para Pintura</string>
-
     <!-- Prompts -->
     <string name="ia_prompt_missing">Prompt ausente.</string>
-    <string name="ia_err_block_missing">Dados ausentes.</string>
-
     <!-- Permissão de Voz -->
     <string name="ia_voice_input_desc">Ditado por voz</string>
     <string name="ia_voice_prompt">Fale sua dúvida</string>
@@ -1142,7 +885,9 @@
     <string name="level_screenshot_saved">Imagem salva na galeria.</string>
     <string name="level_screenshot_fail">Falha ao salvar captura</string>
 
-    <!-- Cálculo de Material -->
+
+    <!-- ================== Cálculo de Material ================== -->
+
     <!-- Título do card na Home -->
     <string name="calc_material_action_title">Cálculo de Material</string>
     <string name="home_sub_calc_material">Estimativas para diversos materiais</string>
@@ -1167,7 +912,6 @@
     <string name="calc_step1_opt_marmore">Mármore</string>
     <string name="calc_step1_opt_granito">Granito</string>
     <string name="calc_step1_placa_tipo">Tipo de Piso:</string>
-    <string name="calc_step1_help">Cerâmicos, porcelanatos, azulejos e pastilhas usam argamassa colante. Pedra, mármore e granito usam colchão de cimento + areia (traço 1:4).</string>
     <!-- Diálogo aplicação Mármore/Granito -->
     <string name="calc_aplicacao_dialog_title_mg">Onde será aplicado?</string>
     <string name="calc_aplicacao_option_piso">Piso</string>
@@ -1236,9 +980,6 @@
     <string name="calc_step4_desnivel_label">Desnível a corrigir (cm)</string>
     <string name="calc_step4_sobra">Sobra técnica (%)</string>
     <string name="calc_step4_sobra_helper">Sobra técnica padrão de 10% aplicada (pode ser alterada)</string>
-    <string name="calc_step4_warn_piece">Sem tamanho de peça, não calcularemos quantidade de placas.</string>
-    <string name="calc_step4_warn_porcelanato">Porcelanato externo requer ACIII.</string>
-    <string name="calc_piece_applied">Parâmetros de peça aplicados.</string>
     <string name="calc_step4_placa_ceramica">Cerâmica</string>
     <string name="calc_step4_placa_porcelanato">Porcelanato</string>
     <string name="calc_step4_peca_esp_intertravado_hint">Espessura da peça (cm)</string>
@@ -1253,15 +994,11 @@
 
     <!-- Pastilha - junta -->
     <string name="calc_pastilha_junta_helper">Em milímetros • Valor padrão: 3</string>
-    <string name="calc_pastilha_error_select_size">Selecione o tamanho da pastilha</string>
-    <string name="calc_pastilha_error_junta_min">Junta muito fina (mínimo 1 mm)</string>
-    <string name="calc_pastilha_error_sobra">Sobra técnica deve ser entre 0% e 50%</string>
 
     <!-- Helper default da junta (para materiais que não são pastilha) -->
     <string name="calc_step4_junta_helper_default">Em milímetros • Ex: 5</string>
 
     <!-- Mensagem de erro para range especial da pastilha -->
-    <string name="calc_piece_err_pastilha_range">Para pastilha, informe entre 20 e 40 cm.</string>
     <string name="calc_err_junta_pastilha_range">Para pastilha, use entre 1 e 3 mm.</string>
 
     <!-- Hints específicos para Mármore/Granito (metros) -->
@@ -1279,7 +1016,6 @@
     <string name="calc_err_ppc_range">Valor inválido (1 a 50).</string>
     <string name="calc_err_sobra_range">Valor inválido (0 a 50%).</string>
     <string name="calc_err_rodape_altura">Altura inválida (3 a 30 cm).</string>
-    <string name="calc_err_rodape_comp">Valor inválido. Informe o comprimento comercial em metros.</string>
     <string name="calc_step4_desnivel_helper_pedra">Em centímetros • Ex: 5 (se vazio, será utilizado 4 cm)</string>
     <string name="calc_step4_desnivel_helper_mg">Em centímetros • Ex: 1 cm (se vazio, será utilizado 0 cm)</string>
     <string name="calc_err_desnivel_pedra_range">Informe entre 4 e 8 cm</string>
@@ -1309,7 +1045,6 @@
     <string name="calc_step6_intertravado_imp_label">Escolha o tipo de impermeabilização:</string>
     <string name="calc_step6_imp_manta_geotextil">Manta geotêxtil</string>
     <string name="calc_step6_imp_aditivo_sika1">Aditivo impermeabilizante (Sika 1 ou similar)</string>
-    <string name="calc_err_imp_intertravado_required">Selecione o tipo de impermeabilização para continuar.</string>
 
     <!-- TELA 7 -->
     <string name="calc_step7_title">📋 Revisão dos Parâmetros </string>
@@ -1319,9 +1054,7 @@
     <string name="icon_card_informação">ℹ️</string>
     <string name="calc_table_hint">Os valores consideram consumos técnicos conforme NBR 14081, TCPO e especificações de fabricantes.\n\nA coluna "Comprar" indica as embalagens comerciais necessárias (arredondadas para cima).</string>
     <string name="col_item">Item</string>
-    <string name="col_unid">Unid</string>
     <string name="col_qtd">Qtd</string>
-    <string name="col_usado">Usar</string>
     <string name="col_comprar">Comprar</string>
 
     <string name="calc_novo_calculo">Novo Cálculo</string>
@@ -1338,15 +1071,6 @@
     <string name="export_download">Baixar PDF</string>
     <string name="export_share_chooser_calc">Compartilhar cálculo</string>
     <string name="calc_export_no_data">Nada para exportar ainda.</string>
-    <string name="calc_title_pdf">Cálculo de Material – Revestimento</string>
-    <string name="calc_header_pdf">%1$s | %2$s | Área %3$s m² | %4$s | Junta %5$s mm | Sobra %6$s%%</string>
-    <string name="calc_pdf_classe_arg">Classe da argamassa: %1$s</string>
-    <!-- usado no EditText do comprimento comercial (para evitar hardcode) -->
-    <string name="calc_default_rodape_comp_060">0.60</string>
-    <string name="calc_header_pdf_intertravado">%1$s • %2$s\nÁrea total: %3$s m²\n%4$s\nSobra técnica: %5$s%%</string>
-
-    <!-- header PDF para rodapé -->
-    <string name="calc_header_rodape_pdf">Rodapé: %1$s m² + %2$.0f cm = %3$s m²</string>
 
     <!-- Navegação -->
     <string name="generic_next">Avançar</string>
@@ -1356,15 +1080,12 @@
     <string name="cont_btn_avancar">Avançar para próxima etapa</string>
     <string name="cont_btn_back">Voltar para etapa anterior</string>
     <string name="cont_btn_calcular">Calcular materiais</string>
-    <string name="cont_novo_calculo">Iniciar novo cálculo</string>
     <string name="helper_junta_piso_ceramico">Em milímetros • Recomendado: 5mm</string>
     <string name="helper_junta_piso_porcelanato">Em milímetros • Recomendado: 2mm</string>
-    <string name="helper_junta_pastilha">Em milímetros • Valor padrão: 2mm • </string>
     <string name="helper_junta_azulejo">Em milímetros • Recomendado: 5mm</string>
     <string name="helper_junta_pedra_portuguesa">Em milímetros • Recomendado: 4mm</string>
     <string name="helper_junta_marmore_granito">Em milímetros • Recomendado: 2,5mm</string>
     <string name="helper_junta_piso_intertravado">Em milímetros • Recomendado: 4mm</string>
     <string name="valor_sobra_minima">10</string>
-
 
 </resources>

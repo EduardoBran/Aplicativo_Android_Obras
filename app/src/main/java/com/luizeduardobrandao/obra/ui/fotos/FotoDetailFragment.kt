@@ -152,9 +152,9 @@ class FotoDetailFragment : Fragment() {
     private fun showErrorAndBack() {
         showSnackbarFragment(
             Constants.SnackType.ERROR.name,
-            getString(R.string.snack_error),
+            getString(R.string.generic_error),
             getString(R.string.image_viewer_error_loading),
-            getString(R.string.snack_button_ok)
+            getString(R.string.generic_ok_upper_case)
         ) { findNavController().navigateUp() }
     }
 
@@ -165,9 +165,9 @@ class FotoDetailFragment : Fragment() {
             Constants.SnackType.WARNING.name,
             getString(R.string.image_save_confirm_title),
             getString(R.string.image_save_confirm_msg),
-            getString(R.string.snack_button_yes),
+            getString(R.string.generic_yes_upper_case),
             onAction = { saveCurrent() },
-            btnNegativeText = getString(R.string.snack_button_no),
+            btnNegativeText = getString(R.string.generic_no_upper_case),
             onNegative = { /* stay */ }
         )
     }
@@ -249,11 +249,11 @@ class FotoDetailFragment : Fragment() {
     private fun askDelete() {
         showSnackbarFragment(
             Constants.SnackType.WARNING.name,
-            getString(R.string.snack_warning),
+            getString(R.string.generic_warning),
             getString(R.string.imagens_delete_confirm_msg),
-            getString(R.string.snack_button_yes),
+            getString(R.string.generic_yes_upper_case),
             onAction = { deleteNow() },
-            btnNegativeText = getString(R.string.snack_button_no),
+            btnNegativeText = getString(R.string.generic_no_upper_case),
             onNegative = { /* stay */ }
         )
     }
@@ -289,9 +289,9 @@ class FotoDetailFragment : Fragment() {
                             binding.detailScroll.isVisible = true
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(st.resId),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             )
                         }
 

@@ -80,9 +80,9 @@ class ImageViewerFragment : Fragment() {
                 progressImage.isVisible = false
                 showSnackbarFragment(
                     type = Constants.SnackType.ERROR.name,
-                    title = getString(R.string.snack_attention),
+                    title = getString(R.string.generic_attention),
                     msg = getString(R.string.image_viewer_error_loading),
-                    btnText = getString(R.string.snack_button_ok)
+                    btnText = getString(R.string.generic_ok_upper_case)
                 ) { findNavController().navigateUp() }
             } else {
                 loadImage(url)
@@ -111,9 +111,9 @@ class ImageViewerFragment : Fragment() {
                         tvError.isVisible = true
                         showSnackbarFragment(
                             type = Constants.SnackType.ERROR.name,
-                            title = getString(R.string.snack_attention),
+                            title = getString(R.string.generic_attention),
                             msg = getString(R.string.image_viewer_error_loading),
-                            btnText = getString(R.string.snack_button_ok)
+                            btnText = getString(R.string.generic_ok_upper_case)
                         )
                     }
                 )
@@ -130,9 +130,9 @@ class ImageViewerFragment : Fragment() {
             type = Constants.SnackType.WARNING.name,
             title = getString(R.string.image_save_confirm_title),
             msg = getString(R.string.image_save_confirm_msg),
-            btnText = getString(R.string.snack_button_yes),
+            btnText = getString(R.string.generic_yes_upper_case),
             onAction = { saveCurrentImage() },
-            btnNegativeText = getString(R.string.snack_button_no),
+            btnNegativeText = getString(R.string.generic_no_upper_case),
             onNegative = { /* permanece na visualização */ }
         )
     }

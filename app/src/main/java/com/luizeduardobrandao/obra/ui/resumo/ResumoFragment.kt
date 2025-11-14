@@ -294,11 +294,11 @@ class ResumoFragment : Fragment() {
             // Confirmação antes de excluir
             showSnackbarFragment(
                 type = Constants.SnackType.WARNING.name,
-                title = getString(R.string.snack_warning),
+                title = getString(R.string.generic_warning),
                 msg = getString(R.string.resumo_aporte_delete_confirm),
-                btnText = getString(R.string.snack_button_yes),
+                btnText = getString(R.string.generic_yes_upper_case),
                 onAction = { viewModel.deleteAporte(aporte.aporteId) },
-                btnNegativeText = getString(R.string.snack_button_no),
+                btnNegativeText = getString(R.string.generic_no_upper_case),
                 onNegative = { /* no-op */ }
             )
         }
@@ -427,9 +427,9 @@ class ResumoFragment : Fragment() {
                             progressResumo.isVisible = false
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(ui.resId),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             )
                         }
 
@@ -464,9 +464,9 @@ class ResumoFragment : Fragment() {
                             progressResumo.isVisible = false
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(ui.resId),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             )
                             viewModel.resetDeleteAporteState()
                         }
@@ -541,9 +541,9 @@ class ResumoFragment : Fragment() {
                         is UiState.ErrorRes -> {
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(ui.resId),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             )
                         }
 
@@ -595,9 +595,9 @@ class ResumoFragment : Fragment() {
                         is UiState.ErrorRes -> {
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(ui.resId),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             )
                         }
 
@@ -644,9 +644,9 @@ class ResumoFragment : Fragment() {
                         is UiState.ErrorRes -> {
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(ui.resId),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             )
                         }
 

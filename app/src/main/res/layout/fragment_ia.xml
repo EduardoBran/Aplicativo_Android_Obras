@@ -173,9 +173,9 @@
                         android:layout_gravity="end"
                         android:layout_marginTop="0dp"
                         android:layout_marginEnd="2dp"
-                        android:contentDescription="@string/ia_copy_label"
+                        android:contentDescription="@string/generic_copy"
                         android:minHeight="0dp"
-                        android:text="@string/ia_copy_label"
+                        android:text="@string/generic_copy"
                         android:textAllCaps="false"
                         android:textSize="12sp"
                         app:icon="@drawable/ic_copy"
@@ -216,7 +216,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/ia_btn_save" />
+                    android:text="@string/generic_save" />
 
                 <Space
                     android:layout_width="12dp"
@@ -268,7 +268,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
-        android:contentDescription="@string/scroll_to_bottom"
+        android:contentDescription="@string/generic_scroll_to_bottom"
         android:src="@drawable/ic_arrow_downward"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -1411,16 +1411,16 @@ class CronogramaGanttFragment : Fragment() {
                 if (uri != null) {
                     SnackbarFragment.newInstance(
                         type = com.luizeduardobrandao.obra.utils.Constants.SnackType.SUCCESS.name,
-                        title = ctx.getString(R.string.snack_success),
+                        title = ctx.getString(R.string.generic_success),
                         msg = ctx.getString(R.string.gantt_export_pdf_ok),
-                        btnText = ctx.getString(R.string.snack_button_ok)
+                        btnText = ctx.getString(R.string.generic_ok_upper_case)
                     ).show(childFragmentManager, SnackbarFragment.TAG)
                 } else {
                     SnackbarFragment.newInstance(
                         type = com.luizeduardobrandao.obra.utils.Constants.SnackType.ERROR.name,
-                        title = ctx.getString(R.string.snack_error),
+                        title = ctx.getString(R.string.generic_error),
                         msg = ctx.getString(R.string.gantt_export_error),
-                        btnText = ctx.getString(R.string.snack_button_ok)
+                        btnText = ctx.getString(R.string.generic_ok_upper_case)
                     ).show(childFragmentManager, SnackbarFragment.TAG)
                 }
             }
@@ -1430,9 +1430,9 @@ class CronogramaGanttFragment : Fragment() {
                 t.printStackTrace()
                 SnackbarFragment.newInstance(
                     type = com.luizeduardobrandao.obra.utils.Constants.SnackType.ERROR.name,
-                    title = ctx.getString(R.string.snack_error),
+                    title = ctx.getString(R.string.generic_error),
                     msg = ctx.getString(R.string.gantt_export_error),
-                    btnText = ctx.getString(R.string.snack_button_ok)
+                    btnText = ctx.getString(R.string.generic_ok_upper_case)
                 ).show(childFragmentManager, SnackbarFragment.TAG)
             }
         } finally {
@@ -1449,9 +1449,9 @@ class CronogramaGanttFragment : Fragment() {
                 type = Constants.SnackType.WARNING.name,
                 title = getString(R.string.export_summary_snack_title),
                 msg = getString(R.string.export_summary_snack_msg),
-                btnText = getString(R.string.export_summary_snack_yes),
+                btnText = getString(R.string.generic_yes_upper_case),
                 onAction = { exportToPdf() },
-                btnNegativeText = getString(R.string.export_summary_snack_no),
+                btnNegativeText = getString(R.string.generic_no_upper_case),
                 onNegative = { /* fica na página */ }
             )
         }

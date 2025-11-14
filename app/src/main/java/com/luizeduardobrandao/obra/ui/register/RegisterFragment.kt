@@ -143,9 +143,9 @@ class RegisterFragment : Fragment() {
                                 showIdle()
                                 showSnackbarFragment(
                                     type = Constants.SnackType.ERROR.name,
-                                    title = getString(R.string.snack_error),
+                                    title = getString(R.string.generic_error),
                                     msg = getString(state.resId),
-                                    btnText = getString(R.string.snack_button_ok)
+                                    btnText = getString(R.string.generic_ok_upper_case)
                                 )
                             }
 
@@ -153,9 +153,9 @@ class RegisterFragment : Fragment() {
                                 showIdle()
                                 showSnackbarFragment(
                                     type = Constants.SnackType.ERROR.name,
-                                    title = getString(R.string.snack_error),
+                                    title = getString(R.string.generic_error),
                                     msg = state.message,
-                                    btnText = getString(R.string.snack_button_ok)
+                                    btnText = getString(R.string.generic_ok_upper_case)
                                 )
                             }
                         }

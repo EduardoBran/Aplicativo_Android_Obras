@@ -85,9 +85,9 @@ class WorkFragment : Fragment() {
         if (!requireContext().isConnectedToInternet()) {
             showSnackbarFragment(
                 Constants.SnackType.WARNING.name,
-                getString(R.string.snack_warning),
-                getString(R.string.error_no_internet),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_warning),
+                getString(R.string.generic_error_no_internet),
+                getString(R.string.generic_ok_upper_case)
             )
         }
 
@@ -97,9 +97,9 @@ class WorkFragment : Fragment() {
                 if (view != null) {
                     showSnackbarFragment(
                         Constants.SnackType.WARNING.name,
-                        getString(R.string.snack_warning),
-                        getString(R.string.error_no_internet),
-                        getString(R.string.snack_button_ok)
+                        getString(R.string.generic_warning),
+                        getString(R.string.generic_error_no_internet),
+                        getString(R.string.generic_ok_upper_case)
                     )
                 }
             }
@@ -282,9 +282,9 @@ class WorkFragment : Fragment() {
                                 showLoading(false)
                                 showSnackbarFragment(
                                     Constants.SnackType.ERROR.name,
-                                    getString(R.string.snack_error),
+                                    getString(R.string.generic_error),
                                     getString(state.resId),
-                                    getString(R.string.snack_button_ok)
+                                    getString(R.string.generic_ok_upper_case)
                                 )
                             }
 
@@ -317,9 +317,9 @@ class WorkFragment : Fragment() {
                                 binding.progressCard.isGone = true
                                 showSnackbarFragment(
                                     Constants.SnackType.ERROR.name,
-                                    getString(R.string.snack_error),
+                                    getString(R.string.generic_error),
                                     getString(state.resId),
-                                    getString(R.string.snack_button_ok)
+                                    getString(R.string.generic_ok_upper_case)
                                 )
                                 viewModel.resetCreateState()
                             }

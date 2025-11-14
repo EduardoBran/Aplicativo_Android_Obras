@@ -58,7 +58,7 @@ class ToolbarManager(
         MaterialAlertDialogBuilder(binding.root.context)
             .setTitle(getString(R.string.calc_home_dialog_title))
             .setMessage(getString(R.string.calc_home_dialog_message))
-            .setPositiveButton(getString(R.string.generic_yes)) { _, _ -> navigateToHome() }
+            .setPositiveButton(getString(R.string.generic_yes_lower_case)) { _, _ -> navigateToHome() }
             .setNegativeButton(getString(R.string.generic_cancel), null)
             .show()
     }

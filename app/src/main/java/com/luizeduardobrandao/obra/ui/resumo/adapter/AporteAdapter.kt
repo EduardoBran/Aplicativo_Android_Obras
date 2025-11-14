@@ -48,7 +48,7 @@ class AporteAdapter(
             tvAporteData.text = dateText
 
             tvAporteDescricao.text =
-                if (item.descricao.isBlank()) "-" else item.descricao
+                item.descricao.ifBlank { "-" }
 
             btnDeleteAporte.setOnClickListener {
                 onDeleteClick(item)

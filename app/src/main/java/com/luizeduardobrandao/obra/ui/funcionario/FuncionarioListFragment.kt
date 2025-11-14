@@ -150,9 +150,9 @@ class FuncionarioListFragment : Fragment() {
         // Exibe mensagem padrão e mantém texto vazio visível
         showSnackbarFragment(
             Constants.SnackType.ERROR.name,
-            getString(R.string.snack_error),
+            getString(R.string.generic_error),
             getString(resId),
-            getString(R.string.snack_button_ok)
+            getString(R.string.generic_ok_upper_case)
         )
     }
 
@@ -174,11 +174,11 @@ class FuncionarioListFragment : Fragment() {
     private fun deleteFuncionario(func: Funcionario) {
         showSnackbarFragment(
             type  = Constants.SnackType.WARNING.name,
-            title = getString(R.string.snack_attention),
+            title = getString(R.string.generic_attention),
             msg   = getString(R.string.func_snack_delete_msg, func.nome),
 
             // Botão positivo (SIM)
-            btnText = getString(R.string.snack_button_yes),
+            btnText = getString(R.string.generic_yes_upper_case),
             onAction = {
                 viewModel.deleteFuncionario(func.id)
                 Toast.makeText(
@@ -189,7 +189,7 @@ class FuncionarioListFragment : Fragment() {
             },
 
             // Botão negativo (NÃO)
-            btnNegativeText = getString(R.string.snack_button_no),
+            btnNegativeText = getString(R.string.generic_no_upper_case),
             onNegative = {
                 // Nenhuma ação extra — o SnackbarFragment já fecha ao clicar
             }

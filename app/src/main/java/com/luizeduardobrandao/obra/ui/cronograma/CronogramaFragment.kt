@@ -109,9 +109,9 @@ class CronogramaFragment : Fragment(), EtapaActions {
                     if (ui is UiState.ErrorRes) {
                         showSnackbarFragment(
                             Constants.SnackType.ERROR.name,
-                            getString(R.string.snack_error),
+                            getString(R.string.generic_error),
                             getString(ui.resId),
-                            getString(R.string.snack_button_ok)
+                            getString(R.string.generic_ok_upper_case)
                         )
                     }
                 }
@@ -145,9 +145,9 @@ class CronogramaFragment : Fragment(), EtapaActions {
     override fun onDelete(etapa: Etapa) {
         showSnackbarFragment(
             type = Constants.SnackType.WARNING.name,
-            title = getString(R.string.snack_warning),
+            title = getString(R.string.generic_warning),
             msg = getString(R.string.cron_snack_delete_msg),
-            btnText = getString(R.string.snack_button_yes),       // SIM
+            btnText = getString(R.string.generic_yes_upper_case),       // SIM
             onAction = {
                 viewModel.deleteEtapa(etapa)
                 Toast.makeText(
@@ -156,7 +156,7 @@ class CronogramaFragment : Fragment(), EtapaActions {
                     Toast.LENGTH_SHORT
                 ).show()
             },
-            btnNegativeText = getString(R.string.snack_button_no), // NÃO
+            btnNegativeText = getString(R.string.generic_no_upper_case), // NÃO
             onNegative = { /* nada: apenas fecha o snackbar */ }
         )
     }

@@ -19,7 +19,6 @@ import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentMaterialListBinding
 import com.luizeduardobrandao.obra.ui.extensions.showSnackbarFragment
 import com.luizeduardobrandao.obra.ui.material.adapter.MaterialAdapter
-import com.luizeduardobrandao.obra.ui.material.adapter.MaterialPagerAdapter
 import com.luizeduardobrandao.obra.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -109,9 +108,9 @@ class MaterialListFragment : Fragment() {
                             progress(false)
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(R.string.material_load_error),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             )
                         }
                         else -> Unit

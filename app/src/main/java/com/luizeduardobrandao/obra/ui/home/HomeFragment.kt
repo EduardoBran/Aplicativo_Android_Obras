@@ -211,9 +211,9 @@ class HomeFragment : Fragment() {
                                     binding.rvHome.isVisible = true
                                     showSnackbarFragment(
                                         Constants.SnackType.ERROR.name,
-                                        getString(R.string.snack_error),
+                                        getString(R.string.generic_error),
                                         getString(state.resId),
-                                        getString(R.string.snack_button_ok)
+                                        getString(R.string.generic_ok_upper_case)
                                     )
                                 }
                             }
@@ -294,11 +294,11 @@ class HomeFragment : Fragment() {
     private fun confirmLogout() {
         showSnackbarFragment(
             type = Constants.SnackType.WARNING.name,
-            title = getString(R.string.snack_warning),
+            title = getString(R.string.generic_warning),
             msg = getString(R.string.home_logout_confirm_msg),
-            btnText = getString(R.string.snack_button_yes),
+            btnText = getString(R.string.generic_yes_upper_case),
             onAction = { viewModel.logout() },
-            btnNegativeText = getString(R.string.snack_button_no),
+            btnNegativeText = getString(R.string.generic_no_upper_case),
             onNegative = { }
         )
     }

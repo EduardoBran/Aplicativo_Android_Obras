@@ -52,9 +52,9 @@ class DetalheNotaFragment : Fragment() {
                         if (nota == null) {
                             showSnackbarFragment(
                                 Constants.SnackType.ERROR.name,
-                                getString(R.string.snack_error),
+                                getString(R.string.generic_error),
                                 getString(R.string.nota_load_error2),
-                                getString(R.string.snack_button_ok)
+                                getString(R.string.generic_ok_upper_case)
                             ) {
                                 findNavController().navigateUp()
                             }

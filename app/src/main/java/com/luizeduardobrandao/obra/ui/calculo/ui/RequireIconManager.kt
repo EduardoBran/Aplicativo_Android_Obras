@@ -32,14 +32,9 @@ class RequiredIconManager(private val context: Context) {
      */
     @Suppress("KotlinConstantConditions")
     fun updateStep3Icons(
-        etComp: TextInputEditText,
-        etLarg: TextInputEditText,
-        etAlt: TextInputEditText,
-        etParedeQtd: TextInputEditText,
-        etAbertura: TextInputEditText,
-        etAreaInformada: TextInputEditText,
-        altVisible: Boolean,
-        paredeQtdVisible: Boolean
+        etComp: TextInputEditText, etLarg: TextInputEditText, etAlt: TextInputEditText,
+        etParedeQtd: TextInputEditText, etAbertura: TextInputEditText,
+        etAreaInformada: TextInputEditText, altVisible: Boolean, paredeQtdVisible: Boolean
     ) {
         // Valores numéricos (null se vazio ou inválido)
         val comp = parseDouble(etComp)
@@ -143,13 +138,9 @@ class RequiredIconManager(private val context: Context) {
      * Atualiza ícones obrigatórios da Etapa 4 (Peça)
      */
     fun updateStep4Icons(
-        etPecaComp: TextInputEditText,
-        etPecaLarg: TextInputEditText,
-        etJunta: TextInputEditText,
-        etPecaEsp: TextInputEditText,
-        etPecasPorCaixa: TextInputEditText,
-        etSobra: TextInputEditText,
-        revest: CalcRevestimentoViewModel.RevestimentoType?,
+        etPecaComp: TextInputEditText, etPecaLarg: TextInputEditText, etJunta: TextInputEditText,
+        etPecaEsp: TextInputEditText, etPecasPorCaixa: TextInputEditText,
+        etSobra: TextInputEditText,  revest: CalcRevestimentoViewModel.RevestimentoType?,
         groupPecaTamanhoVisible: Boolean
     ) {
         val exigeTamanhoPeca = (revest != CalcRevestimentoViewModel.RevestimentoType.PEDRA) &&
@@ -198,11 +189,8 @@ class RequiredIconManager(private val context: Context) {
      * Atualiza ícones obrigatórios da Etapa 5 (Rodapé)
      */
     fun updateStep5Icons(
-        etRodapeAltura: TextInputEditText,
-        etRodapeCompComercial: TextInputEditText,
-        rodapeOn: Boolean,
-        isPecaPronta: Boolean,
-        tilRodapeCompComercialVisible: Boolean
+        etRodapeAltura: TextInputEditText, etRodapeCompComercial: TextInputEditText,
+        rodapeOn: Boolean, isPecaPronta: Boolean, tilRodapeCompComercialVisible: Boolean
     ) {
         if (!rodapeOn) {
             setRequiredIconVisible(etRodapeAltura, false)

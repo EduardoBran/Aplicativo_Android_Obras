@@ -137,9 +137,9 @@ class ImagemFormBottomSheet : BottomSheetDialogFragment() {
         if (bytes == null || mime == null) {
             showSnackbarFragment(
                 Constants.SnackType.ERROR.name,
-                getString(R.string.snack_error),
+                getString(R.string.generic_error),
                 getString(R.string.imagens_save_error),
-                getString(R.string.snack_button_ok)
+                getString(R.string.generic_ok_upper_case)
             )
             return@with
         }
@@ -148,7 +148,7 @@ class ImagemFormBottomSheet : BottomSheetDialogFragment() {
             Constants.SnackType.WARNING.name,
             getString(R.string.nota_photo_confirm_title),
             getString(R.string.imagem_save_confirm),
-            getString(R.string.snack_button_yes),
+            getString(R.string.generic_yes_upper_case),
             onAction = {
                 if (saving) return@showSnackbarFragment
                 saving = true
@@ -164,7 +164,7 @@ class ImagemFormBottomSheet : BottomSheetDialogFragment() {
                 progressSalvarImagem.bringToFront()
                 progressSalvarImagem.requestFocus()
                 // (opcional) anúncio de acessibilidade
-                progressSalvarImagem.announceForAccessibility(getString(R.string.loading))
+                progressSalvarImagem.announceForAccessibility(getString(R.string.generic_loading))
 
                 val imagem = Imagem(
                     id = "",
@@ -202,9 +202,9 @@ class ImagemFormBottomSheet : BottomSheetDialogFragment() {
                                 saving = false
                                 showSnackbarFragment(
                                     Constants.SnackType.ERROR.name,
-                                    getString(R.string.snack_error),
+                                    getString(R.string.generic_error),
                                     getString(st.resId),
-                                    getString(R.string.snack_button_ok)
+                                    getString(R.string.generic_ok_upper_case)
                                 )
                             }
 
@@ -213,7 +213,7 @@ class ImagemFormBottomSheet : BottomSheetDialogFragment() {
                     }
                 }
             },
-            btnNegativeText = getString(R.string.snack_button_no),
+            btnNegativeText = getString(R.string.generic_no_upper_case),
             onNegative = { /* mantém o sheet aberto */ }
         )
     }
