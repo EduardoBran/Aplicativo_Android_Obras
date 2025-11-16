@@ -913,7 +913,12 @@
     <string name="calc_step1_opt_piso_intertravado">Piso Intertravado</string>
     <string name="calc_step1_opt_marmore">Mármore</string>
     <string name="calc_step1_opt_granito">Granito</string>
-    <string name="calc_step1_placa_tipo">Tipo de Piso:</string>
+    <string name="calc_step1_piso_tipo">Tipo de Piso:</string>
+    <string name="calc_step1_piso_ceramica">Cerâmica</string>
+    <string name="calc_step1_piso_porcelanato">Porcelanato</string>
+    <string name="calc_validate_step">Preencha os campos obrigatórios desta etapa.</string>
+    <string name="cont_btn_avancar">Avançar para próxima etapa</string>
+    <string name="cont_btn_back">Voltar para etapa anterior</string>
     <!-- Diálogo aplicação Mármore/Granito -->
     <string name="calc_aplicacao_dialog_title_mg">Onde será aplicado?</string>
     <string name="calc_aplicacao_option_piso">Piso</string>
@@ -969,68 +974,67 @@
     <string name="calc_err_medida_alt_m">Valor inválido • Limites: 0,01 m a 100 m.</string>
     <string name="calc_err_area_total">Valor inválido • Limites: 0,1 m² a 50.000 m².</string>
 
-    <!-- TELA 4 -->
-    <string name="calc_step4_title">Parâmetros do revestimento</string>
-    <string name="calc_step4_peca_comp">Tamanho da peça – Comprimento (cm)</string>
-    <string name="calc_step4_peca_larg">Tamanho da peça – Largura (cm)</string>
-    <string name="calc_step4_peca_esp">Espessura da peça (mm)</string>
-    <string name="calc_step4_junta">Espessura da junta (mm)</string>
-    <string name="calc_step4_desnivel_label">Desnível a corrigir (cm)</string>
-    <string name="calc_step4_sobra">Sobra técnica (%)</string>
-    <string name="calc_step4_sobra_helper">Sobra técnica padrão de 10% aplicada (pode ser alterada).</string>
-    <string name="calc_step4_placa_ceramica">Cerâmica</string>
-    <string name="calc_step4_placa_porcelanato">Porcelanato</string>
-    <string name="calc_step4_peca_esp_intertravado_hint">Espessura da peça (cm)</string>
-    <string name="calc_step4_peca_esp_intertravado_helper">Em centímetros • Ex: 6.</string>
 
-    <!-- Pastilha - parâmetros -->
+    <!-- ======== TELA 4 ======== -->
+    <string name="calc_step4_title">Parâmetros do Revestimento</string>
+    <string name="generic_next">Avançar</string>
+
+    <!-- Parâmetros Label -->
+    <string name="calc_step4_peca_comp_cm">Tamanho da Peça – Comprimento (cm)</string>
+    <string name="calc_step4_peca_larg_cm">Tamanho da Peça – Largura (cm)</string>
+    <string name="calc_step4_peca_comp_m">Tamanho da Peça – Comprimento (m)</string>
+    <string name="calc_step4_peca_larg_m">Tamanho da Peça – Largura (m)</string>
+    <string name="calc_step4_peca_esp">Espessura da Peça (mm)</string>
+    <string name="calc_step4_peca_esp_intertravado">Espessura da Peça (cm)</string>
+    <string name="calc_step4_junta">Espessura da Junta (mm)</string>
+    <string name="calc_step4_pecas_caixa">Peças por caixa (opcional)</string>
+    <string name="calc_step4_desnivel">Desnível a corrigir (cm)</string>
+    <string name="calc_step4_sobra">Sobra Técnica (%)</string>
+    <string name="valor_default_sobra">10</string>
+
+    <!-- Helpers -->
+    <string name="calc_piece_helper_cm">Em centímetros • Ex: 30.</string>
+    <string name="calc_piece_helper_m">Em metros • Ex: 1,20.</string>
+    <string name="calc_step4_piece_esp_helper_with_default">Em milímetros • Ex: %s.</string>
+    <string name="calc_step4_peca_esp_intertravado_helper">Em centímetros • Ex: 6.</string>
+    <string name="calc_step4_junta_helper_default">Em milímetros • Ex: 8.</string>
+    <string name="helper_junta_piso_ceramico">Em milímetros • Recomendado: 5mm.</string>
+    <string name="helper_junta_piso_porcelanato">Em milímetros • Recomendado: 2mm.</string>
+    <string name="helper_junta_azulejo">Em milímetros • Recomendado: 5mm.</string>
+    <string name="helper_junta_marmore_granito">Em milímetros • Recomendado: 2,5mm.</string>
+    <string name="helper_junta_piso_intertravado">Em milímetros • Recomendado: 4mm.</string>
+    <string name="calc_step4_pecas_caixa_helper">Em unidades • Ex: 4.</string>
+    <string name="calc_step4_desnivel_helper_pedra">Em centímetros • Ex: 4.</string>
+    <string name="calc_step4_desnivel_helper_mg">Em centímetros • Ex: 0.</string>
+    <string name="calc_step4_sobra_helper">Sobra técnica padrão de 10% aplicada (pode ser alterada).</string>
+
+    <!-- Mensagens Erro -->
+    <string name="calc_piece_err_cm">Valor inválido • Limites: 5 cm a 200 cm • Use vírgula como decimal (ex: 20 = 20 cm; 1,2 = 1 m e 20 cm).</string>
+    <string name="calc_piece_err_m">Valor inválido • Limites: 0,10 cm a 20 m • Use vírgula como decimal (ex: 0,30 = 30 cm; 1,5 = 1 m e 50 cm). </string>
+    <string name="calc_err_esp_required">Informe a espessura da peça em mm.</string>
+    <string name="calc_err_esp_range">Valor inválido • Limites: 3 mm a 30 mm.</string>
+    <string name="calc_err_esp_intertravado_range">Valor inválido • Limites: 4 cm a 12 cm.</string>
+    <string name="calc_err_esp_range_mg_piso">Valor inválido • Limites: 15mm a 40mm.</string>
+    <string name="calc_err_esp_range_mg_parede">Valor inválido • Limites: 10mm a 40mm.</string>
+    <string name="calc_err_junta_range">Valor inválido • Limites: 0,5 mm a 20 mm.</string>
+    <string name="calc_err_junta_required">Informe a espessura da junta em mm.</string>
+    <string name="calc_err_pecas_caixa_range">Valor inválido • Limites: 1 a 50 ou deixe o campo vazio.</string>
+    <string name="calc_err_desnivel_pedra_range">Valor inválido • Limites: 4 cm a 8 cm.</string>
+    <string name="calc_err_desnivel_mg_range">Valor inválido • Limites: 0 cm a 3 cm.</string>
+    <string name="calc_err_desnivel_required">Informe o desnível em cm da base.</string>
+    <string name="calc_err_sobra_required">Informe a sobra técnica (%).</string>
+    <string name="calc_err_sobra_range">Valor inválido • Limites: 0 % a 50 %.</string>
+
+    <!-- Pastilha -->
     <string name="calc_pastilha_tamanho_title">Tamanho da Pastilha (cm)</string>
     <string name="calc_pastilha_5x5">5 x 5</string>
     <string name="calc_pastilha_7_5x7_5">7,5 x 7,5</string>
     <string name="calc_pastilha_10x10">10 x 10</string>
     <string name="calc_pastilha_tamanho_helper">Escolha os parâmetros para sua pastilha.</string>
-
-    <!-- Pastilha - junta -->
     <string name="calc_pastilha_junta_helper">Em milímetros • Valor padrão: 3</string>
-
-    <!-- Helper default da junta (para materiais que não são pastilha) -->
-    <string name="calc_step4_junta_helper_default">Em milímetros • Ex: 5.</string>
-
-    <!-- Mensagem de erro para range especial da pastilha -->
     <string name="calc_err_junta_pastilha_range">Para pastilha, use entre 1 e 3 mm.</string>
-
-    <!-- Hints/Mensagens de erro específicos para Mármore/Granito -->
-    <string name="calc_step4_peca_comp_m">Tamanho da peça – Comprimento (m)</string>
-    <string name="calc_step4_peca_larg_m">Tamanho da peça – Largura (m)</string>
-    <string name="calc_step4_peca_esp_mg_hint">Espessura da peça (mm)</string>
-    <string name="calc_step4_peca_esp_mg_helper_with_default">Em milímetros • Ex: %s.</string>
-    <string name="calc_err_esp_mg_required">Informe a espessura da peça em mm.</string>
-    <string name="calc_err_esp_range_mg_piso">Valor inválido • Limites: 15mm a 40mm.</string>
-    <string name="calc_err_esp_range_mg_parede">Valor inválido • Limites: 10mm a 40mm.</string>
-
-    <!-- Mensagens genéricas de faixa para helper texts e inline errors -->
-    <string name="calc_step4_peca_esp_helper_with_default">Em milímetros • Ex: %s.</string>
-    <string name="calc_piece_helper_mg">Em metros • Ex: 1,20.</string>
-    <string name="calc_piece_err_mg">Valor inválido • Limites: 0,10 cm a 20 m • Use vírgula como decimal (ex: 0,30 = 30 cm; 1,5 = 1 m e 50 cm). </string>
-    <string name="calc_piece_err_cm">Valor inválido • Limites: 5 cm a 200 cm • Use vírgula como decimal (ex: 20 = 20 cm; 1,2 = 1 m e 20 cm).</string>
-    <string name="calc_piece_helper_cm">Em centímetros • Ex: 30.</string>
-    <string name="calc_err_junta_range">Valor inválido • Limites: 0,5 mm a 20 mm.</string>
-    <string name="calc_err_esp_range">Valor inválido • Limites: 3 mm a 30 mm.</string>
-    <string name="calc_err_ppc_range">Valor inválido • Limites: 1 a 50 ou deixe o campo vazio.</string>
-    <string name="calc_err_sobra_range">Valor inválido • Limites: 0 % a 50 %.</string>
-    <string name="calc_err_rodape_altura_range">Valor inválido • Limites: 3 cm a 30 cm.</string>
-    <string name="calc_step4_desnivel_helper_pedra">Em centímetros • Ex: 4.</string>
-    <string name="calc_step4_desnivel_helper_mg">Em centímetros • Ex: 0.</string>
-    <string name="calc_err_desnivel_pedra_range">Valor inválido • Limites: 4 cm a 8 cm.</string>
-    <string name="calc_err_desnivel_mg_range">Valor inválido • Limites: 0 cm a 3 cm.</string>
-    <string name="calc_err_esp_intertravado_range">Valor inválido • Limites: 4 cm a 12 cm.</string>
-
-    <string name="calc_err_esp_required">Informe a espessura da peça em mm.</string>
-    <string name="calc_err_junta_required">Informe a espessura da junta em mm.</string>
     <string name="calc_err_junta_pastilha_required">Informe a espessura da junta da pastilha.</string>
-    <string name="calc_err_desnivel_pedra_required">Informe o desnível em cm da base.</string>
-    <string name="calc_err_desnivel_mg_required">Informe o desnível em cm da base.</string>
-    <string name="calc_err_sobra_required">Informe a sobra técnica (%).</string>
+
 
     <!-- TELA 5 -->
     <string name="calc_step5_title">Rodapé</string>
@@ -1041,6 +1045,7 @@
     <string name="calc_step5_mat_pronta">Peça pronta</string>
     <string name="calc_step5_comp_pronta_cm">Comprimento da peça pronta (cm)</string>
     <string name="calc_step5_comp_pronta_cm_helper">Em centímetros • Ex: 30 = 30 cm; 100 = 1 m.</string>
+    <string name="calc_err_rodape_altura_range">Valor inválido • Limites: 3 cm a 30 cm.</string>
     <string name="calc_err_rodape_comp_cm_range">Valor inválido • Limites: 5 cm a 300 cm.</string>
     <string name="calc_step5_abertura_largura_total">Abertura (m) (opcional)</string>
     <string name="calc_step5_abertura_largura_total_helper">Largura total do(s) vão(s) sem rodapé • Ex: 0,80 ou 1,60.</string>
@@ -1055,11 +1060,14 @@
     <string name="calc_step6_imp_manta_geotextil">Manta geotêxtil</string>
     <string name="calc_step6_imp_aditivo_sika1">Aditivo impermeabilizante (Sika 1 ou similar)</string>
 
-    <!-- TELA 7 -->
+
+    <!-- ========TELA 7 ======== -->
     <string name="calc_step7_title">📋 Revisão dos Parâmetros </string>
     <string name="generic_calculate">Calcular</string>
+    <string name="cont_btn_calcular">Calcular materiais</string>
 
     <!-- TELA 8 -->
+    <string name="calc_table_title">📋 Lista de Materiais</string>
     <string name="icon_card_informação">ℹ️</string>
     <string name="calc_table_hint">Os valores consideram consumos técnicos conforme NBR 14081, TCPO e especificações de fabricantes.\n\nA coluna "Comprar" indica as embalagens comerciais necessárias (arredondadas para cima).</string>
     <string name="col_item">Item</string>
@@ -1070,31 +1078,12 @@
     <string name="calc_new_calc_title">Iniciar novo cálculo?</string>
     <string name="calc_new_calc_message">Você voltará para a tela de cálculo de materiais e dados do cálculo atual serão perdidos.</string>
 
-    <!-- Novas strings para melhorias -->
-    <string name="calc_step4_pecas_caixa">Peças por caixa (opcional)</string>
-    <string name="calc_table_title">📋 Lista de Materiais</string>
 
-    <!-- PDF / Export -->
+    <!-- ======== PDF / Export ======== -->
     <string name="export_summary_title_calc">Exportar</string>
     <string name="export_share">Compartilhar PDF</string>
     <string name="export_download">Baixar PDF</string>
     <string name="export_share_chooser_calc">Compartilhar cálculo</string>
     <string name="calc_export_no_data">Nada para exportar ainda.</string>
-
-    <!-- Navegação -->
-    <string name="generic_next">Avançar</string>
-
-    <!-- Validação geral -->
-    <string name="calc_validate_step">Preencha os campos obrigatórios desta etapa.</string>
-    <string name="cont_btn_avancar">Avançar para próxima etapa</string>
-    <string name="cont_btn_back">Voltar para etapa anterior</string>
-    <string name="cont_btn_calcular">Calcular materiais</string>
-    <string name="helper_junta_piso_ceramico">Em milímetros • Recomendado: 5mm</string>
-    <string name="helper_junta_piso_porcelanato">Em milímetros • Recomendado: 2mm</string>
-    <string name="helper_junta_azulejo">Em milímetros • Recomendado: 5mm</string>
-    <string name="helper_junta_pedra_portuguesa">Em milímetros • Recomendado: 4mm</string>
-    <string name="helper_junta_marmore_granito">Em milímetros • Recomendado: 2,5mm</string>
-    <string name="helper_junta_piso_intertravado">Em milímetros • Recomendado: 4mm</string>
-    <string name="valor_sobra_minima">10</string>
 
 </resources>

@@ -1008,7 +1008,7 @@ class CalcRevestimentoFragment : Fragment() {
             isIntertravado() -> getD(etPecaEsp)?.times(10)
             else -> mToMmIfLooksLikeMeters(getD(etPecaEsp))
         }
-        val junta = mToMmIfLooksLikeMeters(getD(etJunta))
+        val junta = getD(etJunta)
         val sobra = getD(etSobra)
         val ppc = etPecasPorCaixa.text?.toString()?.toIntOrNull()
         viewModel.setPecaParametros(pc, pl, esp, junta, sobra, ppc)
@@ -1113,10 +1113,16 @@ class CalcRevestimentoFragment : Fragment() {
 
         // ----- Etapa 4 (Medidas / Área total) -----
         if (enabled && step >= 4) {
-            enabled =
+            val areaTxt = etAreaInformada.text
+            val hasAreaTotalPreenchida = !areaTxt.isNullOrBlank()
+
+            enabled = if (hasAreaTotalPreenchida) { // "Área total" está preenchida, ela domina
+                !validator.hasAreaTotalErrorNow(etAreaInformada)
+            } else {
                 !validator.hasAreaTotalErrorNow(etAreaInformada) &&
                         tilParedeQtd.error.isNullOrEmpty() &&
                         tilAbertura.error.isNullOrEmpty()
+            }
         }
 
         // ----- Etapa 5 (Peça: junta, espessura, ppc, desnível, sobra) -----
@@ -1451,7 +1457,7 @@ class CalcRevestimentoFragment : Fragment() {
     private fun getD(et: TextInputEditText) =
         et.text?.toString()?.replace(",", ".")?.toDoubleOrNull()
 
-    private fun juntaValueMm() = mToMmIfLooksLikeMeters(getD(binding.etJunta))
+    private fun juntaValueMm() = getD(binding.etJunta)
 
     private fun toast(msg: String) =
         Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()

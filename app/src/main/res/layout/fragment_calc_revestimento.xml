@@ -208,7 +208,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
-                            android:text="@string/calc_step1_placa_tipo"
+                            android:text="@string/calc_step1_piso_tipo"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textStyle="bold" />
 
@@ -224,14 +224,14 @@
                                 android:id="@+id/rbCeramica"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/calc_step4_placa_ceramica" />
+                                android:text="@string/calc_step1_piso_ceramica" />
 
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/rbPorcelanato"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="16dp"
-                                android:text="@string/calc_step4_placa_porcelanato" />
+                                android:text="@string/calc_step1_piso_porcelanato" />
                         </RadioGroup>
                     </LinearLayout>
                 </LinearLayout>
@@ -772,7 +772,7 @@
                             android:id="@+id/tilPecaComp"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="@string/calc_step4_peca_comp"
+                            android:hint="@string/calc_step4_peca_comp_cm"
                             app:helperText="Em centímetros • Ex: 30"
                             app:helperTextEnabled="true">
 
@@ -789,7 +789,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:hint="@string/calc_step4_peca_larg"
+                            android:hint="@string/calc_step4_peca_larg_cm"
                             app:helperText="Em centímetros • Ex: 30"
                             app:helperTextEnabled="true">
 
@@ -824,7 +824,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:hint="@string/calc_step4_junta"
-                            app:helperText="Em milímetros • Ex: 3"
+                            app:helperText="@string/calc_step4_junta_helper_default"
                             app:helperTextEnabled="true">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -841,7 +841,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:hint="@string/calc_step4_pecas_caixa"
-                            app:helperText="Opcional • Ex: 4 peças"
+                            app:helperText="@string/calc_step4_pecas_caixa_helper"
                             app:helperTextEnabled="true">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -857,7 +857,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:hint="@string/calc_step4_desnivel_label"
+                        android:hint="@string/calc_step4_desnivel"
                         android:visibility="gone"
                         app:helperTextEnabled="true"
                         tools:visibility="visible">

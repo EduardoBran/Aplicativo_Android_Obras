@@ -93,7 +93,7 @@ class FieldValidator(
                     max = pecaRules.MG_PAREDE_ESP_MAX_MM,
                     errorMsgRes = R.string.calc_err_esp_range_mg_parede,
                     required = true,
-                    requiredMsgRes = R.string.calc_err_esp_mg_required
+                    requiredMsgRes = R.string.calc_err_esp_required
                 )
 
             isMG && aplic == AplicacaoType.PISO ->
@@ -102,7 +102,7 @@ class FieldValidator(
                     max = pecaRules.MG_PISO_ESP_MAX_MM,
                     errorMsgRes = R.string.calc_err_esp_range_mg_piso,
                     required = true,
-                    requiredMsgRes = R.string.calc_err_esp_mg_required
+                    requiredMsgRes = R.string.calc_err_esp_required
                 )
             // Demais revestimentos (Piso, Azulejo, Pedra, etc.) – agora obrigatórios
             else ->
@@ -253,7 +253,7 @@ class FieldValidator(
                     max = desnivelRules.PEDRA_MAX_CM,
                     errorMsgRes = R.string.calc_err_desnivel_pedra_range,
                     required = true,
-                    requiredMsgRes = R.string.calc_err_desnivel_pedra_required
+                    requiredMsgRes = R.string.calc_err_desnivel_required
                 )
 
             RevestimentoType.MARMORE,
@@ -263,7 +263,7 @@ class FieldValidator(
                     max = desnivelRules.MG_MAX_CM,
                     errorMsgRes = R.string.calc_err_desnivel_mg_range,
                     required = true,
-                    requiredMsgRes = R.string.calc_err_desnivel_mg_required
+                    requiredMsgRes = R.string.calc_err_desnivel_required
                 )
 
             else -> null
@@ -354,7 +354,7 @@ class FieldValidator(
     ) {
         val hasErr = hasPecasPorCaixaErrorNow(et)
         val msg =
-            if (hasErr) getString(R.string.calc_err_ppc_range) else null
+            if (hasErr) getString(R.string.calc_err_pecas_caixa_range) else null
         setInlineError(et, til, msg)
     }
 
@@ -425,7 +425,7 @@ class FieldValidator(
 
             val msg = when {
                 ok -> null
-                isMG -> getString(R.string.calc_piece_err_mg)
+                isMG -> getString(R.string.calc_piece_err_m)
                 else -> getString(R.string.calc_piece_err_cm)
             }
             setInlineError(et, til, msg)
@@ -558,7 +558,7 @@ class FieldValidator(
             abertura == null || abertura < 0.0 ->
                 getString(R.string.calc_err_abertura_maior_area)
 
-            areaBruta != null && abertura > areaBruta ->
+            areaBruta != null && abertura >= areaBruta ->
                 getString(R.string.calc_err_abertura_maior_area)
 
             else -> null
@@ -604,7 +604,7 @@ class FieldValidator(
 
         val msg = when {
             inRange -> null
-            isMG -> getString(R.string.calc_piece_err_mg)
+            isMG -> getString(R.string.calc_piece_err_m)
             else -> getString(R.string.calc_piece_err_cm)
         }
         setInlineError(et, til, msg)
@@ -640,7 +640,7 @@ class FieldValidator(
     ) {
         if (etSobra.text.isNullOrBlank()) {
             // Restaura automaticamente 10%
-            etSobra.setText(getString(R.string.valor_sobra_minima))
+            etSobra.setText(getString(R.string.valor_default_sobra))
             setInlineError(etSobra, tilSobra, null)
             return
         }
@@ -783,21 +783,14 @@ class FieldValidator(
         // Espessura
         if (i.revest == RevestimentoType.PISO_INTERTRAVADO) {
             // Continua em centímetros para intertravado
-            tilPecaEsp.hint = getString(R.string.calc_step4_peca_esp_intertravado_hint)
+            tilPecaEsp.hint = getString(R.string.calc_step4_peca_esp_intertravado)
             tilPecaEsp.setHelperTextSafely(
                 getString(R.string.calc_step4_peca_esp_intertravado_helper)
             )
         } else {
             // Demais revestimentos: helper fixo em milímetros, usando SEMPRE o valor padrão
-            tilPecaEsp.hint = getString(
-                if (mg) R.string.calc_step4_peca_esp_mg_hint
-                else R.string.calc_step4_peca_esp
-            )
-
-            val template = if (mg)
-                getString(R.string.calc_step4_peca_esp_mg_helper_with_default)
-            else
-                getString(R.string.calc_step4_peca_esp_helper_with_default)
+            tilPecaEsp.hint = getString(R.string.calc_step4_peca_esp)
+            val template = getString(R.string.calc_step4_piece_esp_helper_with_default)
 
             val helper = String.format(
                 template,
@@ -818,14 +811,14 @@ class FieldValidator(
             else -> {
                 tilJunta.setHelperTextSafely(getString(R.string.calc_step4_junta_helper_default))
                 tilPecaComp.hint =
-                    getString(if (mg) R.string.calc_step4_peca_comp_m else R.string.calc_step4_peca_comp)
+                    getString(if (mg) R.string.calc_step4_peca_comp_m else R.string.calc_step4_peca_comp_cm)
                 tilPecaLarg.hint =
-                    getString(if (mg) R.string.calc_step4_peca_larg_m else R.string.calc_step4_peca_larg)
+                    getString(if (mg) R.string.calc_step4_peca_larg_m else R.string.calc_step4_peca_larg_cm)
                 tilPecaComp.setHelperTextSafely(
-                    getString(if (mg) R.string.calc_piece_helper_mg else R.string.calc_piece_helper_cm)
+                    getString(if (mg) R.string.calc_piece_helper_m else R.string.calc_piece_helper_cm)
                 )
                 tilPecaLarg.setHelperTextSafely(
-                    getString(if (mg) R.string.calc_piece_helper_mg else R.string.calc_piece_helper_cm)
+                    getString(if (mg) R.string.calc_piece_helper_m else R.string.calc_piece_helper_cm)
                 )
             }
         }
@@ -858,10 +851,9 @@ class FieldValidator(
 
             RevestimentoType.PASTILHA -> getString(R.string.calc_pastilha_junta_helper)
             RevestimentoType.AZULEJO -> getString(R.string.helper_junta_azulejo)
-            RevestimentoType.PEDRA -> getString(R.string.helper_junta_pedra_portuguesa)
+            RevestimentoType.PEDRA -> getString(R.string.calc_step4_junta_helper_default)
             RevestimentoType.MARMORE,
             RevestimentoType.GRANITO -> getString(R.string.helper_junta_marmore_granito)
-
             RevestimentoType.PISO_INTERTRAVADO -> getString(R.string.helper_junta_piso_intertravado)
             else -> null
         }
