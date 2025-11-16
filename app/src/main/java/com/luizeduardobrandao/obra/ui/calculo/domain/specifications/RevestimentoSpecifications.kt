@@ -1,11 +1,20 @@
 package com.luizeduardobrandao.obra.ui.calculo.domain.specifications
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
+import com.luizeduardobrandao.obra.ui.calculo.domain.rules.CalcRevestimentoRules
 
 /**
  * Especificações técnicas de revestimentos (espessura, junta, formatos)
  */
 object RevestimentoSpecifications {
+
+    // Atalhos para regras numéricas
+    private val PecaRules = CalcRevestimentoRules.Peca
+    private val MGRules = CalcRevestimentoRules.MarmoreGranito
+    private val PisoRules = CalcRevestimentoRules.Piso
+    private val PedraRules = CalcRevestimentoRules.Pedra
+    private val JuntaPadrao = CalcRevestimentoRules.JuntaPadrao
+    private val InterRules = CalcRevestimentoRules.Intertravado
 
     // Formatos suportados para pastilha
     enum class PastilhaFormato(
@@ -13,9 +22,9 @@ object RevestimentoSpecifications {
         val mantaLadoCm: Double,
         val espMmPadrao: Double
     ) {
-        P5(5.0, 32.5, 5.0),
-        P7_5(7.5, 31.5, 6.0),
-        P10(10.0, 31.0, 6.0)
+        P5(5.0, 32.5, PecaRules.PASTILHA_ESP_P5_MM),
+        P7_5(7.5, 31.5, PecaRules.PASTILHA_ESP_P7_5_MM),
+        P10(10.0, 31.0, PecaRules.PASTILHA_ESP_P10_MM)
     }
 
     /**
@@ -24,14 +33,17 @@ object RevestimentoSpecifications {
     fun getEspessuraPadraoMm(inputs: Inputs): Double {
         return when (inputs.revest) {
             RevestimentoType.PASTILHA -> when (inputs.pastilhaFormato) {
-                PastilhaFormato.P5 -> 5.0
-                PastilhaFormato.P7_5, PastilhaFormato.P10 -> 6.0
-                null -> 5.0
+                PastilhaFormato.P5 -> PecaRules.PASTILHA_ESP_P5_MM
+                PastilhaFormato.P7_5 -> PecaRules.PASTILHA_ESP_P7_5_MM
+                PastilhaFormato.P10 -> PecaRules.PASTILHA_ESP_P10_MM
+                null -> PecaRules.PASTILHA_ESP_P5_MM
             }
 
-            RevestimentoType.PEDRA -> 20.0
+            RevestimentoType.PEDRA ->
+                PedraRules.ESP_PADRAO_MM
 
-            RevestimentoType.PISO_INTERTRAVADO -> 60.0
+            RevestimentoType.PISO_INTERTRAVADO ->
+                InterRules.ESP_PADRAO_MM
 
             RevestimentoType.MARMORE,
             RevestimentoType.GRANITO -> {
@@ -40,29 +52,31 @@ object RevestimentoSpecifications {
 
                 when {
                     // Fallback neutro enquanto ainda não escolheu tudo
-                    amb == null || aplic == null -> 20.0
+                    amb == null || aplic == null -> MGRules.ESP_FALLBACK_MM
 
                     // Piso
-                    aplic == AplicacaoType.PISO && (amb == AmbienteType.SECO || amb == AmbienteType.SEMI) ->
-                        18.0
+                    aplic == AplicacaoType.PISO &&
+                            (amb == AmbienteType.SECO || amb == AmbienteType.SEMI) ->
+                        MGRules.ESP_PISO_SECO_SEMI_MM
 
                     aplic == AplicacaoType.PISO && amb == AmbienteType.MOLHADO ->
-                        20.0
+                        MGRules.ESP_PISO_MOLHADO_MM
 
                     aplic == AplicacaoType.PISO && amb == AmbienteType.SEMPRE ->
-                        22.0
+                        MGRules.ESP_PISO_SEMPRE_MM
 
                     // Parede
-                    aplic == AplicacaoType.PAREDE && (amb == AmbienteType.SECO || amb == AmbienteType.SEMI) ->
-                        15.0
+                    aplic == AplicacaoType.PAREDE &&
+                            (amb == AmbienteType.SECO || amb == AmbienteType.SEMI) ->
+                        MGRules.ESP_PAREDE_SECO_SEMI_MM
 
                     aplic == AplicacaoType.PAREDE && amb == AmbienteType.MOLHADO ->
-                        18.0
+                        MGRules.ESP_PAREDE_MOLHADO_MM
 
                     aplic == AplicacaoType.PAREDE && amb == AmbienteType.SEMPRE ->
-                        22.0
+                        MGRules.ESP_PAREDE_SEMPRE_MM
 
-                    else -> 20.0
+                    else -> MGRules.ESP_FALLBACK_MM
                 }
             }
 
@@ -71,14 +85,21 @@ object RevestimentoSpecifications {
                     val maxLado =
                         kotlin.math.max(inputs.pecaCompCm ?: 0.0, inputs.pecaLargCm ?: 0.0)
                     when {
-                        maxLado >= 90.0 -> 12.0
-                        maxLado >= 60.0 -> 10.0
-                        else -> 10.0
+                        maxLado >= PisoRules.PORCELANATO_LADO_GRANDE_CM ->
+                            PisoRules.PORCELANATO_ESP_GRANDE_MM
+
+                        maxLado >= PisoRules.PORCELANATO_LADO_MEDIO_CM ->
+                            PisoRules.PORCELANATO_ESP_DEFAULT_MM
+
+                        else ->
+                            PisoRules.PORCELANATO_ESP_DEFAULT_MM
                     }
-                } else 8.0
+                } else {
+                    PisoRules.CERAMICO_ESP_DEFAULT_MM
+                }
             }
 
-            else -> 8.0
+            else -> PisoRules.ESP_DEFAULT_OUTROS_MM
         }
     }
 
@@ -87,16 +108,23 @@ object RevestimentoSpecifications {
      */
     fun getJuntaPadraoMm(inputs: Inputs): Double {
         return when (inputs.revest) {
-            RevestimentoType.PASTILHA -> 3.0
-            RevestimentoType.PEDRA -> 4.0
-            RevestimentoType.MARMORE, RevestimentoType.GRANITO -> 2.5
-            RevestimentoType.PISO_INTERTRAVADO -> 4.0
+            RevestimentoType.PASTILHA -> JuntaPadrao.PASTILHA_MM
+            RevestimentoType.PEDRA -> JuntaPadrao.PEDRA_MM
+
+            RevestimentoType.MARMORE,
+            RevestimentoType.GRANITO -> JuntaPadrao.MG_MM
+
+            RevestimentoType.PISO_INTERTRAVADO -> JuntaPadrao.INTERTRAVADO_MM
+
             RevestimentoType.PISO -> {
-                if (inputs.pisoPlacaTipo == PlacaTipo.PORCELANATO) 2.0 else 5.0
+                if (inputs.pisoPlacaTipo == PlacaTipo.PORCELANATO)
+                    JuntaPadrao.PISO_PORCELANATO_MM
+                else
+                    JuntaPadrao.PISO_CERAMICO_MM
             }
 
-            RevestimentoType.AZULEJO -> 5.0
-            else -> 3.0
+            RevestimentoType.AZULEJO -> JuntaPadrao.AZULEJO_MM
+            else -> JuntaPadrao.GENERICO_MM
         }
     }
 

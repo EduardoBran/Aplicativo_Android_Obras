@@ -3,6 +3,7 @@ package com.luizeduardobrandao.obra.ui.calculo.domain.utils
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
 import com.luizeduardobrandao.obra.ui.calculo.domain.calculators.AreaCalculator
 import com.luizeduardobrandao.obra.ui.calculo.domain.calculators.RodapeCalculator
+import com.luizeduardobrandao.obra.ui.calculo.domain.rules.CalcRevestimentoRules
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
 
 /**
@@ -10,14 +11,22 @@ import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.Revestimento
  */
 object ValidationHelper {
 
+    // Atalhos para regras
+    private val Medidas = CalcRevestimentoRules.Medidas
+    private val PecaRules = CalcRevestimentoRules.Peca
+    private val RodapeRules = CalcRevestimentoRules.Rodape
+    private val InterRules = CalcRevestimentoRules.Intertravado
+
     /**
      * Valida seleção de revestimento (Step 1)
      */
     fun validateStep1(inputs: Inputs): StepValidation {
         return when {
-            inputs.revest == null -> StepValidation(false, "Selecione o tipo de revestimento")
+            inputs.revest == null ->
+                StepValidation(false)
+
             inputs.revest == RevestimentoType.PISO && inputs.pisoPlacaTipo == null ->
-                StepValidation(false, "Para piso, selecione cerâmica ou porcelanato")
+                StepValidation(false)
 
             else -> StepValidation(true)
         }
@@ -28,7 +37,7 @@ object ValidationHelper {
      */
     fun validateStep2(inputs: Inputs): StepValidation {
         return if (inputs.ambiente == null)
-            StepValidation(false, "Selecione o tipo de ambiente")
+            StepValidation(false)
         else
             StepValidation(true)
     }
@@ -39,7 +48,7 @@ object ValidationHelper {
     fun validateStepTrafego(inputs: Inputs): StepValidation {
         return if (inputs.revest == RevestimentoType.PISO_INTERTRAVADO) {
             if (inputs.trafego == null)
-                StepValidation(false, "Selecione o tipo de tráfego")
+                StepValidation(false)
             else
                 StepValidation(true)
         } else {
@@ -54,8 +63,12 @@ object ValidationHelper {
         // Área total informada
         inputs.areaInformadaM2?.let { area ->
             return when {
-                area < 0.01 -> StepValidation(false, "Área muito pequena (mínimo 0,01 m²)")
-                area > 50000.0 -> StepValidation(false, "Área muito grande (máximo 50.000 m²)")
+                area < Medidas.AREA_TOTAL_MIN_M2 ->
+                    StepValidation(false)
+
+                area > Medidas.AREA_TOTAL_MAX_M2 ->
+                    StepValidation(false)
+
                 else -> StepValidation(true)
             }
         }
@@ -63,7 +76,8 @@ object ValidationHelper {
         val isParedeMode =
             inputs.revest == RevestimentoType.AZULEJO ||
                     inputs.revest == RevestimentoType.PASTILHA ||
-                    ((inputs.revest == RevestimentoType.MARMORE || inputs.revest == RevestimentoType.GRANITO) &&
+                    ((inputs.revest == RevestimentoType.MARMORE ||
+                            inputs.revest == RevestimentoType.GRANITO) &&
                             inputs.aplicacao == AplicacaoType.PAREDE)
 
         if (isParedeMode) {
@@ -72,41 +86,35 @@ object ValidationHelper {
             val paredes = inputs.paredeQtd
 
             if (c == null || h == null || paredes == null) {
-                return StepValidation(
-                    false,
-                    "Preencha comprimento, altura e quantidade de paredes\nou informe a área total"
-                )
+                return StepValidation(false)
             }
 
-            if (paredes !in 1..20) {
-                return StepValidation(false, "Quantidade de paredes deve ser entre 1 e 20")
+            if (paredes !in Medidas.PAREDE_QTD_MIN..Medidas.PAREDE_QTD_MAX) {
+                return StepValidation(false)
             }
 
             val areaBruta = c * h * paredes
             if (areaBruta <= 0.0) {
-                return StepValidation(false, "Área muito pequena (mínimo 0,01 m²)")
+                return StepValidation(false)
             }
 
             val abertura = inputs.aberturaM2
             if (abertura != null) {
-                if (abertura < 0.0) {
-                    return StepValidation(false, "Abertura não pode ser negativa")
+                if (abertura < Medidas.ABERTURA_MIN_M2) {
+                    return StepValidation(false)
                 }
                 if (abertura > areaBruta) {
-                    return StepValidation(
-                        false,
-                        "A abertura não pode ser maior que a área total das paredes"
-                    )
+                    return StepValidation(false)
                 }
             }
 
             val areaLiquida = areaBruta - (abertura ?: 0.0)
             return when {
-                areaLiquida < 0.01 -> StepValidation(false, "Área muito pequena (mínimo 0,01 m²)")
-                areaLiquida > 50000.0 -> StepValidation(
-                    false,
-                    "Área muito grande (máximo 50.000 m²)"
-                )
+                areaLiquida < Medidas.AREA_TOTAL_MIN_M2 ->
+                    StepValidation(false)
+
+                areaLiquida > Medidas.AREA_TOTAL_MAX_M2 ->
+                    StepValidation(false)
 
                 else -> StepValidation(true)
             }
@@ -116,10 +124,14 @@ object ValidationHelper {
         val area = AreaCalculator.areaBaseM2(inputs)
         return when {
             area == null ->
-                StepValidation(false, "Preencha comprimento e largura\nou informe a área total")
+                StepValidation(false)
 
-            area < 0.01 -> StepValidation(false, "Área muito pequena (mínimo 0,01 m²)")
-            area > 50000.0 -> StepValidation(false, "Área muito grande (máximo 50.000 m²)")
+            area < Medidas.AREA_TOTAL_MIN_M2 ->
+                StepValidation(false)
+
+            area > Medidas.AREA_TOTAL_MAX_M2 ->
+                StepValidation(false)
+
             else -> StepValidation(true)
         }
     }
@@ -143,10 +155,12 @@ object ValidationHelper {
         if (!inputs.rodapeEnable) return StepValidation(true)
 
         val altura = inputs.rodapeAlturaCm
-        when {
-            altura == null -> return StepValidation(false, "Informe a altura do rodapé")
-            altura < 3.0 -> return StepValidation(false, "Rodapé muito baixo (mínimo 3 cm)")
-            altura > 30.0 -> return StepValidation(false, "Rodapé muito alto (máximo 30 cm)")
+        when (altura) {
+            null ->
+                return StepValidation(false)
+
+            !in RodapeRules.ALTURA_RANGE_CM ->
+                return StepValidation(false)
         }
 
         if (inputs.rodapeMaterial == RodapeMaterial.PECA_PRONTA) {
@@ -154,16 +168,16 @@ object ValidationHelper {
             val compCm = compM?.times(100.0)
 
             return when (compCm) {
-                null -> StepValidation(false, "Informe o comprimento da peça pronta (cm)")
-                !in 5.0..300.0 -> StepValidation(
-                    false,
-                    "Comprimento da peça pronta deve ser entre 5 e 300 cm"
-                )
+                null ->
+                    StepValidation(false)
+
+                !in RodapeRules.COMP_COMERCIAL_RANGE_CM ->
+                    StepValidation(false)
 
                 else -> {
                     val per = RodapeCalculator.rodapePerimetroM(inputs)
                     if (per == null || per <= 0.0)
-                        StepValidation(false, "Perímetro do rodapé inválido")
+                        StepValidation(false)
                     else
                         StepValidation(true)
                 }
@@ -172,7 +186,7 @@ object ValidationHelper {
 
         val per = RodapeCalculator.rodapePerimetroM(inputs)
         return if (per == null || per <= 0.0)
-            StepValidation(false, "Perímetro do rodapé inválido")
+            StepValidation(false)
         else
             StepValidation(true)
     }
@@ -187,7 +201,7 @@ object ValidationHelper {
             inputs.impermeabilizacaoOn
         ) {
             return if (inputs.impIntertravadoTipo == null)
-                StepValidation(false, "Selecione o tipo de impermeabilização")
+                StepValidation(false)
             else
                 StepValidation(true)
         }
@@ -198,42 +212,53 @@ object ValidationHelper {
 
     private fun validatePastilha(inputs: Inputs): StepValidation {
         if (inputs.pastilhaFormato == null) {
-            return StepValidation(false, "Selecione o tamanho da pastilha")
+            return StepValidation(false)
         }
 
         inputs.juntaMm?.let { junta ->
-            if (junta < 1.0) {
-                return StepValidation(false, "Junta muito fina (mínimo 1 mm)")
+            if (junta < PecaRules.PASTILHA_JUNTA_MIN_MM) {
+                return StepValidation(false)
             }
-            if (junta > 5.0) {
-                return StepValidation(false, "Junta muito larga (máximo 5 mm)")
+            if (junta > PecaRules.PASTILHA_JUNTA_MAX_MM) {
+                return StepValidation(false)
             }
         }
 
-        val sobra = inputs.sobraPct ?: 10.0
-        if (sobra !in 0.0..50.0) {
-            return StepValidation(false, "Sobra técnica deve ser entre 0% e 50%")
+        val sobra = inputs.sobraPct ?: PecaRules.SOBRA_DEFAULT_PCT
+        if (sobra !in PecaRules.SOBRA_RANGE_PCT) {
+            return StepValidation(false)
         }
 
         return StepValidation(true)
     }
 
     private fun validatePedra(inputs: Inputs): StepValidation {
-        if (inputs.revest == RevestimentoType.MARMORE || inputs.revest == RevestimentoType.GRANITO) {
-            val okComp = inputs.pecaCompCm == null || inputs.pecaCompCm in 10.0..2000.1
-            val okLarg = inputs.pecaLargCm == null || inputs.pecaLargCm in 10.0..2000.1
+        if (inputs.revest == RevestimentoType.MARMORE ||
+            inputs.revest == RevestimentoType.GRANITO
+        ) {
+            val okComp = inputs.pecaCompCm == null ||
+                    inputs.pecaCompCm in PecaRules.MG_RANGE_CM
+            val okLarg = inputs.pecaLargCm == null ||
+                    inputs.pecaLargCm in PecaRules.MG_RANGE_CM
+
             if (!okComp || !okLarg) {
-                return StepValidation(false, "Peça fora do limite (0,10 a 20,00 m)")
+                return StepValidation(false)
             }
         }
 
-        val juntaUsada = inputs.juntaMm ?: RevestimentoSpecifications.getJuntaPadraoMm(inputs)
+        val juntaUsada = inputs.juntaMm
+            ?: RevestimentoSpecifications.getJuntaPadraoMm(inputs)
 
         return when {
-            juntaUsada < 0.5 -> StepValidation(false, "Junta muito fina (mínimo 0,5 mm)")
-            juntaUsada > 20.0 -> StepValidation(false, "Junta muito larga (máximo 20 mm)")
-            inputs.sobraPct != null && inputs.sobraPct !in 0.0..50.0 ->
-                StepValidation(false, "Sobra técnica deve ser entre 0% e 50%")
+            juntaUsada < PecaRules.JUNTA_MIN_MM ->
+                StepValidation(false)
+
+            juntaUsada > PecaRules.JUNTA_MAX_MM ->
+                StepValidation(false)
+
+            inputs.sobraPct != null &&
+                    inputs.sobraPct !in PecaRules.SOBRA_RANGE_PCT ->
+                StepValidation(false)
 
             else -> StepValidation(true)
         }
@@ -242,19 +267,21 @@ object ValidationHelper {
     private fun validateRevestimentoPadrao(inputs: Inputs): StepValidation {
         return when {
             inputs.pecaCompCm == null || inputs.pecaLargCm == null ->
-                StepValidation(false, "Informe o tamanho da peça (comprimento × largura)")
+                StepValidation(false)
 
-            inputs.pecaCompCm < 5.0 || inputs.pecaLargCm < 5.0 ->
-                StepValidation(false, "Peça muito pequena (mínimo 5 cm)")
+            inputs.pecaCompCm !in PecaRules.GENERIC_RANGE_CM ||
+                    inputs.pecaLargCm !in PecaRules.GENERIC_RANGE_CM ->
+                StepValidation(false)
 
-            inputs.pecaCompCm > 200.0 || inputs.pecaLargCm > 200.0 ->
-                StepValidation(false, "Peça muito grande (máximo 200 cm)")
+            inputs.juntaMm == null ->
+                StepValidation(false)
 
-            inputs.juntaMm == null -> StepValidation(false, "Informe a largura da junta")
-            inputs.juntaMm < 0.5 -> StepValidation(false, "Junta muito fina (mínimo 0,5 mm)")
-            inputs.juntaMm > 20.0 -> StepValidation(false, "Junta muito larga (máximo 20 mm)")
-            inputs.sobraPct != null && inputs.sobraPct !in 0.0..50.0 ->
-                StepValidation(false, "Sobra técnica deve ser entre 0% e 50%")
+            inputs.juntaMm !in PecaRules.JUNTA_RANGE_MM ->
+                StepValidation(false)
+
+            inputs.sobraPct != null &&
+                    inputs.sobraPct !in PecaRules.SOBRA_RANGE_PCT ->
+                StepValidation(false)
 
             else -> StepValidation(true)
         }
@@ -268,16 +295,17 @@ object ValidationHelper {
 
         return when {
             comp == null || larg == null || esp == null || sobra == null ->
-                StepValidation(false, "Preencha tamanho, largura, espessura e sobra técnica")
+                StepValidation(false)
 
-            comp !in 5.0..200.0 || larg !in 5.0..200.0 ->
-                StepValidation(false, "Dimensões da peça inválidas")
+            comp !in InterRules.PECA_RANGE_CM ||
+                    larg !in InterRules.PECA_RANGE_CM ->
+                StepValidation(false)
 
-            esp !in 40.0..120.0 ->
-                StepValidation(false, "Espessura do piso intertravado deve ficar entre 4 e 12 cm")
+            esp !in PecaRules.INTERTRAVADO_ESP_RANGE_MM ->
+                StepValidation(false)
 
-            sobra !in 0.0..50.0 ->
-                StepValidation(false, "Sobra técnica deve ser entre 0% e 50%")
+            sobra !in InterRules.SOBRA_RANGE_PCT ->
+                StepValidation(false)
 
             else -> StepValidation(true)
         }

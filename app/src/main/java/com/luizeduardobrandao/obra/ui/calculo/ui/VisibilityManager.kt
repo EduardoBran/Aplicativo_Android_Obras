@@ -252,9 +252,10 @@ class VisibilityManager {
             tilPecaEsp.error = null
         }
 
-        // Junta: oculta para Piso Intertravado, visível para demais (se grupo peça visível)
-        if (isIntertravado) {
-            tilJunta.isVisible = false
+        // Junta: oculta para Piso Intertravado, visível para demais
+        val showJunta = !isIntertravado
+        tilJunta.isVisible = showJunta
+        if (!showJunta) {
             etJunta.text?.clear()
             tilJunta.error = null
         }

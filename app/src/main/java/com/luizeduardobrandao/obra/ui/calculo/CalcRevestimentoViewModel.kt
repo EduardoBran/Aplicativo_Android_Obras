@@ -3,6 +3,7 @@ package com.luizeduardobrandao.obra.ui.calculo
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.luizeduardobrandao.obra.data.model.UiState
+import com.luizeduardobrandao.obra.ui.calculo.domain.rules.CalcRevestimentoRules
 import com.luizeduardobrandao.obra.ui.calculo.domain.calculators.*
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.*
 import com.luizeduardobrandao.obra.ui.calculo.domain.utils.ValidationHelper
@@ -117,7 +118,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         var newInputs = cur.copy(
             revest = type,
             pisoPlacaTipo = novoPlacaTipo,
-            sobraPct = 10.0,
+            sobraPct = CalcRevestimentoRules.Peca.SOBRA_DEFAULT_PCT,
             aplicacao = when (type) {
                 RevestimentoType.AZULEJO,
                 RevestimentoType.PASTILHA -> AplicacaoType.PAREDE
@@ -152,42 +153,61 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     }
 
     fun setAplicacao(aplicacao: AplicacaoType?) = viewModelScope.launch {
-        var i = _inputs.value.copy(aplicacao = aplicacao)
+        val cur = _inputs.value
+        var updated = cur.copy(aplicacao = aplicacao)
 
-        i = when (aplicacao) {
+        updated = when (aplicacao) {
             AplicacaoType.PISO -> {
-                i.copy(altM = null, paredeQtd = null, aberturaM2 = null)
+                updated.copy(altM = null, paredeQtd = null, aberturaM2 = null)
             }
 
             AplicacaoType.PAREDE -> {
-                i.copy(largM = null)
+                updated.copy(largM = null)
             }
 
             null -> {
-                i.copy(paredeQtd = null, aberturaM2 = null)
+                updated.copy(paredeQtd = null, aberturaM2 = null)
             }
         }
 
         // Se neste cenário não existe etapa de rodapé, limpa o estado de rodapé
-        if (!RevestimentoSpecifications.hasRodapeStep(i)) {
-            i = i.copy(
+        if (!RevestimentoSpecifications.hasRodapeStep(updated)) {
+            updated = updated.copy(
                 rodapeEnable = false, rodapeAlturaCm = null, rodapePerimetroManualM = null,
                 rodapeDescontarVaoM = 0.0, rodapePerimetroAuto = true,
                 rodapeMaterial = RodapeMaterial.MESMA_PECA,
-                rodapeOrientacaoMaior = true,
-                rodapeCompComercialM = null
+                rodapeOrientacaoMaior = true, rodapeCompComercialM = null
             )
         }
 
-        _inputs.value = i
+        // Lida com espessura automática de Mármore/Granito ao mudar a aplicação
+        if (cur.revest == RevestimentoType.MARMORE || cur.revest == RevestimentoType.GRANITO) {
+            val oldDefaultEsp = RevestimentoSpecifications.getEspessuraPadraoMm(cur)
+            val currentEsp = cur.pecaEspMm
+            val isEspAuto = currentEsp == null || currentEsp == oldDefaultEsp
+
+            // Se era automático, "zera" para recalcular com o novo contexto
+            if (isEspAuto) {
+                updated = updated.copy(pecaEspMm = null)
+            }
+
+            // Garante que, se continuar sendo automático, receba o novo default
+            updated = ensureDefaultMgEspessuraAfterChange(cur, updated)
+        }
+
+        _inputs.value = updated
     }
 
     fun setParedeQtd(qtd: Int?) = viewModelScope.launch {
-        _inputs.value = _inputs.value.copy(paredeQtd = qtd?.takeIf { it in 1..20 })
+        val range =
+            CalcRevestimentoRules.Medidas.PAREDE_QTD_MIN..CalcRevestimentoRules.Medidas.PAREDE_QTD_MAX
+        _inputs.value = _inputs.value.copy(paredeQtd = qtd?.takeIf { it in range })
     }
 
     fun setAberturaM2(area: Double?) = viewModelScope.launch {
-        _inputs.value = _inputs.value.copy(aberturaM2 = area?.takeIf { it >= 0.0 })
+        _inputs.value = _inputs.value.copy(
+            aberturaM2 = area?.takeIf { it >= CalcRevestimentoRules.Medidas.ABERTURA_MIN_M2 }
+        )
     }
 
     fun setPlacaTipo(placa: PlacaTipo?) = viewModelScope.launch {
@@ -284,13 +304,17 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             val oldDefaultEsp = RevestimentoSpecifications.getEspessuraPadraoMm(cur)
             val currentEsp = cur.pecaEspMm
 
-            // Consideramos "automático" se: ainda não tinha espessura OU spessura atual == default antigo
+            // Consideramos "automático" se: ainda não tinha espessura
+            // OU a espessura atual == default antigo
             val isEspAuto = currentEsp == null || currentEsp == oldDefaultEsp
             if (isEspAuto) {
-                updated =
-                    updated.copy(pecaEspMm = null) // Limpa o Fragment e recalcula com novo ambiente
+                updated = updated.copy(pecaEspMm = null)
             }
+
+            // Garante que, se continuar sendo automático, receba o novo default
+            updated = ensureDefaultMgEspessuraAfterChange(cur, updated)
         }
+
         _inputs.value = updated
     }
 
@@ -333,11 +357,12 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     fun setMedidas(compM: Double?, largM: Double?, altM: Double?, areaInformadaM2: Double?) =
         viewModelScope.launch {
+            val med = CalcRevestimentoRules.Medidas
             _inputs.value = _inputs.value.copy(
-                compM = compM?.takeIf { it in 0.01..10000.0 },
-                largM = largM?.takeIf { it in 0.01..10000.0 },
-                altM = altM?.takeIf { it in 0.01..100.0 },
-                areaInformadaM2 = areaInformadaM2?.takeIf { it in 0.01..50000.0 }
+                compM = compM?.takeIf { it in med.COMP_LARG_RANGE_M },
+                largM = largM?.takeIf { it in med.COMP_LARG_RANGE_M },
+                altM = altM?.takeIf { it in med.ALTURA_RANGE_M },
+                areaInformadaM2 = areaInformadaM2?.takeIf { it in med.AREA_TOTAL_RANGE_M2 }
             )
         }
 
@@ -347,32 +372,46 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     ) = viewModelScope.launch {
         val cur = _inputs.value
 
+        // Pastilha: regras específicas
         if (cur.revest == RevestimentoType.PASTILHA) {
-            val juntaValida = juntaMm?.takeIf { it in 1.0..5.0 }
+            val juntaValida =
+                juntaMm?.takeIf { it in CalcRevestimentoRules.Peca.PASTILHA_JUNTA_RANGE_MM }
+
             _inputs.value = cur.copy(
                 juntaMm = juntaValida,
-                sobraPct = (sobraPct ?: cur.sobraPct ?: 10.0).takeIf { it in 0.0..50.0 }
+                sobraPct = (sobraPct
+                    ?: cur.sobraPct
+                    ?: CalcRevestimentoRules.Peca.SOBRA_DEFAULT_PCT
+                        ).takeIf { it in CalcRevestimentoRules.Peca.SOBRA_RANGE_PCT }
             )
             return@launch
         }
 
         val (minCm, maxCm) = when (cur.revest) {
-            RevestimentoType.MARMORE, RevestimentoType.GRANITO -> 10.0 to 2000.1
-            else -> 5.0 to 200.0
+            RevestimentoType.MARMORE,
+            RevestimentoType.GRANITO ->
+                CalcRevestimentoRules.Peca.MG_MIN_CM to CalcRevestimentoRules.Peca.MG_MAX_CM
+
+            else ->
+                CalcRevestimentoRules.Peca.GENERIC_MIN_CM to CalcRevestimentoRules.Peca.GENERIC_MAX_CM
         }
 
         val espFinal = when (cur.revest) {
-            RevestimentoType.PISO_INTERTRAVADO -> espMm?.takeIf { it in 40.0..120.0 }
-            else -> espMm?.takeIf { it in 3.0..30.0 }
+            RevestimentoType.PISO_INTERTRAVADO ->
+                espMm?.takeIf { it in CalcRevestimentoRules.Peca.INTERTRAVADO_ESP_RANGE_MM }
+
+            else ->
+                espMm?.takeIf { it in CalcRevestimentoRules.Peca.ESP_PADRAO_RANGE_MM }
         }
 
         _inputs.value = cur.copy(
             pecaCompCm = compCm?.takeIf { it in minCm..maxCm },
             pecaLargCm = largCm?.takeIf { it in minCm..maxCm },
             pecaEspMm = espFinal,
-            pecasPorCaixa = pecasPorCaixa?.takeIf { it in 1..50 },
-            juntaMm = juntaMm?.takeIf { it in 0.5..20.0 },
-            sobraPct = (sobraPct ?: 10.0).takeIf { it in 0.0..50.0 }
+            pecasPorCaixa = pecasPorCaixa?.takeIf { it in CalcRevestimentoRules.Peca.PPC_RANGE },
+            juntaMm = juntaMm?.takeIf { it in CalcRevestimentoRules.Peca.JUNTA_RANGE_MM },
+            sobraPct = (sobraPct ?: CalcRevestimentoRules.Peca.SOBRA_DEFAULT_PCT)
+                .takeIf { it in CalcRevestimentoRules.Peca.SOBRA_RANGE_PCT }
         )
     }
 
@@ -391,16 +430,18 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         orientacaoMaior: Boolean,
         compComercialM: Double?
     ) = viewModelScope.launch {
+        val rodape = CalcRevestimentoRules.Rodape
+
         _inputs.value = _inputs.value.copy(
             rodapeEnable = enable,
-            rodapeAlturaCm = alturaCm?.takeIf { it in 3.0..30.0 },
+            rodapeAlturaCm = alturaCm?.takeIf { it in rodape.ALTURA_RANGE_CM },
             rodapePerimetroManualM = perimetroManualM?.takeIf { it >= 0 },
             rodapeDescontarVaoM = max(0.0, descontarVaoM),
             rodapePerimetroAuto = perimetroAuto,
             rodapeMaterial = material,
             rodapeOrientacaoMaior = orientacaoMaior,
             rodapeCompComercialM = if (material == RodapeMaterial.PECA_PRONTA)
-                compComercialM?.takeIf { it in 0.05..3.0 }
+                compComercialM?.takeIf { it in rodape.COMP_COMERCIAL_RANGE_M }
             else null
         )
     }
@@ -503,7 +544,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             }
         }
 
-        _step.value = next.coerceAtMost(9)
+        _step.value = next.coerceAtMost(CalcRevestimentoRules.Steps.MAX)
     }
 
     fun prevStep() = viewModelScope.launch {
@@ -553,7 +594,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             }
         }
 
-        prev = prev.coerceAtLeast(0)
+        prev = prev.coerceAtLeast(CalcRevestimentoRules.Steps.MIN)
 
         if (prev == 0 || prev == 1) {
             resetAllInternal()
@@ -563,7 +604,10 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     }
 
     fun goTo(step: Int) = viewModelScope.launch {
-        _step.value = step.coerceIn(0, 9)
+        _step.value = step.coerceIn(
+            CalcRevestimentoRules.Steps.MIN,
+            CalcRevestimentoRules.Steps.MAX
+        )
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -589,9 +633,6 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     /* ═══════════════════════════════════════════════════════════════════════════
      * FUNÇÕES AUXILIARES PÚBLICAS
      * ═══════════════════════════════════════════════════════════════════════════ */
-
-    fun espessuraPadraoAtual(): Double =
-        RevestimentoSpecifications.getEspessuraPadraoMm(_inputs.value)
 
     fun getResumoRevisao(): String = buildString {
         val i = _inputs.value
@@ -876,7 +917,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             RevestimentoType.PASTILHA,
             RevestimentoType.PEDRA,
             RevestimentoType.MARMORE,
-            RevestimentoType.GRANITO -> this // MG será definido pelo fragmento conforme Ambiente + Aplicação
+            RevestimentoType.GRANITO -> this
 
             else -> copy(pecaEspMm = padrao)
         }
@@ -895,9 +936,12 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         if (desnivelCm != null) return this
 
         val default = when (revest) {
-            RevestimentoType.PEDRA -> 4.0
+            RevestimentoType.PEDRA ->
+                CalcRevestimentoRules.Desnivel.PEDRA_DEFAULT_CM
+
             RevestimentoType.MARMORE,
-            RevestimentoType.GRANITO -> 0.0
+            RevestimentoType.GRANITO ->
+                CalcRevestimentoRules.Desnivel.MG_DEFAULT_CM
 
             else -> null
         }
@@ -905,6 +949,26 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         return if (default != null) copy(desnivelCm = default) else this
     }
 
+    private fun ensureDefaultMgEspessuraAfterChange(
+        previous: Inputs,
+        updated: Inputs
+    ): Inputs {
+        val isMG = updated.revest == RevestimentoType.MARMORE ||
+                updated.revest == RevestimentoType.GRANITO
+        if (!isMG) return updated
+
+        // Ainda falta contexto completo → não mexe
+        if (updated.ambiente == null || updated.aplicacao == null) return updated
+        // Já existe valor de espessura definido → respeita (pode ser manual)
+        if (updated.pecaEspMm != null) return updated
+        // No estado anterior, consideramos "automático" se null ou igual ao default antigo
+        val oldDefault = RevestimentoSpecifications.getEspessuraPadraoMm(previous)
+        val wasAutoBefore = previous.pecaEspMm == null || previous.pecaEspMm == oldDefault
+        if (!wasAutoBefore) return updated
+        // Caso automático, aplica default correspondente ao novo contexto
+        val newDefault = RevestimentoSpecifications.getEspessuraPadraoMm(updated)
+        return updated.copy(pecaEspMm = newDefault)
+    }
 
     private fun resetAllInternal() {
         _inputs.value = Inputs()

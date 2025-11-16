@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel
 
@@ -16,14 +17,26 @@ class RequiredIconManager(private val context: Context) {
      * Define visibilidade do ícone "obrigatório" no campo
      */
     fun setRequiredIconVisible(et: TextInputEditText, visible: Boolean) {
-        val start = et.compoundDrawablesRelative[0]
-        val top = et.compoundDrawablesRelative[1]
-        val bottom = et.compoundDrawablesRelative[3]
+        val drawables = et.compoundDrawablesRelative
+        val currentEnd = drawables[2] // drawable atual na direita
+
+        val hasIconNow = currentEnd != null
+
+        // Se o estado desejado já é o atual, não faz nada (evita tremor)
+        if (hasIconNow == visible) {
+            return
+        }
+
+        val start = drawables[0]
+        val top = drawables[1]
+        val bottom = drawables[3]
+
         val end = if (visible) {
             AppCompatResources.getDrawable(context, R.drawable.ic_required)?.apply {
                 setTint(ContextCompat.getColor(context, R.color.md_theme_light_error))
             }
         } else null
+
         et.setCompoundDrawablesRelativeWithIntrinsicBounds(start, top, end, bottom)
     }
 
@@ -138,59 +151,70 @@ class RequiredIconManager(private val context: Context) {
      * Atualiza ícones obrigatórios da Etapa 4 (Peça)
      */
     fun updateStep4Icons(
-        etPecaComp: TextInputEditText, etPecaLarg: TextInputEditText, etJunta: TextInputEditText,
-        etPecaEsp: TextInputEditText, etPecasPorCaixa: TextInputEditText,
-        etSobra: TextInputEditText, revest: CalcRevestimentoViewModel.RevestimentoType?,
-        groupPecaTamanhoVisible: Boolean
+        etPecaComp: TextInputEditText,
+        etPecaLarg: TextInputEditText,
+        etJunta: TextInputEditText,
+        etPecaEsp: TextInputEditText,
+        etPecasPorCaixa: TextInputEditText,
+        etSobra: TextInputEditText,
+        etDesnivel: TextInputEditText,
+        revest: CalcRevestimentoViewModel.RevestimentoType?,
+        showPecaTamanhoGroup: Boolean
     ) {
-        val exigeTamanhoPeca =
-            (revest != CalcRevestimentoViewModel.RevestimentoType.PEDRA) && groupPecaTamanhoVisible
+        fun tilOf(et: TextInputEditText): TextInputLayout? =
+            et.parent?.parent as? TextInputLayout
 
-        if (revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO) {
-            val compFilled = !etPecaComp.text.isNullOrBlank()
-            val largFilled = !etPecaLarg.text.isNullOrBlank()
-            val espFilled = !etPecaEsp.text.isNullOrBlank()
-            val sobraFilled = !etSobra.text.isNullOrBlank()
+        fun showIconForField(et: TextInputEditText, required: Boolean) {
+            val til = tilOf(et)
+            val hasError = til?.error?.isEmpty() == false
+            val isEmpty = et.text.isNullOrBlank()
 
-            setRequiredIconVisible(etPecaComp, !compFilled)
-            setRequiredIconVisible(etPecaLarg, !largFilled)
-            setRequiredIconVisible(etPecaEsp, !espFilled)
-            setRequiredIconVisible(etSobra, !sobraFilled)
+            // Regra geral:
+            // - Se tem erro → mostra ícone
+            // - Se é obrigatório e está vazio → mostra ícone
+            // - Caso contrário → esconde ícone
+            val visible = when {
+                hasError -> true
+                !required -> false
+                isEmpty -> true
+                else -> false
+            }
 
-            // Não exigir junta nem peças por caixa
-            setRequiredIconVisible(etJunta, false)
-            setRequiredIconVisible(etPecasPorCaixa, false)
-            return
+            setRequiredIconVisible(et, visible)
         }
+        // Comprimento / Largura da peça são obrigatórios quando o grupo é visível
+        val pecaObrigatoria = showPecaTamanhoGroup
 
-        val compFilled = !etPecaComp.text.isNullOrBlank()
-        val largFilled = !etPecaLarg.text.isNullOrBlank()
-        val juntaFilled = !etJunta.text.isNullOrBlank()
-
-        if (exigeTamanhoPeca) {
-            setRequiredIconVisible(etPecaComp, !compFilled)
-            setRequiredIconVisible(etPecaLarg, !largFilled)
-        } else {
-            setRequiredIconVisible(etPecaComp, false)
-            setRequiredIconVisible(etPecaLarg, false)
-        }
-
-        // Junta obrigatória exceto para Pastilha
+        // Junta obrigatória para todos, exceto Pastilha e Piso Intertravado
         val juntaObrigatoria =
-            (revest != CalcRevestimentoViewModel.RevestimentoType.PASTILHA)
-        setRequiredIconVisible(etJunta, juntaObrigatoria && !juntaFilled)
+            revest != CalcRevestimentoViewModel.RevestimentoType.PASTILHA &&
+                    revest != CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO
 
-        // Mármore/Granito: espessura obrigatória
+        // Espessura obrigatória para todos, exceto Pastilha
         val espObrigatoria =
-            revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+            revest != CalcRevestimentoViewModel.RevestimentoType.PASTILHA
+
+        // Desnível obrigatório para Pedra / Mármore / Granito
+        val desnivelObrigatorio =
+            revest == CalcRevestimentoViewModel.RevestimentoType.PEDRA ||
+                    revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
                     revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
-        val espFilled = !etPecaEsp.text.isNullOrBlank()
 
-        setRequiredIconVisible(etPecaEsp, espObrigatoria && !espFilled)
+        // Sobra técnica: sempre obrigatória (você já usa valor mínimo automático)
+        val sobraObrigatoria = true
 
-        // Opcionais
-        setRequiredIconVisible(etPecasPorCaixa, false)
-        setRequiredIconVisible(etSobra, false)
+        // Peças por caixa: opcional, ícone só quando tiver erro (required = false)
+
+        // Aplica regras
+        showIconForField(etPecaComp, pecaObrigatoria)
+        showIconForField(etPecaLarg, pecaObrigatoria)
+        showIconForField(etJunta, juntaObrigatoria)
+        showIconForField(etPecaEsp, espObrigatoria)
+        showIconForField(etPecasPorCaixa, false)
+        showIconForField(etSobra, sobraObrigatoria)
+
+        // Desnível depende apenas dele mesmo
+        showIconForField(etDesnivel, desnivelObrigatorio)
     }
 
     /**
@@ -218,7 +242,6 @@ class RequiredIconManager(private val context: Context) {
     }
 
     /** HELPERS Internos */
-
     private fun parseDouble(et: TextInputEditText): Double? {
         val raw = et.text?.toString()?.trim().orEmpty()
         if (raw.isEmpty()) return null
