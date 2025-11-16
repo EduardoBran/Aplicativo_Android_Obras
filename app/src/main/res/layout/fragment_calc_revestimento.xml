@@ -1064,49 +1064,116 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:paddingHorizontal="8dp">
 
+                    <!-- Título da tela -->
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/calc_step7_title"
                         android:textAlignment="center"
-                        android:textAppearance="?attr/textAppearanceTitleLarge" />
+                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.02" />
 
+                    <!-- Card de Revisão -->
                     <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardResumoRevisao"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                        app:cardCornerRadius="12dp"
-                        app:cardElevation="2dp">
+                        app:cardBackgroundColor="?attr/colorSurface"
+                        app:cardCornerRadius="18dp"
+                        app:cardElevation="3dp"
+                        app:strokeColor="?attr/colorOutlineVariant"
+                        app:strokeWidth="1dp">
 
-                        <TextView
-                            android:id="@+id/tvResumoRevisao"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:fontFamily="monospace"
-                            android:padding="16dp"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            tools:text="📋 REVISÃO DOS PARÂMETROS\n\n• Tipo: Piso Porcelanato\n• Ambiente: Molhado (ACIII)" />
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <!-- Cabeçalho do card -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <!-- Ícone do card -->
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/icon_card_revisao"
+                                    android:textSize="20sp"
+                                    android:textColor="?attr/colorPrimary" />
+
+                                <!-- Título do card -->
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="8dp"
+                                    android:layout_weight="1"
+                                    android:text="@string/calc_rev_card_title"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textSize="18sp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <!-- Subtítulo -->
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/calc_rev_card_subtitle"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textSize="16sp"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+
+                            <!-- Divider -->
+                            <com.google.android.material.divider.MaterialDivider
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
+                                app:dividerColor="?attr/colorOutline"
+                                app:dividerThickness="1dp" />
+
+                            <!-- Conteúdo com os parâmetros -->
+                            <TextView
+                                android:id="@+id/tvResumoRevisao"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
+                                android:fontFamily="sans-serif"
+                                android:textAppearance="?attr/textAppearanceBodySmall"
+                                android:textSize="14sp"
+                                android:textColor="?attr/colorOnSurface"
+                                android:letterSpacing="0.01"
+                                tools:text="• 🧱 Revestimento: Piso Porcelanato\n• 🌦️ Tipo de Ambiente: Molhado\n• 📐 Área Total: 12,50 m²" />
+                        </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
+                    <!-- Botão Calcular -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnCalcular"
-                        style="@style/Widget.Material3.Button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
+                        android:layout_marginTop="24dp"
                         android:backgroundTint="?attr/colorPrimary"
                         android:contentDescription="@string/cont_btn_calcular"
-                        android:insetTop="10dp"
-                        android:insetBottom="10dp"
                         android:text="@string/generic_calculate"
                         android:textAllCaps="false"
                         android:textColor="?attr/colorOnPrimary"
                         android:textSize="@dimen/calc_btn_normal_text"
-                        app:cornerRadius="12dp" />
+                        android:fontFamily="sans-serif-medium"
+                        app:cornerRadius="16dp"
+                        app:icon="@drawable/ic_calculator"
+                        app:iconGravity="textStart"
+                        app:iconPadding="10dp"
+                        app:iconTint="?attr/colorOnPrimary" />
                 </LinearLayout>
 
                 <!-- ═══════════════════════════════════════════ -->

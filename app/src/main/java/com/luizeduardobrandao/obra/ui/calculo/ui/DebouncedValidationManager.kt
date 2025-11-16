@@ -10,7 +10,7 @@ import com.google.android.material.textfield.TextInputEditText
  * para rodar depois de "delayMs"]" ms sem novas digitações naquele campo.
  */
 class DebouncedValidationManager(
-    private val delayMs: Long = 1000L
+    private val delayMs: Long = 1400L
 ) {
 
     // Mapa campo → Runnable pendente

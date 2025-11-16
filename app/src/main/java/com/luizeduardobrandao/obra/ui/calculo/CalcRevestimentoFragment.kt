@@ -940,10 +940,21 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    /** Preenche resumo na etapa 8 */
+    /** Preenche resumo na etapa 8 (Tela de Parâmetros com animação)*/
     private fun handleStep7Resume(step: Int) {
         if (step == 8) {
-            binding.tvResumoRevisao.text = viewModel.getResumoRevisao()
+            val inputs = viewModel.inputs.value
+
+            // Monta texto da revisão utilizando strings.xml
+            binding.tvResumoRevisao.text =
+                ReviewSummaryFormatter.buildResumoRevisao(requireContext(), inputs)
+
+            // Anima entrada: card → conteúdo → botão
+            ReviewAnimations.playEnterAnimation(
+                card = binding.cardResumoRevisao,
+                content = binding.tvResumoRevisao,
+                button = binding.btnCalcular
+            )
         }
     }
 

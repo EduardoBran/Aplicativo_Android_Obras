@@ -287,11 +287,14 @@ class PdfGenerator(
             else -> amb.orEmpty()
         }
 
-        fun mapTrafego(traf: String?): String = when (traf) {
-            "LEVE" -> "Leve"
-            "MEDIO" -> "Médio"
-            "PESADO" -> "Pesado"
-            else -> traf.orEmpty()
+        fun mapTrafego(traf: String?): String {
+            val res = context.resources
+            return when (traf) {
+                "LEVE" -> res.getString(R.string.calc_step_trafego_leve)
+                "MEDIO" -> res.getString(R.string.calc_step_trafego_medio)
+                "PESADO" -> res.getString(R.string.calc_step_trafego_pesado)
+                else -> traf.orEmpty()
+            }
         }
 
         var revestStr = mapRevest(h.tipo)

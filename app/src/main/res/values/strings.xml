@@ -907,7 +907,7 @@
     <!-- TELA 1 -->
     <string name="calc_step1_title">Escolha o Tipo de Revestimento</string>
     <string name="calc_step1_opt_piso">Piso (cerâmico ou porcelanato)</string>
-    <string name="calc_step1_opt_azulejo">Azulejo (parede)</string>
+    <string name="calc_step1_opt_azulejo">Azulejo</string>
     <string name="calc_step1_opt_pastilha">Pastilha</string>
     <string name="calc_step1_opt_pedra">Pedra Portuguesa</string>
     <string name="calc_step1_opt_piso_intertravado">Piso Intertravado</string>
@@ -1062,9 +1062,60 @@
 
 
     <!-- ========TELA 7 ======== -->
-    <string name="calc_step7_title">📋 Revisão dos Parâmetros </string>
+    <!-- Revisão – valores genéricos -->
+    <string name="calc_rev_value_none">—</string>
+
+    <!-- Revisão – UI do card -->
+    <string name="calc_step7_title">Revisão</string>
+    <string name="calc_rev_card_title">Revisão dos Parâmetros</string>
+    <string name="calc_rev_card_subtitle">Confira os dados antes de calcular a lista de materiais.</string>
+    <string name="icon_card_revisao">📋</string>
+
+    <!-- Revisão – rótulos de revestimento -->
+    <string name="calc_rev_revest_piso_porcelanato">Piso Porcelanato</string>
+    <string name="calc_rev_revest_piso_ceramico">Piso Cerâmico</string>
+    <string name="calc_rev_revest_azulejo">Azulejo</string>
+    <string name="calc_rev_revest_pastilha">Pastilha</string>
+    <string name="calc_rev_revest_pedra">Pedra Portuguesa</string>
+    <string name="calc_rev_revest_piso_intertravado">Piso Intertravado</string>
+    <string name="calc_rev_revest_marmore">Mármore</string>
+    <string name="calc_rev_revest_granito">Granito</string>
+
+    <!-- Revisão – ambientes -->
+    <string name="calc_rev_amb_seco">Seco</string>
+    <string name="calc_rev_amb_semi">Semi Molhado</string>
+    <string name="calc_rev_amb_molhado">Molhado</string>
+    <string name="calc_rev_amb_sempre">Sempre Molhado</string>
+
+    <!-- Revisão – linhas (todas com ícones no início) -->
+    <string name="calc_rev_line_revestimento">• 🧱 Revestimento: %1$s</string>
+    <string name="calc_rev_line_ambiente">• 🌦️ Tipo de Ambiente: %1$s</string>
+    <string name="calc_rev_line_trafego">• 🛣️ Tipo de tráfego: %1$s</string>
+    <string name="calc_rev_parede_singular">Parede</string>
+    <string name="calc_rev_parede_plural">Paredes</string>
+    <string name="calc_rev_line_paredes">• ◻️ %1$s: %2$d</string>
+    <string name="calc_rev_line_area_total">• 📐 Área Total: %1$.2f m²</string>
+    <string name="calc_rev_line_abertura_parede">• ➖ Abertura (parede): %1$.2f m²</string>
+    <string name="calc_rev_line_peca_m">• 🔲 Peça: %1$.2f × %2$.2f m</string>
+    <string name="calc_rev_line_peca_cm">• 🔲 Peça: %1$.2f × %2$.2f cm</string>
+    <string name="calc_rev_line_espessura_cm">• 🧩 Espessura: %1$.1f cm</string>
+    <string name="calc_rev_line_espessura_mm">• 🧩 Espessura: %1$.1f mm</string>
+    <string name="calc_rev_line_junta">• 🔗 Junta: %1$.2f mm</string>
+    <string name="calc_rev_line_pecas_caixa">• 📦 Peças por caixa: %1$d</string>
+    <string name="calc_rev_line_desnivel">• 📉 Desnível: %1$.1f cm</string>
+
+    <!-- Revisão – rodapé -->
+    <string name="calc_rev_line_rodape_peca_pronta">• 📏 Rodapé: %1$.2f m²\n(peça pronta)</string>
+    <string name="calc_rev_line_rodape_mesma_peca">• 📏 Rodapé: %1$.2f m² × %2$.1f cm = %3$.2f m²\n(mesma peça)</string>
+    <string name="calc_rev_line_abertura_rodape">• ➖ Abertura (rodapé): %1$.2f m</string>
+
+    <!-- Revisão – impermeabilização e sobra -->
+    <string name="calc_rev_line_impermeabilizacao">• 💧 Impermeabilização: Sim</string>
+    <string name="calc_rev_line_sobra_tecnica">• ➕ Sobra Técnica: %1$.2f %%</string>
+
     <string name="generic_calculate">Calcular</string>
     <string name="cont_btn_calcular">Calcular materiais</string>
+
 
     <!-- TELA 8 -->
     <string name="calc_table_title">📋 Lista de Materiais</string>

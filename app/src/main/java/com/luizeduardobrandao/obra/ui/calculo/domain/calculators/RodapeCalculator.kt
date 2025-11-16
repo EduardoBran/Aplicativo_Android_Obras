@@ -108,26 +108,6 @@ object RodapeCalculator {
         }
     }
 
-    /**
-     * Adiciona informações do rodapé ao resumo
-     */
-    fun appendRodapeInfo(sb: StringBuilder, inputs: Inputs) {
-        val perimetro = rodapePerimetroM(inputs) ?: return
-        val alturaCm = inputs.rodapeAlturaCm ?: return
-        val alturaM = alturaCm / 100.0
-        val areaM2 = perimetro * alturaM
-
-        if (inputs.rodapeMaterial == RodapeMaterial.PECA_PRONTA) {
-            sb.appendLine("• 📏 Rodapé: ${arred2(areaM2)} m²\n(peça pronta)")
-        } else {
-            val areaBaseM2 = rodapeAreaBaseExibicaoM2(inputs)
-            sb.appendLine(
-                "• 📏 Rodapé: ${arred2(areaBaseM2)} m² × ${arred1(alturaCm)} cm = " +
-                        "${arred2(areaM2)} m²\n(mesma peça)"
-            )
-        }
-    }
-
     private fun arred0(v: Double) = kotlin.math.round(v)
     private fun arred1(v: Double) = kotlin.math.round(v * 10.0) / 10.0
     private fun arred2(v: Double) = kotlin.math.round(v * 100.0) / 100.0
