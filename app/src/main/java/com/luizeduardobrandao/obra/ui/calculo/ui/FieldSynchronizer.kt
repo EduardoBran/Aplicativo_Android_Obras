@@ -36,7 +36,10 @@ class FieldSynchronizer {
         tilPecaLarg: TextInputLayout, tilPecaEsp: TextInputLayout, tilJunta: TextInputLayout,
         tilPecasPorCaixa: TextInputLayout, tilDesnivel: TextInputLayout, tilSobra: TextInputLayout,
         tilRodapeAltura: TextInputLayout, tilRodapeAbertura: TextInputLayout,
-        tilRodapeCompComercial: TextInputLayout, rgPastilhaTamanho: RadioGroup, isMG: Boolean
+        tilRodapeCompComercial: TextInputLayout,
+        rgPastilhaTamanho: RadioGroup,
+        rgPastilhaPorcelanatoTamanho: RadioGroup,
+        isMG: Boolean
     ) {
         // Detecta reset geral
         if (inputs == CalcRevestimentoViewModel.Inputs()) {
@@ -47,7 +50,8 @@ class FieldSynchronizer {
                 tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
                 tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa,
                 tilDesnivel, tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial,
-                rgPastilhaTamanho
+                rgPastilhaTamanho,
+                rgPastilhaPorcelanatoTamanho
             )
             return
         }
@@ -98,7 +102,9 @@ class FieldSynchronizer {
         tilPecaLarg: TextInputLayout, tilPecaEsp: TextInputLayout, tilJunta: TextInputLayout,
         tilPecasPorCaixa: TextInputLayout, tilDesnivel: TextInputLayout, tilSobra: TextInputLayout,
         tilRodapeAltura: TextInputLayout, tilRodapeAbertura: TextInputLayout,
-        tilRodapeCompComercial: TextInputLayout, rgPastilhaTamanho: RadioGroup
+        tilRodapeCompComercial: TextInputLayout,
+        rgPastilhaTamanho: RadioGroup,
+        rgPastilhaPorcelanatoTamanho: RadioGroup
     ) {
         // Limpa textos
         listOf(
@@ -114,8 +120,9 @@ class FieldSynchronizer {
             tilDesnivel, tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial
         ).forEach { it.error = null }
 
-        // Limpa RadioGroup de pastilha
+        // Limpa RadioGroups de pastilha
         rgPastilhaTamanho.clearCheck()
+        rgPastilhaPorcelanatoTamanho.clearCheck()
     }
 
     /**

@@ -264,14 +264,17 @@ class CalcRevestimentoFragment : Fragment() {
 
             // Novo tipo de revestimento → reset no controle de auto-preenchimento
             espessuraUserEdited = false
-
-            groupPlacaTipo.isVisible = (type == CalcRevestimentoViewModel.RevestimentoType.PISO)
+            // Visibilidade do grupo de placa agora é controlada
+            // centralmente pelo VisibilityManager (updateUIVisibility)
         }
 
         rgPlacaTipo.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
             val placa = mapRadioIdToPlacaTipo(id)
             viewModel.setPlacaTipo(placa)
+            // Ao mudar o tipo de placa, o VisibilityManager alterna
+            // entre Pastilha Cerâmica x Pastilha Porcelanato
+            refreshNextEnabled()
         }
     }
 
@@ -418,6 +421,14 @@ class CalcRevestimentoFragment : Fragment() {
         validator.updateJuntaHelperText(viewModel.inputs.value, tilJunta)
 
         rgPastilhaTamanho.setOnCheckedChangeListener { _, id ->
+            if (isSyncing) return@setOnCheckedChangeListener
+            val formato = mapRadioIdToPastilhaFormato(id)
+            viewModel.setPastilhaFormato(formato)
+            updateRequiredIconsStep4()
+            refreshNextEnabled()
+        }
+
+        rgPastilhaPorcelanatoTamanho.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
             val formato = mapRadioIdToPastilhaFormato(id)
             viewModel.setPastilhaFormato(formato)
@@ -828,8 +839,8 @@ class CalcRevestimentoFragment : Fragment() {
         isSyncing = true
         radioSynchronizer.syncAllRadioGroups(
             viewModel.inputs.value,
-            rgRevest, rgPlacaTipo, rgAmbiente, rgRodapeMat,
-            rgTrafego, rgIntertravadoImp, rgPastilhaTamanho
+            rgRevest, rgPlacaTipo, rgAmbiente, rgRodapeMat, rgTrafego, rgIntertravadoImp,
+            rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho
         )
         isSyncing = false
     }
@@ -845,7 +856,7 @@ class CalcRevestimentoFragment : Fragment() {
             tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
             tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa,
             tilDesnivel, tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial,
-            rgPastilhaTamanho,
+            rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho,
             isMG()
         )
 
@@ -880,15 +891,14 @@ class CalcRevestimentoFragment : Fragment() {
     /** Atualiza visibilidade de componentes conforme inputs */
     private fun updateUIVisibility() = with(binding) {
         visibilityManager.updateAllVisibilities(
-            viewModel.inputs.value, tvAreaTotalAviso, groupPlacaTipo, groupPecaTamanho,
-            groupPastilhaTamanho, groupRodapeFields, groupIntertravadoImpOptions, tilComp,
-            tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
-            tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa, tilDesnivel,
-            tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial,
-            etLarg, etAlt, etParedeQtd, etAbertura,
-            etPecaEsp, etJunta, etPecasPorCaixa, etRodapeAbertura,
-            rgPlacaTipo, rgIntertravadoImp,
-            switchImp, switchRodape
+            viewModel.inputs.value,
+            tvAreaTotalAviso, groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho,
+            groupPastilhaPorcelanatoTamanho, groupRodapeFields, groupIntertravadoImpOptions,
+            tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
+            tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa,
+            tilDesnivel, tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial,
+            etLarg, etAlt, etParedeQtd, etAbertura, etPecaEsp, etJunta, etPecasPorCaixa,
+            etRodapeAbertura, rgPlacaTipo, rgIntertravadoImp, switchImp, switchRodape
         )
     }
 
@@ -1090,26 +1100,17 @@ class CalcRevestimentoFragment : Fragment() {
     /** Revalida todas as dimensões (Comp/Larg/Alt) */
     private fun validateAllDimensions() = with(binding) {
         validator.validateDimLive(
-            etComp,
-            tilComp,
-            CalcRevestimentoRules.Medidas.COMP_LARG_RANGE_M,
-            getString(R.string.calc_err_medida_comp_larg_m),
-            false
+            etComp, tilComp, CalcRevestimentoRules.Medidas.COMP_LARG_RANGE_M,
+            getString(R.string.calc_err_medida_comp_larg_m), false
         )
         validator.validateDimLive(
-            etLarg,
-            tilLarg,
-            CalcRevestimentoRules.Medidas.COMP_LARG_RANGE_M,
-            getString(R.string.calc_err_medida_comp_larg_m),
-            false
+            etLarg, tilLarg, CalcRevestimentoRules.Medidas.COMP_LARG_RANGE_M,
+            getString(R.string.calc_err_medida_comp_larg_m), false
         )
         if (tilAltura.isVisible) {
             validator.validateDimLive(
-                etAlt,
-                tilAltura,
-                CalcRevestimentoRules.Medidas.ALTURA_RANGE_M,
-                getString(R.string.calc_err_medida_alt_m),
-                false
+                etAlt, tilAltura, CalcRevestimentoRules.Medidas.ALTURA_RANGE_M,
+                getString(R.string.calc_err_medida_alt_m), false
             )
         }
     }
@@ -1121,6 +1122,19 @@ class CalcRevestimentoFragment : Fragment() {
         val inputs = viewModel.inputs.value
 
         var enabled = validation.isValid
+
+        // ----- Etapa 1 (Tipo de revestimento + tipo de placa) -----
+        if (enabled && step == 1) {
+            val revest = inputs.revest
+            val precisaTipoPlaca =
+                revest == CalcRevestimentoViewModel.RevestimentoType.PISO ||
+                        revest == CalcRevestimentoViewModel.RevestimentoType.AZULEJO ||
+                        revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
+
+            if (precisaTipoPlaca) {
+                enabled = inputs.pisoPlacaTipo != null
+            }
+        }
 
         // ----- Etapa 4 (Medidas / Área total) -----
         if (enabled && step >= 4) {
@@ -1441,9 +1455,21 @@ class CalcRevestimentoFragment : Fragment() {
     }
 
     private fun mapRadioIdToPastilhaFormato(id: Int) = when (id) {
+        // Pastilha = Cerâmica
         R.id.rbPastilha5 -> RevestimentoSpecifications.PastilhaFormato.P5
         R.id.rbPastilha7_5 -> RevestimentoSpecifications.PastilhaFormato.P7_5
         R.id.rbPastilha10 -> RevestimentoSpecifications.PastilhaFormato.P10
+        // Pastilha = Porcelanato
+        R.id.rbPastilhaP1_5 -> RevestimentoSpecifications.PastilhaFormato.P1_5
+        R.id.rbPastilhaP2 -> RevestimentoSpecifications.PastilhaFormato.P2
+        R.id.rbPastilhaP2_2 -> RevestimentoSpecifications.PastilhaFormato.P2_2
+        R.id.rbPastilhaP2_5 -> RevestimentoSpecifications.PastilhaFormato.P2_5
+        R.id.rbPastilhaP5_5 -> RevestimentoSpecifications.PastilhaFormato.P5_5
+        R.id.rbPastilhaP5_10 -> RevestimentoSpecifications.PastilhaFormato.P5_10
+        R.id.rbPastilhaP5_15 -> RevestimentoSpecifications.PastilhaFormato.P5_15
+        R.id.rbPastilhaP7_5p -> RevestimentoSpecifications.PastilhaFormato.P7_5P
+        R.id.rbPastilhaP10p -> RevestimentoSpecifications.PastilhaFormato.P10P
+
         else -> null
     }
 

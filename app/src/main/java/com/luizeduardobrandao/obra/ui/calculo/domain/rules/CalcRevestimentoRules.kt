@@ -92,10 +92,21 @@ object CalcRevestimentoRules {
         const val SOBRA_DEFAULT_PCT = 10.0
         val SOBRA_RANGE_PCT = SOBRA_MIN_PCT..SOBRA_MAX_PCT
 
-        // Pastilha – espessuras padrão (mm)
-        const val PASTILHA_ESP_P5_MM = 5.0
-        const val PASTILHA_ESP_P7_5_MM = 6.0
-        const val PASTILHA_ESP_P10_MM = 6.0
+        // Pastilha – espessuras padrão (mm) (Porcelanato)
+        const val PASTILHA_ESP_P1_5_MM = 4.0      // 1,5 x 1,5 cm
+        const val PASTILHA_ESP_P2_MM = 4.0        // 2 x 2 cm
+        const val PASTILHA_ESP_P2_2_MM = 4.0      // 2,5 x 2,5 cm
+        const val PASTILHA_ESP_P2_5_MM = 4.0      // 2,5 x 5 cm
+        const val PASTILHA_ESP_P5_5_MM = 5.0      // 5 x 5 cm (nova)
+        const val PASTILHA_ESP_P5_5_10MM = 5.0    // 5 x 10 cm
+        const val PASTILHA_ESP_P5_5_15MM = 5.0    // 5 x 15 cm
+        const val PASTILHA_ESP_P7_5PMM = 6.0      // 7,5 x 7,5 cm (novo)
+        const val PASTILHA_ESP_P10PMM = 6.0       // 10 x 10 cm (novo)
+
+        // Pastilha – espessuras padrão (mm) (Cerâmica)
+        const val PASTILHA_ESP_P5_MM = 5.0        // 5 x 5 cm
+        const val PASTILHA_ESP_P7_5_MM = 6.0      // 7,5 x 7,5 cm
+        const val PASTILHA_ESP_P10_MM = 6.0       // 10 x 10 cm
     }
 
     object Desnivel {
@@ -179,13 +190,15 @@ object CalcRevestimentoRules {
     }
 
     object JuntaPadrao {
-        const val PASTILHA_MM = 3.0
+        const val PASTILHA_CERAMICO_MM = 5.0
+        const val PASTILHA_PORCELANATO_MM = 3.0
         const val PEDRA_MM = 4.0
         const val MG_MM = 2.5
         const val INTERTRAVADO_MM = 4.0
         const val PISO_PORCELANATO_MM = 2.0
         const val PISO_CERAMICO_MM = 5.0
-        const val AZULEJO_MM = 5.0
+        const val AZULEJO_CERAMICO_MM = 5.0
+        const val AZULEJO_PORCELANATO_MM = 2.0
         const val GENERICO_MM = 3.0
     }
 }

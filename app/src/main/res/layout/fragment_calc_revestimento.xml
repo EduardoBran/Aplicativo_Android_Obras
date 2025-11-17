@@ -129,7 +129,7 @@
                         android:layout_marginTop="4dp"
                         android:text="@string/calc_step1_title"
                         android:textAlignment="center"
-                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textAppearance="?attr/textAppearanceHeadline5"
                         android:textStyle="bold" />
 
                     <RadioGroup
@@ -208,7 +208,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
-                            android:text="@string/calc_step1_piso_tipo"
+                            android:text="@string/calc_step1_placa_tipo"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textStyle="bold" />
 
@@ -251,7 +251,7 @@
                         android:layout_marginTop="4dp"
                         android:text="@string/calc_step2_title"
                         android:textAlignment="center"
-                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textAppearance="?attr/textAppearanceHeadline5"
                         android:textStyle="bold" />
 
                     <RadioGroup
@@ -421,7 +421,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/calc_step_trafego_title"
                         android:textAlignment="center"
-                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textAppearance="?attr/textAppearanceHeadline5"
                         android:textStyle="bold" />
 
                     <RadioGroup
@@ -567,7 +567,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/calc_step3_title"
-                        android:textAppearance="?attr/textAppearanceTitleLarge" />
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceHeadline5"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilComp"
@@ -706,9 +708,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/calc_step4_title"
-                        android:textAppearance="?attr/textAppearanceTitleLarge" />
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceHeadline5"
+                        android:textStyle="bold" />
 
-                    <!-- Grupo específico para Pastilha -->
+                    <!-- Grupo específico visível para Pastilha (Cerâmica) -->
                     <LinearLayout
                         android:id="@+id/groupPastilhaTamanho"
                         android:layout_width="match_parent"
@@ -720,45 +724,176 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
                             android:text="@string/calc_pastilha_tamanho_title"
-                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textSize="18sp" />
 
-                        <RadioGroup
+                        <com.luizeduardobrandao.obra.ui.calculo.ui.ThreeColumnRadioGroup
                             android:id="@+id/rgPastilhaTamanho"
-                            android:layout_width="match_parent"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:gravity="center"
-                            android:orientation="horizontal">
+                            android:layout_gravity="center_horizontal"
+                            android:layout_marginTop="10dp">
 
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/rbPastilha5"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/calc_pastilha_5x5" />
+                                android:fontFamily="@font/roboto_mono"
+                                android:text="@string/calc_pastilha_5x5"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp" />
 
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/rbPastilha7_5"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="16dp"
-                                android:text="@string/calc_pastilha_7_5x7_5" />
+                                android:fontFamily="@font/roboto_mono"
+                                android:text="@string/calc_pastilha_7_5x7_5"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp" />
 
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/rbPastilha10"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="16dp"
-                                android:text="@string/calc_pastilha_10x10" />
-                        </RadioGroup>
+                                android:fontFamily="@font/roboto_mono"
+                                android:text="@string/calc_pastilha_10x10"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp" />
+                        </com.luizeduardobrandao.obra.ui.calculo.ui.ThreeColumnRadioGroup>
 
                         <TextView
                             android:id="@+id/tvPastilhaHint"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginBottom="10dp"
                             android:text="@string/calc_pastilha_tamanho_helper"
                             android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="?attr/colorOnSurfaceVariant" />
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <!-- Grupo específico visível para Pastilha (Porcelanato) -->
+                    <LinearLayout
+                        android:id="@+id/groupPastilhaPorcelanatoTamanho"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/calc_pastilha_tamanho_title"
+                            android:textAppearance="?attr/textAppearanceTitleLarge"
+                            android:textSize="20sp" />
+
+                        <com.luizeduardobrandao.obra.ui.calculo.ui.ThreeColumnRadioGroup
+                            android:id="@+id/rgPastilhaPorcelanatoTamanho"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:layout_marginTop="10dp">
+
+                            <!-- Linha 1 -->
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbPastilhaP1_5"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_mono"
+                                android:text="@string/calc_pastilha_p1_5"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp" />
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbPastilhaP2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_mono"
+                                android:text="@string/calc_pastilha_p2"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp" />
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbPastilhaP2_5"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_mono"
+                                android:text="@string/calc_pastilha_p2_5"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp" />
+
+                            <!-- Linha 2 -->
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbPastilhaP2_2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_mono"
+                                android:text="@string/calc_pastilha_p2_2"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp" />
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbPastilhaP5_5"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_mono"
+                                android:text="@string/calc_pastilha_p5_5"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp" />
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbPastilhaP5_10"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_mono"
+                                android:text="@string/calc_pastilha_p5_10"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp" />
+
+                            <!-- Linha 3 -->
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbPastilhaP5_15"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_mono"
+                                android:text="@string/calc_pastilha_p5_15"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp" />
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbPastilhaP7_5p"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_mono"
+                                android:text="@string/calc_pastilha_p7_5p"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp" />
+
+                            <com.google.android.material.radiobutton.MaterialRadioButton
+                                android:id="@+id/rbPastilhaP10p"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_mono"
+                                android:text="@string/calc_pastilha_p10p"
+                                android:textSize="16sp" />
+                        </com.luizeduardobrandao.obra.ui.calculo.ui.ThreeColumnRadioGroup>
+
+                        <TextView
+                            android:id="@+id/tvPastilhaPorcelanatoHint"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginBottom="10dp"
+                            android:text="@string/calc_pastilha_tamanho_helper"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="13sp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -1071,11 +1206,11 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:letterSpacing="0.02"
                         android:text="@string/calc_step7_title"
                         android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceTitleLarge"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.02" />
+                        android:textStyle="bold" />
 
                     <!-- Card de Revisão -->
                     <com.google.android.material.card.MaterialCardView
@@ -1107,8 +1242,8 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/icon_card_revisao"
-                                    android:textSize="20sp"
-                                    android:textColor="?attr/colorPrimary" />
+                                    android:textColor="?attr/colorPrimary"
+                                    android:textSize="20sp" />
 
                                 <!-- Título do card -->
                                 <TextView
@@ -1118,8 +1253,8 @@
                                     android:layout_weight="1"
                                     android:text="@string/calc_rev_card_title"
                                     android:textAppearance="?attr/textAppearanceTitleMedium"
-                                    android:textSize="18sp"
                                     android:textColor="?attr/colorOnSurface"
+                                    android:textSize="18sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
 
@@ -1127,17 +1262,17 @@
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
+                                android:layout_marginTop="6dp"
                                 android:text="@string/calc_rev_card_subtitle"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                                android:textSize="16sp"
-                                android:textColor="?attr/colorOnSurfaceVariant" />
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:textSize="16sp" />
 
                             <!-- Divider -->
                             <com.google.android.material.divider.MaterialDivider
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="12dp"
+                                android:layout_marginTop="14dp"
                                 app:dividerColor="?attr/colorOutline"
                                 app:dividerThickness="1dp" />
 
@@ -1146,12 +1281,13 @@
                                 android:id="@+id/tvResumoRevisao"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="12dp"
+                                android:layout_marginTop="14dp"
                                 android:fontFamily="sans-serif"
-                                android:textAppearance="?attr/textAppearanceBodySmall"
-                                android:textSize="14sp"
-                                android:textColor="?attr/colorOnSurface"
                                 android:letterSpacing="0.01"
+                                android:lineSpacingExtra="18dp"
+                                android:lineSpacingMultiplier="1.1"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp"
                                 tools:text="• 🧱 Revestimento: Piso Porcelanato\n• 🌦️ Tipo de Ambiente: Molhado\n• 📐 Área Total: 12,50 m²" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -1164,11 +1300,11 @@
                         android:layout_marginTop="24dp"
                         android:backgroundTint="?attr/colorPrimary"
                         android:contentDescription="@string/cont_btn_calcular"
+                        android:fontFamily="sans-serif-medium"
                         android:text="@string/generic_calculate"
                         android:textAllCaps="false"
                         android:textColor="?attr/colorOnPrimary"
                         android:textSize="@dimen/calc_btn_normal_text"
-                        android:fontFamily="sans-serif-medium"
                         app:cornerRadius="16dp"
                         app:icon="@drawable/ic_calculator"
                         app:iconGravity="textStart"

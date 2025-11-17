@@ -4,6 +4,7 @@ import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
 import kotlin.math.ceil
 import kotlin.math.max
+import kotlin.math.floor
 
 /**
  * Calculadora específica para Pastilhas
@@ -22,14 +23,19 @@ object PastilhaCalculator {
         val formato = inputs.pastilhaFormato ?: return
         if (areaM2 <= 0.0) return
 
-        val ladoPecaCm = formato.ladoCm
-        val ladoMantaCm = formato.mantaLadoCm
+        // Dimensões da peça (podem ser quadradas ou retangulares)
+        val ladoPecaCompCm = formato.ladoCm
+        val ladoPecaLargCm = formato.lado2Cm
 
-        val areaPecaM2 = (ladoPecaCm / 100.0) * (ladoPecaCm / 100.0)
-        val areaMantaM2 = (ladoMantaCm / 100.0) * (ladoMantaCm / 100.0)
+        // Dimensões da manta
+        val mantaCompCm = formato.mantaCompCm
+        val mantaLargCm = formato.mantaLargCm
+
+        val areaPecaM2 = (ladoPecaCompCm / 100.0) * (ladoPecaLargCm / 100.0)
+        val areaMantaM2 = (mantaCompCm / 100.0) * (mantaLargCm / 100.0)
 
         // Peças por manta (aproximação por área, sempre >= 1)
-        val pecasPorManta = max(1, kotlin.math.floor(areaMantaM2 / areaPecaM2).toInt())
+        val pecasPorManta = max(1, floor(areaMantaM2 / areaPecaM2).toInt())
 
         val areaCompraM2 = areaM2 * (1 + sobra / 100.0)
 
@@ -38,11 +44,8 @@ object PastilhaCalculator {
         val totalMantas = ceil(areaCompraM2 * mantasPorM2).toInt()
         val totalPecas = totalMantas * pecasPorManta
 
-        val nome = when (formato) {
-            RevestimentoSpecifications.PastilhaFormato.P5 -> "Pastilha 5cm × 5cm (32,5cm × 32,5cm)"
-            RevestimentoSpecifications.PastilhaFormato.P7_5 -> "Pastilha 7,5cm × 7,5cm (31,5cm × 31,5cm)"
-            RevestimentoSpecifications.PastilhaFormato.P10 -> "Pastilha 10cm × 10cm (31cm × 31cm)"
-        }
+        // Nome baseado nas especificações (peça + manta)
+        val nome = RevestimentoSpecifications.getPastilhaNomeCompleto(formato)
 
         // ✅ Observação: Ordem comercial (mantas → peças)
         val observacao = buildString {
@@ -57,7 +60,7 @@ object PastilhaCalculator {
             observacao = observacao
         )
 
-        // Argamassa: usa dimensões da peça
+        // Argamassa: usa dimensões e espessura/junta adequadas ao formato
         val iArg = inputs.copy(
             juntaMm = (inputs.juntaMm
                 ?: RevestimentoSpecifications.getJuntaPadraoMm(inputs)).coerceIn(1.0, 5.0),

@@ -51,12 +51,13 @@ class RadioGroupSynchronizer {
         rgRodapeMat: RadioGroup,
         rgTrafego: RadioGroup,
         rgIntertravadoImp: RadioGroup,
-        rgPastilhaTamanho: RadioGroup
+        rgPastilhaTamanho: RadioGroup,
+        rgPastilhaPorcelanatoTamanho: RadioGroup
     ) {
         // Sincroniza tipo de revestimento
         syncRevestimento(inputs.revest, rgRevest)
 
-        // Sincroniza tipo de placa (piso)
+        // Sincroniza tipo de placa (cerâmica/porcelanato)
         syncPlacaTipo(inputs.pisoPlacaTipo, rgPlacaTipo)
 
         // Sincroniza tipo de ambiente
@@ -71,8 +72,8 @@ class RadioGroupSynchronizer {
         // Sincroniza impermeabilização (intertravado)
         syncImpermeabilizacao(inputs.impIntertravadoTipo, rgIntertravadoImp)
 
-        // Sincroniza tamanho de pastilha
-        syncPastilhaTamanho(inputs.pastilhaFormato, rgPastilhaTamanho)
+        // Sincroniza tamanho de pastilha (cerâmica x porcelanato)
+        syncPastilhaTamanho(inputs.pastilhaFormato, rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho)
     }
 
     /**
@@ -158,6 +159,37 @@ class RadioGroupSynchronizer {
     }
 
     /**
+     * Sincroniza RadioGroup de tamanho de pastilha
+     */
+    private fun syncPastilhaTamanho(
+        formato: RevestimentoSpecifications.PastilhaFormato?,
+        rgPastilhaTamanho: RadioGroup,
+        rgPastilhaPorcelanatoTamanho: RadioGroup
+    ) {
+        val (ceramicaId, porcelanatoId) = when (formato) {
+            RevestimentoSpecifications.PastilhaFormato.P5 -> R.id.rbPastilha5 to null
+            RevestimentoSpecifications.PastilhaFormato.P7_5 -> R.id.rbPastilha7_5 to null
+            RevestimentoSpecifications.PastilhaFormato.P10 -> R.id.rbPastilha10 to null
+
+            // Formatos específicos para Pastilha Porcelanato
+            RevestimentoSpecifications.PastilhaFormato.P1_5 -> null to R.id.rbPastilhaP1_5
+            RevestimentoSpecifications.PastilhaFormato.P2 -> null to R.id.rbPastilhaP2
+            RevestimentoSpecifications.PastilhaFormato.P2_2 -> null to R.id.rbPastilhaP2_2
+            RevestimentoSpecifications.PastilhaFormato.P2_5 -> null to R.id.rbPastilhaP2_5
+            RevestimentoSpecifications.PastilhaFormato.P5_5 -> null to R.id.rbPastilhaP5_5
+            RevestimentoSpecifications.PastilhaFormato.P5_10 -> null to R.id.rbPastilhaP5_10
+            RevestimentoSpecifications.PastilhaFormato.P5_15 -> null to R.id.rbPastilhaP5_15
+            RevestimentoSpecifications.PastilhaFormato.P7_5P -> null to R.id.rbPastilhaP7_5p
+            RevestimentoSpecifications.PastilhaFormato.P10P -> null to R.id.rbPastilhaP10p
+
+            null -> null to null
+        }
+
+        rgPastilhaTamanho.setCheckedSafely(ceramicaId)
+        rgPastilhaPorcelanatoTamanho.setCheckedSafely(porcelanatoId)
+    }
+
+    /**
      * Sincroniza RadioGroup de impermeabilização (piso intertravado)
      */
     private fun syncImpermeabilizacao(
@@ -175,21 +207,5 @@ class RadioGroupSynchronizer {
             null -> null // Manta asfáltica não tem radio button específico
         }
         rgIntertravadoImp.setCheckedSafely(radioId)
-    }
-
-    /**
-     * Sincroniza RadioGroup de tamanho de pastilha
-     */
-    private fun syncPastilhaTamanho(
-        formato: RevestimentoSpecifications.PastilhaFormato?,
-        rgPastilhaTamanho: RadioGroup
-    ) {
-        val radioId = when (formato) {
-            RevestimentoSpecifications.PastilhaFormato.P5 -> R.id.rbPastilha5
-            RevestimentoSpecifications.PastilhaFormato.P7_5 -> R.id.rbPastilha7_5
-            RevestimentoSpecifications.PastilhaFormato.P10 -> R.id.rbPastilha10
-            null -> null
-        }
-        rgPastilhaTamanho.setCheckedSafely(radioId)
     }
 }

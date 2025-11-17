@@ -67,4 +67,7 @@
     <dimen name="title_toolbar_calc">22sp</dimen>
     <dimen name="width_icon_toolbar_calc_download">40dp</dimen>
     <dimen name="width_icon_toolbar_calc_home">38dp</dimen>
+
+    <!-- Espaçamento Materia Radio Group Buttons Pastilha -->
+    <dimen name="rg_three_column_gap_horizontal">12dp</dimen>
 </resources>

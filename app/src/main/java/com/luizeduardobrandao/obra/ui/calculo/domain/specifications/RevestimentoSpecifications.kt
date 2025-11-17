@@ -2,6 +2,7 @@ package com.luizeduardobrandao.obra.ui.calculo.domain.specifications
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
 import com.luizeduardobrandao.obra.ui.calculo.domain.rules.CalcRevestimentoRules
+import java.util.Locale
 
 /**
  * Especificações técnicas de revestimentos (espessura, junta, formatos)
@@ -18,13 +19,114 @@ object RevestimentoSpecifications {
 
     // Formatos suportados para pastilha
     enum class PastilhaFormato(
-        val ladoCm: Double,
-        val mantaLadoCm: Double,
-        val espMmPadrao: Double
+        val ladoCm: Double,          // Lado 1 da peça (cm)
+        val lado2Cm: Double,         // Lado 2 da peça (cm) – igual ao ladoCm em formatos quadrados
+        val mantaCompCm: Double,     // Comprimento da manta (cm)
+        val mantaLargCm: Double,     // Largura da manta (cm)
+        val espMmPadrao: Double      // Espessura padrão (mm) para este formato
     ) {
-        P5(5.0, 32.5, PecaRules.PASTILHA_ESP_P5_MM),
-        P7_5(7.5, 31.5, PecaRules.PASTILHA_ESP_P7_5_MM),
-        P10(10.0, 31.0, PecaRules.PASTILHA_ESP_P10_MM)
+        // 🔹 NOVOS formatos (não confundem com os atuais de cerâmica)
+        P1_5(
+            ladoCm = 1.5,
+            lado2Cm = 1.5,
+            mantaCompCm = 32.1,
+            mantaLargCm = 32.1,
+            espMmPadrao = PecaRules.PASTILHA_ESP_P1_5_MM
+        ),
+        P2(
+            ladoCm = 2.0,
+            lado2Cm = 2.0,
+            mantaCompCm = 34.2,
+            mantaLargCm = 34.2,
+            espMmPadrao = PecaRules.PASTILHA_ESP_P2_MM
+        ),
+        P2_2(
+            ladoCm = 2.5,
+            lado2Cm = 2.5,
+            mantaCompCm = 33.3,
+            mantaLargCm = 33.3,
+            espMmPadrao = PecaRules.PASTILHA_ESP_P2_2_MM
+        ),
+        P2_5(
+            ladoCm = 2.5,
+            lado2Cm = 5.0,
+            mantaCompCm = 33.3,
+            mantaLargCm = 31.5,
+            espMmPadrao = PecaRules.PASTILHA_ESP_P2_5_MM
+        ),
+        P5_5(
+            ladoCm = 5.0,
+            lado2Cm = 5.0,
+            mantaCompCm = 31.5,
+            mantaLargCm = 31.5,
+            espMmPadrao = PecaRules.PASTILHA_ESP_P5_5_MM
+        ),
+        P5_10(
+            ladoCm = 5.0,
+            lado2Cm = 10.0,
+            mantaCompCm = 31.5,
+            mantaLargCm = 30.6,
+            espMmPadrao = PecaRules.PASTILHA_ESP_P5_5_10MM
+        ),
+        P5_15(
+            ladoCm = 5.0,
+            lado2Cm = 15.0,
+            mantaCompCm = 31.5,
+            mantaLargCm = 30.3,
+            espMmPadrao = PecaRules.PASTILHA_ESP_P5_5_15MM
+        ),
+        P7_5P(
+            ladoCm = 7.5,
+            lado2Cm = 7.5,
+            mantaCompCm = 30.9,
+            mantaLargCm = 30.9,
+            espMmPadrao = PecaRules.PASTILHA_ESP_P7_5PMM
+        ),
+        P10P(
+            ladoCm = 10.0,
+            lado2Cm = 10.0,
+            mantaCompCm = 30.6,
+            mantaLargCm = 30.6,
+            espMmPadrao = PecaRules.PASTILHA_ESP_P10PMM
+        ),
+
+        // 🔹 FORMATOS ATUAIS (cerâmica) – mantidos como estão
+        P5(
+            ladoCm = 5.0,
+            lado2Cm = 5.0,
+            mantaCompCm = 32.5,
+            mantaLargCm = 32.5,
+            espMmPadrao = PecaRules.PASTILHA_ESP_P5_MM
+        ),
+        P7_5(
+            ladoCm = 7.5,
+            lado2Cm = 7.5,
+            mantaCompCm = 31.5,
+            mantaLargCm = 31.5,
+            espMmPadrao = PecaRules.PASTILHA_ESP_P7_5_MM
+        ),
+        P10(
+            ladoCm = 10.0,
+            lado2Cm = 10.0,
+            mantaCompCm = 31.0,
+            mantaLargCm = 31.0,
+            espMmPadrao = PecaRules.PASTILHA_ESP_P10_MM
+        )
+    }
+
+    /**
+     * Monta o nome completo da pastilha para exibir na tabela de materiais.
+     *
+     * Ex: "Pastilha 5cm × 5cm (32,5cm × 32,5cm)"
+     *     "Pastilha 10cm × 10cm (31cm × 31cm)"
+     */
+    fun getPastilhaNomeCompleto(formato: PastilhaFormato): String {
+        val lado1Str = formatMedidaCm(formato.ladoCm)
+        val lado2Str = formatMedidaCm(formato.lado2Cm)
+        val mantaCompStr = formatMedidaCm(formato.mantaCompCm)
+        val mantaLargStr = formatMedidaCm(formato.mantaLargCm)
+
+        return "Pastilha ${lado1Str}cm × ${lado2Str}cm (${mantaCompStr}cm × ${mantaLargStr}cm)"
     }
 
     /**
@@ -32,11 +134,9 @@ object RevestimentoSpecifications {
      */
     fun getEspessuraPadraoMm(inputs: Inputs): Double {
         return when (inputs.revest) {
-            RevestimentoType.PASTILHA -> when (inputs.pastilhaFormato) {
-                PastilhaFormato.P5 -> PecaRules.PASTILHA_ESP_P5_MM
-                PastilhaFormato.P7_5 -> PecaRules.PASTILHA_ESP_P7_5_MM
-                PastilhaFormato.P10 -> PecaRules.PASTILHA_ESP_P10_MM
-                null -> PecaRules.PASTILHA_ESP_P5_MM
+            RevestimentoType.PASTILHA -> {
+                // Agora a espessura padrão vem diretamente do formato escolhido
+                inputs.pastilhaFormato?.espMmPadrao ?: PecaRules.PASTILHA_ESP_P5_MM
             }
 
             RevestimentoType.PEDRA ->
@@ -108,14 +208,6 @@ object RevestimentoSpecifications {
      */
     fun getJuntaPadraoMm(inputs: Inputs): Double {
         return when (inputs.revest) {
-            RevestimentoType.PASTILHA -> JuntaPadrao.PASTILHA_MM
-            RevestimentoType.PEDRA -> JuntaPadrao.PEDRA_MM
-
-            RevestimentoType.MARMORE,
-            RevestimentoType.GRANITO -> JuntaPadrao.MG_MM
-
-            RevestimentoType.PISO_INTERTRAVADO -> JuntaPadrao.INTERTRAVADO_MM
-
             RevestimentoType.PISO -> {
                 if (inputs.pisoPlacaTipo == PlacaTipo.PORCELANATO)
                     JuntaPadrao.PISO_PORCELANATO_MM
@@ -123,7 +215,25 @@ object RevestimentoSpecifications {
                     JuntaPadrao.PISO_CERAMICO_MM
             }
 
-            RevestimentoType.AZULEJO -> JuntaPadrao.AZULEJO_MM
+            RevestimentoType.AZULEJO -> {
+                when (inputs.pisoPlacaTipo) {
+                    PlacaTipo.PORCELANATO -> JuntaPadrao.AZULEJO_PORCELANATO_MM
+                    PlacaTipo.CERAMICA, null -> JuntaPadrao.AZULEJO_CERAMICO_MM
+                }
+            }
+
+            RevestimentoType.PASTILHA -> {
+                when (inputs.pisoPlacaTipo) {
+                    PlacaTipo.PORCELANATO -> JuntaPadrao.PASTILHA_PORCELANATO_MM
+                    PlacaTipo.CERAMICA, null -> JuntaPadrao.PASTILHA_CERAMICO_MM
+                }
+            }
+
+            RevestimentoType.PEDRA -> JuntaPadrao.PEDRA_MM
+            RevestimentoType.PISO_INTERTRAVADO -> JuntaPadrao.INTERTRAVADO_MM
+            RevestimentoType.MARMORE,
+            RevestimentoType.GRANITO -> JuntaPadrao.MG_MM
+
             else -> JuntaPadrao.GENERICO_MM
         }
     }
@@ -162,4 +272,19 @@ object RevestimentoSpecifications {
 
     // Funções de arredondamento
     private fun arred0(v: Double) = kotlin.math.round(v)
+
+    /**
+     * Formata medidas em cm para exibição:
+     * - sem casas decimais se for inteiro (31.0 -> "31")
+     * - 1 casa decimal se tiver fração (32.5 -> "32,5")
+     */
+    private fun formatMedidaCm(v: Double): String {
+        val abs = kotlin.math.abs(v)
+        val inteiro = abs % 1.0 == 0.0
+        return if (inteiro) {
+            abs.toInt().toString()
+        } else {
+            String.format(Locale.getDefault(), "%.1f", abs)
+        }.replace('.', ',')
+    }
 }

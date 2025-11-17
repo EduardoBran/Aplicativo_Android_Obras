@@ -905,8 +905,9 @@
     <string name="generic_start">Começar</string>
 
     <!-- TELA 1 -->
-    <string name="calc_step1_title">Escolha o Tipo de Revestimento</string>
+    <string name="calc_step1_title">Tipo de Revestimento</string>
     <string name="calc_step1_opt_piso">Piso (cerâmico ou porcelanato)</string>
+    <string name="calc_step1_placa_tipo">Tipo da Peça:</string>
     <string name="calc_step1_opt_azulejo">Azulejo</string>
     <string name="calc_step1_opt_pastilha">Pastilha</string>
     <string name="calc_step1_opt_pedra">Pedra Portuguesa</string>
@@ -952,7 +953,7 @@
     <string name="calc_step_trafego_help">Escolha o tipo de tráfego conforme o peso e a frequência dos veículos sobre o piso intertravado; isso ajusta a espessura das camadas e o tipo de impermeabilização recomendados.</string>
 
     <!-- TELA 3 -->
-    <string name="calc_step3_title">Informe as medidas da área</string>
+    <string name="calc_step3_title">Medidas da Área</string>
     <string name="calc_step3_comp">Comprimento (m)</string>
     <string name="calc_step3_larg">Largura (m)</string>
     <string name="calc_step3_alt">Altura (m) (somente parede)</string>
@@ -976,7 +977,7 @@
 
 
     <!-- ======== TELA 4 ======== -->
-    <string name="calc_step4_title">Parâmetros do Revestimento</string>
+    <string name="calc_step4_title">Medidas do Revestimento</string>
     <string name="generic_next">Avançar</string>
 
     <!-- Parâmetros Label -->
@@ -1027,13 +1028,24 @@
 
     <!-- Pastilha -->
     <string name="calc_pastilha_tamanho_title">Tamanho da Pastilha (cm)</string>
-    <string name="calc_pastilha_5x5">5 x 5</string>
-    <string name="calc_pastilha_7_5x7_5">7,5 x 7,5</string>
-    <string name="calc_pastilha_10x10">10 x 10</string>
-    <string name="calc_pastilha_tamanho_helper">Escolha os parâmetros para sua pastilha.</string>
+    <string name="calc_pastilha_5x5">5 × 5</string>
+    <string name="calc_pastilha_7_5x7_5">7,5 × 7,5</string>
+    <string name="calc_pastilha_10x10">10 × 10</string>
+    <string name="calc_pastilha_p1_5">1,5 × 1,5</string>
+    <string name="calc_pastilha_p2">2 × 2</string>
+    <string name="calc_pastilha_p2_2">2,5 × 2,5</string>
+    <string name="calc_pastilha_p2_5">2,5 × 5</string>
+    <string name="calc_pastilha_p5_5">5 × 5</string>
+    <string name="calc_pastilha_p5_10">5 × 10</string>
+    <string name="calc_pastilha_p5_15">5 × 15</string>
+    <string name="calc_pastilha_p7_5p">7,5 × 7,5</string>
+    <string name="calc_pastilha_p10p">10 × 10</string>
+    <string name="calc_pastilha_tamanho_helper">Escolha as medidas para a sua pastilha.</string>
     <string name="calc_pastilha_junta_helper">Em milímetros • Valor padrão: 3</string>
     <string name="calc_err_junta_pastilha_range">Para pastilha, use entre 1 e 3 mm.</string>
     <string name="calc_err_junta_pastilha_required">Informe a espessura da junta da pastilha.</string>
+    <string name="calc_pastilha_porcelanato_tamanho_title">Selecione o tamanho da pastilha (porcelanato)</string>
+    <string name="calc_pastilha_porcelanato_tamanho_helper">Escolha uma das opções de manta de pastilha em porcelanato, com base nas medidas em centímetros.</string>
 
 
     <!-- TELA 5 -->

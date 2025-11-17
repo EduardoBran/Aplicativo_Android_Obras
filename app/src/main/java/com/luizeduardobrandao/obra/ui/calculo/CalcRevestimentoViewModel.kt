@@ -103,7 +103,13 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     fun setRevestimento(type: RevestimentoType) = viewModelScope.launch {
         val cur = _inputs.value
 
-        val novoPlacaTipo = if (type == RevestimentoType.PISO) cur.pisoPlacaTipo else null
+        val novoPlacaTipo = when (type) {
+            RevestimentoType.PISO,
+            RevestimentoType.AZULEJO,
+            RevestimentoType.PASTILHA -> cur.pisoPlacaTipo
+
+            else -> null
+        }
 
         var newInputs = cur.copy(
             revest = type,
@@ -321,14 +327,19 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             var i = _inputs.value
             if (i.revest != RevestimentoType.PASTILHA) return@launch
 
+            // Atualiza apenas o formato primeiro
             i = i.copy(pastilhaFormato = formato)
 
             i = if (formato != null) {
+                // Usa a regra centralizada para junta padrão,
+                // que já considera Cerâmica x Porcelanato.
+                val juntaDefault = RevestimentoSpecifications.getJuntaPadraoMm(i)
+
                 i.copy(
                     pecaCompCm = formato.ladoCm,
-                    pecaLargCm = formato.ladoCm,
+                    pecaLargCm = formato.lado2Cm,
                     pecaEspMm = formato.espMmPadrao,
-                    juntaMm = 3.0 // padrão para pastilha
+                    juntaMm = juntaDefault
                 )
             } else {
                 i.copy(
@@ -338,6 +349,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
                     juntaMm = null
                 )
             }
+
             _inputs.value = i
         }
 

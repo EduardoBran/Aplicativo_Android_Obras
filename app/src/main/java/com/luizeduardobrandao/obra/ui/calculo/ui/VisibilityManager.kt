@@ -30,7 +30,8 @@ class VisibilityManager {
         tvAreaTotalAviso: View,
         // Grupos de componentes
         groupPlacaTipo: View, groupPecaTamanho: View, groupPastilhaTamanho: View,
-        groupRodapeFields: View, groupIntertravadoImpOptions: View,
+        groupPastilhaPorcelanatoTamanho: View, groupRodapeFields: View,
+        groupIntertravadoImpOptions: View,
         // Campos individuais - Medidas
         tilComp: TextInputLayout, tilLarg: TextInputLayout, tilAltura: TextInputLayout,
         tilParedeQtd: TextInputLayout, tilAbertura: TextInputLayout,
@@ -56,9 +57,10 @@ class VisibilityManager {
 
         // Atualiza grupos principais
         updateGroupVisibilities(
-            inputs, groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho,
-            groupRodapeFields, groupIntertravadoImpOptions, rgIntertravadoImp,
-            switchImp, switchRodape
+            inputs,
+            groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho, groupPastilhaPorcelanatoTamanho,
+            groupRodapeFields, groupIntertravadoImpOptions,
+            rgIntertravadoImp, switchImp, switchRodape
         )
 
         // Atualiza campos de medidas
@@ -101,23 +103,45 @@ class VisibilityManager {
         groupPlacaTipo: View,
         groupPecaTamanho: View,
         groupPastilhaTamanho: View,
+        groupPastilhaPorcelanatoTamanho: View,
         groupRodapeFields: View,
         groupIntertravadoImpOptions: View,
         rgIntertravadoImp: RadioGroup,
         switchImp: CompoundButton,
         switchRodape: CompoundButton
     ) {
-        // Grupo de tipo de placa (cerâmica/porcelanato)
-        groupPlacaTipo.isVisible = inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PISO
+        val revest = inputs.revest
+
+        // Grupo de tipo de placa (cerâmica/porcelanato):
+        // agora para Piso, Azulejo e Pastilha
+        groupPlacaTipo.isVisible =
+            revest == CalcRevestimentoViewModel.RevestimentoType.PISO ||
+                    revest == CalcRevestimentoViewModel.RevestimentoType.AZULEJO ||
+                    revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
 
         // Grupo de tamanho tradicional (oculta para Pedra e Pastilha)
         groupPecaTamanho.isVisible =
-            inputs.revest != CalcRevestimentoViewModel.RevestimentoType.PEDRA &&
-                    inputs.revest != CalcRevestimentoViewModel.RevestimentoType.PASTILHA
+            revest != CalcRevestimentoViewModel.RevestimentoType.PEDRA &&
+                    revest != CalcRevestimentoViewModel.RevestimentoType.PASTILHA
 
-        // Grupo de tamanho de pastilha (só visível para Pastilha)
-        groupPastilhaTamanho.isVisible =
-            inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
+        // Grupos de tamanho de pastilha (cerâmica x porcelanato)
+        if (revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA) {
+            when (inputs.pisoPlacaTipo) {
+                CalcRevestimentoViewModel.PlacaTipo.PORCELANATO -> {
+                    groupPastilhaTamanho.isVisible = false
+                    groupPastilhaPorcelanatoTamanho.isVisible = true
+                }
+
+                CalcRevestimentoViewModel.PlacaTipo.CERAMICA, null -> {
+                    // Cenário "Pastilha = Cerâmica" mantém layout já existente
+                    groupPastilhaTamanho.isVisible = true
+                    groupPastilhaPorcelanatoTamanho.isVisible = false
+                }
+            }
+        } else {
+            groupPastilhaTamanho.isVisible = false
+            groupPastilhaPorcelanatoTamanho.isVisible = false
+        }
 
         // Mármore/Granito em PAREDE NÃO têm etapa de rodapé
         val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
@@ -324,15 +348,19 @@ class VisibilityManager {
     }
 
     /**
-     * Limpa RadioGroup de tipo de placa se não for Piso
+     * Limpa RadioGroup de tipo de placa
      */
     private fun clearPlacaTipoIfNeeded(
         inputs: CalcRevestimentoViewModel.Inputs,
         rgPlacaTipo: RadioGroup
     ) {
-        if (inputs.revest != CalcRevestimentoViewModel.RevestimentoType.PISO ||
-            inputs.pisoPlacaTipo == null
-        ) {
+        val revest = inputs.revest
+        val shouldKeepPlacaTipo =
+            revest == CalcRevestimentoViewModel.RevestimentoType.PISO ||
+                    revest == CalcRevestimentoViewModel.RevestimentoType.AZULEJO ||
+                    revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
+
+        if (!shouldKeepPlacaTipo || inputs.pisoPlacaTipo == null) {
             if (rgPlacaTipo.checkedRadioButtonId != View.NO_ID) {
                 rgPlacaTipo.clearCheck()
             }
