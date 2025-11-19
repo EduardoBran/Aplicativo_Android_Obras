@@ -18,9 +18,7 @@ object RejunteSpecifications {
         val packKg: Double
     )
 
-    /**
-     * Retorna especificação de rejunte conforme ambiente
-     */
+    /** Retorna especificação de rejunte conforme ambiente */
     fun rejunteSpec(inputs: Inputs): RejunteSpec {
         return when (inputs.ambiente) {
             AmbienteType.SEMPRE ->
@@ -34,9 +32,7 @@ object RejunteSpecifications {
         }
     }
 
-    /**
-     * Calcula consumo de rejunte em kg/m²
-     */
+    /** Calcula consumo de rejunte em kg/m² */
     fun consumoRejunteKgM2(inputs: Inputs, densidadeKgDm3: Double): Double {
         val juntaMm = inputs.juntaMm ?: RevestimentoSpecifications.getJuntaPadraoMm(inputs)
         val juntaM = (juntaMm.coerceAtLeast(0.5)) / 1000.0

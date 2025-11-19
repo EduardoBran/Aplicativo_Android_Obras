@@ -698,7 +698,7 @@
                 </LinearLayout>
 
                 <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 4 – Parâmetros da Peça -->
+                <!-- TELA 4 – Parâmetros da Peça + Rodapé -->
                 <!-- ═══════════════════════════════════════════ -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -902,7 +902,6 @@
                         android:id="@+id/groupPecaTamanho"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
                         android:orientation="vertical">
 
                         <com.google.android.material.textfield.TextInputLayout
@@ -1023,29 +1022,28 @@
                             android:digits="0123456789,."
                             android:inputType="numberDecimal" />
                     </com.google.android.material.textfield.TextInputLayout>
-                </LinearLayout>
 
-                <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 5 – Rodapé -->
-                <!-- ═══════════════════════════════════════════ -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="8dp">
-
-                    <TextView
+                    <!-- Linha "Incluir Rodapé" com switch na tela de Parâmetros da Peça -->
+                    <LinearLayout
+                        android:id="@+id/rowRodapeSwitchStep4"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/calc_step5_title"
-                        android:textAppearance="?attr/textAppearanceTitleLarge" />
-
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/switchRodape"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:text="@string/calc_step5_include" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/calc_step5_include"
+                            android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switchRodape"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/groupRodapeFields"

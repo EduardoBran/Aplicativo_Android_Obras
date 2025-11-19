@@ -2,6 +2,7 @@ package com.luizeduardobrandao.obra.ui.calculo.domain.calculators
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
+import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import kotlin.math.ceil
 import kotlin.math.sqrt
 
@@ -54,15 +55,15 @@ object RodapeCalculator {
             val areaComSobra = areaCompraM2 * (1 + sobra / 100.0)
 
             val obs = if (aberturaM != null) {
-                "Mesma peça • Altura: ${arred0(alturaCm)}cm • Abertura: ${arred2(aberturaM)}m.\nMateriais extras para colocação já incluídos."
+                "Mesma peça • Altura: ${NumberFormatter.arred0(alturaCm)}cm • Abertura: ${NumberFormatter.arred2(aberturaM)}m.\nMateriais extras para colocação já incluídos."
             } else {
-                "Mesma peça • Altura: ${arred0(alturaCm)}cm.\nMateriais extras para colocação já incluídos."
+                "Mesma peça • Altura: ${NumberFormatter.arred0(alturaCm)}cm.\nMateriais extras para colocação já incluídos."
             }
 
             itens += MaterialItem(
                 item = "Rodapé",
                 unid = "m²",
-                qtd = arred2(areaComSobra),
+                qtd = NumberFormatter.arred2(areaComSobra),
                 observacao = obs
             )
         } else {
@@ -76,26 +77,23 @@ object RodapeCalculator {
             val compCm = compM * 100.0
 
             val obs = if (aberturaM != null) {
-                "Peça pronta • ${arred0(alturaCm)} x ${arred0(compCm)} cm • Abertura: ${
-                    arred2(
+                "Peça pronta • ${NumberFormatter.arred0(alturaCm)} x ${NumberFormatter.arred0(compCm)} cm • Abertura: ${
+                    NumberFormatter.arred2(
                         aberturaM
                     )
                 }m.\n$qtdPecas peças.\n" +
                         "Materiais extras para colocação já incluídos."
             } else {
-                "Peça pronta • ${arred0(alturaCm)} x ${arred0(compCm)} cm • $qtdPecas peças.\n" +
+                "Peça pronta • ${NumberFormatter.arred0(alturaCm)} x ${NumberFormatter.arred0(compCm)} cm • $qtdPecas peças.\n" +
                         "Materiais extras para colocação já incluídos."
             }
 
             itens += MaterialItem(
                 item = "Rodapé",
                 unid = "m²",
-                qtd = arred2(areaTotalM2),
+                qtd = NumberFormatter.arred2(areaTotalM2),
                 observacao = obs
             )
         }
     }
-
-    private fun arred0(v: Double) = kotlin.math.round(v)
-    private fun arred2(v: Double) = kotlin.math.round(v * 100.0) / 100.0
 }

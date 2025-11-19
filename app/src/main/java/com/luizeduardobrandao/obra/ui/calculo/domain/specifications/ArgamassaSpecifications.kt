@@ -1,6 +1,7 @@
 package com.luizeduardobrandao.obra.ui.calculo.domain.specifications
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
+import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import kotlin.math.max
 
 /**
@@ -10,9 +11,7 @@ object ArgamassaSpecifications {
 
     private const val CONSUMO_ARGAMASSA_RODAPE_KG_M2 = 5.0
 
-    /**
-     * Calcula consumo de argamassa em kg/m²
-     */
+    /** Calcula consumo de argamassa em kg/m² */
     fun consumoArgamassaKgM2(inputs: Inputs): Double {
         val maxLado = max(inputs.pecaCompCm ?: 30.0, inputs.pecaLargCm ?: 30.0)
         val isPorc = inputs.revest == RevestimentoType.PISO &&
@@ -64,9 +63,7 @@ object ArgamassaSpecifications {
             .coerceIn(4.0, 18.0)
     }
 
-    /**
-     * Gera MaterialItem de argamassa para rodapé
-     */
+    /** Gera MaterialItem de argamassa para rodapé */
     fun materialArgamassaRodape(rodapeAreaM2: Double): MaterialItem? {
         if (rodapeAreaM2 <= 0.0) return null
 
@@ -75,10 +72,8 @@ object ArgamassaSpecifications {
         return MaterialItem(
             item = "Argamassa colante (rodapé)",
             unid = "kg",
-            qtd = arred1(kgReal),
+            qtd = NumberFormatter.arred1(kgReal),
             observacao = "Para assentamento do rodapé."
         )
     }
-
-    private fun arred1(v: Double) = kotlin.math.round(v * 10.0) / 10.0
 }

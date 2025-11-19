@@ -2,6 +2,7 @@ package com.luizeduardobrandao.obra.ui.calculo.domain.calculators
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.*
+import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import kotlin.math.ceil
 import kotlin.math.max
 
@@ -10,9 +11,7 @@ import kotlin.math.max
  */
 object MaterialCalculator {
 
-    /**
-     * Calcula quantidade de peças necessárias
-     */
+    /** Calcula quantidade de peças necessárias */
     fun calcularQuantidadePecas(
         inputs: Inputs,
         areaM2: Double,
@@ -29,9 +28,7 @@ object MaterialCalculator {
         } else pecasNecessarias
     }
 
-    /**
-     * Adiciona argamassa colante à lista de materiais
-     */
+    /** Adiciona argamassa colante à lista de materiais */
     fun adicionarArgamassaColante(
         inputs: Inputs,
         areaM2: Double,
@@ -43,23 +40,22 @@ object MaterialCalculator {
         val totalArgKg = (consumoArgKgM2 * areaM2 * (1 + sobra / 100.0)) + extraKg
 
         val baseObs = "Consumo estimado para assentamento do revestimento."
-        val obs = if (inputs.revest == RevestimentoType.MARMORE || inputs.revest == RevestimentoType.GRANITO) {
-            "$baseObs\nUtilize ACIII."
-        } else {
-            baseObs
-        }
+        val obs =
+            if (inputs.revest == RevestimentoType.MARMORE || inputs.revest == RevestimentoType.GRANITO) {
+                "$baseObs\nUtilize ACIII."
+            } else {
+                baseObs
+            }
 
         itens += MaterialItem(
             item = "Argamassa",
             unid = "kg",
-            qtd = arred1(max(0.0, totalArgKg)),
+            qtd = NumberFormatter.arred1(max(0.0, totalArgKg)),
             observacao = obs
         )
     }
 
-    /**
-     * Adiciona rejunte à lista de materiais
-     */
+    /** Adiciona rejunte à lista de materiais */
     fun adicionarRejunte(
         inputs: Inputs,
         areaM2: Double,
@@ -90,14 +86,12 @@ object MaterialCalculator {
         itens += MaterialItem(
             item = spec.nome,
             unid = "kg",
-            qtd = arred1(max(0.0, totalRejKg)),
+            qtd = NumberFormatter.arred1(max(0.0, totalRejKg)),
             observacao = observacaoRejunte
         )
     }
 
-    /**
-     * Adiciona espaçadores e cunhas à lista de materiais
-     */
+    /** Adiciona espaçadores e cunhas à lista de materiais */
     fun adicionarEspacadoresECunhas(
         inputs: Inputs,
         areaM2: Double,
@@ -136,9 +130,7 @@ object MaterialCalculator {
         }
     }
 
-    /**
-     * Constrói observação do revestimento
-     */
+    /** Constrói observação do revestimento */
     fun buildObservacaoRevestimento(
         sobra: Double,
         qtdPecas: Double?,
@@ -155,9 +147,9 @@ object MaterialCalculator {
         } else null
 
         if (pecasPorM2 != null) {
-            sb.append("Peças por m²: ${arred2(pecasPorM2)}")
+            sb.append("Peças por m²: ${NumberFormatter.arred2(pecasPorM2)}")
         } else {
-            sb.append("sobra: ${arred2(sobra)}%")
+            sb.append("sobra: ${NumberFormatter.arred2(sobra)}%")
         }
 
         if (qtdPecas != null && qtdPecas > 0) {
@@ -167,12 +159,9 @@ object MaterialCalculator {
                 sb.append(" (${caixas} caixas.)")
             }
         }
-
         return sb.toString()
     }
 
     private fun pacotesDe100Un(quantUn: Int) = ceilPos(quantUn / 100.0)
     private fun ceilPos(v: Double) = max(0, ceil(v).toInt())
-    private fun arred1(v: Double) = kotlin.math.round(v * 10.0) / 10.0
-    private fun arred2(v: Double) = kotlin.math.round(v * 100.0) / 100.0
 }

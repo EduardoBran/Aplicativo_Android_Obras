@@ -2,6 +2,7 @@ package com.luizeduardobrandao.obra.ui.calculo.domain.calculators
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
+import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.floor
@@ -11,9 +12,7 @@ import kotlin.math.floor
  */
 object PastilhaCalculator {
 
-    /**
-     * Processa materiais para Pastilha
-     */
+    /** Processa materiais para Pastilha */
     fun processarPastilha(
         inputs: Inputs,
         areaM2: Double,
@@ -49,14 +48,14 @@ object PastilhaCalculator {
 
         // ✅ Observação: Ordem comercial (mantas → peças)
         val observacao = buildString {
-            append("Mantas por m²: ${arred2(mantasPorM2)}")
+            append("Mantas por m²: ${NumberFormatter.arred2(mantasPorM2)}")
             append(" • $totalPecas peças.")
         }
 
         itens += MaterialItem(
             item = nome,
             unid = "m²",
-            qtd = arred2(areaCompraM2),
+            qtd = NumberFormatter.arred2(areaCompraM2),
             observacao = observacao
         )
 
@@ -71,6 +70,4 @@ object PastilhaCalculator {
         // Rejunte: baseado na geometria da peça
         MaterialCalculator.adicionarRejunte(iArg, areaM2, itens)
     }
-
-    private fun arred2(v: Double) = kotlin.math.round(v * 100.0) / 100.0
 }

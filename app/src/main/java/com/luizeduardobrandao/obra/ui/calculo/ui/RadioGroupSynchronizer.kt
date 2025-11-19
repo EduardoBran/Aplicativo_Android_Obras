@@ -13,13 +13,14 @@ import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.Revestimento
  * - Sincronizar RadioGroups sem disparar listeners
  * - Evitar loops infinitos de atualização
  * - Manter estado consistente entre UI e ViewModel
+ *  * Inclui:
+ *  * - Tipo de revestimento, tipo de placa, ambiente
+ *  * - Material de rodapé (agora exibido dentro da tela de Medidas da Peça)
+ *  * - Tipo de tráfego (Piso Intertravado)
  */
 class RadioGroupSynchronizer {
 
-    /**
-     * Marca ou desmarca um RadioGroup de forma segura
-     * Evita disparar o listener se o estado já está correto
-     */
+    /** Marca ou desmarca um RadioGroup de forma segura */
     private fun RadioGroup.setCheckedSafely(id: Int?) {
         if (id == null) {
             if (checkedRadioButtonId != View.NO_ID) {
@@ -39,7 +40,8 @@ class RadioGroupSynchronizer {
      * @param rgAmbiente RadioGroup de tipo de ambiente
      * @param rgRodapeMat RadioGroup de material de rodapé
      * @param rgTrafego RadioGroup de tipo de tráfego
-     * @param rgPastilhaTamanho RadioGroup de tamanho de pastilha
+     * @param rgPastilhaTamanho RadioGroup de tamanho de pastilha cerâmica
+     * @param rgPastilhaPorcelanatoTamanho RadioGroup de tamanho de pastilha porcelanato
      */
     fun syncAllRadioGroups(
         inputs: CalcRevestimentoViewModel.Inputs,
@@ -53,26 +55,26 @@ class RadioGroupSynchronizer {
     ) {
         // Sincroniza tipo de revestimento
         syncRevestimento(inputs.revest, rgRevest)
-
         // Sincroniza tipo de placa (cerâmica/porcelanato)
         syncPlacaTipo(inputs.pisoPlacaTipo, rgPlacaTipo)
-
         // Sincroniza tipo de ambiente
         syncAmbiente(inputs.ambiente, rgAmbiente)
-
-        // Sincroniza material de rodapé
-        syncRodapeMaterial(inputs.rodapeMaterial, rgRodapeMat)
-
         // Sincroniza tipo de tráfego
         syncTrafego(inputs.trafego, rgTrafego)
-
+        // Informação se o cenário atual possui etapa de rodapé
+        val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
+        if (hasRodapeStep) {
+            // Cenário suporta rodapé → sincroniza material normalmente
+            syncRodapeMaterial(inputs.rodapeMaterial, rgRodapeMat)
+        } else {
+            // Cenário NÃO tem rodapé → garante que o RadioGroup fique sem seleção
+            rgRodapeMat.setCheckedSafely(null)
+        }
         // Sincroniza tamanho de pastilha (cerâmica x porcelanato)
         syncPastilhaTamanho(inputs.pastilhaFormato, rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho)
     }
 
-    /**
-     * Sincroniza RadioGroup de tipo de revestimento
-     */
+    /** Sincroniza RadioGroup de tipo de revestimento */
     private fun syncRevestimento(
         revest: CalcRevestimentoViewModel.RevestimentoType?,
         rgRevest: RadioGroup
@@ -90,9 +92,7 @@ class RadioGroupSynchronizer {
         rgRevest.setCheckedSafely(radioId)
     }
 
-    /**
-     * Sincroniza RadioGroup de tipo de placa (cerâmica/porcelanato)
-     */
+    /** Sincroniza RadioGroup de tipo de placa (cerâmica/porcelanato) */
     private fun syncPlacaTipo(
         placaTipo: CalcRevestimentoViewModel.PlacaTipo?,
         rgPlacaTipo: RadioGroup
@@ -105,9 +105,7 @@ class RadioGroupSynchronizer {
         rgPlacaTipo.setCheckedSafely(radioId)
     }
 
-    /**
-     * Sincroniza RadioGroup de tipo de ambiente
-     */
+    /** Sincroniza RadioGroup de tipo de ambiente */
     private fun syncAmbiente(
         ambiente: CalcRevestimentoViewModel.AmbienteType?,
         rgAmbiente: RadioGroup
@@ -122,23 +120,7 @@ class RadioGroupSynchronizer {
         rgAmbiente.setCheckedSafely(radioId)
     }
 
-    /**
-     * Sincroniza RadioGroup de material de rodapé
-     */
-    private fun syncRodapeMaterial(
-        material: CalcRevestimentoViewModel.RodapeMaterial,
-        rgRodapeMat: RadioGroup
-    ) {
-        val radioId = when (material) {
-            CalcRevestimentoViewModel.RodapeMaterial.MESMA_PECA -> R.id.rbRodapeMesma
-            CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA -> R.id.rbRodapePeca
-        }
-        rgRodapeMat.setCheckedSafely(radioId)
-    }
-
-    /**
-     * Sincroniza RadioGroup de tipo de tráfego
-     */
+    /** Sincroniza RadioGroup de tipo de tráfego */
     private fun syncTrafego(
         trafego: CalcRevestimentoViewModel.TrafegoType?,
         rgTrafego: RadioGroup
@@ -152,9 +134,19 @@ class RadioGroupSynchronizer {
         rgTrafego.setCheckedSafely(radioId)
     }
 
-    /**
-     * Sincroniza RadioGroup de tamanho de pastilha
-     */
+    /** Sincroniza RadioGroup de tipo de rodapé */
+    private fun syncRodapeMaterial(
+        material: CalcRevestimentoViewModel.RodapeMaterial,
+        rgRodapeMat: RadioGroup
+    ) {
+        val radioId = when (material) {
+            CalcRevestimentoViewModel.RodapeMaterial.MESMA_PECA -> R.id.rbRodapeMesma
+            CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA -> R.id.rbRodapePeca
+        }
+        rgRodapeMat.setCheckedSafely(radioId)
+    }
+
+    /** * Sincroniza RadioGroup de tamanho de pastilha */
     private fun syncPastilhaTamanho(
         formato: RevestimentoSpecifications.PastilhaFormato?,
         rgPastilhaTamanho: RadioGroup,
@@ -164,7 +156,6 @@ class RadioGroupSynchronizer {
             RevestimentoSpecifications.PastilhaFormato.P5 -> R.id.rbPastilha5 to null
             RevestimentoSpecifications.PastilhaFormato.P7_5 -> R.id.rbPastilha7_5 to null
             RevestimentoSpecifications.PastilhaFormato.P10 -> R.id.rbPastilha10 to null
-
             // Formatos específicos para Pastilha Porcelanato
             RevestimentoSpecifications.PastilhaFormato.P1_5 -> null to R.id.rbPastilhaP1_5
             RevestimentoSpecifications.PastilhaFormato.P2 -> null to R.id.rbPastilhaP2
@@ -178,7 +169,6 @@ class RadioGroupSynchronizer {
 
             null -> null to null
         }
-
         rgPastilhaTamanho.setCheckedSafely(ceramicaId)
         rgPastilhaPorcelanatoTamanho.setCheckedSafely(porcelanatoId)
     }

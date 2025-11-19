@@ -21,9 +21,7 @@ import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.Revestimento
 @Suppress("UNUSED_PARAMETER")
 class VisibilityManager {
 
-    /**
-     * Atualiza visibilidade de todos os componentes baseado nos inputs
-     */
+    /** Atualiza visibilidade de todos os componentes baseado nos inputs */
     fun updateAllVisibilities(
         inputs: CalcRevestimentoViewModel.Inputs,
         // TextViews informativos
@@ -53,39 +51,34 @@ class VisibilityManager {
     ) {
         // Atualiza avisos informativos
         updateAreaTotalAvisoVisibility(inputs, tvAreaTotalAviso)
-
         // Atualiza grupos principais
         updateGroupVisibilities(
             inputs,
             groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho, groupPastilhaPorcelanatoTamanho,
             groupRodapeFields, switchRodape
         )
-
         // Atualiza campos de medidas
         updateMeasurementFieldsVisibility(
             inputs, tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura,
             etLarg, etAlt, etParedeQtd, etAbertura
         )
-
         // Atualiza campos de peça
         updatePieceFieldsVisibility(
             inputs, tilPecaEsp, tilJunta, tilPecasPorCaixa, tilDesnivel,
             etPecaEsp, etJunta, etPecasPorCaixa
         )
-
-        // Atualiza campos de rodapé
-        updateRodapeFieldsVisibility(inputs, groupRodapeFields, etRodapeAbertura, tilRodapeAbertura)
-
-        // Atualiza switches (apenas rodapé agora)
+        // Atualiza campos de rodapé (visibilidade + limpeza)
+        updateRodapeFieldsVisibility(
+            inputs, groupRodapeFields,
+            tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial, etRodapeAbertura
+        )
+        // Atualiza Switch Rodapé
         updateSwitchStates(inputs, switchRodape)
-
         // Limpa RadioGroup de placa se necessário
         clearPlacaTipoIfNeeded(inputs, rgPlacaTipo)
     }
 
-    /**
-     * Atualiza visibilidade do aviso de área total informada
-     */
+    /**  Atualiza visibilidade do aviso de área total informada */
     private fun updateAreaTotalAvisoVisibility(
         inputs: CalcRevestimentoViewModel.Inputs,
         tvAreaTotalAviso: View
@@ -93,9 +86,7 @@ class VisibilityManager {
         tvAreaTotalAviso.isVisible = inputs.areaInformadaM2 != null
     }
 
-    /**
-     * Atualiza visibilidade dos grupos principais
-     */
+    /** Atualiza visibilidade dos grupos principais */
     private fun updateGroupVisibilities(
         inputs: CalcRevestimentoViewModel.Inputs,
         groupPlacaTipo: View,
@@ -107,18 +98,15 @@ class VisibilityManager {
     ) {
         val revest = inputs.revest
 
-        // Grupo de tipo de placa (cerâmica/porcelanato):
-        // agora para Piso, Azulejo e Pastilha
+        // Grupo de tipo de placa (cerâmica/porcelanato)
         groupPlacaTipo.isVisible =
             revest == CalcRevestimentoViewModel.RevestimentoType.PISO ||
                     revest == CalcRevestimentoViewModel.RevestimentoType.AZULEJO ||
                     revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
-
         // Grupo de tamanho tradicional (oculta para Pedra e Pastilha)
         groupPecaTamanho.isVisible =
             revest != CalcRevestimentoViewModel.RevestimentoType.PEDRA &&
                     revest != CalcRevestimentoViewModel.RevestimentoType.PASTILHA
-
         // Grupos de tamanho de pastilha (cerâmica x porcelanato)
         if (revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA) {
             when (inputs.pisoPlacaTipo) {
@@ -140,14 +128,14 @@ class VisibilityManager {
 
         // Mármore/Granito em PAREDE NÃO têm etapa de rodapé
         val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
-
+        // Linha inteira "Incluir rodapé" (TextView + switch)
+        val rowRodapeSwitch = switchRodape.parent as? View
+        rowRodapeSwitch?.isVisible = hasRodapeStep
+        // Switch de rodapé fica visível apenas quando existe etapa de rodapé
         switchRodape.isVisible = hasRodapeStep
-        groupRodapeFields.isVisible = hasRodapeStep && inputs.rodapeEnable
     }
 
-    /**
-     * Atualiza visibilidade dos campos de medidas (Comp/Larg/Alt/Parede/Abertura)
-     */
+    /** Atualiza visibilidade dos campos de medidas (Comp/Larg/Alt/Parede/Abertura) */
     private fun updateMeasurementFieldsVisibility(
         inputs: CalcRevestimentoViewModel.Inputs,
         tilComp: TextInputLayout,
@@ -172,10 +160,8 @@ class VisibilityManager {
         tilAltura.isVisible = isParedeMode
         tilParedeQtd.isVisible = isParedeMode
         tilAbertura.isVisible = isParedeMode
-
         // Largura só quando NÃO é parede
         tilLarg.isVisible = !isParedeMode
-
         // Limpa campos ocultados
         if (!tilLarg.isVisible) {
             etLarg.text?.clear()
@@ -195,9 +181,7 @@ class VisibilityManager {
         }
     }
 
-    /**
-     * Atualiza visibilidade dos campos de peça
-     */
+    /** Atualiza visibilidade dos campos de peça */
     private fun updatePieceFieldsVisibility(
         inputs: CalcRevestimentoViewModel.Inputs,
         tilPecaEsp: TextInputLayout,
@@ -221,7 +205,6 @@ class VisibilityManager {
             etPecaEsp.text?.clear()
             tilPecaEsp.error = null
         }
-
         // Junta: oculta para Piso Intertravado, visível para demais
         val showJunta = !isIntertravado
         tilJunta.isVisible = showJunta
@@ -229,7 +212,6 @@ class VisibilityManager {
             etJunta.text?.clear()
             tilJunta.error = null
         }
-
         // Peças por caixa: oculta para MG, Pedra e Intertravado
         val hidePecasPorCaixa = isMG || isPedra || isIntertravado
         tilPecasPorCaixa.isVisible = !hidePecasPorCaixa
@@ -237,7 +219,6 @@ class VisibilityManager {
             etPecasPorCaixa.text?.clear()
             tilPecasPorCaixa.error = null
         }
-
         // Desnível: visível apenas para Pedra, MG
         tilDesnivel.isVisible = inputs.revest in setOf(
             CalcRevestimentoViewModel.RevestimentoType.PEDRA,
@@ -249,34 +230,38 @@ class VisibilityManager {
         }
     }
 
-    /**
-     * Atualiza visibilidade dos campos de rodapé
-     */
+    /** Atualiza visibilidade dos campos de rodapé */
     private fun updateRodapeFieldsVisibility(
         inputs: CalcRevestimentoViewModel.Inputs,
         groupRodapeFields: View,
-        etRodapeAbertura: TextInputEditText,
-        tilRodapeAbertura: TextInputLayout
+        tilRodapeAltura: TextInputLayout,
+        tilRodapeAbertura: TextInputLayout,
+        tilRodapeCompComercial: TextInputLayout,
+        etRodapeAbertura: TextInputEditText
     ) {
         val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
+        val rodapeOn = hasRodapeStep && inputs.rodapeEnable
 
-        groupRodapeFields.isVisible = hasRodapeStep && inputs.rodapeEnable
+        // Campos de rodapé só aparece quando: cenário tem etapa de rodapé e switch está ligado
+        groupRodapeFields.isVisible = rodapeOn
 
-        if (!inputs.rodapeEnable || !hasRodapeStep) {
+        if (!rodapeOn) {
+            // Limpa valores e erros de TODOS os campos de rodapé
+            (tilRodapeAltura.editText as? TextInputEditText)?.text?.clear()
             etRodapeAbertura.text?.clear()
+            (tilRodapeCompComercial.editText as? TextInputEditText)?.text?.clear()
+            tilRodapeAltura.error = null
             tilRodapeAbertura.error = null
+            tilRodapeCompComercial.error = null
         }
     }
 
-    /**
-     * Atualiza estado dos switches (apenas Rodapé)
-     */
+    /** Atualiza estado do Switch Rodapé */
     private fun updateSwitchStates(
         inputs: CalcRevestimentoViewModel.Inputs,
         switchRodape: CompoundButton
     ) {
         val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
-
         if (!hasRodapeStep) {
             // Garante que rodapé esteja sempre desligado e travado
             if (switchRodape.isChecked) {
@@ -289,9 +274,7 @@ class VisibilityManager {
         }
     }
 
-    /**
-     * Limpa RadioGroup de tipo de placa
-     */
+    /** Limpa RadioGroup de tipo de placa */
     private fun clearPlacaTipoIfNeeded(
         inputs: CalcRevestimentoViewModel.Inputs,
         rgPlacaTipo: RadioGroup

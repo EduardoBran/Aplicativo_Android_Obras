@@ -1,6 +1,7 @@
 package com.luizeduardobrandao.obra.ui.calculo.domain.calculators
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
+import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import kotlin.math.ceil
 
 /**
@@ -40,16 +41,20 @@ object PisoIntertravadoCalculator {
         val qtdPecas = MaterialCalculator.calcularQuantidadePecas(inputs, areaM2, sobra)
 
         val observacao = buildString {
-            append("Peças por m²: ${arred2(pecasPorM2)}")
+            append("Peças por m²: ${NumberFormatter.arred2(pecasPorM2)}")
             if (qtdPecas != null && qtdPecas > 0) {
                 append(" • ${qtdPecas.toInt()} peças.")
             }
         }
 
         itens += MaterialItem(
-            item = "Piso intertravado ${arred0(comp)}×${arred0(larg)}×${arred1(espCm)} cm",
+            item = "Piso intertravado ${NumberFormatter.arred0(comp)}×${NumberFormatter.arred0(larg)}×${
+                NumberFormatter.arred1(
+                    espCm
+                )
+            } cm",
             unid = "m²",
-            qtd = arred2(areaCompraM2),
+            qtd = NumberFormatter.arred2(areaCompraM2),
             observacao = observacao
         )
 
@@ -58,8 +63,8 @@ object PisoIntertravadoCalculator {
             itens += MaterialItem(
                 item = "Areia de assentamento",
                 unid = "m³",
-                qtd = arred3(vol),
-                observacao = "${arred1(espM * 100)} cm de camada."
+                qtd = NumberFormatter.arred3(vol),
+                observacao = "${NumberFormatter.arred1(espM * 100)} cm de camada."
             )
         }
 
@@ -68,8 +73,8 @@ object PisoIntertravadoCalculator {
             itens += MaterialItem(
                 item = "Brita graduada simples (BGS)",
                 unid = "m³",
-                qtd = arred3(vol),
-                observacao = "${arred1(espM * 100)} cm de base compactada."
+                qtd = NumberFormatter.arred3(vol),
+                observacao = "${NumberFormatter.arred1(espM * 100)} cm de base compactada."
             )
         }
 
@@ -81,14 +86,14 @@ object PisoIntertravadoCalculator {
             itens += MaterialItem(
                 item = "Concreto armado (laje)",
                 unid = "m³",
-                qtd = arred3(vol),
-                observacao = "${arred1(espM * 100)} cm de espessura."
+                qtd = NumberFormatter.arred3(vol),
+                observacao = "${NumberFormatter.arred1(espM * 100)} cm de espessura."
             )
 
             itens += MaterialItem(
                 item = "Cimento",
                 unid = "kg",
-                qtd = arred1(cimentoKg),
+                qtd = NumberFormatter.arred1(cimentoKg),
                 observacao = "Utilizado para traço do concreto da laje."
             )
         }
@@ -99,7 +104,7 @@ object PisoIntertravadoCalculator {
             itens += MaterialItem(
                 item = "Malha pop Q-196",
                 unid = "cp",
-                qtd = arred2(chapas),
+                qtd = NumberFormatter.arred2(chapas),
                 observacao = "$chapasCompra chapa(s) a cada 10 m²."
             )
         }
@@ -122,9 +127,4 @@ object PisoIntertravadoCalculator {
             }
         }
     }
-
-    private fun arred0(v: Double) = kotlin.math.round(v)
-    private fun arred1(v: Double) = kotlin.math.round(v * 10.0) / 10.0
-    private fun arred2(v: Double) = kotlin.math.round(v * 100.0) / 100.0
-    private fun arred3(v: Double) = kotlin.math.round(v * 1000.0) / 1000.0
 }

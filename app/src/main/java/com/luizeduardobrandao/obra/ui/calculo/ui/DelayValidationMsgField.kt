@@ -9,7 +9,7 @@ import com.google.android.material.textfield.TextInputEditText
  * Ele NÃO conhece regras de negócio, apenas agenda um bloco de código
  * para rodar depois de "delayMs"]" ms sem novas digitações naquele campo.
  */
-class DebouncedValidationManager(
+class DelayValidationMsgField(
     private val delayMs: Long = 1400L
 ) {
 
@@ -36,19 +36,14 @@ class DebouncedValidationManager(
         et.postDelayed(runnable, delayMs)
     }
 
-    /**
-     * Cancela a validação adiada para este campo (se houver).
-     */
+    /** Cancela a validação adiada para este campo (se houver). */
     fun cancel(et: TextInputEditText) {
         pending.remove(et)?.let { runnable ->
             et.removeCallbacks(runnable)
         }
     }
 
-    /**
-     * Cancela TODAS as validações pendentes.
-     * Deve ser chamado em onDestroyView() do Fragment.
-     */
+    /** Cancela TODAS as validações pendentes. Deve ser chamado em onDestroyView() do Fragment. */
     fun cancelAll() {
         pending.forEach { (et, runnable) ->
             et.removeCallbacks(runnable)

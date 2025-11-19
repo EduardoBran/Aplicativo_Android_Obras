@@ -24,9 +24,7 @@ import kotlin.math.max
  */
 object MarmoreGranitoCalculator {
 
-    /**
-     * Processa materiais para Mármore ou Granito
-     */
+    /** Processa materiais para Mármore ou Granito */
     fun processarMarmoreOuGranito(
         inputs: Inputs,
         areaRevestM2: Double,
@@ -157,9 +155,7 @@ object MarmoreGranitoCalculator {
         }
     }
 
-    /**
-     * Calcula espessura do leito para Mármore/Granito quando usa areia + cimento.
-     */
+    /** Calcula espessura do leito para Mármore/Granito quando usa areia + cimento. */
     private fun mgLeitoCm(inputs: Inputs): Double {
         val d = inputs.desnivelCm ?: 0.0
         val leito = max(3.0, d + 0.5)

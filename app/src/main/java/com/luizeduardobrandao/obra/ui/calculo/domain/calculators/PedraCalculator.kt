@@ -2,6 +2,7 @@ package com.luizeduardobrandao.obra.ui.calculo.domain.calculators
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
+import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import kotlin.math.max
 
 /**
@@ -19,9 +20,7 @@ object PedraCalculator {
 
     private val MIX_PEDRA_TRACO_13 = TracoMix("1:3", 430.0, 0.85)
 
-    /**
-     * Processa materiais para Pedra Portuguesa
-     */
+    /** Processa materiais para Pedra Portuguesa */
     fun processarPedra(
         areaM2: Double,
         sobra: Double,
@@ -37,8 +36,8 @@ object PedraCalculator {
         itens += MaterialItem(
             item = "Pedra (m²)",
             unid = "m²",
-            qtd = arred2(areaCompraM2),
-            observacao = "leito: ${arred1(leitoPedraCm)} cm • rejunte incluso no traço."
+            qtd = NumberFormatter.arred2(areaCompraM2),
+            observacao = "leito: ${NumberFormatter.arred1(leitoPedraCm)} cm • rejunte incluso no traço."
         )
 
         val (cimentoKg, areiaM3) = calcularCimentoEAreia(
@@ -48,14 +47,11 @@ object PedraCalculator {
             mix = mix,
             leitoOverrideM = leitoM
         )
-
         adicionarCimentoEAreia(cimentoKg, areiaM3, itens)
         MaterialCalculator.adicionarEspacadoresECunhas(inputs, areaM2, sobra, itens)
     }
 
-    /**
-     * Calcula cimento e areia necessários
-     */
+    /** Calcula cimento e areia necessários */
     fun calcularCimentoEAreia(
         areaM2: Double,
         sobra: Double,
@@ -74,7 +70,7 @@ object PedraCalculator {
 
         val volumeColchao = areaM2 * espColchaoM
 
-        // ⚠️ Somar volume de juntas apenas para PEDRA
+        // Somar volume de juntas apenas para PEDRA
         val volumeJuntas = when (inputs.revest) {
             RevestimentoType.PEDRA -> volumeJuntasM3(areaM2, juntaMm, espPecaMm)
             RevestimentoType.MARMORE, RevestimentoType.GRANITO -> 0.0
@@ -88,9 +84,7 @@ object PedraCalculator {
         return cimentoKg to areiaM3
     }
 
-    /**
-     * Calcula volume de juntas em m³
-     */
+    /** Calcula volume de juntas em m³ */
     private fun volumeJuntasM3(
         areaM2: Double,
         juntaMm: Double,
@@ -104,9 +98,7 @@ object PedraCalculator {
         return areaM2 * f * esp
     }
 
-    /**
-     * Adiciona cimento e areia à lista de materiais
-     */
+    /**  Adiciona cimento e areia à lista de materiais */
     fun adicionarCimentoEAreia(
         cimentoKg: Double,
         areiaM3: Double,
@@ -115,19 +107,15 @@ object PedraCalculator {
         itens += MaterialItem(
             item = "Cimento",
             unid = "kg",
-            qtd = arred1(cimentoKg),
+            qtd = NumberFormatter.arred1(cimentoKg),
             observacao = "Utilizado para preparo do assentamento."
         )
 
         itens += MaterialItem(
             item = "Areia",
             unid = "m³",
-            qtd = arred3(areiaM3),
+            qtd = NumberFormatter.arred3(areiaM3),
             observacao = "Volume de areia para preparo do assentamento."
         )
     }
-
-    private fun arred1(v: Double) = kotlin.math.round(v * 10.0) / 10.0
-    private fun arred2(v: Double) = kotlin.math.round(v * 100.0) / 100.0
-    private fun arred3(v: Double) = kotlin.math.round(v * 1000.0) / 1000.0
 }

@@ -4,7 +4,7 @@ import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
 import kotlin.math.sqrt
 
 /**
- * Utilitário para cálculos de área
+ * Utilitário para cálculos de Medidas da Área
  */
 object AreaCalculator {
 

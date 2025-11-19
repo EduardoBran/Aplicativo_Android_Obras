@@ -2,6 +2,7 @@ package com.luizeduardobrandao.obra.ui.calculo.domain.specifications
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
 import com.luizeduardobrandao.obra.ui.calculo.domain.rules.CalcRevestimentoRules
+import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import java.util.Locale
 
 /**
@@ -25,91 +26,55 @@ object RevestimentoSpecifications {
         val mantaLargCm: Double,     // Largura da manta (cm)
         val espMmPadrao: Double      // Espessura padrão (mm) para este formato
     ) {
-        // 🔹 NOVOS formatos (não confundem com os atuais de cerâmica)
+        // Tamanhos de Pastilha Porcelanato
         P1_5(
-            ladoCm = 1.5,
-            lado2Cm = 1.5,
-            mantaCompCm = 32.1,
-            mantaLargCm = 32.1,
+            ladoCm = 1.5, lado2Cm = 1.5, mantaCompCm = 32.1, mantaLargCm = 32.1,
             espMmPadrao = PecaRules.PASTILHA_ESP_P1_5_MM
         ),
         P2(
-            ladoCm = 2.0,
-            lado2Cm = 2.0,
-            mantaCompCm = 34.2,
-            mantaLargCm = 34.2,
+            ladoCm = 2.0, lado2Cm = 2.0, mantaCompCm = 34.2, mantaLargCm = 34.2,
             espMmPadrao = PecaRules.PASTILHA_ESP_P2_MM
         ),
         P2_2(
-            ladoCm = 2.5,
-            lado2Cm = 2.5,
-            mantaCompCm = 33.3,
-            mantaLargCm = 33.3,
+            ladoCm = 2.5, lado2Cm = 2.5, mantaCompCm = 33.3, mantaLargCm = 33.3,
             espMmPadrao = PecaRules.PASTILHA_ESP_P2_2_MM
         ),
         P2_5(
-            ladoCm = 2.5,
-            lado2Cm = 5.0,
-            mantaCompCm = 33.3,
-            mantaLargCm = 31.5,
+            ladoCm = 2.5, lado2Cm = 5.0, mantaCompCm = 33.3, mantaLargCm = 31.5,
             espMmPadrao = PecaRules.PASTILHA_ESP_P2_5_MM
         ),
         P5_5(
-            ladoCm = 5.0,
-            lado2Cm = 5.0,
-            mantaCompCm = 31.5,
-            mantaLargCm = 31.5,
+            ladoCm = 5.0, lado2Cm = 5.0, mantaCompCm = 31.5, mantaLargCm = 31.5,
             espMmPadrao = PecaRules.PASTILHA_ESP_P5_5_MM
         ),
         P5_10(
-            ladoCm = 5.0,
-            lado2Cm = 10.0,
-            mantaCompCm = 31.5,
-            mantaLargCm = 30.6,
+            ladoCm = 5.0, lado2Cm = 10.0, mantaCompCm = 31.5, mantaLargCm = 30.6,
             espMmPadrao = PecaRules.PASTILHA_ESP_P5_5_10MM
         ),
         P5_15(
-            ladoCm = 5.0,
-            lado2Cm = 15.0,
-            mantaCompCm = 31.5,
-            mantaLargCm = 30.3,
+            ladoCm = 5.0, lado2Cm = 15.0, mantaCompCm = 31.5, mantaLargCm = 30.3,
             espMmPadrao = PecaRules.PASTILHA_ESP_P5_5_15MM
         ),
         P7_5P(
-            ladoCm = 7.5,
-            lado2Cm = 7.5,
-            mantaCompCm = 30.9,
-            mantaLargCm = 30.9,
+            ladoCm = 7.5, lado2Cm = 7.5, mantaCompCm = 30.9, mantaLargCm = 30.9,
             espMmPadrao = PecaRules.PASTILHA_ESP_P7_5PMM
         ),
         P10P(
-            ladoCm = 10.0,
-            lado2Cm = 10.0,
-            mantaCompCm = 30.6,
-            mantaLargCm = 30.6,
+            ladoCm = 10.0, lado2Cm = 10.0, mantaCompCm = 30.6, mantaLargCm = 30.6,
             espMmPadrao = PecaRules.PASTILHA_ESP_P10PMM
         ),
 
-        // 🔹 FORMATOS ATUAIS (cerâmica) – mantidos como estão
+        // Tamanhos de Pastilha Cerâmica
         P5(
-            ladoCm = 5.0,
-            lado2Cm = 5.0,
-            mantaCompCm = 32.5,
-            mantaLargCm = 32.5,
+            ladoCm = 5.0, lado2Cm = 5.0, mantaCompCm = 32.5, mantaLargCm = 32.5,
             espMmPadrao = PecaRules.PASTILHA_ESP_P5_MM
         ),
         P7_5(
-            ladoCm = 7.5,
-            lado2Cm = 7.5,
-            mantaCompCm = 31.5,
-            mantaLargCm = 31.5,
+            ladoCm = 7.5, lado2Cm = 7.5, mantaCompCm = 31.5, mantaLargCm = 31.5,
             espMmPadrao = PecaRules.PASTILHA_ESP_P7_5_MM
         ),
         P10(
-            ladoCm = 10.0,
-            lado2Cm = 10.0,
-            mantaCompCm = 31.0,
-            mantaLargCm = 31.0,
+            ladoCm = 10.0, lado2Cm = 10.0, mantaCompCm = 31.0, mantaLargCm = 31.0,
             espMmPadrao = PecaRules.PASTILHA_ESP_P10_MM
         )
     }
@@ -129,9 +94,7 @@ object RevestimentoSpecifications {
         return "Pastilha ${lado1Str}cm × ${lado2Str}cm (${mantaCompStr}cm × ${mantaLargStr}cm)"
     }
 
-    /**
-     * Retorna espessura padrão em mm conforme tipo de revestimento
-     */
+    /** Retorna espessura padrão em mm conforme tipo de revestimento */
     fun getEspessuraPadraoMm(inputs: Inputs): Double {
         return when (inputs.revest) {
             RevestimentoType.PASTILHA -> {
@@ -203,9 +166,7 @@ object RevestimentoSpecifications {
         }
     }
 
-    /**
-     * Retorna junta padrão em mm conforme tipo de revestimento
-     */
+    /** Retorna junta padrão em mm conforme tipo de revestimento */
     fun getJuntaPadraoMm(inputs: Inputs): Double {
         return when (inputs.revest) {
             RevestimentoType.PISO -> {
@@ -238,13 +199,10 @@ object RevestimentoSpecifications {
         }
     }
 
-    /**
-     * Tipos de revestimento que suportam rodapé (tratamento especial para Mármore e Granito)
-     */
+    /** Tipos de revestimento que suportam rodapé (tratamento especial para Mármore e Granito) */
     fun hasRodapeStep(inputs: Inputs): Boolean {
         return when (inputs.revest) {
             RevestimentoType.PISO -> true
-
             RevestimentoType.MARMORE,
             RevestimentoType.GRANITO ->
                 inputs.aplicacao == AplicacaoType.PISO
@@ -253,25 +211,16 @@ object RevestimentoSpecifications {
         }
     }
 
-    /**
-     * Verifica se é pedra ou similares (mármore/granito)
-     */
+    /** Verifica se é pedra ou similares (mármore/granito) */
     fun isPedraOuSimilares(revest: RevestimentoType?) = revest in setOf(
-        RevestimentoType.PEDRA,
-        RevestimentoType.MARMORE,
-        RevestimentoType.GRANITO
+        RevestimentoType.PEDRA, RevestimentoType.MARMORE, RevestimentoType.GRANITO
     )
 
-    /**
-     * Gera sufixo de tamanho para o nome do item
-     */
+    /** Gera sufixo de tamanho para o nome do item */
     fun tamanhoSufixo(inputs: Inputs): String {
         val (c, l) = inputs.pecaCompCm to inputs.pecaLargCm
-        return if (c != null && l != null) " ${arred0(c)}×${arred0(l)} cm" else ""
+        return if (c != null && l != null) " ${NumberFormatter.arred0(c)}×${NumberFormatter.arred0(l)} cm" else ""
     }
-
-    // Funções de arredondamento
-    private fun arred0(v: Double) = kotlin.math.round(v)
 
     /**
      * Formata medidas em cm para exibição:

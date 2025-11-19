@@ -54,4 +54,6 @@ object NumberFormatter {
     fun arred1(v: Double) = round(v * 10.0) / 10.0
     // Arredonda para 2 casas decimais. (Ex: arred2(12.444) → 12.44; arred2(12.445) → 12.45)
     fun arred2(v: Double) = round(v * 100.0) / 100.0
+    // Arredonda para 3 casas decimais. (Ex: arred3(12.4444) → 12.444; arred3(12.445) → 12.445)
+    fun arred3(v: Double) = round(v * 1000.0) / 1000.0
 }

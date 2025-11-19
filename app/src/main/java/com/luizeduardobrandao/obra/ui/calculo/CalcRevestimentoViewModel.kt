@@ -323,25 +323,18 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             i = i.copy(pastilhaFormato = formato)
 
             i = if (formato != null) {
-                // Usa a regra centralizada para junta padrão,
-                // que já considera Cerâmica x Porcelanato.
+                // Usa a regra centralizada para junta padrão (Considera Cerâmica x Porcelanato)
                 val juntaDefault = RevestimentoSpecifications.getJuntaPadraoMm(i)
 
                 i.copy(
-                    pecaCompCm = formato.ladoCm,
-                    pecaLargCm = formato.lado2Cm,
-                    pecaEspMm = formato.espMmPadrao,
-                    juntaMm = juntaDefault
+                    pecaCompCm = formato.ladoCm, pecaLargCm = formato.lado2Cm,
+                    pecaEspMm = formato.espMmPadrao, juntaMm = juntaDefault
                 )
             } else {
                 i.copy(
-                    pecaCompCm = null,
-                    pecaLargCm = null,
-                    pecaEspMm = null,
-                    juntaMm = null
+                    pecaCompCm = null, pecaLargCm = null, pecaEspMm = null, juntaMm = null
                 )
             }
-
             _inputs.value = i
         }
 
@@ -446,11 +439,8 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         if (next == 3 && i.revest != RevestimentoType.PISO_INTERTRAVADO) {
             next = 4
         }
-        // Etapa 6 (Rodapé) só existe quando houver etapa de rodapé para o cenário atual
-        if (next == 6 && !RevestimentoSpecifications.hasRodapeStep(i)) {
-            next = 7
-        }
-        // 7 = Revisão de Parâmetros -> 8 = Resultado final
+
+        // 6 = Revisão de Parâmetros -> 7 = Resultado final
         _step.value = next.coerceAtMost(CalcRevestimentoRules.Steps.MAX)
     }
 
@@ -463,20 +453,17 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             3 -> {
                 prev = 2
             }
-            // Etapa 4 (Medidas da Área):
-            // - se for Piso Intertravado, volta para 3 (Tráfego)
-            // - senão, volta direto para 2 (Ambiente)
+            // Etapa 4 (Medidas da Área): Piso Intertravado (volta para 3), outras (voltam para 2)
             4 -> {
                 prev = if (i.revest == RevestimentoType.PISO_INTERTRAVADO) 3 else 2
             }
-            // Etapa 7 Revisão de Parâmetros:
-            // volta para Rodapé (6) se houver etapa de rodapé, senão para Medidas da Peça (5)
-            7 -> {
-                prev = if (RevestimentoSpecifications.hasRodapeStep(i)) 6 else 5
+            // Etapa 6 = Revisão de Parâmetros: sempre volta para Medidas da Peça
+            6 -> {
+                prev = 5
             }
-            // Etapa 8 agora é Resultado final: sempre volta para Revisão (7)
-            8 -> {
-                prev = 7
+            // Etapa 7 = Resultado final: sempre volta para Revisão (6)
+            7 -> {
+                prev = 6
             }
         }
 
@@ -503,14 +490,13 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         return when (step) {
             0 -> StepValidation(true)
             1 -> ValidationHelper.validateStep1(i)
-            2 -> ValidationHelper.validateStep2(i)
-            3 -> ValidationHelper.validateStepTrafego(i)
-            4 -> ValidationHelper.validateStep3(i)
-            5 -> ValidationHelper.validateStep4(i)
-            6 -> ValidationHelper.validateStep5(i)
+            2 -> ValidationHelper.validateStep2Ambiente(i)
+            3 -> ValidationHelper.validateStep3Trafego(i)
+            4 -> ValidationHelper.validateStep4AreaDimensions(i)
+            5 -> ValidationHelper.validateStep5PecaDimensions(i)
 
-            // 7 = Revisão e 8 = Resultado final → não exigem validação específica
-            in 7..8 -> StepValidation(true)
+            // 6 = Revisão e 7 = Resultado final → não exigem validação específica
+            in 6..7 -> StepValidation(true)
 
             else -> StepValidation(false)
         }
@@ -573,32 +559,20 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
                 // Pedra / Mármore / Granito: usam áreas diferenciadas para
                 // revestimento, materiais (argamassa/rejunte) e espaçadores/cunhas
                 classe = processarPedraOuSimilares(
-                    i,
-                    areaRevestimentoM2,
-                    areaMateriaisRevestimentoM2,
-                    areaEspacadoresCunhasM2,
-                    sobra,
-                    itens
+                    i, areaRevestimentoM2, areaMateriaisRevestimentoM2,
+                    areaEspacadoresCunhasM2, sobra, itens
                 )
             }
 
             else -> processarRevestimentoPadrao(
-                i,
-                areaRevestimentoM2,
-                areaMateriaisRevestimentoM2,
-                areaEspacadoresCunhasM2,
-                sobra,
-                itens
+                i, areaRevestimentoM2, areaMateriaisRevestimentoM2, areaEspacadoresCunhasM2,
+                sobra, itens
             )
         }
 
         if (i.revest != RevestimentoType.PISO_INTERTRAVADO) {
             RodapeCalculator.adicionarRodape(
-                i,
-                areaRodapeExibM2,
-                rodapePerimetroLiquido,
-                sobra,
-                itens
+                i, areaRodapeExibM2, rodapePerimetroLiquido, sobra, itens
             )
         }
 
@@ -620,7 +594,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         _resultado.value =
             UiState.Success(ResultResultado(Resultado(header, classe, itens)))
-        _step.value = 8
+        _step.value = 7
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -667,12 +641,10 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             qtd = NumberFormatter.arred2(areaCompraM2),
             observacao = observacao
         )
-
-        // 🔹 MATERIAIS (Argamassa / Rejunte)
+        // MATERIAIS (Argamassa / Rejunte)
         MaterialCalculator.adicionarArgamassaColante(i, areaMateriaisM2, sobra, itens)
         MaterialCalculator.adicionarRejunte(i, areaMateriaisM2, itens)
-
-        // 🔹 Espaçadores / Cunhas (sem considerar rodapé)
+        // Espaçadores / Cunhas (sem considerar rodapé)
         MaterialCalculator.adicionarEspacadoresECunhas(i, areaEspacadoresM2, sobra, itens)
     }
 
@@ -741,7 +713,6 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
             else -> null
         }
-
         return if (default != null) copy(desnivelCm = default) else this
     }
 

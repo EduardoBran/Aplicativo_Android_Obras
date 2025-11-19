@@ -17,10 +17,8 @@ import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 
 /**
  * Monta o texto da tela de Revisão de Parâmetros usando strings.xml
- *
- * Nenhuma regra de cálculo é alterada – apenas formatação de UI.
  */
-object ReviewSummaryFormatter {
+object ReviewParametersFormatter {
 
     fun buildResumoRevisao(context: Context, inputs: Inputs): CharSequence {
         val res = context.resources
@@ -305,6 +303,38 @@ object ReviewSummaryFormatter {
         return applyBigIconCharSpan(context, plainText)
     }
 
+    private fun appendRodapeResumo(
+        context: Context,
+        sb: StringBuilder,
+        inputs: Inputs
+    ) {
+        val res = context.resources
+        val perimetro = RodapeCalculator.rodapePerimetroM(inputs) ?: return
+        val alturaCm = inputs.rodapeAlturaCm ?: return
+        val alturaM = alturaCm / 100.0
+        val areaM2 = perimetro * alturaM
+
+        if (inputs.rodapeMaterial == RodapeMaterial.PECA_PRONTA) {
+            sb.appendLine(
+                res.getString(
+                    R.string.calc_rev_line_rodape_peca_pronta,
+                    NumberFormatter.arred2(areaM2)
+                )
+            )
+        } else {
+            val areaBaseM2 = RodapeCalculator.rodapeAreaBaseExibicaoM2(inputs)
+            sb.appendLine(
+                res.getString(
+                    R.string.calc_rev_line_rodape_mesma_peca,
+                    NumberFormatter.arred2(areaBaseM2),
+                    NumberFormatter.arred1(alturaCm),
+                    NumberFormatter.arred2(areaM2)
+                )
+            )
+        }
+    }
+
+    /** Centralização e tamanho do caracter/ícone '•' */
     private fun applyBigIconCharSpan(context: Context, text: String): CharSequence {
         val spannable = SpannableStringBuilder(text)
         val iconChar = '•'
@@ -378,37 +408,6 @@ object ReviewSummaryFormatter {
             // Restaura o paint
             paint.color = oldColor
             paint.textSize = oldSize
-        }
-    }
-
-    private fun appendRodapeResumo(
-        context: Context,
-        sb: StringBuilder,
-        inputs: Inputs
-    ) {
-        val res = context.resources
-        val perimetro = RodapeCalculator.rodapePerimetroM(inputs) ?: return
-        val alturaCm = inputs.rodapeAlturaCm ?: return
-        val alturaM = alturaCm / 100.0
-        val areaM2 = perimetro * alturaM
-
-        if (inputs.rodapeMaterial == RodapeMaterial.PECA_PRONTA) {
-            sb.appendLine(
-                res.getString(
-                    R.string.calc_rev_line_rodape_peca_pronta,
-                    NumberFormatter.arred2(areaM2)
-                )
-            )
-        } else {
-            val areaBaseM2 = RodapeCalculator.rodapeAreaBaseExibicaoM2(inputs)
-            sb.appendLine(
-                res.getString(
-                    R.string.calc_rev_line_rodape_mesma_peca,
-                    NumberFormatter.arred2(areaBaseM2),
-                    NumberFormatter.arred1(alturaCm),
-                    NumberFormatter.arred2(areaM2)
-                )
-            )
         }
     }
 }

@@ -16,12 +16,19 @@ import com.google.android.material.button.MaterialButton
  * - Ajustar layout conforme etapa
  * - Gerenciar visibilidade de menus
  * - Configurar botão "Novo Cálculo"
+ *
+ * Mapeamento atual de etapas:
+ * 1 – Abertura
+ * 2 – Tipo de Revestimento
+ * 3 – Tipo de Ambiente
+ * 4 – Tipo de Tráfego (apenas Piso Intertravado)
+ * 5 – Medidas da Área
+ * 6 – Revisão de Parâmetros
+ * 7 – Resultado Final (Tabela)
  */
 class StepNavigationHandler {
 
-    /**
-     * Atualiza botões e layout conforme a etapa atual
-     */
+    /** Atualiza botões e layout conforme a etapa atual */
     fun handleStepNavigation(
         step: Int,
         btnBack: MaterialButton,
@@ -32,32 +39,29 @@ class StepNavigationHandler {
         onSetupNovoCalculo: () -> Unit,
         onRestoreDefaultBack: () -> Unit
     ) {
-        // Configura botões
+        // Botão Voltar: visível a partir da etapa 1
         btnBack.isVisible = step > 0
-        btnNext.isVisible = step in 1..6
-        btnCalcular.isVisible = (step == 7)
-
-        // Configura botão especial "Novo Cálculo" na etapa de resultado (step 8)
-        if (step == 8) {
+        // Botão Avançar: visível nas etapas 1..5 ; some na Revisão (6) e Resultado (7)
+        btnNext.isVisible = step in 1..5
+        // Botão Calcular: visível na etapa de Revisão (6); some nas demais
+        btnCalcular.isVisible = (step == 6)
+        // Configura botão especial "Novo Cálculo" na etapa de resultado (step 7)
+        if (step == 7) {
             onSetupNovoCalculo()
         } else {
             onRestoreDefaultBack()
         }
-
         // Ajusta layout da tela inicial (step 0)
         adjustStep0Layout(step, bottomBar, viewFlipper)
     }
 
-    /**
-     * Ajusta layout da tela inicial (centraliza verticalmente)
-     */
+    /**  Ajusta layout da tela inicial (centraliza verticalmente) */
     private fun adjustStep0Layout(
         step: Int,
         bottomBar: View,
         viewFlipper: ViewFlipper
     ) {
         val tela0 = viewFlipper.getChildAt(0) as LinearLayout
-
         if (step == 0) {
             bottomBar.isGone = true
             tela0.gravity = Gravity.CENTER
