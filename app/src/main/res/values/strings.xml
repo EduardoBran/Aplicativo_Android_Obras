@@ -939,7 +939,7 @@
     <string name="calc_amb_desc_molhado">Exposição frequente à água (ex: chuveiros, cozinhas), sem submersão constante.</string>
     <string name="calc_step2_opt_sempre">Sempre Molhado</string>
     <string name="calc_amb_desc_sempre">Contato permanente ou retenção prolongada de água (ex: piscinas, áreas externas, calçadas).</string>
-    <string name="calc_step2_help">O tipo de ambiente define se precisa impermeabilizar e qual o melhor jeito de assentar o piso ou revestimento.</string>
+    <string name="calc_step2_help">O tipo de ambiente define a argamassa e o rejunte mais indicados para o piso ou revestimento.</string>
     <string name="calc_step2_obs_porcelanato_ac3">Porcelanato em semi/molhado: fabricantes exigem ACIII.</string>
 
     <!-- Tipo de Tráfego -->
@@ -1084,14 +1084,20 @@
     <string name="icon_card_revisao">📋</string>
 
     <!-- Revisão – rótulos de revestimento -->
-    <string name="calc_rev_revest_piso_porcelanato">Piso Porcelanato</string>
     <string name="calc_rev_revest_piso_ceramico">Piso Cerâmico</string>
-    <string name="calc_rev_revest_azulejo">Azulejo</string>
-    <string name="calc_rev_revest_pastilha">Pastilha</string>
+    <string name="calc_rev_revest_piso_porcelanato">Piso Porcelanato</string>
+    <string name="calc_rev_revest_azulejo_ceramico">Azulejo Cerâmico</string>
+    <string name="calc_rev_revest_pastilha_ceramico">Pastilha Cerâmica</string>
+    <string name="calc_rev_revest_azulejo_porcelanato">Azulejo Porcelanato</string>
+    <string name="calc_rev_revest_pastilha_porcelanato">Pastilha Porcelanato</string>
     <string name="calc_rev_revest_pedra">Pedra Portuguesa</string>
     <string name="calc_rev_revest_piso_intertravado">Piso Intertravado</string>
     <string name="calc_rev_revest_marmore">Mármore</string>
+    <string name="calc_rev_revest_marmore_piso">Mármore Piso</string>
+    <string name="calc_rev_revest_marmore_parede">Mármore Parede</string>
     <string name="calc_rev_revest_granito">Granito</string>
+    <string name="calc_rev_revest_granito_piso">Granito Piso</string>
+    <string name="calc_rev_revest_granito_parede">Granito Parede</string>
 
     <!-- Revisão – ambientes -->
     <string name="calc_rev_amb_seco">Seco</string>
@@ -1122,8 +1128,7 @@
     <string name="calc_rev_line_abertura_rodape">• ➖ Abertura (rodapé): %1$.2f m</string>
 
     <!-- Revisão – impermeabilização e sobra -->
-    <string name="calc_rev_line_impermeabilizacao">• 💧 Impermeabilização: Sim</string>
-    <string name="calc_rev_line_sobra_tecnica">• ➕ Sobra Técnica: %1$.2f %%</string>
+    <string name="calc_rev_line_sobra_tecnica">• ➕ Sobra Técnica: %1$s %%</string>
 
     <string name="generic_calculate">Calcular</string>
     <string name="cont_btn_calcular">Calcular materiais</string>

@@ -3,6 +3,7 @@ package com.luizeduardobrandao.obra.ui.calculo.utils
 import java.text.NumberFormat
 import java.util.*
 import kotlin.math.abs
+import kotlin.math.round
 
 /**
  * Utilitário para formatação de números no padrão brasileiro
@@ -46,4 +47,11 @@ object NumberFormatter {
 
         return if (abs(numericCurrent - value) < 0.000001) expected else null
     }
+
+    // Arredonda para 0 casas decimais. (Ex: arred0(12.49) → 12.0; arred0(12.51) → 13.0)
+    fun arred0(v: Double) = round(v)
+    // Arredonda para 1 casa decimal. (Ex: arred1(12.44) → 12.4; arred1(12.45) → 12.5)
+    fun arred1(v: Double) = round(v * 10.0) / 10.0
+    // Arredonda para 2 casas decimais. (Ex: arred2(12.444) → 12.44; arred2(12.445) → 12.45)
+    fun arred2(v: Double) = round(v * 100.0) / 100.0
 }

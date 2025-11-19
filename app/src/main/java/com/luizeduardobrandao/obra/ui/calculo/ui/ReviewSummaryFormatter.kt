@@ -6,8 +6,6 @@ import android.graphics.Paint
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ReplacementSpan
-import android.util.TypedValue
-import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import com.luizeduardobrandao.obra.R
@@ -15,11 +13,10 @@ import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
 import com.luizeduardobrandao.obra.ui.calculo.domain.calculators.AreaCalculator
 import com.luizeduardobrandao.obra.ui.calculo.domain.calculators.RodapeCalculator
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
-import kotlin.math.round
+import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 
 /**
- * Monta o texto da Revisão de Parâmetros (Tela 7) usando strings.xml
- * e mantendo todos os ícones/emojis em um único lugar.
+ * Monta o texto da tela de Revisão de Parâmetros usando strings.xml
  *
  * Nenhuma regra de cálculo é alterada – apenas formatação de UI.
  */
@@ -41,11 +38,21 @@ object ReviewSummaryFormatter {
                     }
                 }
 
-                RevestimentoType.AZULEJO ->
-                    res.getString(R.string.calc_rev_revest_azulejo)
+                RevestimentoType.AZULEJO -> {
+                    if (inputs.pisoPlacaTipo == PlacaTipo.PORCELANATO) {
+                        res.getString(R.string.calc_rev_revest_azulejo_porcelanato)
+                    } else {
+                        res.getString(R.string.calc_rev_revest_azulejo_ceramico)
+                    }
+                }
 
-                RevestimentoType.PASTILHA ->
-                    res.getString(R.string.calc_rev_revest_pastilha)
+                RevestimentoType.PASTILHA -> {
+                    if (inputs.pisoPlacaTipo == PlacaTipo.PORCELANATO) {
+                        res.getString(R.string.calc_rev_revest_pastilha_porcelanato)
+                    } else {
+                        res.getString(R.string.calc_rev_revest_pastilha_ceramico)
+                    }
+                }
 
                 RevestimentoType.PEDRA ->
                     res.getString(R.string.calc_rev_revest_pedra)
@@ -53,11 +60,28 @@ object ReviewSummaryFormatter {
                 RevestimentoType.PISO_INTERTRAVADO ->
                     res.getString(R.string.calc_rev_revest_piso_intertravado)
 
-                RevestimentoType.MARMORE ->
-                    res.getString(R.string.calc_rev_revest_marmore)
+                RevestimentoType.MARMORE -> when (inputs.aplicacao) {
+                    AplicacaoType.PISO ->
+                        res.getString(R.string.calc_rev_revest_marmore_piso)
 
-                RevestimentoType.GRANITO ->
-                    res.getString(R.string.calc_rev_revest_granito)
+                    AplicacaoType.PAREDE ->
+                        res.getString(R.string.calc_rev_revest_marmore_parede)
+
+                    null ->
+                        // fallback se por algum motivo ainda não tiver aplicação definida
+                        res.getString(R.string.calc_rev_revest_marmore)
+                }
+
+                RevestimentoType.GRANITO -> when (inputs.aplicacao) {
+                    AplicacaoType.PISO ->
+                        res.getString(R.string.calc_rev_revest_granito_piso)
+
+                    AplicacaoType.PAREDE ->
+                        res.getString(R.string.calc_rev_revest_granito_parede)
+
+                    null ->
+                        res.getString(R.string.calc_rev_revest_granito)
+                }
 
                 null ->
                     res.getString(R.string.calc_rev_value_none)
@@ -133,7 +157,7 @@ object ReviewSummaryFormatter {
                 appendLine(
                     res.getString(
                         R.string.calc_rev_line_area_total,
-                        arred2(area)
+                        NumberFormatter.arred2(area)
                     )
                 )
             }
@@ -145,7 +169,7 @@ object ReviewSummaryFormatter {
                     appendLine(
                         res.getString(
                             R.string.calc_rev_line_abertura_parede,
-                            arred2(abertura)
+                            NumberFormatter.arred2(abertura)
                         )
                     )
                 }
@@ -160,8 +184,8 @@ object ReviewSummaryFormatter {
                         appendLine(
                             res.getString(
                                 R.string.calc_rev_line_peca_m,
-                                arred2(compM),
-                                arred2(largM)
+                                NumberFormatter.arred2(compM),
+                                NumberFormatter.arred2(largM)
                             )
                         )
                     }
@@ -174,8 +198,8 @@ object ReviewSummaryFormatter {
                         appendLine(
                             res.getString(
                                 R.string.calc_rev_line_peca_cm,
-                                arred2(inputs.pecaCompCm),
-                                arred2(inputs.pecaLargCm)
+                                NumberFormatter.arred2(inputs.pecaCompCm),
+                                NumberFormatter.arred2(inputs.pecaLargCm)
                             )
                         )
                     }
@@ -184,8 +208,8 @@ object ReviewSummaryFormatter {
                         appendLine(
                             res.getString(
                                 R.string.calc_rev_line_peca_cm,
-                                arred0(inputs.pecaCompCm),
-                                arred0(inputs.pecaLargCm)
+                                NumberFormatter.arred0(inputs.pecaCompCm),
+                                NumberFormatter.arred0(inputs.pecaLargCm)
                             )
                         )
                     }
@@ -199,14 +223,14 @@ object ReviewSummaryFormatter {
                     appendLine(
                         res.getString(
                             R.string.calc_rev_line_espessura_cm,
-                            arred1(espCm)
+                            NumberFormatter.arred1(espCm)
                         )
                     )
                 } else {
                     appendLine(
                         res.getString(
                             R.string.calc_rev_line_espessura_mm,
-                            arred1(espMm)
+                            NumberFormatter.arred1(espMm)
                         )
                     )
                 }
@@ -217,7 +241,7 @@ object ReviewSummaryFormatter {
                 appendLine(
                     res.getString(
                         R.string.calc_rev_line_junta,
-                        arred2(it)
+                        NumberFormatter.arred2(it)
                     )
                 )
             }
@@ -237,7 +261,7 @@ object ReviewSummaryFormatter {
                 appendLine(
                     res.getString(
                         R.string.calc_rev_line_desnivel,
-                        arred1(it)
+                        NumberFormatter.arred1(it)
                     )
                 )
             }
@@ -257,73 +281,52 @@ object ReviewSummaryFormatter {
                         appendLine(
                             res.getString(
                                 R.string.calc_rev_line_abertura_rodape,
-                                arred2(aberturaRodape)
+                                NumberFormatter.arred2(aberturaRodape)
                             )
                         )
                     }
             }
 
-            // ----------------- Impermeabilização -----------------
-            if (inputs.impermeabilizacaoOn) {
-                appendLine(res.getString(R.string.calc_rev_line_impermeabilizacao))
-            }
-
             // ----------------- Sobra técnica -----------------
-            if (inputs.sobraPct != null && inputs.sobraPct >= 0) {
-                append(
-                    res.getString(
-                        R.string.calc_rev_line_sobra_tecnica,
-                        arred2(inputs.sobraPct)
+            inputs.sobraPct
+                ?.takeIf { it >= 0 }
+                ?.let { sobra ->
+                    val sobraFmt = NumberFormatter.format(sobra)
+                    append(
+                        res.getString(
+                            R.string.calc_rev_line_sobra_tecnica,
+                            sobraFmt
+                        )
                     )
-                )
-            }
+                }
         }
 
         // Agora aplica o "bullet maior" usando Span
-        return applyBigBulletSpan(context, plainText)
+        return applyBigIconCharSpan(context, plainText)
     }
 
-    private fun applyBigBulletSpan(context: Context, text: String): CharSequence {
+    private fun applyBigIconCharSpan(context: Context, text: String): CharSequence {
         val spannable = SpannableStringBuilder(text)
-        val bulletChar = '•'
+        val iconChar = '•'
 
-        val scale = 1.4f // ajuste aqui se quiser maior/menor
+        val scale = 1.4f // tamanho do ícone
+        val color = ContextCompat.getColor(context, R.color.icon_review_summary)
 
-        val color = resolveThemeColor(
-            context,
-            com.google.android.material.R.attr.colorOnSurface
-        )
-
-        var index = text.indexOf(bulletChar)
+        var index = text.indexOf(iconChar)
         while (index >= 0) {
             spannable.setSpan(
-                CenteredBulletSpan(color, scale),
+                CenteredIconChar(color, scale),
                 index,
                 index + 1,
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
-            index = text.indexOf(bulletChar, index + 1)
+            index = text.indexOf(iconChar, index + 1)
         }
 
         return spannable
     }
 
-    @ColorInt
-    private fun resolveThemeColor(context: Context, @AttrRes attr: Int): Int {
-        val typedValue = TypedValue()
-        val theme = context.theme
-        theme.resolveAttribute(attr, typedValue, true)
-
-        return if (typedValue.resourceId != 0) {
-            // Aqui ele espera um @ColorRes, está ok
-            ContextCompat.getColor(context, typedValue.resourceId)
-        } else {
-            // Aqui já é um @ColorInt pronto
-            typedValue.data
-        }
-    }
-
-    private class CenteredBulletSpan(
+    private class CenteredIconChar(
         @ColorInt private val color: Int,
         private val relativeSize: Float
     ) : ReplacementSpan() {
@@ -355,20 +358,19 @@ object ReviewSummaryFormatter {
             val oldColor = paint.color
             val oldSize = paint.textSize
 
-            // Métricas do TEXTO normal (antes de aumentar o tamanho)
+            // Métricas do texto normal (antes de aumentar o tamanho)
             val fmOrig = paint.fontMetricsInt
             val centerOrig = baseline + (fmOrig.ascent + fmOrig.descent) / 2f
 
-            // Configura o paint pro bullet maior
+            // Configura o paint pro ícone maior
             paint.color = color
             paint.textSize = oldSize * relativeSize
 
-            // Métricas do bullet maior
+            // Métricas do ícone maior
             val fmBig = paint.fontMetricsInt
             val centerBigOffset = (fmBig.ascent + fmBig.descent) / 2f
 
-            // Baseline do bullet para que o CENTRO dele coincida
-            // com o centro da linha original
+            // Baseline do ícone para que o CENTRO dele coincida com o centro da linha original
             val bulletBaseline = centerOrig - centerBigOffset
 
             canvas.drawText("•", x, bulletBaseline, paint)
@@ -378,7 +380,6 @@ object ReviewSummaryFormatter {
             paint.textSize = oldSize
         }
     }
-
 
     private fun appendRodapeResumo(
         context: Context,
@@ -395,7 +396,7 @@ object ReviewSummaryFormatter {
             sb.appendLine(
                 res.getString(
                     R.string.calc_rev_line_rodape_peca_pronta,
-                    arred2(areaM2)
+                    NumberFormatter.arred2(areaM2)
                 )
             )
         } else {
@@ -403,16 +404,11 @@ object ReviewSummaryFormatter {
             sb.appendLine(
                 res.getString(
                     R.string.calc_rev_line_rodape_mesma_peca,
-                    arred2(areaBaseM2),
-                    arred1(alturaCm),
-                    arred2(areaM2)
+                    NumberFormatter.arred2(areaBaseM2),
+                    NumberFormatter.arred1(alturaCm),
+                    NumberFormatter.arred2(areaM2)
                 )
             )
         }
     }
-
-    // ----------------- Helpers de arredondamento (copiados do ViewModel) -----------------
-    private fun arred0(v: Double) = round(v)
-    private fun arred1(v: Double) = round(v * 10.0) / 10.0
-    private fun arred2(v: Double) = round(v * 100.0) / 100.0
 }

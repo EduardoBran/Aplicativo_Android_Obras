@@ -4,7 +4,6 @@ import android.view.View
 import android.widget.RadioGroup
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel
-import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.ImpermeabilizacaoSpecifications
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
 
 /**
@@ -40,7 +39,6 @@ class RadioGroupSynchronizer {
      * @param rgAmbiente RadioGroup de tipo de ambiente
      * @param rgRodapeMat RadioGroup de material de rodapé
      * @param rgTrafego RadioGroup de tipo de tráfego
-     * @param rgIntertravadoImp RadioGroup de impermeabilização (intertravado)
      * @param rgPastilhaTamanho RadioGroup de tamanho de pastilha
      */
     fun syncAllRadioGroups(
@@ -50,7 +48,6 @@ class RadioGroupSynchronizer {
         rgAmbiente: RadioGroup,
         rgRodapeMat: RadioGroup,
         rgTrafego: RadioGroup,
-        rgIntertravadoImp: RadioGroup,
         rgPastilhaTamanho: RadioGroup,
         rgPastilhaPorcelanatoTamanho: RadioGroup
     ) {
@@ -68,9 +65,6 @@ class RadioGroupSynchronizer {
 
         // Sincroniza tipo de tráfego
         syncTrafego(inputs.trafego, rgTrafego)
-
-        // Sincroniza impermeabilização (intertravado)
-        syncImpermeabilizacao(inputs.impIntertravadoTipo, rgIntertravadoImp)
 
         // Sincroniza tamanho de pastilha (cerâmica x porcelanato)
         syncPastilhaTamanho(inputs.pastilhaFormato, rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho)
@@ -187,25 +181,5 @@ class RadioGroupSynchronizer {
 
         rgPastilhaTamanho.setCheckedSafely(ceramicaId)
         rgPastilhaPorcelanatoTamanho.setCheckedSafely(porcelanatoId)
-    }
-
-    /**
-     * Sincroniza RadioGroup de impermeabilização (piso intertravado)
-     */
-    private fun syncImpermeabilizacao(
-        tipo: ImpermeabilizacaoSpecifications.ImpIntertravadoTipo?,
-        rgIntertravadoImp: RadioGroup
-    ) {
-        val radioId = when (tipo) {
-            ImpermeabilizacaoSpecifications.ImpIntertravadoTipo.MANTA_GEOTEXTIL ->
-                R.id.rbImpMantaGeotextil
-
-            ImpermeabilizacaoSpecifications.ImpIntertravadoTipo.ADITIVO_SIKA1 ->
-                R.id.rbImpAditivoSika1
-
-            ImpermeabilizacaoSpecifications.ImpIntertravadoTipo.MANTA_ASFALTICA,
-            null -> null // Manta asfáltica não tem radio button específico
-        }
-        rgIntertravadoImp.setCheckedSafely(radioId)
     }
 }

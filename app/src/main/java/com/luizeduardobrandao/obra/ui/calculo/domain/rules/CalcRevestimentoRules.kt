@@ -10,7 +10,7 @@ object CalcRevestimentoRules {
 
     object Steps {
         const val MIN = 0
-        const val MAX = 9
+        const val MAX = 8
     }
 
     object Medidas {

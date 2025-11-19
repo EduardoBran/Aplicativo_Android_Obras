@@ -1138,65 +1138,7 @@
                 </LinearLayout>
 
                 <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 6 – Impermeabilização -->
-                <!-- ═══════════════════════════════════════════ -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="8dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/calc_step6_title"
-                        android:textAppearance="?attr/textAppearanceTitleLarge" />
-
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/switchImp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:text="@string/calc_step6_include" />
-
-                    <LinearLayout
-                        android:id="@+id/groupIntertravadoImpOptions"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/calc_step6_intertravado_imp_label"
-                            android:textAppearance="?attr/textAppearanceBodyMedium" />
-
-                        <RadioGroup
-                            android:id="@+id/rgIntertravadoImp"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp">
-
-                            <com.google.android.material.radiobutton.MaterialRadioButton
-                                android:id="@+id/rbImpMantaGeotextil"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/calc_step6_imp_manta_geotextil" />
-
-                            <com.google.android.material.radiobutton.MaterialRadioButton
-                                android:id="@+id/rbImpAditivoSika1"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/calc_step6_imp_aditivo_sika1" />
-                        </RadioGroup>
-                    </LinearLayout>
-
-                </LinearLayout>
-
-                <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 7 – Revisão -->
+                <!-- TELA 6 – Revisão -->
                 <!-- ═══════════════════════════════════════════ -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -1316,7 +1258,7 @@
                 </LinearLayout>
 
                 <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 8 – Resultado -->
+                <!-- TELA 7 – Resultado -->
                 <!-- ═══════════════════════════════════════════ -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -1328,6 +1270,8 @@
                         android:id="@+id/tvTabelaTitulo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="16dp"
                         android:fontFamily="sans-serif-medium"
                         android:letterSpacing="0.02"
                         android:text="@string/calc_table_title"

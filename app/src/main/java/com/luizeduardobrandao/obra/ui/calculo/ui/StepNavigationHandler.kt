@@ -34,11 +34,11 @@ class StepNavigationHandler {
     ) {
         // Configura botões
         btnBack.isVisible = step > 0
-        btnNext.isVisible = step in 1..7
-        btnCalcular.isVisible = (step == 8)
+        btnNext.isVisible = step in 1..6
+        btnCalcular.isVisible = (step == 7)
 
-        // Configura botão especial "Novo Cálculo" na etapa 9
-        if (step == 9) {
+        // Configura botão especial "Novo Cálculo" na etapa de resultado (step 8)
+        if (step == 8) {
             onSetupNovoCalculo()
         } else {
             onRestoreDefaultBack()

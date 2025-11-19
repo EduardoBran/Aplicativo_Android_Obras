@@ -2,6 +2,7 @@ package com.luizeduardobrandao.obra.ui.calculo.domain.calculators
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
+import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import kotlin.math.max
 
 /**
@@ -23,18 +24,18 @@ import kotlin.math.max
  */
 object MarmoreGranitoCalculator {
 
-    private const val CONSUMO_ARGAMASSA_RODAPE_KG_M2 = 5.0
-
     /**
      * Processa materiais para Mármore ou Granito
      */
     fun processarMarmoreOuGranito(
         inputs: Inputs,
-        areaM2: Double,
+        areaRevestM2: Double,
+        areaMateriaisM2: Double,
+        areaEspacadoresM2: Double,
         sobra: Double,
         itens: MutableList<MaterialItem>
     ): String? {
-        if (areaM2 <= 0.0) return null
+        if (areaRevestM2 <= 0.0) return null
         if (inputs.revest != RevestimentoType.MARMORE &&
             inputs.revest != RevestimentoType.GRANITO
         ) return null
@@ -42,8 +43,9 @@ object MarmoreGranitoCalculator {
         val nome = if (inputs.revest == RevestimentoType.MARMORE)
             "Mármore (m²)" else "Granito (m²)"
 
-        val qtdPecas = MaterialCalculator.calcularQuantidadePecas(inputs, areaM2, sobra)
-        val areaCompraM2 = areaM2 * (1 + sobra / 100.0)
+        // Item principal de revestimento (m²)
+        val qtdPecas = MaterialCalculator.calcularQuantidadePecas(inputs, areaRevestM2, sobra)
+        val areaCompraM2 = areaRevestM2 * (1 + sobra / 100.0)
 
         val obsRevest = MaterialCalculator.buildObservacaoRevestimento(
             sobra = sobra,
@@ -58,7 +60,7 @@ object MarmoreGranitoCalculator {
 
         val obsExtra = if (usoLeito) {
             // usoLeito => leitoCm sempre preenchido
-            "leito: ${arred1(leitoCm!!)} cm"
+            "leito: ${NumberFormatter.arred1(leitoCm!!)} cm"
         } else {
             // cenário de somente argamassa (dupla colagem)
             "Dupla colagem"
@@ -76,39 +78,24 @@ object MarmoreGranitoCalculator {
         itens += MaterialItem(
             item = nome + RevestimentoSpecifications.tamanhoSufixo(inputs),
             unid = "m²",
-            qtd = arred2(areaCompraM2),
+            qtd = NumberFormatter.arred2(areaCompraM2),
             observacao = observacaoFinal
         )
 
         // ===== ARGAMASSA (sempre ACIII para Mármore/Granito) =====
-
-        // Área de rodapé para argamassa extra quando peça pronta
-        val perimetroCompraM = RodapeCalculator.rodapePerimetroSeguroM(inputs) ?: 0.0
-        val alturaRodapeM = (inputs.rodapeAlturaCm ?: 0.0) / 100.0
-        val areaRodapeCompraM2 =
-            if (inputs.rodapeEnable) perimetroCompraM * alturaRodapeM else 0.0
-
-        val extraKgRodape =
-            if (inputs.rodapeEnable && inputs.rodapeMaterial == RodapeMaterial.PECA_PRONTA)
-                areaRodapeCompraM2 * CONSUMO_ARGAMASSA_RODAPE_KG_M2
-            else 0.0
-
         val inputsAc3 = inputs.copy(classeArgamassa = "ACIII")
 
-        // Sempre exibe argamassa adequada (ACIII), mesmo quando há areia + cimento
         MaterialCalculator.adicionarArgamassaColante(
             inputs = inputsAc3,
-            areaM2 = areaM2,
+            areaM2 = areaMateriaisM2,
             sobra = sobra,
-            itens = itens,
-            extraKg = extraKgRodape
+            itens = itens
         )
 
         // ===== AREIA + CIMENTO (quando regras exigirem leito) =====
-
         if (usoLeito) {
             val (cimentoKg, areiaM3) = PedraCalculator.calcularCimentoEAreia(
-                areaM2 = areaM2,
+                areaM2 = areaEspacadoresM2,
                 sobra = sobra,
                 inputs = inputs,
                 mix = PedraCalculator.TracoMix("1:3", 430.0, 0.85),
@@ -117,12 +104,20 @@ object MarmoreGranitoCalculator {
             PedraCalculator.adicionarCimentoEAreia(cimentoKg, areiaM3, itens)
         }
 
-        // Rejunte + espaçadores seguem lógica padrão
-        MaterialCalculator.adicionarRejunte(inputs, areaM2, itens)
-        MaterialCalculator.adicionarEspacadoresECunhas(inputs, areaM2, sobra, itens)
+        // ===== REJUNTE =====
+        MaterialCalculator.adicionarRejunte(inputs, areaMateriaisM2, itens)
 
-        // Fixador mecânico (pino ou grampo) – apenas parede e peças > 30 kg
-        adicionarFixadorMecanicoSeNecessario(inputs, areaM2, sobra, itens)
+        // ===== ESPAÇADORES / CUNHAS =====
+        MaterialCalculator.adicionarEspacadoresECunhas(
+            inputs,
+            areaEspacadoresM2,
+            sobra,
+            itens
+        )
+
+        // Fixador mecânico (pino ou grampo) – apenas parede e peças > 30 kg.
+        // Usa a área "principal" (sem rodapé), o que não altera cenários de piso.
+        adicionarFixadorMecanicoSeNecessario(inputs, areaEspacadoresM2, sobra, itens)
 
         // Sempre retornamos ACIII para MG
         return "ACIII"
@@ -168,7 +163,7 @@ object MarmoreGranitoCalculator {
     private fun mgLeitoCm(inputs: Inputs): Double {
         val d = inputs.desnivelCm ?: 0.0
         val leito = max(3.0, d + 0.5)
-        return arred1(leito)
+        return NumberFormatter.arred1(leito)
     }
 
     /**
@@ -217,7 +212,4 @@ object MarmoreGranitoCalculator {
             observacao = "Recomendado para peças pesadas. Definir o tipo em obra."
         )
     }
-
-    private fun arred1(v: Double) = kotlin.math.round(v * 10.0) / 10.0
-    private fun arred2(v: Double) = kotlin.math.round(v * 100.0) / 100.0
 }

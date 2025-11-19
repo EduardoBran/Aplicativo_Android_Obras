@@ -291,28 +291,6 @@ class MaterialTableBuilder(
             return if (sacos20 == 1) "1 sc 20kg" else "$sacos20 sc 20kg"
         }
 
-        // Piso intertravado: Manta Asfáltica → rolos 10 m²
-        if (nome.contains("Manta Asfáltica", ignoreCase = true) &&
-            (unid.equals("m²", true) || unid.equals("m2", true))
-        ) {
-            val rolos = ceil(alvo / 10.0).toInt().coerceAtLeast(1)
-            return if (rolos == 1) "1 rolo 10m²" else "$rolos rolos 10m²"
-        }
-
-        // Piso intertravado: Manta Geotêxtil → rolos 100 m²
-        if (nome.contains("Manta Geotêxtil", ignoreCase = true) &&
-            (unid.equals("m²", true) || unid.equals("m2", true))
-        ) {
-            val rolos = ceil(alvo / 100.0).toInt().coerceAtLeast(1)
-            return if (rolos == 1) "1 rolo de 100m²" else "$rolos rolos de 100m²"
-        }
-
-        // Piso intertravado: Aditivo impermeabilizante (Sika 1) → frasco/galão/balde
-        if (nome.contains("Aditivo impermeabilizante", ignoreCase = true) &&
-            unid.equals("L", true)
-        ) {
-            return buildAditivoSikaComprar(alvo)
-        }
 
         // Cimento para estabilização / genérico → sacos 25kg/50kg
         if (nome.equals("Cimento", ignoreCase = true) &&
@@ -345,36 +323,6 @@ class MaterialTableBuilder(
         ) {
             val n = alvo.toInt().coerceAtLeast(0)
             return if (n <= 0) "0un" else "${n}un"
-        }
-
-        // ---------------- IMPERMEABILIZANTES (EXCETO INTERTRAVADO) ----------------
-
-        // 1) Membrana Acrílica → 18L, 3,6L, 1L
-        if (nome.equals("Impermeabilizante Membrana Acrílica", ignoreCase = true) &&
-            unid.equals("L", true)
-        ) {
-            val pack = bestPackCombo(alvo, listOf(18.0, 3.6, 1.0))
-            return pack.toCompraString(unidade = "L", label = null)
-        }
-
-        // 2) Argamassa Polimérica Flexível → 18kg, 4kg
-        if (nome.startsWith(
-                "Impermeabilizante Argamassa Polimérica Flexível",
-                ignoreCase = true
-            ) && unid.equals("kg", true)
-        ) {
-            val pack = bestPackCombo(alvo, listOf(18.0, 4.0))
-            return pack.toCompraString(unidade = "kg", label = null)
-        }
-
-        // 3) Argamassa Polimérica Bicomponente → 18kg, 4kg
-        if (nome.startsWith(
-                "Impermeabilizante Argamassa Polimérica Bicomponente",
-                ignoreCase = true
-            ) && unid.equals("kg", true)
-        ) {
-            val pack = bestPackCombo(alvo, listOf(18.0, 4.0))
-            return pack.toCompraString(unidade = "kg", label = null)
         }
 
         // PASTILHA - Usa observação "Mantas por m²: X • Y peças." para montar "Nmn ou Ypc"
@@ -572,64 +520,6 @@ class MaterialTableBuilder(
                     "$countStr ${sizeStr}$unidade"
                 }
             }
-    }
-
-    /**
-     * Distribui o volume de aditivo (L) em frascos 1L, galões 3,6L e baldes 18L
-     * com o menor excedente possível e poucas embalagens.
-     */
-    private fun buildAditivoSikaComprar(litros: Double): String {
-        if (litros <= 0.0) return "0"
-        val sizes = listOf(18.0, 3.6, 1.0)
-        var best: Map<Double, Int> = emptyMap()
-        var bestOver = Double.MAX_VALUE
-        var bestCount = Int.MAX_VALUE
-
-        fun search(idx: Int, acc: Map<Double, Int>) {
-            if (idx == sizes.size) {
-                val total = acc.entries.sumOf { it.key * it.value }
-                if (total <= 0.0) return
-                val over = (total - litros).coerceAtLeast(0.0)
-                val count = acc.values.sum()
-                if (total >= litros &&
-                    (count < bestCount || (count == bestCount && over < bestOver))
-                ) {
-                    best = acc
-                    bestCount = count
-                    bestOver = over
-                }
-                return
-            }
-            val size = sizes[idx]
-            val maxN = ceil(litros / size).toInt() + 3
-            for (n in 0..maxN) {
-                val next = if (n == 0) acc else acc + (size to n)
-                val partial = next.entries.sumOf { it.key * it.value }
-                if (partial > litros + bestOver && bestOver < Double.MAX_VALUE) continue
-                search(idx + 1, next)
-            }
-        }
-
-        search(0, emptyMap())
-
-        if (best.isEmpty()) {
-            val n = ceil(litros).toInt()
-            return if (n == 1) "1 frasco 1L" else "$n frascos 1L"
-        }
-
-        val parts = best.entries
-            .sortedByDescending { it.key }
-            .filter { it.value > 0 }
-            .map { (size, count) ->
-                when (size) {
-                    18.0 -> if (count == 1) "1 balde 18L" else "$count baldes 18L"
-                    3.6 -> if (count == 1) "1 galão 3,6L" else "$count galões 3,6L"
-                    1.0 -> if (count == 1) "1 frasco 1L" else "$count frascos 1L"
-                    else -> ""
-                }
-            }.filter { it.isNotBlank() }
-
-        return if (parts.isEmpty()) "0" else parts.joinToString(" + ")
     }
 
     /**

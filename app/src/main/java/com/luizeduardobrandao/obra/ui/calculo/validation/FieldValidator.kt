@@ -32,10 +32,8 @@ class FieldValidator(
     private val alturaRange = medidas.ALTURA_RANGE_M
     private val areaTotalRange = medidas.AREA_TOTAL_RANGE_M2
     private val paredeQtdRange = medidas.PAREDE_QTD_RANGE
-    private val aberturaRange = medidas.ABERTURA_RANGE_M2
     private val rodapeAlturaRange = rodapeRules.ALTURA_RANGE_CM
     private val rodapeCompCmRange = rodapeRules.COMP_COMERCIAL_RANGE_CM
-    private val rodapeAberturaRange = rodapeRules.ABERTURA_RANGE_M
 
     /* ════════════════════════════════════════════════════════════════════════
      * TIPOS DE CONFIG AUXILIAR
@@ -570,14 +568,10 @@ class FieldValidator(
         etAbertura: TextInputEditText,
         tilAbertura: TextInputLayout
     ) {
-        validateRangeOnBlur(
-            etAbertura, tilAbertura,
-            {
-                etAbertura.text?.toString()
-                    ?.replace(",", ".")?.toDoubleOrNull()
-            },
-            aberturaRange, getString(R.string.calc_err_abertura_maior_area)
-        )
+        etAbertura.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) return@setOnFocusChangeListener
+            validateAberturaLive(etAbertura, tilAbertura)
+        }
     }
 
     /* ════════════════════════════════════════════════════════════════════════
@@ -722,13 +716,10 @@ class FieldValidator(
         et: TextInputEditText,
         til: TextInputLayout
     ) {
-        validateRangeOnBlur(
-            et,
-            til,
-            { et.text?.toString()?.replace(",", ".")?.toDoubleOrNull() },
-            rodapeAberturaRange,
-            getString(R.string.calc_err_rodape_abertura_maior_perimetro)
-        )
+        et.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) return@setOnFocusChangeListener
+            validateRodapeAberturaLive(et, til)
+        }
     }
 
     fun validateRodapeCompComercialLive(

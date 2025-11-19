@@ -35,24 +35,6 @@ object RodapeCalculator {
     }
 
     /**
-     * Calcula perímetro seguro do rodapé para compra (com margem de segurança)
-     */
-    fun rodapePerimetroSeguroM(inputs: Inputs): Double? {
-        if (!inputs.rodapeEnable || !RevestimentoSpecifications.hasRodapeStep(inputs)) return 0.0
-        if (!inputs.rodapePerimetroAuto) return inputs.rodapePerimetroManualM
-
-        val (c, l) = inputs.compM to inputs.largM
-
-        val k = if (c != null && l != null) {
-            val ratio = if (c > l) c / l else l / c
-            if (ratio >= 2.0) 1.50 else 1.25
-        } else 1.25
-
-        return inputs.areaInformadaM2?.takeIf { it > 0 }?.let { k * 4 * sqrt(it) }
-            ?: if (c != null && l != null) 2 * (c + l) else null
-    }
-
-    /**
      * Adiciona rodapé à lista de materiais
      */
     fun adicionarRodape(
@@ -72,9 +54,9 @@ object RodapeCalculator {
             val areaComSobra = areaCompraM2 * (1 + sobra / 100.0)
 
             val obs = if (aberturaM != null) {
-                "Mesma peça • Altura: ${arred0(alturaCm)}cm • Abertura: ${arred2(aberturaM)}m.\nIncluso na quantidade de peças."
+                "Mesma peça • Altura: ${arred0(alturaCm)}cm • Abertura: ${arred2(aberturaM)}m.\nMateriais extras para colocação já incluídos."
             } else {
-                "Mesma peça • Altura: ${arred0(alturaCm)}cm.\nIncluso na quantidade de peças."
+                "Mesma peça • Altura: ${arred0(alturaCm)}cm.\nMateriais extras para colocação já incluídos."
             }
 
             itens += MaterialItem(
@@ -94,9 +76,15 @@ object RodapeCalculator {
             val compCm = compM * 100.0
 
             val obs = if (aberturaM != null) {
-                "Peça pronta • ${arred0(alturaCm)} x ${arred0(compCm)} cm • Abertura: ${arred2(aberturaM)}m.\n$qtdPecas peças."
+                "Peça pronta • ${arred0(alturaCm)} x ${arred0(compCm)} cm • Abertura: ${
+                    arred2(
+                        aberturaM
+                    )
+                }m.\n$qtdPecas peças.\n" +
+                        "Materiais extras para colocação já incluídos."
             } else {
-                "Peça pronta • ${arred0(alturaCm)} x ${arred0(compCm)} cm • $qtdPecas peças."
+                "Peça pronta • ${arred0(alturaCm)} x ${arred0(compCm)} cm • $qtdPecas peças.\n" +
+                        "Materiais extras para colocação já incluídos."
             }
 
             itens += MaterialItem(
@@ -109,6 +97,5 @@ object RodapeCalculator {
     }
 
     private fun arred0(v: Double) = kotlin.math.round(v)
-    private fun arred1(v: Double) = kotlin.math.round(v * 10.0) / 10.0
     private fun arred2(v: Double) = kotlin.math.round(v * 100.0) / 100.0
 }

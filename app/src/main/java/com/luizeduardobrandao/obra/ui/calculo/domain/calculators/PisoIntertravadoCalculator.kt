@@ -1,7 +1,6 @@
 package com.luizeduardobrandao.obra.ui.calculo.domain.calculators
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
-import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.ImpermeabilizacaoSpecifications
 import kotlin.math.ceil
 
 /**
@@ -54,8 +53,6 @@ object PisoIntertravadoCalculator {
             observacao = observacao
         )
 
-        var volumeBgs = 0.0
-
         fun addAreia(espM: Double) {
             val vol = espM * areaM2 * (1 + sobra / 100.0)
             itens += MaterialItem(
@@ -67,11 +64,11 @@ object PisoIntertravadoCalculator {
         }
 
         fun addBgs(espM: Double) {
-            volumeBgs = espM * areaM2 * (1 + sobra / 100.0)
+            val vol = espM * areaM2 * (1 + sobra / 100.0)
             itens += MaterialItem(
                 item = "Brita graduada simples (BGS)",
                 unid = "m³",
-                qtd = arred3(volumeBgs),
+                qtd = arred3(vol),
                 observacao = "${arred1(espM * 100)} cm de base compactada."
             )
         }
@@ -107,70 +104,6 @@ object PisoIntertravadoCalculator {
             )
         }
 
-        @Suppress("UnnecessaryVariable")
-        fun addAditivoSika1() {
-            if (volumeBgs <= 0.0) return
-
-            val sacosRef = volumeBgs * (1 + sobra / 100.0) * CIMENTO_SACOS_M3_BASE
-            val cimentoKg = sacosRef * 50.0
-
-            itens += MaterialItem(
-                item = "Cimento",
-                unid = "kg",
-                qtd = arred1(cimentoKg),
-                observacao = "Estabilização da base BGS."
-            )
-
-            val litros = sacosRef
-            itens += MaterialItem(
-                item = "Aditivo impermeabilizante (Sika 1 ou similar)",
-                unid = "L",
-                qtd = arred1(litros),
-                observacao = "Dosagem 1 L por saco de cimento na estabilização da base."
-            )
-        }
-
-        fun addMantaGeotextil() {
-            val area = arred2(areaM2 * (1 + sobra / 100.0))
-
-            val nome = when {
-                inputs.ambiente == AmbienteType.MOLHADO &&
-                        inputs.trafego == TrafegoType.LEVE ->
-                    "Manta Geotêxtil ≥ 150 g/m²"
-
-                inputs.ambiente == AmbienteType.MOLHADO &&
-                        inputs.trafego == TrafegoType.MEDIO ->
-                    "Manta Geotêxtil ≥ 200 g/m²"
-
-                inputs.ambiente == AmbienteType.SEMPRE &&
-                        inputs.trafego == TrafegoType.LEVE ->
-                    "Manta Geotêxtil ≥ 200 g/m²"
-
-                inputs.ambiente == AmbienteType.SEMPRE &&
-                        inputs.trafego == TrafegoType.MEDIO ->
-                    "Manta Geotêxtil ≥ 300 g/m²"
-
-                else -> "Manta Geotêxtil"
-            }
-
-            itens += MaterialItem(
-                item = nome,
-                unid = "m²",
-                qtd = area,
-                observacao = "Aplicar sob toda a área da base (rolos de 100 m²)."
-            )
-        }
-
-        fun addMantaAsfaltica() {
-            val area = arred2(areaM2 * (1 + sobra / 100.0))
-            itens += MaterialItem(
-                item = "Manta Asfáltica",
-                unid = "m²",
-                qtd = area,
-                observacao = "Aplicação em toda a área impermeabilizada (rolos de 10 m²)."
-            )
-        }
-
         when (traf) {
             TrafegoType.LEVE -> {
                 addAreia(ESP_AREIA_LEVE_M)
@@ -186,33 +119,6 @@ object PisoIntertravadoCalculator {
                 addAreia(ESP_AREIA_PESADO_M)
                 addConcreto(ESP_CONCRETO_PESADO_M)
                 addMalhaQ196()
-            }
-        }
-
-        if (inputs.impermeabilizacaoOn) {
-            when (traf) {
-                TrafegoType.PESADO -> addMantaAsfaltica()
-                else -> {
-                    when (inputs.ambiente) {
-                        AmbienteType.SEMI -> {
-                            if (traf == TrafegoType.LEVE || traf == TrafegoType.MEDIO) {
-                                addAditivoSika1()
-                            }
-                        }
-
-                        AmbienteType.MOLHADO, AmbienteType.SEMPRE -> {
-                            if (traf == TrafegoType.LEVE || traf == TrafegoType.MEDIO) {
-                                when (inputs.impIntertravadoTipo) {
-                                    ImpermeabilizacaoSpecifications.ImpIntertravadoTipo.MANTA_GEOTEXTIL -> addMantaGeotextil()
-                                    ImpermeabilizacaoSpecifications.ImpIntertravadoTipo.ADITIVO_SIKA1 -> addAditivoSika1()
-                                    else -> {}
-                                }
-                            }
-                        }
-
-                        else -> {}
-                    }
-                }
             }
         }
     }

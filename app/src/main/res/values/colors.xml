@@ -93,4 +93,7 @@
     <color name="tableHeaderBg">#256C47</color>            <!-- Primary do tema -->
     <color name="tableHeaderText">#FFFFFF</color>          <!-- OnPrimary do tema -->
 
+    <!-- Cálculo de Materiais !-->
+    <color name="icon_review_summary">#FF212121</color>
+
 </resources>

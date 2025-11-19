@@ -191,23 +191,6 @@ object ValidationHelper {
             StepValidation(true)
     }
 
-    /**
-     * Valida impermeabilização (Step 7)
-     */
-    fun validateStep7Imp(inputs: Inputs): StepValidation {
-        if (inputs.revest == RevestimentoType.PISO_INTERTRAVADO &&
-            (inputs.ambiente == AmbienteType.MOLHADO || inputs.ambiente == AmbienteType.SEMPRE) &&
-            (inputs.trafego == TrafegoType.LEVE || inputs.trafego == TrafegoType.MEDIO) &&
-            inputs.impermeabilizacaoOn
-        ) {
-            return if (inputs.impIntertravadoTipo == null)
-                StepValidation(false)
-            else
-                StepValidation(true)
-        }
-        return StepValidation(true)
-    }
-
     // ===== VALIDAÇÕES ESPECÍFICAS =====
 
     private fun validatePastilha(inputs: Inputs): StepValidation {

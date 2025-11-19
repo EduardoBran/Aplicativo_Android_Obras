@@ -14,7 +14,7 @@ import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.Revestimento
  *
  * Responsável por:
  * - Mostrar/ocultar campos baseado no tipo de revestimento
- * - Gerenciar visibilidade de grupos (rodapé, impermeabilização)
+ * - Gerenciar visibilidade de grupos (rodapé)
  * - Limpar campos quando ocultados
  * - Manter estado consistente da UI
  */
@@ -31,7 +31,6 @@ class VisibilityManager {
         // Grupos de componentes
         groupPlacaTipo: View, groupPecaTamanho: View, groupPastilhaTamanho: View,
         groupPastilhaPorcelanatoTamanho: View, groupRodapeFields: View,
-        groupIntertravadoImpOptions: View,
         // Campos individuais - Medidas
         tilComp: TextInputLayout, tilLarg: TextInputLayout, tilAltura: TextInputLayout,
         tilParedeQtd: TextInputLayout, tilAbertura: TextInputLayout,
@@ -48,9 +47,9 @@ class VisibilityManager {
         etAbertura: TextInputEditText, etPecaEsp: TextInputEditText, etJunta: TextInputEditText,
         etPecasPorCaixa: TextInputEditText, etRodapeAbertura: TextInputEditText,
         // RadioGroups
-        rgPlacaTipo: RadioGroup, rgIntertravadoImp: RadioGroup,
+        rgPlacaTipo: RadioGroup,
         // Switches
-        switchImp: CompoundButton, switchRodape: CompoundButton
+        switchRodape: CompoundButton
     ) {
         // Atualiza avisos informativos
         updateAreaTotalAvisoVisibility(inputs, tvAreaTotalAviso)
@@ -59,8 +58,7 @@ class VisibilityManager {
         updateGroupVisibilities(
             inputs,
             groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho, groupPastilhaPorcelanatoTamanho,
-            groupRodapeFields, groupIntertravadoImpOptions,
-            rgIntertravadoImp, switchImp, switchRodape
+            groupRodapeFields, switchRodape
         )
 
         // Atualiza campos de medidas
@@ -78,8 +76,8 @@ class VisibilityManager {
         // Atualiza campos de rodapé
         updateRodapeFieldsVisibility(inputs, groupRodapeFields, etRodapeAbertura, tilRodapeAbertura)
 
-        // Atualiza switches
-        updateSwitchStates(inputs, switchImp, switchRodape)
+        // Atualiza switches (apenas rodapé agora)
+        updateSwitchStates(inputs, switchRodape)
 
         // Limpa RadioGroup de placa se necessário
         clearPlacaTipoIfNeeded(inputs, rgPlacaTipo)
@@ -105,9 +103,6 @@ class VisibilityManager {
         groupPastilhaTamanho: View,
         groupPastilhaPorcelanatoTamanho: View,
         groupRodapeFields: View,
-        groupIntertravadoImpOptions: View,
-        rgIntertravadoImp: RadioGroup,
-        switchImp: CompoundButton,
         switchRodape: CompoundButton
     ) {
         val revest = inputs.revest
@@ -148,55 +143,6 @@ class VisibilityManager {
 
         switchRodape.isVisible = hasRodapeStep
         groupRodapeFields.isVisible = hasRodapeStep && inputs.rodapeEnable
-
-        // Impermeabilização para Piso Intertravado
-        updateIntertravadoImpVisibility(
-            inputs, switchImp, groupIntertravadoImpOptions, rgIntertravadoImp
-        )
-    }
-
-    /**
-     * Atualiza visibilidade de impermeabilização para Piso Intertravado
-     */
-    private fun updateIntertravadoImpVisibility(
-        inputs: CalcRevestimentoViewModel.Inputs,
-        switchImp: CompoundButton, // ✅ CORRIGIDO
-        groupIntertravadoImpOptions: View,
-        rgIntertravadoImp: RadioGroup
-    ) {
-        if (inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO) {
-            val amb = inputs.ambiente
-            val traf = inputs.trafego
-
-            // Se ainda não tem ambiente ou tráfego, ou se for SECO → sem opções
-            if (amb == null || traf == null || amb == CalcRevestimentoViewModel.AmbienteType.SECO) {
-                switchImp.isVisible = false
-                groupIntertravadoImpOptions.isVisible = false
-                rgIntertravadoImp.clearCheck()
-            } else {
-                // Sempre mostrar switch quando houver etapa
-                switchImp.isVisible = true
-                switchImp.isEnabled = true
-
-                // Mostra opções de tipo apenas para MOLHADO/SEMPRE + LEVE/MEDIO
-                val precisaEscolhaTipo =
-                    (amb == CalcRevestimentoViewModel.AmbienteType.MOLHADO ||
-                            amb == CalcRevestimentoViewModel.AmbienteType.SEMPRE) &&
-                            (traf == CalcRevestimentoViewModel.TrafegoType.LEVE ||
-                                    traf == CalcRevestimentoViewModel.TrafegoType.MEDIO)
-
-                val showRadios = precisaEscolhaTipo && inputs.impermeabilizacaoOn
-                groupIntertravadoImpOptions.isVisible = showRadios
-                if (!showRadios) {
-                    rgIntertravadoImp.clearCheck()
-                }
-            }
-        } else {
-            // Demais revestimentos: comportamento padrão
-            switchImp.isVisible = true
-            switchImp.isEnabled = !inputs.impermeabilizacaoLocked
-            groupIntertravadoImpOptions.isVisible = false
-        }
     }
 
     /**
@@ -323,16 +269,12 @@ class VisibilityManager {
     }
 
     /**
-     * Atualiza estado dos switches
+     * Atualiza estado dos switches (apenas Rodapé)
      */
     private fun updateSwitchStates(
         inputs: CalcRevestimentoViewModel.Inputs,
-        switchImp: CompoundButton,
         switchRodape: CompoundButton
     ) {
-        switchImp.isEnabled = !inputs.impermeabilizacaoLocked
-        switchImp.isChecked = inputs.impermeabilizacaoOn
-
         val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
 
         if (!hasRodapeStep) {

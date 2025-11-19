@@ -23,7 +23,6 @@ import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.data.model.UiState
 import com.luizeduardobrandao.obra.databinding.FragmentCalcRevestimentoBinding
 import com.luizeduardobrandao.obra.ui.calculo.domain.rules.CalcRevestimentoRules
-import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.ImpermeabilizacaoSpecifications
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
 import com.luizeduardobrandao.obra.ui.calculo.ui.*
 import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
@@ -39,8 +38,8 @@ import java.io.FileOutputStream
 
 /**
  * Fragment para cálculo de materiais de revestimento
- * Wizard de 10 etapas: 0. Tela inicial | 1. Tipo | 2. Ambiente | 3. Tráfego (Intertravado)
- * 4. Medidas | 5. Peça | 6. Rodapé | 7. Impermeabilização | 8. Revisão | 9. Resultado
+ * Wizard de etapas: 0. Tela inicial | 1. Tipo | 2. Ambiente | 3. Tráfego (Intertravado)
+ * 4. Medidas | 5. Peça | 6. Rodapé | 7. Revisão | 8. Resultado
  */
 @AndroidEntryPoint
 class CalcRevestimentoFragment : Fragment() {
@@ -160,7 +159,6 @@ class CalcRevestimentoFragment : Fragment() {
         setupStep3Listeners()
         setupStep4Listeners()
         setupStep5Listeners()
-        setupStep6Listeners()
         setupStep7Listeners()
     }
 
@@ -332,6 +330,15 @@ class CalcRevestimentoFragment : Fragment() {
             }
 
             updateRequiredIconsStep3()
+
+            if (binding.tilAbertura.isVisible &&
+                !binding.etAbertura.text.isNullOrBlank() &&
+                binding.etAreaInformada.text.isNullOrBlank()
+            ) {
+                // Revalida Abertura com a área bruta nova (comp/alt/parede atualizados no ViewModel)
+                validator.validateAberturaLive(binding.etAbertura, binding.tilAbertura)
+            }
+
             refreshNextEnabled()
         }
 
@@ -362,6 +369,14 @@ class CalcRevestimentoFragment : Fragment() {
 
             validator.validateParedeQtdLive(etParedeQtd, tilParedeQtd)
             updateRequiredIconsStep3()
+
+            if (tilAbertura.isVisible &&
+                !etAbertura.text.isNullOrBlank() &&
+                etAreaInformada.text.isNullOrBlank()
+            ) {
+                validator.validateAberturaLive(etAbertura, tilAbertura)
+            }
+
             refreshNextEnabled()
         }
 
@@ -385,25 +400,35 @@ class CalcRevestimentoFragment : Fragment() {
     /** Configura campo de área total informada */
     private fun setupAreaInformadaField() = with(binding) {
         etAreaInformada.doAfterTextChanged {
-            viewModel.setMedidas(getD(etComp), getD(etLarg), getD(etAlt), getD(etAreaInformada))
-
+            viewModel.setMedidas(
+                getD(etComp), getD(etLarg), getD(etAlt), getD(etAreaInformada)
+            )
+            // Valida a própria Área Total
             validator.validateAreaInformadaLive(etAreaInformada, tilAreaInformada)
-
-            // Limpa ou revalida C/L/A conforme área total
+            // Limpa ou revalida C/L/A + Parede + Abertura conforme Área Total
             val isValidArea = validator.isAreaTotalValidNow(etAreaInformada)
             if (isValidArea) {
+                // Área Total válida → DOMINA a etapa 4
                 validator.setInlineError(etComp, tilComp, null)
                 validator.setInlineError(etLarg, tilLarg, null)
-                if (tilAltura.isVisible) validator.setInlineError(etAlt, tilAltura, null)
+                if (tilAltura.isVisible) {
+                    validator.setInlineError(etAlt, tilAltura, null)
+                }
+                //Limpar também Parede (qtd) e Abertura
+                validator.setInlineError(etParedeQtd, tilParedeQtd, null)
+                validator.setInlineError(etAbertura, tilAbertura, null)
             } else {
+                // Área Total vazia ou inválida → volta a usar as dimensões
                 validateAllDimensions()
-            }
 
+                // Revalida Parede/Abertura com o novo contexto
+                validator.validateParedeQtdLive(etParedeQtd, tilParedeQtd)
+                validator.validateAberturaLive(etAbertura, tilAbertura)
+            }
             tvAreaTotalAviso.isVisible = !etAreaInformada.text.isNullOrBlank()
             updateRequiredIconsStep3()
             refreshNextEnabled()
         }
-
         validator.validateAreaInformadaOnBlur(etAreaInformada, tilAreaInformada)
     }
 
@@ -740,25 +765,10 @@ class CalcRevestimentoFragment : Fragment() {
         validator.validateRodapeCompComercialOnBlur(etRodapeCompComercial, tilRodapeCompComercial)
     }
 
-    /** Etapa 7: Impermeabilização */
-    private fun setupStep6Listeners() = with(binding) {
-        switchImp.setOnCheckedChangeListener { _, on ->
-            viewModel.setImpermeabilizacao(on)
-            refreshNextEnabled()
-        }
-
-        rgIntertravadoImp.setOnCheckedChangeListener { _, id ->
-            if (isSyncing) return@setOnCheckedChangeListener
-            val tipo = mapRadioIdToImpTipo(id)
-            tipo?.let { viewModel.setIntertravadoImpTipo(it) }
-            refreshNextEnabled()
-        }
-    }
-
-    /** Etapa 8: Revisão e cálculo */
+    /** Etapa 7: Revisão e cálculo */
     private fun setupStep7Listeners() = with(binding) {
         btnCalcular.setOnClickListener { viewModel.calcular() }
-        btnVoltarResultado.setOnClickListener { viewModel.goTo(8) }
+        btnVoltarResultado.setOnClickListener { viewModel.goTo(7) }
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -839,7 +849,7 @@ class CalcRevestimentoFragment : Fragment() {
         isSyncing = true
         radioSynchronizer.syncAllRadioGroups(
             viewModel.inputs.value,
-            rgRevest, rgPlacaTipo, rgAmbiente, rgRodapeMat, rgTrafego, rgIntertravadoImp,
+            rgRevest, rgPlacaTipo, rgAmbiente, rgRodapeMat, rgTrafego,
             rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho
         )
         isSyncing = false
@@ -892,13 +902,14 @@ class CalcRevestimentoFragment : Fragment() {
     private fun updateUIVisibility() = with(binding) {
         visibilityManager.updateAllVisibilities(
             viewModel.inputs.value,
-            tvAreaTotalAviso, groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho,
-            groupPastilhaPorcelanatoTamanho, groupRodapeFields, groupIntertravadoImpOptions,
+            tvAreaTotalAviso,
+            groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho,
+            groupPastilhaPorcelanatoTamanho, groupRodapeFields,
             tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
             tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa,
             tilDesnivel, tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial,
             etLarg, etAlt, etParedeQtd, etAbertura, etPecaEsp, etJunta, etPecasPorCaixa,
-            etRodapeAbertura, rgPlacaTipo, rgIntertravadoImp, switchImp, switchRodape
+            etRodapeAbertura, rgPlacaTipo, switchRodape
         )
     }
 
@@ -950,9 +961,9 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    /** Preenche resumo na etapa 8 (Tela de Parâmetros com animação)*/
+    /** Preenche resumo na etapa 8 (Tela de Revisão de Parâmetros com animação)*/
     private fun handleStep7Resume(step: Int) {
-        if (step == 8) {
+        if (step == 7) {
             val inputs = viewModel.inputs.value
 
             // Monta texto da revisão utilizando strings.xml
@@ -1137,16 +1148,21 @@ class CalcRevestimentoFragment : Fragment() {
         }
 
         // ----- Etapa 4 (Medidas / Área total) -----
-        if (enabled && step >= 4) {
+        if (step >= 4) {
             val areaTxt = etAreaInformada.text
             val hasAreaTotalPreenchida = !areaTxt.isNullOrBlank()
 
-            enabled = if (hasAreaTotalPreenchida) { // "Área total" está preenchida, ela domina
+            enabled = if (hasAreaTotalPreenchida) {
+                // Área Total preenchida → domina a etapa 4 inteira
                 !validator.hasAreaTotalErrorNow(etAreaInformada)
-            } else {
+            } else if (enabled) {
+                // Sem Área Total → complementa o que o ViewModel já validou
                 !validator.hasAreaTotalErrorNow(etAreaInformada) &&
                         tilParedeQtd.error.isNullOrEmpty() &&
                         tilAbertura.error.isNullOrEmpty()
+            } else {
+                // validateStep já reprovou por outro motivo (ex.: dimensões ruins)
+                false
             }
         }
 
@@ -1445,12 +1461,6 @@ class CalcRevestimentoFragment : Fragment() {
         R.id.rbTrafegoLeve -> CalcRevestimentoViewModel.TrafegoType.LEVE
         R.id.rbTrafegoMedio -> CalcRevestimentoViewModel.TrafegoType.MEDIO
         R.id.rbTrafegoPesado -> CalcRevestimentoViewModel.TrafegoType.PESADO
-        else -> null
-    }
-
-    private fun mapRadioIdToImpTipo(id: Int) = when (id) {
-        R.id.rbImpMantaGeotextil -> ImpermeabilizacaoSpecifications.ImpIntertravadoTipo.MANTA_GEOTEXTIL
-        R.id.rbImpAditivoSika1 -> ImpermeabilizacaoSpecifications.ImpIntertravadoTipo.ADITIVO_SIKA1
         else -> null
     }
 

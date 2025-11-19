@@ -137,27 +137,6 @@ object MaterialCalculator {
     }
 
     /**
-     * Adiciona impermeabilização à lista de materiais
-     */
-    fun adicionarImpermeabilizacao(
-        inputs: Inputs,
-        areaTotal: Double,
-        itens: MutableList<MaterialItem>
-    ) {
-        if (!inputs.impermeabilizacaoOn) return
-
-        val config = ImpermeabilizacaoSpecifications.getImpConfig(inputs.ambiente) ?: return
-        val totalUsar = config.consumo * areaTotal
-
-        itens += MaterialItem(
-            item = config.item,
-            unid = config.unid,
-            qtd = arred1(totalUsar),
-            observacao = config.observacao
-        )
-    }
-
-    /**
      * Constrói observação do revestimento
      */
     fun buildObservacaoRevestimento(
