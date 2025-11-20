@@ -19,9 +19,7 @@ import kotlin.math.max
 @HiltViewModel
 class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * MODELOS E ENUMS
-     * ═══════════════════════════════════════════════════════════════════════════ */
+    /** ======================= MODELOS E ENUMS ======================= */
     enum class RevestimentoType { PISO, AZULEJO, PASTILHA, PEDRA, PISO_INTERTRAVADO, MARMORE, GRANITO }
     enum class AmbienteType { SECO, SEMI, MOLHADO, SEMPRE }
     enum class PlacaTipo { CERAMICA, PORCELANATO }
@@ -67,6 +65,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         val pecasPorCaixa: Int? = null,
         val juntaMm: Double? = null,
         val desnivelCm: Double? = null,
+        val desnivelEnable: Boolean = false,
         val sobraPct: Double? = null,
         val rodapeEnable: Boolean = false,
         val rodapeAlturaCm: Double? = null,
@@ -83,9 +82,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     data class ResultResultado(val resultado: Resultado)
     data class StepValidation(val isValid: Boolean, val errorMessage: String? = null)
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * STATE
-     * ═══════════════════════════════════════════════════════════════════════════ */
+    /** ======================= STATE ======================= */
     private val _step = MutableStateFlow(0)
     val step: StateFlow<Int> = _step.asStateFlow()
 
@@ -95,16 +92,14 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     private val _resultado = MutableStateFlow<UiState<ResultResultado>>(UiState.Idle)
     val resultado: StateFlow<UiState<ResultResultado>> = _resultado.asStateFlow()
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * SETTERS
-     * ═══════════════════════════════════════════════════════════════════════════ */
+    /** ======================= SETTERS ======================= */
     fun setRevestimento(type: RevestimentoType) = viewModelScope.launch {
         val cur = _inputs.value
 
         val novoPlacaTipo = when (type) {
             RevestimentoType.PISO,
             RevestimentoType.AZULEJO,
-            RevestimentoType.PASTILHA -> cur.pisoPlacaTipo
+            RevestimentoType.PASTILHA -> null
 
             else -> null
         }
@@ -127,7 +122,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             ambiente = null, classeArgamassa = null, trafego = null, compM = null, largM = null,
             altM = null, areaInformadaM2 = null, paredeQtd = null, aberturaM2 = null,
             pastilhaFormato = null, pecaCompCm = null, pecaLargCm = null, pecaEspMm = null,
-            juntaMm = null, pecasPorCaixa = null, desnivelCm = null
+            juntaMm = null, pecasPorCaixa = null, desnivelCm = null, desnivelEnable = false
         )
 
         if (!RevestimentoSpecifications.hasRodapeStep(newInputs)) {
@@ -138,7 +133,6 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
                 rodapeOrientacaoMaior = true, rodapeCompComercialM = null
             )
         }
-
         _inputs.value = newInputs
             .withDefaultEspessuraIfNeeded()
             .withDefaultJuntaIfNeeded()
@@ -179,8 +173,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             val currentEsp = cur.pecaEspMm
             val isEspAuto = currentEsp == null || currentEsp == oldDefaultEsp
 
-            // Se era automático, "zera" para recalcular com o novo contexto
-            if (isEspAuto) {
+            if (isEspAuto) { // Se era automático, "zera" para recalcular com o novo contexto
                 updated = updated.copy(pecaEspMm = null)
             }
 
@@ -207,9 +200,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         // Ao alterar o tipo da placa, recalcula padrões de espessura/junta
         val base = cur.copy(
-            pisoPlacaTipo = placa,
-            pecaEspMm = null,
-            juntaMm = null
+            pisoPlacaTipo = placa, pecaEspMm = null, juntaMm = null
         )
         _inputs.value = base
             .withDefaultEspessuraIfNeeded()
@@ -218,7 +209,6 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     fun setAmbiente(amb: AmbienteType) = viewModelScope.launch {
         val cur = _inputs.value
-
         // Piso intertravado: só atualiza o ambiente (classe de argamassa/impermeabilização não se aplica)
         if (cur.revest == RevestimentoType.PISO_INTERTRAVADO) {
             _inputs.value = cur.copy(ambiente = amb)
@@ -287,8 +277,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         // Atualiza Inputs levando Mármore/Granito em conta
         var updated = cur.copy(
-            ambiente = amb,
-            classeArgamassa = classeFinal
+            ambiente = amb, classeArgamassa = classeFinal
         )
 
         // Se for Mármore/Granito, decidir se devemos recalcular espessura
@@ -403,6 +392,11 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         _inputs.value = cur.copy(desnivelCm = v)
     }
 
+    fun setDesnivelEnable(enable: Boolean) = viewModelScope.launch {
+        val cur = _inputs.value
+        _inputs.value = cur.copy(desnivelEnable = enable)
+    }
+
     fun setRodape(
         enable: Boolean,
         alturaCm: Double?,
@@ -428,18 +422,14 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         )
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * NAVEGAÇÃO ENTRE ETAPAS
-     * ═══════════════════════════════════════════════════════════════════════════ */
+    /** ======================= NAVEGAÇÃO ENTRE ETAPAS ======================= */
     fun nextStep() = viewModelScope.launch {
         val i = _inputs.value
         var next = _step.value + 1
-
         // Etapa 3 (Tráfego) só existe para Piso Intertravado
         if (next == 3 && i.revest != RevestimentoType.PISO_INTERTRAVADO) {
             next = 4
         }
-
         // 6 = Revisão de Parâmetros -> 7 = Resultado final
         _step.value = next.coerceAtMost(CalcRevestimentoRules.Steps.MAX)
     }
@@ -466,9 +456,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
                 prev = 6
             }
         }
-
         prev = prev.coerceAtLeast(CalcRevestimentoRules.Steps.MIN)
-
         if (prev == 0 || prev == 1) {
             resetAllInternal()
         }
@@ -477,14 +465,11 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     fun goTo(step: Int) = viewModelScope.launch {
         _step.value = step.coerceIn(
-            CalcRevestimentoRules.Steps.MIN,
-            CalcRevestimentoRules.Steps.MAX
+            CalcRevestimentoRules.Steps.MIN, CalcRevestimentoRules.Steps.MAX
         )
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * VALIDAÇÕES POR ETAPA
-     * ═══════════════════════════════════════════════════════════════════════════ */
+    /** ======================= VALIDAÇÕES POR ETAPA ======================= */
     fun validateStep(step: Int): StepValidation {
         val i = _inputs.value
         return when (step) {
@@ -502,16 +487,12 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * FUNÇÕES AUXILIARES PÚBLICAS
-     * ═══════════════════════════════════════════════════════════════════════════ */
+    /** ======================= FUNÇÃOS AUXILIAR PÚBLICA ======================= */
     fun getRodapePerimetroPossivel(): Double? {
         return AreaCalculator.getRodapePerimetroPossivel(_inputs.value)
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * CÁLCULO PRINCIPAL
-     * ═══════════════════════════════════════════════════════════════════════════ */
+    /** ======================= CÁLCULO PRINCIPAL ======================= */
     fun calcular() = viewModelScope.launch {
         val i = _inputs.value
         val areaBase = AreaCalculator.areaBaseM2(i) ?: 0.0
@@ -532,10 +513,11 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         // 🔹 Área usada para Argamassa / Rejunte
         val areaMateriaisRevestimentoM2 =
-            areaRevestimentoM2 +
-                    if (i.rodapeEnable && i.rodapeMaterial == RodapeMaterial.PECA_PRONTA)
-                        areaRodapeExibM2
-                    else 0.0
+            ArgamassaSpecifications.calcularAreaMateriaisRevestimentoM2(
+                inputs = i,
+                areaRevestimentoM2 = areaRevestimentoM2,
+                rodapeAreaM2 = areaRodapeExibM2
+            )
 
         // 🔹 Área usada para Espaçadores / Cunhas (sem considerar rodapé)
         val areaEspacadoresCunhasM2 = areaBase
@@ -597,9 +579,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         _step.value = 7
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * PROCESSAMENTO DE MATERIAIS POR TIPO
-     * ═══════════════════════════════════════════════════════════════════════════ */
+    /** ======================= PROCESSAMENTO DE MATERIAIS POR TIPO ======================= */
     private fun processarRevestimentoPadrao(
         i: Inputs,
         areaRevestM2: Double,
@@ -674,9 +654,8 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * HELPERS (Valores Padrão em Espessura da Peça, Espessura da Junta e Desnível, Reset, Formatação)
-     * ═══════════════════════════════════════════════════════════════════════════ */
+    /** ======================= HELPERS =======================
+     * (Valores Padrão em Espessura da Peça, Espessura da Junta e Desnível, Reset, Formatação) */
     private fun Inputs.withDefaultEspessuraIfNeeded(): Inputs {
         if (pecaEspMm != null) return this
         val padrao = RevestimentoSpecifications.getEspessuraPadraoMm(this)
@@ -708,8 +687,7 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
                 CalcRevestimentoRules.Desnivel.PEDRA_DEFAULT_CM
 
             RevestimentoType.MARMORE,
-            RevestimentoType.GRANITO ->
-                CalcRevestimentoRules.Desnivel.MG_DEFAULT_CM
+            RevestimentoType.GRANITO -> null
 
             else -> null
         }

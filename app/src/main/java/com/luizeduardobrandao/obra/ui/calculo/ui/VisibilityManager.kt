@@ -1,6 +1,7 @@
 package com.luizeduardobrandao.obra.ui.calculo.ui
 
 import android.view.View
+import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.RadioGroup
 import androidx.core.view.isVisible
@@ -11,7 +12,6 @@ import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.Revestimento
 
 /**
  * Gerencia a visibilidade condicional de componentes da UI
- *
  * Responsável por:
  * - Mostrar/ocultar campos baseado no tipo de revestimento
  * - Gerenciar visibilidade de grupos (rodapé)
@@ -28,7 +28,7 @@ class VisibilityManager {
         tvAreaTotalAviso: View,
         // Grupos de componentes
         groupPlacaTipo: View, groupPecaTamanho: View, groupPastilhaTamanho: View,
-        groupPastilhaPorcelanatoTamanho: View, groupRodapeFields: View,
+        groupPastilhaPorcelanatoTamanho: View, groupRodapeFields: View, groupMgAplicacao: View,
         // Campos individuais - Medidas
         tilComp: TextInputLayout, tilLarg: TextInputLayout, tilAltura: TextInputLayout,
         tilParedeQtd: TextInputLayout, tilAbertura: TextInputLayout,
@@ -40,40 +40,46 @@ class VisibilityManager {
         // Campos individuais - Rodapé
         tilRodapeAltura: TextInputLayout, tilRodapeAbertura: TextInputLayout,
         tilRodapeCompComercial: TextInputLayout,
-        // EditTexts (para limpar quando ocultar)
+        // EditTexts (para limpeza)
         etLarg: TextInputEditText, etAlt: TextInputEditText, etParedeQtd: TextInputEditText,
         etAbertura: TextInputEditText, etPecaEsp: TextInputEditText, etJunta: TextInputEditText,
         etPecasPorCaixa: TextInputEditText, etRodapeAbertura: TextInputEditText,
         // RadioGroups
         rgPlacaTipo: RadioGroup,
         // Switches
-        switchRodape: CompoundButton
+        switchRodape: CompoundButton,
+        // NOVOS grupos para switches adicionais
+        rowPecasPorCaixaSwitch: View,
+        groupPecasPorCaixaFields: View,
+        rowDesnivelSwitchStep4: View,
+        groupDesnivelFields: View
     ) {
-        // Atualiza avisos informativos
-        updateAreaTotalAvisoVisibility(inputs, tvAreaTotalAviso)
-        // Atualiza grupos principais
-        updateGroupVisibilities(
+        updateAreaTotalAvisoVisibility(inputs, tvAreaTotalAviso) // Atualiza avisos informativos
+        updateGroupVisibilities(                                 // Atualiza grupos principais
             inputs,
             groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho, groupPastilhaPorcelanatoTamanho,
-            groupRodapeFields, switchRodape
+            groupRodapeFields, groupMgAplicacao, switchRodape
         )
-        // Atualiza campos de medidas
-        updateMeasurementFieldsVisibility(
+        updateMeasurementFieldsVisibility( // Atualiza campos de medidas
             inputs, tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura,
             etLarg, etAlt, etParedeQtd, etAbertura
         )
-        // Atualiza campos de peça
-        updatePieceFieldsVisibility(
-            inputs, tilPecaEsp, tilJunta, tilPecasPorCaixa, tilDesnivel,
-            etPecaEsp, etJunta, etPecasPorCaixa
+        updatePieceFieldsVisibility( // Atualiza campos de peça
+            inputs,
+            tilPecaEsp, tilJunta, tilPecasPorCaixa, tilDesnivel,
+            etPecaEsp, etJunta, etPecasPorCaixa,
+            rowPecasPorCaixaSwitch, rowDesnivelSwitchStep4,
+            groupPecasPorCaixaFields, groupDesnivelFields
         )
-        // Atualiza campos de rodapé (visibilidade + limpeza)
-        updateRodapeFieldsVisibility(
+        updateRodapeFieldsVisibility( // Atualiza campos de rodapé (visibilidade + limpeza)
             inputs, groupRodapeFields,
             tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial, etRodapeAbertura
         )
-        // Atualiza Switch Rodapé
-        updateSwitchStates(inputs, switchRodape)
+        updateSwitchStates(inputs, switchRodape) // Atualiza Switch Rodapé
+        reorderDesnivelAndSobraForPedra(         // Reordena campo Desnível em Pedra Portuguesa
+            inputs = inputs, tilSobra = tilSobra, groupDesnivelFields = groupDesnivelFields,
+            rowDesnivelSwitchStep4 = rowDesnivelSwitchStep4
+        )
         // Limpa RadioGroup de placa se necessário
         clearPlacaTipoIfNeeded(inputs, rgPlacaTipo)
     }
@@ -94,10 +100,10 @@ class VisibilityManager {
         groupPastilhaTamanho: View,
         groupPastilhaPorcelanatoTamanho: View,
         groupRodapeFields: View,
+        groupMgAplicacao: View,
         switchRodape: CompoundButton
     ) {
         val revest = inputs.revest
-
         // Grupo de tipo de placa (cerâmica/porcelanato)
         groupPlacaTipo.isVisible =
             revest == CalcRevestimentoViewModel.RevestimentoType.PISO ||
@@ -107,6 +113,10 @@ class VisibilityManager {
         groupPecaTamanho.isVisible =
             revest != CalcRevestimentoViewModel.RevestimentoType.PEDRA &&
                     revest != CalcRevestimentoViewModel.RevestimentoType.PASTILHA
+        // Grupo de aplicação (Piso/Parede) – exclusivo de Mármore/Granito
+        val isMg = revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
+        groupMgAplicacao.isVisible = isMg
         // Grupos de tamanho de pastilha (cerâmica x porcelanato)
         if (revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA) {
             when (inputs.pisoPlacaTipo) {
@@ -115,8 +125,7 @@ class VisibilityManager {
                     groupPastilhaPorcelanatoTamanho.isVisible = true
                 }
 
-                CalcRevestimentoViewModel.PlacaTipo.CERAMICA, null -> {
-                    // Cenário "Pastilha = Cerâmica" mantém layout já existente
+                CalcRevestimentoViewModel.PlacaTipo.CERAMICA, null -> { // Cenário "Pastilha = Cerâmica" mantém layout já existente
                     groupPastilhaTamanho.isVisible = true
                     groupPastilhaPorcelanatoTamanho.isVisible = false
                 }
@@ -125,8 +134,6 @@ class VisibilityManager {
             groupPastilhaTamanho.isVisible = false
             groupPastilhaPorcelanatoTamanho.isVisible = false
         }
-
-        // Mármore/Granito em PAREDE NÃO têm etapa de rodapé
         val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
         // Linha inteira "Incluir rodapé" (TextView + switch)
         val rowRodapeSwitch = switchRodape.parent as? View
@@ -153,7 +160,6 @@ class VisibilityManager {
         val isMG = inputs.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
                 inputs.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
         val isParedeMG = isMG && inputs.aplicacao == CalcRevestimentoViewModel.AplicacaoType.PAREDE
-
         val isParedeMode = isAzulejo || isPastilha || isParedeMG
 
         // Campos de parede (altura, qtd paredes, abertura)
@@ -190,7 +196,11 @@ class VisibilityManager {
         tilDesnivel: TextInputLayout,
         etPecaEsp: TextInputEditText,
         etJunta: TextInputEditText,
-        etPecasPorCaixa: TextInputEditText
+        etPecasPorCaixa: TextInputEditText,
+        rowPecasPorCaixaSwitch: View,
+        groupPecasPorCaixaFields: View,
+        rowDesnivelSwitchStep4: View,
+        groupDesnivelFields: View
     ) {
         val isPastilha = inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
         val isIntertravado =
@@ -214,18 +224,41 @@ class VisibilityManager {
         }
         // Peças por caixa: oculta para MG, Pedra e Intertravado
         val hidePecasPorCaixa = isMG || isPedra || isIntertravado
-        tilPecasPorCaixa.isVisible = !hidePecasPorCaixa
-        if (hidePecasPorCaixa) {
+
+        if (hidePecasPorCaixa) { // Some tudo relacionado a Peças por caixa
+            rowPecasPorCaixaSwitch.isVisible = false
+            groupPecasPorCaixaFields.isVisible = false
+            tilPecasPorCaixa.isVisible = false
             etPecasPorCaixa.text?.clear()
             tilPecasPorCaixa.error = null
+        } else { // Cenários padrão (Piso/Azulejo/Pastilha) → switch sempre visível
+            rowPecasPorCaixaSwitch.isVisible = true
+            tilPecasPorCaixa.isVisible = true
         }
-        // Desnível: visível apenas para Pedra, MG
-        tilDesnivel.isVisible = inputs.revest in setOf(
+        val showDesnivel = inputs.revest in setOf( // Desnível: Pedra e MG usam layout diferente
             CalcRevestimentoViewModel.RevestimentoType.PEDRA,
             CalcRevestimentoViewModel.RevestimentoType.MARMORE,
             CalcRevestimentoViewModel.RevestimentoType.GRANITO
         )
-        if (!tilDesnivel.isVisible) {
+        tilDesnivel.isVisible = showDesnivel
+
+        when {
+            isPedra -> { // Pedra Portuguesa: comportamento → sem switch, campo sempre visível
+                rowDesnivelSwitchStep4.isVisible = false
+                groupDesnivelFields.isVisible = showDesnivel
+            }
+            // MG: switch visível, grupo controlado pelo switch no Fragment
+            isMG -> {
+                rowDesnivelSwitchStep4.isVisible = showDesnivel
+            }
+
+            else -> {
+                rowDesnivelSwitchStep4.isVisible = false
+                groupDesnivelFields.isVisible = false
+            }
+        }
+
+        if (!showDesnivel) {
             tilDesnivel.error = null
         }
     }
@@ -245,8 +278,7 @@ class VisibilityManager {
         // Campos de rodapé só aparece quando: cenário tem etapa de rodapé e switch está ligado
         groupRodapeFields.isVisible = rodapeOn
 
-        if (!rodapeOn) {
-            // Limpa valores e erros de TODOS os campos de rodapé
+        if (!rodapeOn) { // Limpa valores e erros de TODOS os campos de rodapé
             (tilRodapeAltura.editText as? TextInputEditText)?.text?.clear()
             etRodapeAbertura.text?.clear()
             (tilRodapeCompComercial.editText as? TextInputEditText)?.text?.clear()
@@ -262,8 +294,7 @@ class VisibilityManager {
         switchRodape: CompoundButton
     ) {
         val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
-        if (!hasRodapeStep) {
-            // Garante que rodapé esteja sempre desligado e travado
+        if (!hasRodapeStep) { // Garante que rodapé esteja sempre desligado e travado
             if (switchRodape.isChecked) {
                 switchRodape.isChecked = false   // dispara listener e zera no ViewModel
             }
@@ -284,11 +315,66 @@ class VisibilityManager {
             revest == CalcRevestimentoViewModel.RevestimentoType.PISO ||
                     revest == CalcRevestimentoViewModel.RevestimentoType.AZULEJO ||
                     revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
-
         if (!shouldKeepPlacaTipo || inputs.pisoPlacaTipo == null) {
             if (rgPlacaTipo.checkedRadioButtonId != View.NO_ID) {
                 rgPlacaTipo.clearCheck()
             }
+        }
+    }
+
+    /**
+     * Para Pedra Portuguesa → sem switch de desnível ; Campo Desnível ACIMA de "Sobra"
+     * Para todos os outros revestimentos → ordem padrão do XML
+     */
+    private fun reorderDesnivelAndSobraForPedra(
+        inputs: CalcRevestimentoViewModel.Inputs,
+        tilSobra: TextInputLayout,
+        groupDesnivelFields: View,
+        rowDesnivelSwitchStep4: View
+    ) {
+        val parent = tilSobra.parent as? ViewGroup ?: return
+        val isPedra =
+            inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PEDRA
+
+        // Se o grupo de desnível nem estiver sob o mesmo parent, não faz nada
+        if (parent.indexOfChild(groupDesnivelFields) == -1) return
+
+        if (isPedra && groupDesnivelFields.isVisible && !rowDesnivelSwitchStep4.isVisible) {
+            //  CENÁRIO PEDRA PORTUGUESA → sem switch de desnível ; Campo Desnível ACIMA de "Sobra"
+            val sobraIndex = parent.indexOfChild(tilSobra)
+            val desnivelIndex = parent.indexOfChild(groupDesnivelFields)
+
+            if (sobraIndex == -1 || desnivelIndex == -1) return
+            if (desnivelIndex > sobraIndex) { // Só move se hoje Desnível estiver DEPOIS de Sobra
+                parent.removeView(groupDesnivelFields)
+                val newSobraIndex = parent.indexOfChild(tilSobra)
+                if (newSobraIndex == -1) { // fallback: só reanexa no final
+                    parent.addView(groupDesnivelFields)
+                    return
+                }
+                val targetIndex = newSobraIndex.coerceIn(0, parent.childCount)
+                parent.addView(groupDesnivelFields, targetIndex)
+            }
+        } else { // Qualquer Outro Revestimento → volta para ordem padrão do XML
+            val rowIndexBefore = (rowDesnivelSwitchStep4.parent as? ViewGroup)
+                ?.indexOfChild(rowDesnivelSwitchStep4) ?: -1
+            if (rowIndexBefore == -1 || rowDesnivelSwitchStep4.parent != parent) {
+                return // não está no mesmo parent ou ainda não inflado → não mexe
+            }
+            val groupIndexBefore = parent.indexOfChild(groupDesnivelFields)
+            // Se já estiver logo depois do row, não faz nada
+            if (groupIndexBefore == rowIndexBefore + 1) return
+            // Remove o grupo e reobtém o índice atual do row
+            parent.removeView(groupDesnivelFields)
+
+            val rowIndexAfter = parent.indexOfChild(rowDesnivelSwitchStep4)
+            if (rowIndexAfter == -1) { // algo mudou no layout → só reanexa no final
+                parent.addView(groupDesnivelFields)
+                return
+            }
+            // Garante índice válido: 0..childCount
+            val targetIndex = (rowIndexAfter + 1).coerceIn(0, parent.childCount)
+            parent.addView(groupDesnivelFields, targetIndex)
         }
     }
 }

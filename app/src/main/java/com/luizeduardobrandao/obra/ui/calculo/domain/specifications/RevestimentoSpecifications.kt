@@ -11,10 +11,9 @@ import java.util.Locale
 object RevestimentoSpecifications {
 
     // Atalhos para regras numéricas
-    private val PecaRules = CalcRevestimentoRules.Peca
     private val MGRules = CalcRevestimentoRules.MarmoreGranito
     private val PisoRules = CalcRevestimentoRules.Piso
-    private val PedraRules = CalcRevestimentoRules.Pedra
+    private val PedraRules = CalcRevestimentoRules.PedraPortuguesa
     private val JuntaPadrao = CalcRevestimentoRules.JuntaPadrao
     private val InterRules = CalcRevestimentoRules.Intertravado
 
@@ -29,53 +28,53 @@ object RevestimentoSpecifications {
         // Tamanhos de Pastilha Porcelanato
         P1_5(
             ladoCm = 1.5, lado2Cm = 1.5, mantaCompCm = 32.1, mantaLargCm = 32.1,
-            espMmPadrao = PecaRules.PASTILHA_ESP_P1_5_MM
+            espMmPadrao = CalcRevestimentoRules.Pastilha.Porcelanato.PASTILHA_ESP_P1_5_MM
         ),
         P2(
             ladoCm = 2.0, lado2Cm = 2.0, mantaCompCm = 34.2, mantaLargCm = 34.2,
-            espMmPadrao = PecaRules.PASTILHA_ESP_P2_MM
+            espMmPadrao = CalcRevestimentoRules.Pastilha.Porcelanato.PASTILHA_ESP_P2_MM
         ),
         P2_2(
             ladoCm = 2.5, lado2Cm = 2.5, mantaCompCm = 33.3, mantaLargCm = 33.3,
-            espMmPadrao = PecaRules.PASTILHA_ESP_P2_2_MM
+            espMmPadrao = CalcRevestimentoRules.Pastilha.Porcelanato.PASTILHA_ESP_P2_2_MM
         ),
         P2_5(
             ladoCm = 2.5, lado2Cm = 5.0, mantaCompCm = 33.3, mantaLargCm = 31.5,
-            espMmPadrao = PecaRules.PASTILHA_ESP_P2_5_MM
+            espMmPadrao = CalcRevestimentoRules.Pastilha.Porcelanato.PASTILHA_ESP_P2_5_MM
         ),
         P5_5(
             ladoCm = 5.0, lado2Cm = 5.0, mantaCompCm = 31.5, mantaLargCm = 31.5,
-            espMmPadrao = PecaRules.PASTILHA_ESP_P5_5_MM
+            espMmPadrao = CalcRevestimentoRules.Pastilha.Porcelanato.PASTILHA_ESP_P5_5_MM
         ),
         P5_10(
             ladoCm = 5.0, lado2Cm = 10.0, mantaCompCm = 31.5, mantaLargCm = 30.6,
-            espMmPadrao = PecaRules.PASTILHA_ESP_P5_5_10MM
+            espMmPadrao = CalcRevestimentoRules.Pastilha.Porcelanato.PASTILHA_ESP_P5_5_10MM
         ),
         P5_15(
             ladoCm = 5.0, lado2Cm = 15.0, mantaCompCm = 31.5, mantaLargCm = 30.3,
-            espMmPadrao = PecaRules.PASTILHA_ESP_P5_5_15MM
+            espMmPadrao = CalcRevestimentoRules.Pastilha.Porcelanato.PASTILHA_ESP_P5_5_15MM
         ),
         P7_5P(
             ladoCm = 7.5, lado2Cm = 7.5, mantaCompCm = 30.9, mantaLargCm = 30.9,
-            espMmPadrao = PecaRules.PASTILHA_ESP_P7_5PMM
+            espMmPadrao = CalcRevestimentoRules.Pastilha.Porcelanato.PASTILHA_ESP_P7_5PMM
         ),
         P10P(
             ladoCm = 10.0, lado2Cm = 10.0, mantaCompCm = 30.6, mantaLargCm = 30.6,
-            espMmPadrao = PecaRules.PASTILHA_ESP_P10PMM
+            espMmPadrao = CalcRevestimentoRules.Pastilha.Porcelanato.PASTILHA_ESP_P10PMM
         ),
 
         // Tamanhos de Pastilha Cerâmica
         P5(
             ladoCm = 5.0, lado2Cm = 5.0, mantaCompCm = 32.5, mantaLargCm = 32.5,
-            espMmPadrao = PecaRules.PASTILHA_ESP_P5_MM
+            espMmPadrao = CalcRevestimentoRules.Pastilha.Ceramica.PASTILHA_ESP_P5_MM
         ),
         P7_5(
             ladoCm = 7.5, lado2Cm = 7.5, mantaCompCm = 31.5, mantaLargCm = 31.5,
-            espMmPadrao = PecaRules.PASTILHA_ESP_P7_5_MM
+            espMmPadrao = CalcRevestimentoRules.Pastilha.Ceramica.PASTILHA_ESP_P7_5_MM
         ),
         P10(
             ladoCm = 10.0, lado2Cm = 10.0, mantaCompCm = 31.0, mantaLargCm = 31.0,
-            espMmPadrao = PecaRules.PASTILHA_ESP_P10_MM
+            espMmPadrao = CalcRevestimentoRules.Pastilha.Ceramica.PASTILHA_ESP_P10_MM
         )
     }
 
@@ -99,7 +98,8 @@ object RevestimentoSpecifications {
         return when (inputs.revest) {
             RevestimentoType.PASTILHA -> {
                 // Agora a espessura padrão vem diretamente do formato escolhido
-                inputs.pastilhaFormato?.espMmPadrao ?: PecaRules.PASTILHA_ESP_P5_MM
+                inputs.pastilhaFormato?.espMmPadrao
+                    ?: CalcRevestimentoRules.Pastilha.Ceramica.PASTILHA_ESP_P5_MM
             }
 
             RevestimentoType.PEDRA ->

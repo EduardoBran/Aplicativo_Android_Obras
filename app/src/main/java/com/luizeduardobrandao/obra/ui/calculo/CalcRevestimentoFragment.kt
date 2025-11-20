@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.widget.*
-import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
@@ -67,9 +66,7 @@ class CalcRevestimentoFragment : Fragment() {
     private var espessuraUserEdited = false
     private lateinit var deferredValidator: DelayValidationMsgField
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * CICLO DE VIDA
-     * ═══════════════════════════════════════════════════════════════════════════ */
+    /** ======================= CICLO DE VIDA ======================= */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         pendingShareConfirm = savedInstanceState?.getBoolean("pendShare", false) == true
@@ -82,12 +79,10 @@ class CalcRevestimentoFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCalcRevestimentoBinding.inflate(inflater, container, false)
-
         initializeAllHelpers()
         setupToolbar()
         setupAllUiComponents()
         setupStateObservers()
-
         return binding.root
     }
 
@@ -112,23 +107,18 @@ class CalcRevestimentoFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Cancela qualquer validação adiada pendente para não rodar depois que a View morrer
-        if (::deferredValidator.isInitialized) {
+        if (::deferredValidator.isInitialized) { // Cancela qualquer validação adiada pendente
             deferredValidator.cancelAll()
         }
         _binding = null
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * INICIALIZAÇÃO
-     * ═══════════════════════════════════════════════════════════════════════════ */
-    /** Inicializa todos os gerenciadores de UI */
+    /** ======================= INICIALIZAÇÃO ======================= */
+    // Inicializa todos os gerenciadores de UI
     private fun initializeAllHelpers() {
         toolbarManager = ToolbarManager(
-            binding = binding,
-            navController = findNavController(),
-            onPrevStep = { viewModel.prevStep() },
-            onExport = { share -> exportResultAsPdf(share) },
+            binding = binding, navController = findNavController(),
+            onPrevStep = { viewModel.prevStep() }, onExport = { share -> exportResultAsPdf(share) },
             getString = { resId -> getString(resId) }
         )
         validator = FieldValidator(viewModel) { resId -> getString(resId) }
@@ -142,13 +132,10 @@ class CalcRevestimentoFragment : Fragment() {
         deferredValidator = DelayValidationMsgField() // delay das validações visuais
     }
 
-    /** Configura a toolbar usando o arquivo ToolbarManager */
-    private fun setupToolbar() = toolbarManager.setup()
+    private fun setupToolbar() = toolbarManager.setup() // Configuração da toolbar
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * SETUP DA UI
-     * ═══════════════════════════════════════════════════════════════════════════ */
-    /** Configura todos os componentes da UI */
+    /** ======================= SETUP DA UI ======================= */
+    // Configura todos os componentes da UI
     private fun setupAllUiComponents() {
         enableErrorSlotsForAllFields()
         setupNavigationButtons()
@@ -156,12 +143,13 @@ class CalcRevestimentoFragment : Fragment() {
         setupStep2AmbTypeListeners()
         setupStep3TrafTypeListeners()
         setupStep4AreaListeners()
+        setupStep4Switches()
         setupStep5PecaParametersListeners()
         setupRodapeListeners()
         setupStep6ReviewParametersListeners()
     }
 
-    /** Habilita slots de erro para todos os campos */
+    // Habilita slots de erro para todos os campos
     private fun enableErrorSlotsForAllFields() = with(binding) {
         listOf(
             tilComp, tilLarg, tilAltura, tilAreaInformada, tilParedeQtd, tilAbertura,
@@ -170,10 +158,8 @@ class CalcRevestimentoFragment : Fragment() {
         ).forEach { it.isErrorEnabled = true }
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * NAVEGAÇÃO
-     * ═══════════════════════════════════════════════════════════════════════════ */
-    /** Configura botões de navegação (Iniciar/Voltar/Avançar/Cancelar) */
+    /** ======================= NAVEGAÇÃO ======================= */
+    // Configura botões de navegação (Iniciar/Voltar/Avançar/Cancelar)
     private fun setupNavigationButtons() = with(binding) {
         btnNext.setOnClickListener { handleNextButtonClick() }
         btnBack.setOnClickListener { rootCalc.post { viewModel.prevStep() } }
@@ -181,96 +167,57 @@ class CalcRevestimentoFragment : Fragment() {
         btnCancel.setOnClickListener { findNavController().navigateUp() }
     }
 
-    /** Trata clique no botão "Avançar" - Valida campos antes de prosseguir */
+    // Trata clique no botão "Avançar" - Valida campos antes de prosseguir
     private fun handleNextButtonClick() {
         with(binding) {
-            val step = viewModel.step.value
-
-            // Recalcula estado do botão com todas as regras por etapa
-            refreshNextButtonEnabled()
+            refreshNextButtonEnabled() // Recalcula estado do botão com todas as regras por etapa
             if (!btnNext.isEnabled) {
                 showToast(getString(R.string.calc_validate_step))
-                return
-            }
-            // Regra especial: Mármore/Granito precisa definir aplicação (Piso/Parede)
-            if (step == 1 && needsAplicationTypeDialog()) {
-                showAplicacationTypeDialogForMG()
                 return
             }
             rootCalc.post { viewModel.nextStep() }
         }
     }
 
-    /** Verifica se precisa mostrar diálogo de aplicação (Mármore/Granito) */
-    private fun needsAplicationTypeDialog(): Boolean {
-        val i = viewModel.inputs.value
-        return (i.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
-                i.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO) && i.aplicacao == null
-    }
-
-    /** Mostra diálogo para escolher aplicação (Piso ou Parede) para Mármore/Granito */
-    private fun showAplicacationTypeDialogForMG() {
-        val options = arrayOf(
-            getString(R.string.calc_aplicacao_option_piso),
-            getString(R.string.calc_aplicacao_option_parede)
-        )
-
-        var selected = -1
-        lateinit var dialog: AlertDialog
-
-        dialog =
-            MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_ObrasApp_FuncDialog)
-                .setTitle(getString(R.string.calc_aplicacao_dialog_title_mg))
-                .setSingleChoiceItems(options, -1) { _, which ->
-                    selected = which
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = true
-                }
-                .setPositiveButton(getString(R.string.generic_ok_upper_case), null)
-                .setNegativeButton(getString(R.string.generic_cancel)) { d, _ -> d.dismiss() }
-                .create()
-
-        dialog.setOnShowListener {
-            val okBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            okBtn.isEnabled = (selected != -1)
-
-            okBtn.setOnClickListener {
-                if (selected == -1) return@setOnClickListener
-
-                val aplicacao = if (selected == 0)
-                    CalcRevestimentoViewModel.AplicacaoType.PISO
-                else
-                    CalcRevestimentoViewModel.AplicacaoType.PAREDE
-
-                viewModel.setAplicacao(aplicacao)
-                dialog.dismiss()
-                binding.rootCalc.post { viewModel.nextStep() }
-            }
-        }
-        dialog.show()
-    }
-
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * LISTENERS DE ETAPAS
-     * ═══════════════════════════════════════════════════════════════════════════ */
-    /** Etapa 1: Tipo de revestimento */
+    /** ======================= LISTENERS DE ETAPAS ======================= */
+    // Etapa 1: Tipo de revestimento
     private fun setupStep1RevTypeListeners() = with(binding) {
         rgRevest.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
-            val type = mapRadioIdToRevestimento(id)
-            type?.let { viewModel.setRevestimento(it) }
-
+            val newType = mapRadioIdToRevestimento(id) ?: return@setOnCheckedChangeListener
+            // Sempre limpar tipo de placa ao trocar de revestimento
+            viewModel.setPlacaTipo(null)
+            // Se trocou para Mármore/Granito, zera aplicação (Piso/Parede) do grupo novo
+            if (newType == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                newType == CalcRevestimentoViewModel.RevestimentoType.GRANITO
+            ) {
+                viewModel.setAplicacao(null)
+            }
+            viewModel.setRevestimento(newType)
             espessuraUserEdited = false // Reset no controle de auto-preenchimento
+            refreshNextButtonEnabled()
         }
-
+        // Aplicação (Cerâmica / Porcelanato) específica de Piso/Azulejo/Pastilha
         rgPlacaTipo.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
             val placa = mapRadioIdToPlacaTipo(id)
             viewModel.setPlacaTipo(placa)
             refreshNextButtonEnabled()
         }
+        // Aplicação (Piso / Parede) específica de Mármore/Granito
+        rgMgAplicacao.setOnCheckedChangeListener { _, checkedId ->
+            if (isSyncing) return@setOnCheckedChangeListener
+            val aplicacao = when (checkedId) {
+                rbMgPiso.id -> CalcRevestimentoViewModel.AplicacaoType.PISO
+                rbMgParede.id -> CalcRevestimentoViewModel.AplicacaoType.PAREDE
+                else -> null
+            }
+            viewModel.setAplicacao(aplicacao)
+            refreshNextButtonEnabled()
+        }
     }
 
-    /** Etapa 2: Tipo de ambiente */
+    // Etapa 2: Tipo de ambiente
     private fun setupStep2AmbTypeListeners() = with(binding) {
         rgAmbiente.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
@@ -279,7 +226,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Etapa 3: Tipo de tráfego (apenas Piso Intertravado) */
+    // Etapa 3: Tipo de tráfego (apenas Piso Intertravado)
     private fun setupStep3TrafTypeListeners() = with(binding) {
         rgTrafego.setOnCheckedChangeListener { _, id ->
             if (isSyncing) return@setOnCheckedChangeListener
@@ -289,7 +236,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Etapa 4: Medidas do ambiente */
+    // Etapa 4: Medidas do ambiente
     private fun setupStep4AreaListeners() = with(binding) {
         setupAreaDimensionFields(etComp, tilComp)
         setupAreaDimensionFields(etLarg, tilLarg)
@@ -299,17 +246,15 @@ class CalcRevestimentoFragment : Fragment() {
         setupTotalAreaField()
     }
 
-    /** Configura campos de medidas da área (Comp/Larg/Alt) */
+    // Configura campos de medidas da área (Comp/Larg/Alt)
     private fun setupAreaDimensionFields(
         et: TextInputEditText,
         til: TextInputLayout
     ) {
         et.doAfterTextChanged {
             viewModel.setMedidas(
-                getDoubleValue(binding.etComp),
-                getDoubleValue(binding.etLarg),
-                getDoubleValue(binding.etAlt),
-                getDoubleValue(binding.etAreaInformada)
+                getDoubleValue(binding.etComp), getDoubleValue(binding.etLarg),
+                getDoubleValue(binding.etAlt), getDoubleValue(binding.etAreaInformada)
             )
 
             if (til.isVisible) {
@@ -322,40 +267,31 @@ class CalcRevestimentoFragment : Fragment() {
             } else {
                 validator.setInlineError(et, til, null)
             }
-
             updateRequiredIconsForStep3Area()
 
             if (binding.tilAbertura.isVisible &&
                 !binding.etAbertura.text.isNullOrBlank() &&
                 binding.etAreaInformada.text.isNullOrBlank()
-            ) {
-                // Revalida Abertura com a área bruta nova (comp/alt/parede atualizados no ViewModel)
+            ) { // Revalida Abertura com a área bruta nova (comp/alt/parede atualizados no ViewModel)
                 validator.validateAberturaLive(binding.etAbertura, binding.tilAbertura)
             }
-
             refreshNextButtonEnabled()
         }
 
         if (et === binding.etAlt) {
             validator.validateRangeOnBlur(
-                et,
-                til,
-                { getDoubleValue(et) },
-                CalcRevestimentoRules.Medidas.ALTURA_RANGE_M,
+                et, til, { getDoubleValue(et) }, CalcRevestimentoRules.Medidas.ALTURA_RANGE_M,
                 getString(R.string.calc_err_medida_alt_m)
             )
         } else {
             validator.validateRangeOnBlur(
-                et,
-                til,
-                { getDoubleValue(et) },
-                CalcRevestimentoRules.Medidas.COMP_LARG_RANGE_M,
+                et, til, { getDoubleValue(et) }, CalcRevestimentoRules.Medidas.COMP_LARG_RANGE_M,
                 getString(R.string.calc_err_medida_comp_larg_m)
             )
         }
     }
 
-    /** Configura campo de quantidade de paredes */
+    // Configura campo de quantidade de paredes
     private fun setupParedeQtdField() = with(binding) {
         etParedeQtd.doAfterTextChanged {
             val qtd = etParedeQtd.text?.toString()?.toIntOrNull()
@@ -370,14 +306,12 @@ class CalcRevestimentoFragment : Fragment() {
             ) {
                 validator.validateAberturaLive(etAbertura, tilAbertura)
             }
-
             refreshNextButtonEnabled()
         }
-
         validator.validateParedeQtdOnBlur(etParedeQtd, tilParedeQtd)
     }
 
-    /** Configura campo de abertura (portas/janelas) */
+    // Configura campo de abertura (portas/janelas)
     private fun setupAberturaAreaField() = with(binding) {
         etAbertura.doAfterTextChanged {
             val abertura = getDoubleValue(etAbertura)
@@ -387,18 +321,15 @@ class CalcRevestimentoFragment : Fragment() {
             updateRequiredIconsForStep3Area()
             refreshNextButtonEnabled()
         }
-
         validator.validateAberturaOnBlur(etAbertura, tilAbertura)
     }
 
-    /** Configura campo de área total informada */
+    // Configura campo de área total informada
     private fun setupTotalAreaField() = with(binding) {
         etAreaInformada.doAfterTextChanged {
             viewModel.setMedidas(
-                getDoubleValue(etComp),
-                getDoubleValue(etLarg),
-                getDoubleValue(etAlt),
-                getDoubleValue(etAreaInformada)
+                getDoubleValue(etComp), getDoubleValue(etLarg),
+                getDoubleValue(etAlt), getDoubleValue(etAreaInformada)
             )
             // Valida a própria Área Total
             validator.validateAreaInformadaLive(etAreaInformada, tilAreaInformada)
@@ -414,10 +345,8 @@ class CalcRevestimentoFragment : Fragment() {
                 //Limpar também Parede (qtd) e Abertura
                 validator.setInlineError(etParedeQtd, tilParedeQtd, null)
                 validator.setInlineError(etAbertura, tilAbertura, null)
-            } else {
-                // Área Total vazia ou inválida → volta a usar as dimensões
+            } else { // Área Total vazia ou inválida → volta a usar as dimensões
                 validateAllAreaDimensions()
-
                 // Revalida Parede/Abertura com o novo contexto
                 validator.validateParedeQtdLive(etParedeQtd, tilParedeQtd)
                 validator.validateAberturaLive(etAbertura, tilAbertura)
@@ -429,7 +358,7 @@ class CalcRevestimentoFragment : Fragment() {
         validator.validateAreaInformadaOnBlur(etAreaInformada, tilAreaInformada)
     }
 
-    /** Etapa 5: Parâmetros da peça */
+    // Etapa 5: Parâmetros da peça
     private fun setupStep5PecaParametersListeners() = with(binding) {
         setupPecaDimensionsFields(etPecaComp, tilPecaComp)
         setupPecaDimensionsFields(etPecaLarg, tilPecaLarg)
@@ -459,65 +388,110 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Configura campos de peça (comprimento ou largura) */
+    // Etapa 4: Switches extras (Peças por caixa / Desnível MG)
+    private fun setupStep4Switches() = with(binding) {
+        // Switch "Peças por caixa"
+        switchPecasPorCaixa.setOnCheckedChangeListener { _, isChecked ->
+            if (isSyncing) return@setOnCheckedChangeListener
+            val inputs = viewModel.inputs.value
+            groupPecasPorCaixaFields.isVisible = isChecked // Campos visível apenas quando ligado
+
+            if (!isChecked) { // Desabilita switch → limpa valor e ignora no cálculo/validação
+                etPecasPorCaixa.text = null
+                viewModel.setPecaParametros(
+                    inputs.pecaCompCm, inputs.pecaLargCm, inputs.pecaEspMm,
+                    inputs.juntaMm, inputs.sobraPct, null
+                )
+                validator.setInlineError(etPecasPorCaixa, tilPecasPorCaixa, null)
+            }
+            updateRequiredIconsForStep4PecaParameters() // Recalcula ícones obrigatórios
+            smoothScrollToggle(switchPecasPorCaixa.isChecked) // Animação de scroll
+            if (viewModel.step.value in 1..6) {
+                refreshNextButtonEnabled()
+            }
+        }
+        // Switch "Desnível" (layout só para MG)
+        switchDesnivel.setOnCheckedChangeListener { _, isChecked ->
+            if (isSyncing) return@setOnCheckedChangeListener
+
+            val inputs = viewModel.inputs.value
+            val revest = inputs.revest
+            val isMg =
+                revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                        revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
+            val isPedra = revest == CalcRevestimentoViewModel.RevestimentoType.PEDRA
+
+            if (!isMg) { // Pedra: sem switch "lógico", apenas visibilidade antiga
+                groupDesnivelFields.isVisible = isPedra && tilDesnivel.isVisible
+                return@setOnCheckedChangeListener
+            }
+            viewModel.setDesnivelEnable(isChecked)
+            groupDesnivelFields.isVisible = isChecked
+
+            if (isChecked) {
+                val current = getDoubleValue(etDesnivel)
+                val hasError = validator.hasDesnivelErrorNow(
+                    etDesnivel,
+                    true,
+                    current
+                )
+                if (current == null || hasError) {
+                    val defaultMg = CalcRevestimentoRules.Desnivel.MG_DEFAULT_CM
+                    etDesnivel.setText(defaultMg.toString().replace(".", ","))
+                    viewModel.setDesnivelCm(defaultMg)
+                    validator.setInlineError(etDesnivel, tilDesnivel, null)
+                } else {
+                    viewModel.setDesnivelCm(current)
+                }
+            } else {
+                etDesnivel.text = null
+                viewModel.setDesnivelCm(null)
+                validator.setInlineError(etDesnivel, tilDesnivel, null)
+            }
+            updateRequiredIconsForStep4PecaParameters()  // Recalcula ícones obrigatórios
+            smoothScrollToggle(switchDesnivel.isChecked) // Animação de scroll
+            if (viewModel.step.value in 1..6) {
+                refreshNextButtonEnabled()
+            }
+        }
+    }
+
+    // Configura campos de peça
     private fun setupPecaDimensionsFields(et: TextInputEditText, til: TextInputLayout) {
         et.doAfterTextChanged {
             val text = et.text?.toString().orEmpty()
-
-            updatePecaParametersFields()                    // Atualiza ViewModel normalmente (sem delay)
-            if (viewModel.step.value in 1..6) { // Botão "Avançar" continua reagindo em tempo real
+            updatePecaParametersFields() // Atualiza ViewModel e botão em tempo real
+            if (viewModel.step.value in 1..6) {
                 refreshNextButtonEnabled()
             }
-            when {
-                text.isEmpty() -> { // Campo vazio → volta para o comportamento normal (sem delay)
-                    deferredValidator.cancel(et)
+            applyDeferredValidationPattern(
+                et = et, til = til, text = text,
+                onValidateNow = {
                     validator.validatePecaLive(et, til)
                     updateRequiredIconsForStep4PecaParameters()
-                }
-
-                text.length == 1 -> { // Primeiro dígito → não mostra erro agora, só depois de 1s parado
-                    deferredValidator.cancel(et) // Cancela qualquer agendamento anterior
-                    // Some com o erro imediatamente (para não ficar vermelho enquanto digita o 1º número)
-                    validator.setInlineError(et, til, null)
-                    updateRequiredIconsForStep4PecaParameters()
-
-                    deferredValidator.schedule(et) { // Agenda validação visual para 1s depois
-                        validator.validatePecaLive(et, til)
-                        updateRequiredIconsForStep4PecaParameters()
-                        if (viewModel.step.value in 1..6) {
-                            refreshNextButtonEnabled()
-                        }
-                    }
-                }
-                // 2+ dígitos → validação imediata
-                else -> {
-                    deferredValidator.cancel(et)
-
-                    validator.validatePecaLive(et, til)
-                    updateRequiredIconsForStep4PecaParameters()
-
+                },
+                onAfterDeferredValidation = {
                     if (viewModel.step.value in 1..6) {
                         refreshNextButtonEnabled()
                     }
+                },
+                onFirstDigitBeforeSchedule = {
+                    updateRequiredIconsForStep4PecaParameters()
                 }
-            }
+            )
         }
         validator.validatePecaOnBlur(et, til)
     }
 
-    /** Configura campo de espessura */
+    // Configura campo de espessura
     private fun setupEspessuraField() = with(binding) {
-        // Validação em tempo real
-        etPecaEsp.doAfterTextChanged {
+        etPecaEsp.doAfterTextChanged { // Validação em tempo real
             if (isSyncing) return@doAfterTextChanged
-
             espessuraUserEdited = true // Qualquer alteração conta como edição do usuário
             updatePecaParametersFields()
 
             validator.validateEspessuraLive(
-                et = etPecaEsp,
-                til = tilPecaEsp,
-                isPastilha = isPastilha(),
+                et = etPecaEsp, til = tilPecaEsp, isPastilha = isPastilha(),
                 espValueMm = when {
                     isPastilha() -> null
                     isIntertravado() -> getDoubleValue(etPecaEsp)?.times(10)
@@ -530,11 +504,8 @@ class CalcRevestimentoFragment : Fragment() {
 
         etPecaEsp.setOnFocusChangeListener { _, hasFocus -> // Validação ao perder o foco
             if (hasFocus) return@setOnFocusChangeListener
-
             validator.validateEspessuraLive(
-                et = etPecaEsp,
-                til = tilPecaEsp,
-                isPastilha = isPastilha(),
+                et = etPecaEsp, til = tilPecaEsp, isPastilha = isPastilha(),
                 espValueMm = when {
                     isPastilha() -> null
                     isIntertravado() -> getDoubleValue(etPecaEsp)?.times(10)
@@ -545,23 +516,20 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Configura campo de junta */
+    // Configura campo de junta
     private fun setupJuntaField() = with(binding) {
         etJunta.doAfterTextChanged {
             if (isSyncing) return@doAfterTextChanged
-
             updatePecaParametersFields()
             validator.validateJuntaLive(
-                etJunta,
-                tilJunta,
-                getFieldJuntaValueInMillimeters()
+                etJunta, tilJunta, getFieldJuntaValueInMillimeters()
             )
             updateRequiredIconsForStep4PecaParameters()
             refreshNextButtonEnabled()
         }
     }
 
-    /** Configura campo de peças por caixa */
+    // Configura campo de peças por caixa
     private fun setupPecasPorCaixaField() = with(binding) {
         etPecasPorCaixa.doAfterTextChanged {
             updatePecaParametersFields()
@@ -571,33 +539,26 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Configura campo de desnível */
+    // Configura campo de desnível
     private fun setupDesnivelField() = with(binding) {
         etDesnivel.doAfterTextChanged {
             updateDesnivelField()
             val v = getDoubleValue(etDesnivel)
             validator.validateDesnivelLive(
-                etDesnivel,
-                tilDesnivel,
-                tilDesnivel.isVisible,
-                v
+                etDesnivel, tilDesnivel, tilDesnivel.isVisible, v
             )
             refreshNextButtonEnabled()
         }
-
         etDesnivel.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
             val v = getDoubleValue(etDesnivel)
             validator.validateDesnivelOnBlur(
-                etDesnivel,
-                tilDesnivel,
-                tilDesnivel.isVisible,
-                v
+                etDesnivel, tilDesnivel, tilDesnivel.isVisible, v
             )
         }
     }
 
-    /** Configura campo de sobra técnica */
+    // Configura campo de sobra técnica
     private fun setupSobraField() = with(binding) {
         etSobra.doAfterTextChanged {
             updatePecaParametersFields()
@@ -605,7 +566,6 @@ class CalcRevestimentoFragment : Fragment() {
             if (viewModel.step.value in 1..6) refreshNextButtonEnabled()
             updateRequiredIconsForStep4PecaParameters()
         }
-
         etSobra.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
             validator.validateSobraOnBlur(etSobra, tilSobra)
@@ -613,21 +573,12 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Etapa: Rodapé */
+    // Etapa: Rodapé
     private fun setupRodapeListeners() = with(binding) {
         switchRodape.setOnCheckedChangeListener { _, _ ->
             updateRodapeFields()
             updateRequiredIconsRodapeFields()
-
-            // Scroll suave para topo/fim conforme estado do switch
-            scrollContent.post {
-                if (switchRodape.isChecked) {
-                    val targetY = scrollContent.getChildAt(0)?.bottom ?: 0
-                    Animations.smoothScrollToY(scrollContent, targetY)
-                } else {
-                    Animations.smoothScrollToY(scrollContent, 0)
-                }
-            }
+            smoothScrollToggle(switchRodape.isChecked) // Scroll suave para topo/fim conforme estado do switch
             if (viewModel.step.value in 1..6) {
                 refreshNextButtonEnabled()
             }
@@ -645,10 +596,7 @@ class CalcRevestimentoFragment : Fragment() {
             updateRodapeFields()
             updateRequiredIconsRodapeFields()
             if (switchRodape.isChecked && isPecaPronta) {
-                scrollContent.post {
-                    val targetY = scrollContent.getChildAt(0)?.bottom ?: 0
-                    Animations.smoothScrollToY(scrollContent, targetY)
-                }
+                smoothScrollToggle(true)
             }
             if (viewModel.step.value in 1..6) refreshNextButtonEnabled()
         }
@@ -660,42 +608,23 @@ class CalcRevestimentoFragment : Fragment() {
             if (viewModel.step.value in 1..6) {
                 refreshNextButtonEnabled()
             }
-            when {
-                // Campo vazio → valida normal (sem delay, e sem erro se estiver vazio)
-                text.isEmpty() -> {
-                    deferredValidator.cancel(etRodapeAltura)
+            applyDeferredValidationPattern(
+                et = etRodapeAltura, til = tilRodapeAltura, text = text,
+                onValidateNow = {
                     validator.validateRodapeAlturaLive(etRodapeAltura, tilRodapeAltura)
-                }
-                // Primeiro dígito → limpa erro na hora e só valida depois de 1s
-                text.length == 1 -> {
-                    deferredValidator.cancel(etRodapeAltura)
-                    // Some com o erro enquanto usuário está só iniciando o valor
-                    validator.setInlineError(etRodapeAltura, tilRodapeAltura, null)
-
-                    deferredValidator.schedule(etRodapeAltura) {
-                        validator.validateRodapeAlturaLive(etRodapeAltura, tilRodapeAltura)
-
-                        if (viewModel.step.value in 1..6) {
-                            refreshNextButtonEnabled()
-                        }
-                    }
-                }
-                // 2+ dígitos → validação imediata
-                else -> {
-                    deferredValidator.cancel(etRodapeAltura)
-                    validator.validateRodapeAlturaLive(etRodapeAltura, tilRodapeAltura)
+                },
+                onAfterDeferredValidation = {
                     if (viewModel.step.value in 1..6) {
                         refreshNextButtonEnabled()
                     }
                 }
-            }
+            )
         }
         validator.validateRodapeAlturaOnBlur(etRodapeAltura, tilRodapeAltura)
 
         etRodapeAbertura.doAfterTextChanged {
             updateRodapeFields()
             updateRequiredIconsRodapeFields()
-
             validator.validateRodapeAberturaLive(etRodapeAbertura, tilRodapeAbertura)
             if (viewModel.step.value in 1..6) refreshNextButtonEnabled()
         }
@@ -708,64 +637,38 @@ class CalcRevestimentoFragment : Fragment() {
             if (viewModel.step.value in 1..6) {
                 refreshNextButtonEnabled()
             }
-            // Sempre precisamos saber se o campo está realmente valendo (só quando peça pronta)
+
+            // Verifica se o campo está realmente valendo (só quando peça pronta)
             fun isPecaProntaSelecionada(): Boolean =
                 switchRodape.isChecked &&
                         rgRodapeMat.checkedRadioButtonId == R.id.rbRodapePeca &&
                         tilRodapeCompComercial.isVisible
-            when {
-                // Vazio → volta para comportamento normal (sem delay)
-                text.isEmpty() -> {
-                    deferredValidator.cancel(etRodapeCompComercial)
 
+            applyDeferredValidationPattern(
+                et = etRodapeCompComercial, til = tilRodapeCompComercial, text = text,
+                onValidateNow = {
                     validator.validateRodapeCompComercialLive(
-                        etRodapeCompComercial,
-                        tilRodapeCompComercial,
-                        isPecaProntaSelecionada()
+                        etRodapeCompComercial, tilRodapeCompComercial, isPecaProntaSelecionada()
                     )
-                }
-                // Primeiro dígito → esconde erro agora, valida em 1s se continuar inválido
-                text.length == 1 -> {
-                    deferredValidator.cancel(etRodapeCompComercial)
-                    validator.setInlineError(etRodapeCompComercial, tilRodapeCompComercial, null)
-                    deferredValidator.schedule(etRodapeCompComercial) {
-                        validator.validateRodapeCompComercialLive(
-                            etRodapeCompComercial,
-                            tilRodapeCompComercial,
-                            isPecaProntaSelecionada()
-                        )
-                        if (viewModel.step.value in 1..6) {
-                            refreshNextButtonEnabled()
-                        }
-                    }
-                }
-                // 2+ dígitos → validação imediata, igual antes
-                else -> {
-                    deferredValidator.cancel(etRodapeCompComercial)
-                    validator.validateRodapeCompComercialLive(
-                        etRodapeCompComercial,
-                        tilRodapeCompComercial,
-                        isPecaProntaSelecionada()
-                    )
+                },
+                onAfterDeferredValidation = {
                     if (viewModel.step.value in 1..6) {
                         refreshNextButtonEnabled()
                     }
                 }
-            }
+            )
         }
         validator.validateRodapeCompComercialOnBlur(etRodapeCompComercial, tilRodapeCompComercial)
     }
 
-    /** Etapa 6: Revisão e cálculo */
+    // Etapa 6: Revisão e cálculo
     private fun setupStep6ReviewParametersListeners() = with(binding) {
         btnCalcular.setOnClickListener { viewModel.calcular() }
         btnVoltarResultado.setOnClickListener { viewModel.goTo(6) }
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * OBSERVERS
-     * ═══════════════════════════════════════════════════════════════════════════ */
-    /** Configura observers para StateFlow do ViewModel */
+    /** ======================= OBSERVERS ======================= */
+    // Configura observers para StateFlow do ViewModel
     private fun setupStateObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -776,11 +679,10 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Observa mudanças na etapa atual */
+    // Observa mudanças na etapa atual
     private suspend fun observeCurrentStep() {
         viewModel.step.collect { step ->
             binding.viewFlipper.displayedChild = step
-
             syncAllRadioGroupsWithViewModel()
             handleAdjustUiForCurrentStep(step)
             handleInitRequiredIcons(step)
@@ -792,31 +694,50 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Observa mudanças nos inputs */
+    // Observa mudanças nos inputs
     private suspend fun observeUserInputs() {
         viewModel.inputs.collect { i ->
             syncAllRadioGroupsWithViewModel()
             syncAllFieldsValues()
             updateAllComponentsVisibility()
-
             // Espessura padrão automática para Mármore/Granito
             validator.ensureDefaultMgEspessura(espessuraUserEdited)
-
             // Helpers dinâmicos (espessura, peça, junta, desnível)
             validator.updateStep4HelperTexts(
                 i,
-                binding.tilPecaEsp,
-                binding.tilPecaComp,
-                binding.tilPecaLarg,
-                binding.tilJunta,
-                binding.tilDesnivel
+                binding.tilPecaEsp, binding.tilPecaComp, binding.tilPecaLarg,
+                binding.tilJunta, binding.tilDesnivel
             )
 
+            val hasPecasPorCaixa = i.pecasPorCaixa != null // Sincroniza switch com os inputs
+            if (hasPecasPorCaixa) { // Se existe valor na ViewModel → switch ON e grupo visível
+                if (!binding.switchPecasPorCaixa.isChecked) {
+                    isSyncing = true
+                    binding.switchPecasPorCaixa.isChecked = true
+                    isSyncing = false
+                }
+                binding.groupPecasPorCaixaFields.isVisible = true
+            } else { // Só ajusta a visibilidade do grupo conforme o switch atual
+                binding.groupPecasPorCaixaFields.isVisible = binding.switchPecasPorCaixa.isChecked
+            }
+            // Desnível: regra diferente para Pedra x MG
+            val isMg = i.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                    i.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
+            val isPedra = i.revest == CalcRevestimentoViewModel.RevestimentoType.PEDRA
+            binding.rowDesnivelSwitchStep4.isVisible = isMg
+            binding.switchDesnivel.isVisible = isMg
+            binding.switchDesnivel.isChecked = isMg && i.desnivelEnable
+
+            binding.groupDesnivelFields.isVisible = when {
+                isPedra -> binding.tilDesnivel.isVisible       // Pedra: sem switch
+                isMg -> i.desnivelEnable                       // MG: visível só se switch ligado
+                else -> false
+            }
             if (viewModel.step.value in 1..6) refreshNextButtonEnabled()
         }
     }
 
-    /** Observa resultado do cálculo */
+    // Observa resultado do cálculo
     private suspend fun observeResultado() {
         viewModel.resultado.collect { ui ->
             when (ui) {
@@ -832,21 +753,19 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * SINCRONIZAÇÃO DE UI
-     * ═══════════════════════════════════════════════════════════════════════════ */
-    /** Sincroniza RadioGroups com o estado do ViewModel */
+    /** ======================= SINCRONIZAÇÃO DE UI ======================= */
+    // Sincroniza RadioGroups com o estado do ViewModel
     private fun syncAllRadioGroupsWithViewModel() = with(binding) {
         isSyncing = true
         radioSynchronizer.syncAllRadioGroups(
             viewModel.inputs.value,
             rgRevest, rgPlacaTipo, rgAmbiente, rgRodapeMat, rgTrafego,
-            rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho
+            rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho, rgMgAplicacao
         )
         isSyncing = false
     }
 
-    /** Sincroniza campos de texto com o estado do ViewModel */
+    // Sincroniza campos de texto com o estado do ViewModel
     private fun syncAllFieldsValues() = with(binding) {
         isSyncing = true
         fieldSynchronizer.syncAllFields(
@@ -857,15 +776,13 @@ class CalcRevestimentoFragment : Fragment() {
             tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
             tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa,
             tilDesnivel, tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial,
-            rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho,
-            isMG()
+            rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho, isMG()
         )
-
         normalizeAutoPredefinedFieldValues()
         isSyncing = false
     }
 
-    /** Normaliza exibição dos valores padrão auto-preenchidos */
+    // Normaliza exibição dos valores padrão auto-preenchidos
     private fun normalizeAutoPredefinedFieldValues() = with(binding) {
         val i = viewModel.inputs.value
         val espDisplay = when (i.revest) { // Intertravado, espessura armazenada mm; exibida em cm
@@ -888,28 +805,25 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Atualiza visibilidade de componentes conforme inputs */
+    // Atualiza visibilidade de componentes conforme inputs
     private fun updateAllComponentsVisibility() = with(binding) {
         visibilityManager.updateAllVisibilities(
             viewModel.inputs.value,
-            tvAreaTotalAviso,
-            groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho,
-            groupPastilhaPorcelanatoTamanho, groupRodapeFields,
+            tvAreaTotalAviso, groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho,
+            groupPastilhaPorcelanatoTamanho, groupRodapeFields, groupMgAplicacao,
             tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
             tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa,
             tilDesnivel, tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial,
             etLarg, etAlt, etParedeQtd, etAbertura, etPecaEsp, etJunta, etPecasPorCaixa,
-            etRodapeAbertura, rgPlacaTipo, switchRodape
+            etRodapeAbertura, rgPlacaTipo, switchRodape, rowPecasPorCaixaSwitch,
+            groupPecasPorCaixaFields, rowDesnivelSwitchStep4, groupDesnivelFields
         )
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * HANDLERS DE ETAPAS
-     * ═══════════════════════════════════════════════════════════════════════════ */
-    /** Ajusta layout conforme etapa */
+    /** ======================= HANDLERS DE ETAPAS ======================= */
+    // Ajusta layout conforme etapa
     private fun handleAdjustUiForCurrentStep(step: Int) = with(binding) {
         val tela0 = viewFlipper.getChildAt(0) as LinearLayout
-
         if (step == 0) {
             bottomBar.isVisible = false
             tela0.gravity = Gravity.CENTER
@@ -925,7 +839,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Inicializa ícones obrigatórios conforme etapa */
+    // Inicializa ícones obrigatórios conforme etapa
     private fun handleInitRequiredIcons(step: Int) = with(binding) {
         when (step) {
             4 -> {
@@ -938,12 +852,12 @@ class CalcRevestimentoFragment : Fragment() {
             // Etapa 5 = Parâmetros da Peça + Rodapé (mesma tela)
             5 -> {
                 updateRequiredIconsForStep4PecaParameters() // peça
-                updateRequiredIconsRodapeFields() // rodapé (switch + campos)
+                updateRequiredIconsRodapeFields()           // rodapé (switch + campos)
             }
         }
     }
 
-    /** Configura botões conforme etapa */
+    // Configura botões conforme etapa
     private fun handleConfNavButtonsForStep(step: Int) = with(binding) {
         navigationHandler.handleStepNavigation(
             step = step, btnBack = btnBack, btnNext = btnNext, btnCalcular = btnCalcular,
@@ -953,7 +867,7 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    /** Preenche resumo na etapa 6 (Tela de Revisão de Parâmetros com animação)*/
+    // Preenche resumo na etapa 6 (Tela de Revisão de Parâmetros com animação)
     private fun handleDisplayReviewParameters(step: Int) {
         if (step == 6) {
             val inputs = viewModel.inputs.value
@@ -969,24 +883,20 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Configura botão "Novo Cálculo" */
+    // Configura botão "Novo Cálculo"
     private fun handleConfNewCalculationButton() = with(binding) {
         btnNext.isVisible = false
         btnBack.text = getString(R.string.calc_novo_calculo)
-
         try {
             btnBack.setIconResource(R.drawable.ic_refresh)
             btnBack.setIconSize(resources.getDimensionPixelSize(R.dimen.calc_btn_icon_large))
         } catch (_: Throwable) {
         }
-
         val largeH = resources.getDimensionPixelSize(R.dimen.calc_btn_large_height)
         btnBack.layoutParams = btnBack.layoutParams.apply { height = largeH }
-
         val largeTextPx = resources.getDimension(R.dimen.calc_btn_large_text)
         btnBack.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, largeTextPx)
         btnBack.setTypeface(btnBack.typeface, Typeface.BOLD)
-
         btnBack.setOnClickListener {
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.calc_new_calc_title))
@@ -998,29 +908,24 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Restaura botão "Voltar" padrão */
+    // Restaura botão "Voltar" padrão
     private fun handleRestoreDefaultBackButton() = with(binding) {
         btnBack.text = getString(R.string.generic_back)
         try {
             btnBack.setIconResource(0)
         } catch (_: Throwable) {
         }
-
         btnBack.layoutParams = btnBack.layoutParams.apply {
             height = ViewGroup.LayoutParams.WRAP_CONTENT
         }
-
         val normalTextPx = resources.getDimension(R.dimen.calc_btn_normal_text)
         btnBack.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, normalTextPx)
         btnBack.setTypeface(btnBack.typeface, Typeface.NORMAL)
-
         btnBack.setOnClickListener { viewModel.prevStep() }
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * ATUALIZAÇÃO DE VIEWMODEL
-     * ═══════════════════════════════════════════════════════════════════════════ */
-    /** Atualiza parâmetros da peça no ViewModel */
+    /** ======================= ATUALIZAÇÃO DE VIEWMODEL ======================= */
+    // Atualiza parâmetros da peça no ViewModel
     private fun updatePecaParametersFields() = with(binding) {
         val pc = convertPecaDimensionToCm(getDoubleValue(etPecaComp))
         val pl = convertPecaDimensionToCm(getDoubleValue(etPecaLarg))
@@ -1035,12 +940,10 @@ class CalcRevestimentoFragment : Fragment() {
         viewModel.setPecaParametros(pc, pl, esp, junta, sobra, ppc)
     }
 
-    /** Atualiza desnível no ViewModel */
-    private fun updateDesnivelField() {
-        viewModel.setDesnivelCm(getDoubleValue(binding.etDesnivel))
-    }
+    // Atualiza desnível no ViewModel
+    private fun updateDesnivelField() = viewModel.setDesnivelCm(getDoubleValue(binding.etDesnivel))
 
-    /** Atualiza rodapé no ViewModel */
+    // Atualiza rodapé no ViewModel
     private fun updateRodapeFields() = with(binding) {
         val material = if (rgRodapeMat.checkedRadioButtonId == R.id.rbRodapeMesma)
             CalcRevestimentoViewModel.RodapeMaterial.MESMA_PECA
@@ -1051,7 +954,6 @@ class CalcRevestimentoFragment : Fragment() {
             getDoubleValue(etRodapeCompComercial)?.div(100.0)
         else
             null
-
         val aberturaM = getDoubleValue(etRodapeAbertura)?.coerceAtLeast(0.0) ?: 0.0
         viewModel.setRodape(
             enable = switchRodape.isChecked,
@@ -1061,10 +963,8 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * ÍCONES OBRIGATÓRIOS
-     * ═══════════════════════════════════════════════════════════════════════════ */
-    /** Atualiza ícones obrigatórios da Etapa 3 (Medidas da Área) */
+    /** ======================= ÍCONES OBRIGATÓRIOS ======================= */
+    // Atualiza ícones obrigatórios da Etapa 3 (Medidas da Área)
     private fun updateRequiredIconsForStep3Area() = with(binding) {
         iconManager.updateStep4IconsAreaDimensions(
             etComp, etLarg, etAlt, etParedeQtd, etAbertura, etAreaInformada,
@@ -1072,7 +972,7 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    /** Atualiza ícones obrigatórios da Etapa 4 (Medidas do Revestimento) */
+    // Atualiza ícones obrigatórios da Etapa 4 (Medidas do Revestimento)
     private fun updateRequiredIconsForStep4PecaParameters() = with(binding) {
         iconManager.updateStep5IconsPecaDimensions(
             etPecaComp, etPecaLarg, etJunta, etPecaEsp, etPecasPorCaixa, etSobra,
@@ -1080,26 +980,22 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
-    /** Atualiza ícones obrigatórios do Rodapé (embutido na tela da Peça) */
+    // Atualiza ícones obrigatórios do Rodapé (embutido na tela da Peça)
     private fun updateRequiredIconsRodapeFields() = with(binding) {
         val inputs = viewModel.inputs.value
         // Verifica cenário atual possui rodapé
         val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
         // Switch ligado e cenário com rodapé habilitado
         val rodapeOn = hasRodapeStep && switchRodape.isChecked
-
         val isPecaPronta = rgRodapeMat.checkedRadioButtonId == R.id.rbRodapePeca
-
         iconManager.updateStepRodapeIconFields(
             etRodapeAltura, etRodapeCompComercial, hasRodapeStep, rodapeOn,
             isPecaPronta, tilRodapeCompComercial.isVisible
         )
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * VALIDAÇÃO E HABILITAÇÃO
-     * ═══════════════════════════════════════════════════════════════════════════ */
-    /** Revalida todas as dimensões (Comp/Larg/Alt/Parede/Abertura/Area Total) */
+    /** ======================= VALIDAÇÃO E HABILITAÇÃO ======================= */
+    // Revalida todas as dimensões (Comp/Larg/Alt/Parede/Abertura/Area Total)
     private fun validateAllAreaDimensions() = with(binding) {
         validator.validateDimLive(
             etComp, tilComp, CalcRevestimentoRules.Medidas.COMP_LARG_RANGE_M,
@@ -1117,34 +1013,37 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Recalcula habilitação do botão "Avançar" */
+    // Recalcula habilitação do botão "Avançar"
     private fun refreshNextButtonEnabled() = with(binding) {
         val step = viewModel.step.value
         val validation = viewModel.validateStep(step)
         val inputs = viewModel.inputs.value
         var enabled = validation.isValid
-        // ----- Etapa 1 (Tipo de Revestimento + Tipo de Placa) -----
-        if (enabled && step == 1) {
+        // ----- Etapa 1 (Tipo de Revestimento + Tipo de Placa / Aplicação MG) -----
+        if (step == 1 && enabled) {
             val revest = inputs.revest
             val precisaTipoPlaca =
                 revest == CalcRevestimentoViewModel.RevestimentoType.PISO ||
                         revest == CalcRevestimentoViewModel.RevestimentoType.AZULEJO ||
                         revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
+            val isMg =
+                revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                        revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
 
             if (precisaTipoPlaca) {
                 enabled = inputs.pisoPlacaTipo != null
+            } else if (isMg) { // MG precisa escolher Piso/Parede
+                enabled = inputs.aplicacao != null
             }
         }
-        // ----- Etapa 4 Medidas da Área) -----
+        // ----- Etapa 4 (Medidas da Área) -----
         if (step >= 4) {
             val areaTxt = etAreaInformada.text
             val hasAreaTotalPreenchida = !areaTxt.isNullOrBlank()
 
-            enabled = if (hasAreaTotalPreenchida) {
-                // Área Total preenchida → domina a etapa 4 inteira
+            enabled = if (hasAreaTotalPreenchida) { // Área Total preenchida → Valor prevalece
                 !validator.hasAreaTotalErrorNow(etAreaInformada)
-            } else if (enabled) {
-                // Sem Área Total → complementa o que o ViewModel já validou
+            } else if (enabled) { // Sem Área Total → complementa o que o ViewModel já validou
                 !validator.hasAreaTotalErrorNow(etAreaInformada) &&
                         tilParedeQtd.error.isNullOrEmpty() &&
                         tilAbertura.error.isNullOrEmpty()
@@ -1155,21 +1054,17 @@ class CalcRevestimentoFragment : Fragment() {
         // ----- Etapa 5 (Medidas do Revestimento) -----
         if (enabled && step >= 5) {
             val isPedra = inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PEDRA
-
+            val isMg = isMG()
             enabled = when {
-                // Regra Pedra Portuguesa: considerar apenas desnível + sobra técnica
-                isPedra -> {
+                isPedra -> { // Regra Pedra Portuguesa: considerar apenas desnível + sobra técnica
                     !validator.hasDesnivelErrorNow(
-                        etDesnivel,
-                        tilDesnivel.isVisible,
-                        getDoubleValue(etDesnivel)
+                        etDesnivel, tilDesnivel.isVisible, getDoubleValue(etDesnivel)
                     ) && tilSobra.error.isNullOrEmpty()
                 }
 
                 else -> {
                     val compCm = convertPecaDimensionToCm(getDoubleValue(etPecaComp))
                     val largCm = convertPecaDimensionToCm(getDoubleValue(etPecaLarg))
-                    val isMg = isMG()
                     val compInRange = when {
                         isMg -> compCm != null && compCm in CalcRevestimentoRules.Peca.MG_RANGE_CM
                         else -> compCm != null && compCm in CalcRevestimentoRules.Peca.GENERIC_RANGE_CM
@@ -1178,37 +1073,48 @@ class CalcRevestimentoFragment : Fragment() {
                         isMg -> largCm != null && largCm in CalcRevestimentoRules.Peca.MG_RANGE_CM
                         else -> largCm != null && largCm in CalcRevestimentoRules.Peca.GENERIC_RANGE_CM
                     }
+                    // Switch "Peças por caixa": só exige valor quando estiver ligado
+                    val pecasPorCaixaOk =
+                        if (switchPecasPorCaixa.isVisible && switchPecasPorCaixa.isChecked) {
+                            !validator.hasPecasPorCaixaErrorNow(etPecasPorCaixa)
+                        } else {
+                            true
+                        }
+                    // Desnível (Tratamento diferente para Pedra e MG)
+                    val desnivelVisivelAgora = when {
+                        inputs.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                                inputs.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO ->
+                            switchDesnivel.isVisible && switchDesnivel.isChecked
+
+                        else -> tilDesnivel.isVisible
+                    }
+                    val desnivelOk = !validator.hasDesnivelErrorNow(
+                        etDesnivel, desnivelVisivelAgora, getDoubleValue(etDesnivel)
+                    )
                     !validator.hasJuntaErrorNow(etJunta, getFieldJuntaValueInMillimeters()) &&
                             !validator.hasEspessuraErrorNow(
-                                etPecaEsp,
-                                isPastilha(),
+                                etPecaEsp, isPastilha(),
                                 when {
                                     isPastilha() -> null
                                     isIntertravado() -> getDoubleValue(etPecaEsp)?.times(10)
                                     else -> convertMetersToMillimeters(getDoubleValue(etPecaEsp))
                                 }
                             ) &&
-                            !validator.hasPecasPorCaixaErrorNow(etPecasPorCaixa) &&
-                            !validator.hasDesnivelErrorNow(
-                                etDesnivel, tilDesnivel.isVisible, getDoubleValue(etDesnivel)
-                            ) &&
-                            tilSobra.error.isNullOrEmpty() && compInRange && largInRange &&
-                            tilPecaComp.error.isNullOrEmpty() && tilPecaLarg.error.isNullOrEmpty()
+                            pecasPorCaixaOk && desnivelOk && tilSobra.error.isNullOrEmpty() &&
+                            compInRange && largInRange && tilPecaComp.error.isNullOrEmpty() &&
+                            tilPecaLarg.error.isNullOrEmpty()
                 }
             }
         }
-
         // ----- Etapa Rodapé dentro de Medidas do Revestimento -----
         if (enabled && step >= 5) {
             var rodapeOk = tilRodapeAbertura.error.isNullOrEmpty()
-
             if (inputs.rodapeEnable) {
                 val alturaCm = convertMetersToCm(getDoubleValue(etRodapeAltura))
                 val alturaOk =
                     alturaCm != null &&
                             alturaCm in CalcRevestimentoRules.Rodape.ALTURA_RANGE_CM &&
                             tilRodapeAltura.error.isNullOrEmpty()
-
                 rodapeOk = rodapeOk && alturaOk
 
                 if (inputs.rodapeMaterial == CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA) {
@@ -1217,14 +1123,12 @@ class CalcRevestimentoFragment : Fragment() {
                         compCm != null &&
                                 compCm in CalcRevestimentoRules.Rodape.COMP_COMERCIAL_RANGE_CM &&
                                 tilRodapeCompComercial.error.isNullOrEmpty()
-
                     rodapeOk = rodapeOk && compOk
                 }
             }
             enabled = rodapeOk
         }
         btnNext.isEnabled = enabled
-
         // ----- Ajuste extra para dimensões de Mármore/Granito -----
         if ((inputs.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
                     inputs.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO) &&
@@ -1234,15 +1138,12 @@ class CalcRevestimentoFragment : Fragment() {
                 ?.let { it in CalcRevestimentoRules.Peca.MG_RANGE_CM } == true
             val largValid = convertPecaDimensionToCm(getDoubleValue(etPecaLarg))
                 ?.let { it in CalcRevestimentoRules.Peca.MG_RANGE_CM } == true
-
             btnNext.isEnabled = btnNext.isEnabled && compValid && largValid
         }
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * RESULTADO
-     * ═══════════════════════════════════════════════════════════════════════════ */
-    /** Exibe resultado do cálculo */
+    /** ======================= RESULTADO ======================= */
+    // Exibe resultado do cálculo
     private fun displayCalculationResult(r: CalcRevestimentoViewModel.Resultado) = with(binding) {
         tableContainer.removeAllViews()
         tableContainer.addView(tableBuilder.makeHeaderRow())
@@ -1250,11 +1151,9 @@ class CalcRevestimentoFragment : Fragment() {
         tableContainer.post { applyTableResponsiveness() } // Aplicar responsividade após renderização
     }
 
-    /** Aplica responsividade aos elementos da tabela */
+    // Aplica responsividade aos elementos da tabela
     private fun applyTableResponsiveness() = with(binding) {
         val responsiveHelper = TableResponsiveHelper(requireContext())
-
-        // Título "Lista de Materiais"
         val titleViews =
             (viewFlipper.getChildAt(9) as? LinearLayout)?.children?.filterIsInstance<TextView>()
         titleViews?.firstOrNull { it.text == getString(R.string.calc_table_title) }
@@ -1272,14 +1171,11 @@ class CalcRevestimentoFragment : Fragment() {
             radius = responsiveHelper.cardCornerRadius
             cardElevation = responsiveHelper.cardElevation
         }
-        // Card de informação
-        cardInformation.apply {
+        cardInformation.apply { // Card de informação
             radius = responsiveHelper.infoCardCornerRadius
             setPadding(
-                responsiveHelper.infoCardPadding,
-                responsiveHelper.infoCardPadding,
-                responsiveHelper.infoCardPadding,
-                responsiveHelper.infoCardPadding
+                responsiveHelper.infoCardPadding, responsiveHelper.infoCardPadding,
+                responsiveHelper.infoCardPadding, responsiveHelper.infoCardPadding
             )
             (layoutParams as? ViewGroup.MarginLayoutParams)?.apply {
                 topMargin = responsiveHelper.infoCardMarginTop
@@ -1326,10 +1222,7 @@ class CalcRevestimentoFragment : Fragment() {
     private val ViewGroup.children: Sequence<View>
         get() = (0 until childCount).asSequence().map { getChildAt(it) }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * EXPORTAÇÃO DE PDF
-     * ═══════════════════════════════════════════════════════════════════════════ */
-    /** Exporta resultado em PDF (compartilhar ou salvar) */
+    /** ======================= EXPORTAÇÃO DE PDF ======================= */
     private fun exportResultAsPdf(share: Boolean) {
         val ui = (viewModel.resultado.value as? UiState.Success)?.data ?: run {
             showToast(getString(R.string.calc_export_no_data))
@@ -1340,15 +1233,12 @@ class CalcRevestimentoFragment : Fragment() {
             try {
                 val (bytes, fileName) = withContext(Dispatchers.IO) {
                     val pdfBytes = pdfGenerator.generate(
-                        ui.resultado,
-                        viewModel.inputs.value.pecaEspMm,
-                        viewModel.inputs.value.pecasPorCaixa,
-                        viewModel.inputs.value.desnivelCm
+                        ui.resultado, viewModel.inputs.value.pecaEspMm,
+                        viewModel.inputs.value.pecasPorCaixa, viewModel.inputs.value.desnivelCm
                     )
                     val name = "Calculo_Revestimento_${System.currentTimeMillis()}.pdf"
                     Pair(pdfBytes, name)
                 }
-
                 if (share) {
                     sharePdfFile(bytes, fileName)
                 } else {
@@ -1362,7 +1252,6 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Compartilha PDF via Intent */
     private fun sharePdfFile(bytes: ByteArray, fileName: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             val cacheFile = File(requireContext().cacheDir, fileName)
@@ -1371,17 +1260,14 @@ class CalcRevestimentoFragment : Fragment() {
             withContext(Dispatchers.Main) {
                 val uri = androidx.core.content.FileProvider.getUriForFile(
                     requireContext(),
-                    "${requireContext().packageName}.provider",
-                    cacheFile
+                    "${requireContext().packageName}.provider", cacheFile
                 )
-
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "application/pdf"
                     putExtra(Intent.EXTRA_STREAM, uri)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     clipData = ClipData.newUri(requireContext().contentResolver, "PDF", uri)
                 }
-
                 val chooser = Intent.createChooser(
                     shareIntent, getString(R.string.export_share_chooser_calc)
                 ).apply {
@@ -1393,7 +1279,6 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Salva PDF em Downloads */
     private suspend fun savePdfFile(bytes: ByteArray, fileName: String) {
         val saved = withContext(Dispatchers.IO) {
             try {
@@ -1412,9 +1297,7 @@ class CalcRevestimentoFragment : Fragment() {
         else showToast(getString(R.string.resumo_export_saved_ok))
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * MAPPERS (RadioId → Enum)
-     * ═══════════════════════════════════════════════════════════════════════════ */
+    /** ======================= MAPPERS (RadioId → Enum) ======================= */
     private fun mapRadioIdToRevestimento(id: Int) = when (id) {
         R.id.rbPiso -> CalcRevestimentoViewModel.RevestimentoType.PISO
         R.id.rbAzulejo -> CalcRevestimentoViewModel.RevestimentoType.AZULEJO
@@ -1448,11 +1331,9 @@ class CalcRevestimentoFragment : Fragment() {
     }
 
     private fun mapRadioIdToPastilhaFormato(id: Int) = when (id) {
-        // Pastilha = Cerâmica
         R.id.rbPastilha5 -> RevestimentoSpecifications.PastilhaFormato.P5
         R.id.rbPastilha7_5 -> RevestimentoSpecifications.PastilhaFormato.P7_5
         R.id.rbPastilha10 -> RevestimentoSpecifications.PastilhaFormato.P10
-        // Pastilha = Porcelanato
         R.id.rbPastilhaP1_5 -> RevestimentoSpecifications.PastilhaFormato.P1_5
         R.id.rbPastilhaP2 -> RevestimentoSpecifications.PastilhaFormato.P2
         R.id.rbPastilhaP2_2 -> RevestimentoSpecifications.PastilhaFormato.P2_2
@@ -1466,9 +1347,7 @@ class CalcRevestimentoFragment : Fragment() {
         else -> null
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════════
-     * HELPERS E UTILITÁRIOS
-     * ═══════════════════════════════════════════════════════════════════════════ */
+    /** ======================= HELPERS E UTILITÁRIOS ======================= */
     private fun isMG() = viewModel.inputs.value.revest in setOf(
         CalcRevestimentoViewModel.RevestimentoType.MARMORE,
         CalcRevestimentoViewModel.RevestimentoType.GRANITO
@@ -1489,6 +1368,14 @@ class CalcRevestimentoFragment : Fragment() {
 
     private fun getFieldJuntaValueInMillimeters() = getDoubleValue(binding.etJunta)
 
+    private fun smoothScrollToggle(isChecked: Boolean) {
+        binding.scrollContent.post {
+            val targetY =
+                if (isChecked) binding.scrollContent.getChildAt(0)?.bottom ?: 0 else 0
+            Animations.smoothScrollToY(binding.scrollContent, targetY)
+        }
+    }
+
     private fun showToast(msg: String) =
         Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
 
@@ -1504,28 +1391,46 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    /** Garante que o topo da tela está visível sem flicker */
+    // Validação adiada no 1º dígito
+    private fun applyDeferredValidationPattern(
+        et: TextInputEditText, til: TextInputLayout, text: String, onValidateNow: () -> Unit,
+        onAfterDeferredValidation: (() -> Unit)? = null,
+        onFirstDigitBeforeSchedule: (() -> Unit)? = null
+    ) {
+        when {
+            text.isEmpty() -> { // Campo vazio → volta para o comportamento normal (sem delay)
+                deferredValidator.cancel(et)
+                onValidateNow()
+            }
+
+            text.length == 1 -> { // 1º dígito → some com erro e agenda validação visual para depois
+                deferredValidator.cancel(et)
+                validator.setInlineError(et, til, null)
+                onFirstDigitBeforeSchedule?.invoke()
+                deferredValidator.schedule(et) {
+                    onValidateNow()
+                    onAfterDeferredValidation?.invoke()
+                }
+            }
+
+            else -> { // 2+ dígitos → validação imediata
+                deferredValidator.cancel(et)
+                onValidateNow()
+                onAfterDeferredValidation?.invoke()
+            }
+        }
+    }
+
+    // Garante que o topo da tela está visível sem flicker
     private fun ensureScrollAtTopWithoutFlicker(step: Int) {
         val sv = binding.scrollContent
         val root = binding.rootCalc
-        val prevFocusable = root.isFocusableInTouchMode
-
-        if (!skipFocusHijackOnce && step != 0) {
-            root.isFocusableInTouchMode = true
-            root.requestFocus()
-        }
+        // Calcula se deve ou não "roubar" o foco nessa troca de etapa
+        val shouldHijackFocus = !skipFocusHijackOnce && step != 0
+        Animations.ensureScrollAtTopWithoutFlicker(
+            scrollView = sv, rootView = root, expectedStep = step,
+            shouldHijackFocus = shouldHijackFocus, currentStepProvider = { viewModel.step.value }
+        )
         skipFocusHijackOnce = false
-        sv.scrollTo(0, 0)
-        sv.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
-            override fun onPreDraw(): Boolean {
-                val vto = sv.viewTreeObserver
-                if (vto.isAlive) vto.removeOnPreDrawListener(this)
-                if (viewModel.step.value == step) {
-                    sv.scrollTo(0, 0)
-                }
-                root.isFocusableInTouchMode = prevFocusable
-                return true
-            }
-        })
     }
 }

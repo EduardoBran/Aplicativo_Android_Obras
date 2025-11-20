@@ -1,15 +1,12 @@
 package com.luizeduardobrandao.obra.ui.calculo.domain.specifications
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
-import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import kotlin.math.max
 
 /**
  * Especificações e cálculos de argamassa colante
  */
 object ArgamassaSpecifications {
-
-    private const val CONSUMO_ARGAMASSA_RODAPE_KG_M2 = 5.0
 
     /** Calcula consumo de argamassa em kg/m² */
     fun consumoArgamassaKgM2(inputs: Inputs): Double {
@@ -63,17 +60,15 @@ object ArgamassaSpecifications {
             .coerceIn(4.0, 18.0)
     }
 
-    /** Gera MaterialItem de argamassa para rodapé */
-    fun materialArgamassaRodape(rodapeAreaM2: Double): MaterialItem? {
-        if (rodapeAreaM2 <= 0.0) return null
-
-        val kgReal = rodapeAreaM2 * CONSUMO_ARGAMASSA_RODAPE_KG_M2
-
-        return MaterialItem(
-            item = "Argamassa colante (rodapé)",
-            unid = "kg",
-            qtd = NumberFormatter.arred1(kgReal),
-            observacao = "Para assentamento do rodapé."
-        )
+    /** Calcula a área (m²) usada para Argamassa / Rejunte */
+    fun calcularAreaMateriaisRevestimentoM2(
+        inputs: Inputs,
+        areaRevestimentoM2: Double,
+        rodapeAreaM2: Double
+    ): Double {
+        return areaRevestimentoM2 +
+                if (inputs.rodapeEnable && inputs.rodapeMaterial == RodapeMaterial.PECA_PRONTA)
+                    rodapeAreaM2
+                else 0.0
     }
 }

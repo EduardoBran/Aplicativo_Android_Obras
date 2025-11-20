@@ -51,27 +51,28 @@ class RadioGroupSynchronizer {
         rgRodapeMat: RadioGroup,
         rgTrafego: RadioGroup,
         rgPastilhaTamanho: RadioGroup,
-        rgPastilhaPorcelanatoTamanho: RadioGroup
+        rgPastilhaPorcelanatoTamanho: RadioGroup,
+        rgMgAplicacao: RadioGroup
     ) {
         // Sincroniza tipo de revestimento
         syncRevestimento(inputs.revest, rgRevest)
         // Sincroniza tipo de placa (cerâmica/porcelanato)
         syncPlacaTipo(inputs.pisoPlacaTipo, rgPlacaTipo)
+        // Sincroniza aplicação (Piso/Parede) específica de Mármore/Granito
+        syncMgAplicacao(inputs, rgMgAplicacao)
         // Sincroniza tipo de ambiente
         syncAmbiente(inputs.ambiente, rgAmbiente)
         // Sincroniza tipo de tráfego
         syncTrafego(inputs.trafego, rgTrafego)
-        // Informação se o cenário atual possui etapa de rodapé
-        val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
-        if (hasRodapeStep) {
-            // Cenário suporta rodapé → sincroniza material normalmente
-            syncRodapeMaterial(inputs.rodapeMaterial, rgRodapeMat)
-        } else {
-            // Cenário NÃO tem rodapé → garante que o RadioGroup fique sem seleção
-            rgRodapeMat.setCheckedSafely(null)
-        }
         // Sincroniza tamanho de pastilha (cerâmica x porcelanato)
         syncPastilhaTamanho(inputs.pastilhaFormato, rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho)
+        // Informação se o cenário atual possui etapa de rodapé
+        val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
+        if (hasRodapeStep) { // Cenário suporta rodapé → sincroniza material normalmente
+            syncRodapeMaterial(inputs.rodapeMaterial, rgRodapeMat)
+        } else { // Cenário NÃO tem rodapé → garante que o RadioGroup fique sem seleção
+            rgRodapeMat.setCheckedSafely(null)
+        }
     }
 
     /** Sincroniza RadioGroup de tipo de revestimento */
@@ -103,6 +104,31 @@ class RadioGroupSynchronizer {
             null -> null
         }
         rgPlacaTipo.setCheckedSafely(radioId)
+    }
+
+    /** Sincroniza RadioGroup de aplicação (Piso/Parede) para Mármore/Granito */
+    private fun syncMgAplicacao(
+        inputs: CalcRevestimentoViewModel.Inputs,
+        rgMgAplicacao: RadioGroup
+    ) {
+        val revest = inputs.revest
+        val aplic = inputs.aplicacao
+
+        val isMg = revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
+                revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
+
+        if (!isMg) {
+            // Cenário não é MG → nenhum botão marcado
+            rgMgAplicacao.setCheckedSafely(null)
+            return
+        }
+
+        val radioId = when (aplic) {
+            CalcRevestimentoViewModel.AplicacaoType.PISO -> R.id.rbMgPiso
+            CalcRevestimentoViewModel.AplicacaoType.PAREDE -> R.id.rbMgParede
+            null -> null
+        }
+        rgMgAplicacao.setCheckedSafely(radioId)
     }
 
     /** Sincroniza RadioGroup de tipo de ambiente */

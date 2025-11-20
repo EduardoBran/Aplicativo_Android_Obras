@@ -1,6 +1,7 @@
 package com.luizeduardobrandao.obra.ui.calculo.domain.calculators
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
+import com.luizeduardobrandao.obra.ui.calculo.domain.rules.CalcRevestimentoRules
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
 import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import kotlin.math.max
@@ -96,7 +97,11 @@ object MarmoreGranitoCalculator {
                 areaM2 = areaEspacadoresM2,
                 sobra = sobra,
                 inputs = inputs,
-                mix = PedraCalculator.TracoMix("1:3", 430.0, 0.85),
+                mix = PedraCalculator.TracoMix(
+                    CalcRevestimentoRules.TracoAssentamento.TRACO_1_3_ROTULO,
+                    CalcRevestimentoRules.TracoAssentamento.TRACO_1_3_CIMENTO_KG_POR_M3,
+                    CalcRevestimentoRules.TracoAssentamento.TRACO_1_3_AREIA_M3_POR_M3
+                ),
                 leitoOverrideM = (leitoCm ?: 3.0) / 100.0
             )
             PedraCalculator.adicionarCimentoEAreia(cimentoKg, areiaM3, itens)
@@ -195,7 +200,7 @@ object MarmoreGranitoCalculator {
         if (pesoKg <= 30.0) return
 
         // Quantidade de fixadores
-        val fixadoresPorM2 = 4.0
+        val fixadoresPorM2 = CalcRevestimentoRules.MarmoreGranito.FIXADORES_POR_M2
         val areaCompraM2 = areaM2 * (1 + sobra / 100.0)
         val qtdFixadores = kotlin.math.ceil(areaCompraM2 * fixadoresPorM2).toInt()
 

@@ -1,6 +1,7 @@
 package com.luizeduardobrandao.obra.ui.calculo.domain.calculators
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
+import com.luizeduardobrandao.obra.ui.calculo.domain.rules.CalcRevestimentoRules
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
 import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import kotlin.math.max
@@ -10,15 +11,17 @@ import kotlin.math.max
  */
 object PedraCalculator {
 
-    private const val ESP_COLCHAO_PEDRA_M = 0.04
-
     data class TracoMix(
         val rotulo: String,
         val cimentoKgPorM3: Double,
         val areiaM3PorM3: Double
     )
 
-    private val MIX_PEDRA_TRACO_13 = TracoMix("1:3", 430.0, 0.85)
+    private val MIX_PEDRA_TRACO_13 = TracoMix(
+        CalcRevestimentoRules.TracoAssentamento.TRACO_1_3_ROTULO,
+        CalcRevestimentoRules.TracoAssentamento.TRACO_1_3_CIMENTO_KG_POR_M3,
+        CalcRevestimentoRules.TracoAssentamento.TRACO_1_3_AREIA_M3_POR_M3
+    )
 
     /** Processa materiais para Pedra Portuguesa */
     fun processarPedra(
@@ -60,8 +63,10 @@ object PedraCalculator {
         leitoOverrideM: Double? = null
     ): Pair<Double, Double> {
         val espColchaoM = leitoOverrideM ?: when (inputs.revest) {
-            RevestimentoType.PEDRA -> ESP_COLCHAO_PEDRA_M
-            RevestimentoType.MARMORE, RevestimentoType.GRANITO -> 0.03
+            RevestimentoType.PEDRA ->
+                CalcRevestimentoRules.PedraPortuguesa.ESP_COLCHAO_DEFAULT_M
+            RevestimentoType.MARMORE, RevestimentoType.GRANITO ->
+                CalcRevestimentoRules.MarmoreGranito.ESP_COLCHAO_DEFAULT_M
             else -> 0.0
         }
 

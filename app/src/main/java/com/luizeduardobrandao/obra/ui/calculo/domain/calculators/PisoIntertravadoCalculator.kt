@@ -1,6 +1,7 @@
 package com.luizeduardobrandao.obra.ui.calculo.domain.calculators
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
+import com.luizeduardobrandao.obra.ui.calculo.domain.rules.CalcRevestimentoRules
 import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import kotlin.math.ceil
 
@@ -9,19 +10,7 @@ import kotlin.math.ceil
  */
 object PisoIntertravadoCalculator {
 
-    // Constantes específicas
-    private const val ESP_AREIA_LEVE_M = 0.03
-    private const val ESP_BGS_LEVE_M = 0.08
-    private const val ESP_AREIA_MEDIO_M = 0.04
-    private const val ESP_BGS_MEDIO_M = 0.12
-    private const val ESP_AREIA_PESADO_M = 0.05
-    private const val ESP_CONCRETO_PESADO_M = 0.14
-    private const val MALHA_Q196_M2_POR_CHAPA = 10.0
-    private const val CIMENTO_SACOS_M3_BASE = 8.0
-
-    /**
-     * Processa materiais para Piso Intertravado
-     */
+    /** Processa materiais para Piso Intertravado */
     fun processarPisoIntertravado(
         inputs: Inputs,
         areaM2: Double,
@@ -80,7 +69,7 @@ object PisoIntertravadoCalculator {
 
         fun addConcreto(espM: Double) {
             val vol = espM * areaM2 * (1 + sobra / 100.0)
-            val sacosRef = vol * CIMENTO_SACOS_M3_BASE
+            val sacosRef = vol * CalcRevestimentoRules.Intertravado.CIMENTO_SACOS_M3_BASE
             val cimentoKg = sacosRef * 50.0
 
             itens += MaterialItem(
@@ -99,7 +88,8 @@ object PisoIntertravadoCalculator {
         }
 
         fun addMalhaQ196() {
-            val chapas = areaM2 / MALHA_Q196_M2_POR_CHAPA
+            val chapas =
+                areaM2 / CalcRevestimentoRules.Intertravado.MALHA_Q196_M2_POR_CHAPA
             val chapasCompra = ceil(chapas).toInt()
             itens += MaterialItem(
                 item = "Malha pop Q-196",
@@ -111,18 +101,18 @@ object PisoIntertravadoCalculator {
 
         when (traf) {
             TrafegoType.LEVE -> {
-                addAreia(ESP_AREIA_LEVE_M)
-                addBgs(ESP_BGS_LEVE_M)
+                addAreia(CalcRevestimentoRules.Intertravado.ESP_AREIA_LEVE_M)
+                addBgs(CalcRevestimentoRules.Intertravado.ESP_BGS_LEVE_M)
             }
 
             TrafegoType.MEDIO -> {
-                addAreia(ESP_AREIA_MEDIO_M)
-                addBgs(ESP_BGS_MEDIO_M)
+                addAreia(CalcRevestimentoRules.Intertravado.ESP_AREIA_MEDIO_M)
+                addBgs(CalcRevestimentoRules.Intertravado.ESP_BGS_MEDIO_M)
             }
 
             TrafegoType.PESADO -> {
-                addAreia(ESP_AREIA_PESADO_M)
-                addConcreto(ESP_CONCRETO_PESADO_M)
+                addAreia(CalcRevestimentoRules.Intertravado.ESP_AREIA_PESADO_M)
+                addConcreto(CalcRevestimentoRules.Intertravado.ESP_CONCRETO_PESADO_M)
                 addMalhaQ196()
             }
         }

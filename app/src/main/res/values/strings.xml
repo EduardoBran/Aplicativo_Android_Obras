@@ -921,9 +921,9 @@
     <string name="cont_btn_avancar">Avançar para próxima etapa</string>
     <string name="cont_btn_back">Voltar para etapa anterior</string>
     <!-- Diálogo aplicação Mármore/Granito -->
-    <string name="calc_aplicacao_dialog_title_mg">Onde será aplicado?</string>
-    <string name="calc_aplicacao_option_piso">Piso</string>
-    <string name="calc_aplicacao_option_parede">Parede</string>
+    <string name="calc_step1_mg_aplicacao_title">Onde será instalado?</string>
+    <string name="calc_mg_aplicacao_piso">Piso</string>
+    <string name="calc_mg_aplicacao_parede">Parede</string>
     <!-- Diálogo aplicação ícone Home na toolbar -->
     <string name="calc_home_title">Tela Principal</string>
     <string name="calc_home_dialog_title">Retornar a Tela Principal</string>
@@ -992,6 +992,8 @@
     <string name="calc_step4_desnivel">Desnível a corrigir (cm)</string>
     <string name="calc_step4_sobra">Sobra Técnica (%)</string>
     <string name="valor_default_sobra">10</string>
+    <string name="calc_step4_switch_pecas_caixa">Informar peças por caixa?</string>
+    <string name="calc_step4_switch_desnivel">Informar desnível do contrapiso?</string>
 
     <!-- Helpers -->
     <string name="calc_piece_helper_cm">Em centímetros • Ex: 30.</string>
@@ -1057,7 +1059,7 @@
     <string name="calc_step5_mat_pronta">Peça pronta</string>
     <string name="calc_step5_comp_pronta_cm">Comprimento da peça pronta (cm)</string>
     <string name="calc_step5_comp_pronta_cm_helper">Em centímetros • Ex: 30 = 30 cm; 100 = 1 m.</string>
-    <string name="calc_err_rodape_altura_range">Valor inválido • Limites: 3 cm a 30 cm.</string>
+    <string name="calc_err_rodape_altura_range">Valor inválido • Limites: 5 cm a 40 cm.</string>
     <string name="calc_err_rodape_comp_cm_range">Valor inválido • Limites: 5 cm a 300 cm.</string>
     <string name="calc_step5_abertura_largura_total">Abertura (m) (opcional)</string>
     <string name="calc_step5_abertura_largura_total_helper">Largura total do(s) vão(s) sem rodapé • Ex: 0,80 ou 1,60.</string>
