@@ -39,13 +39,13 @@ object MaterialCalculator {
         val consumoArgKgM2 = ArgamassaSpecifications.consumoArgamassaKgM2(inputs)
         val totalArgKg = (consumoArgKgM2 * areaM2 * (1 + sobra / 100.0)) + extraKg
 
-        val baseObs = "Consumo estimado para assentamento do revestimento."
-        val obs =
-            if (inputs.revest == RevestimentoType.MARMORE || inputs.revest == RevestimentoType.GRANITO) {
-                "$baseObs\nUtilize ACIII."
-            } else {
-                baseObs
-            }
+        val classeIndicada = ArgamassaSpecifications.classificarArgamassa(inputs)
+
+        val obs = if (!classeIndicada.isNullOrBlank()) {
+            "Argamassa tipo $classeIndicada sugerida.\nValidar na obra."
+        } else {
+            "Verificar tipo de argamassa na obra."
+        }
 
         itens += MaterialItem(
             item = "Argamassa",
@@ -66,25 +66,17 @@ object MaterialCalculator {
         val sobraUsuarioPct = inputs.sobraPct ?: 10.0
         val totalRejKg = consumoRejKgM2 * areaM2 * (1 + sobraUsuarioPct / 100.0)
 
-        val observacaoRejunte = when {
-            inputs.ambiente == AmbienteType.SECO &&
-                    spec.nome.contains("Tipo 1", ignoreCase = true) ->
-                "Considera junta, formato das peças e sobra.\nIndicado para áreas secas."
+        val classe = spec.nome // "Tipo 1", "Tipo 2", "Epóxi" ou combinação
 
-            (inputs.ambiente == AmbienteType.SEMI || inputs.ambiente == AmbienteType.MOLHADO) &&
-                    spec.nome.contains("Tipo 2", ignoreCase = true) ->
-                "Considera junta, formato das peças e sobra.\nIndicado para áreas úmidas."
-
-            inputs.ambiente == AmbienteType.SEMPRE &&
-                    spec.nome.contains("epóxi", ignoreCase = true) ->
-                "Considera junta, formato das peças e sobra.\nIndicado para áreas sempre molhadas."
-
-            else ->
-                "Considera junta, formato das peças e sobra."
-        }
+        val observacaoRejunte =
+            if (classe.isNotBlank()) {
+                "Rejunte tipo $classe sugerido.\nValidar na obra."
+            } else {
+                "Verificar tipo de rejunte na obra."
+            }
 
         itens += MaterialItem(
-            item = spec.nome,
+            item = "Rejunte",
             unid = "kg",
             qtd = NumberFormatter.arred1(max(0.0, totalRejKg)),
             observacao = observacaoRejunte

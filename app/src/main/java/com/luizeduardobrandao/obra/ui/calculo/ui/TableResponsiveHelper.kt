@@ -90,8 +90,8 @@ class TableResponsiveHelper(private val context: Context) {
     val headerPaddingHorizontal: Int
         get() = dpToPx(
             when (screenSize) {
-                ScreenSize.PHONE_COMPACT -> if (isLandscape) 12 else 14
-                ScreenSize.PHONE_NORMAL -> if (isLandscape) 16 else 18
+                ScreenSize.PHONE_COMPACT -> if (isLandscape) 10 else 12
+                ScreenSize.PHONE_NORMAL -> if (isLandscape) 12 else 14
                 ScreenSize.TABLET -> if (isLandscape) 18 else 20
                 ScreenSize.TABLET_LARGE -> 22
             }
@@ -100,8 +100,8 @@ class TableResponsiveHelper(private val context: Context) {
     val headerTextSize: Float
         get() {
             val baseSize = when (screenSize) {
-                ScreenSize.PHONE_COMPACT -> 15.5f
-                ScreenSize.PHONE_NORMAL -> 16f
+                ScreenSize.PHONE_COMPACT -> 16f
+                ScreenSize.PHONE_NORMAL -> 16.5f
                 ScreenSize.TABLET -> 17.5f
                 ScreenSize.TABLET_LARGE -> 18f
             }
@@ -143,7 +143,7 @@ class TableResponsiveHelper(private val context: Context) {
         get() = dpToPx(
             when (screenSize) {
                 ScreenSize.PHONE_COMPACT -> if (isLandscape) 4 else 6
-                ScreenSize.PHONE_NORMAL -> if (isLandscape) 6 else 8
+                ScreenSize.PHONE_NORMAL -> if (isLandscape) 4 else 6
                 ScreenSize.TABLET -> if (isLandscape) 8 else 10
                 ScreenSize.TABLET_LARGE -> 14
             }

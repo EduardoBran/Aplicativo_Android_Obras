@@ -116,18 +116,15 @@ object RevestimentoSpecifications {
                 when {
                     // Fallback neutro enquanto ainda não escolheu tudo
                     amb == null || aplic == null -> MGRules.ESP_FALLBACK_MM
-
                     // Piso
                     aplic == AplicacaoType.PISO &&
                             (amb == AmbienteType.SECO || amb == AmbienteType.SEMI) ->
                         MGRules.ESP_PISO_SECO_SEMI_MM
-
                     aplic == AplicacaoType.PISO && amb == AmbienteType.MOLHADO ->
                         MGRules.ESP_PISO_MOLHADO_MM
 
                     aplic == AplicacaoType.PISO && amb == AmbienteType.SEMPRE ->
                         MGRules.ESP_PISO_SEMPRE_MM
-
                     // Parede
                     aplic == AplicacaoType.PAREDE &&
                             (amb == AmbienteType.SECO || amb == AmbienteType.SEMI) ->
@@ -222,11 +219,7 @@ object RevestimentoSpecifications {
         return if (c != null && l != null) " ${NumberFormatter.arred0(c)}×${NumberFormatter.arred0(l)} cm" else ""
     }
 
-    /**
-     * Formata medidas em cm para exibição:
-     * - sem casas decimais se for inteiro (31.0 -> "31")
-     * - 1 casa decimal se tiver fração (32.5 -> "32,5")
-     */
+    /** Formata medidas em cm para exibição: (31.0 -> "31"; 32.5 -> "32,5") */
     private fun formatMedidaCm(v: Double): String {
         val abs = kotlin.math.abs(v)
         val inteiro = abs % 1.0 == 0.0

@@ -18,11 +18,12 @@ import com.google.android.material.button.MaterialButton
  * - Configurar botão "Novo Cálculo"
  *
  * Mapeamento atual de etapas:
- * 1 – Abertura
- * 2 – Tipo de Revestimento
- * 3 – Tipo de Ambiente
- * 4 – Tipo de Tráfego (apenas Piso Intertravado)
- * 5 – Medidas da Área
+ * 0 – Abertura
+ * 1 – Tipo de Revestimento
+ * 2 – Tipo de Ambiente
+ * 3 – Tipo de Tráfego (apenas Piso Intertravado)
+ * 4 – Medidas da Área
+ * 5 – Medidas do Parâmetro
  * 6 – Revisão de Parâmetros
  * 7 – Resultado Final (Tabela)
  */

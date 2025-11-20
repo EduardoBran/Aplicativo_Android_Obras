@@ -49,8 +49,8 @@ object CalcRevestimentoRules {
         const val MG_MAX_CM = 2000.1
         val MG_RANGE_CM = MG_MIN_CM..MG_MAX_CM
         // Junta (mm)
-        const val JUNTA_MIN_MM = 0.5
-        const val JUNTA_MAX_MM = 20.0
+        const val JUNTA_MIN_MM = 0.9999999999
+        const val JUNTA_MAX_MM = 8.01
         val JUNTA_RANGE_MM = JUNTA_MIN_MM..JUNTA_MAX_MM
         // Junta Pastilha (mm)
         const val PASTILHA_JUNTA_MIN_MM = 1.0
@@ -123,7 +123,6 @@ object CalcRevestimentoRules {
         const val ALTURA_MIN_CM = 5.0
         const val ALTURA_MAX_CM = 40.0
         val ALTURA_RANGE_CM = ALTURA_MIN_CM..ALTURA_MAX_CM
-
         // Comprimento comercial digitado em cm
         const val COMP_COMERCIAL_MIN_CM = 5.0
         const val COMP_COMERCIAL_MAX_CM = 300.0
@@ -149,56 +148,48 @@ object CalcRevestimentoRules {
             const val P1_5_LADO2_CM = 1.5
             const val P1_5_MANTA_COMP_CM = 32.1
             const val P1_5_MANTA_LARG_CM = 32.1
-
             // 2 x 2 cm – manta 34,2 x 34,2 cm
             const val PASTILHA_ESP_P2_MM = 4.0        // 2 x 2 cm
             const val P2_LADO_CM = 2.0
             const val P2_LADO2_CM = 2.0
             const val P2_MANTA_COMP_CM = 34.2
             const val P2_MANTA_LARG_CM = 34.2
-
             // 2,5 x 2,5 cm – manta 33,3 x 33,3 cm
             const val PASTILHA_ESP_P2_2_MM = 4.0      // 2,5 x 2,5 cm
             const val P2_2_LADO_CM = 2.5
             const val P2_2_LADO2_CM = 2.5
             const val P2_2_MANTA_COMP_CM = 33.3
             const val P2_2_MANTA_LARG_CM = 33.3
-
             // 2,5 x 5 cm – manta 33,3 x 31,5 cm
             const val PASTILHA_ESP_P2_5_MM = 4.0      // 2,5 x 5 cm
             const val P2_5_LADO_CM = 2.5
             const val P2_5_LADO2_CM = 5.0
             const val P2_5_MANTA_COMP_CM = 33.3
             const val P2_5_MANTA_LARG_CM = 31.5
-
             // 5 x 5 cm – manta 31,5 x 31,5 cm
             const val PASTILHA_ESP_P5_5_MM = 5.0      // 5 x 5 cm
             const val P5_5_LADO_CM = 5.0
             const val P5_5_LADO2_CM = 5.0
             const val P5_5_MANTA_COMP_CM = 31.5
             const val P5_5_MANTA_LARG_CM = 31.5
-
             // 5 x 10 cm – manta 31,5 x 30,6 cm
             const val PASTILHA_ESP_P5_5_10MM = 5.0    // 5 x 10 cm
             const val P5_10_LADO_CM = 5.0
             const val P5_10_LADO2_CM = 10.0
             const val P5_10_MANTA_COMP_CM = 31.5
             const val P5_10_MANTA_LARG_CM = 30.6
-
             // 5 x 15 cm – manta 31,5 x 30,3 cm
             const val PASTILHA_ESP_P5_5_15MM = 5.0    // 5 x 15 cm
             const val P5_15_LADO_CM = 5.0
             const val P5_15_LADO2_CM = 15.0
             const val P5_15_MANTA_COMP_CM = 31.5
             const val P5_15_MANTA_LARG_CM = 30.3
-
             // 7,5 x 7,5 cm – manta 30,9 x 30,9 cm
             const val PASTILHA_ESP_P7_5PMM = 6.0      // 7,5 x 7,5 cm
             const val P7_5P_LADO_CM = 7.5
             const val P7_5P_LADO2_CM = 7.5
             const val P7_5P_MANTA_COMP_CM = 30.9
             const val P7_5P_MANTA_LARG_CM = 30.9
-
             // 10 x 10 cm – manta 30,6 x 30,6 cm
             const val PASTILHA_ESP_P10PMM = 6.0       // 10 x 10 cm
             const val P10P_LADO_CM = 10.0
@@ -214,14 +205,12 @@ object CalcRevestimentoRules {
             const val P5_LADO2_CM = 5.0
             const val P5_MANTA_COMP_CM = 32.5
             const val P5_MANTA_LARG_CM = 32.5
-
             // 7,5 x 7,5 cm – manta 31,5 x 31,5 cm
             const val PASTILHA_ESP_P7_5_MM = 6.0      // 7,5 x 7,5 cm
             const val P7_5_LADO_CM = 7.5
             const val P7_5_LADO2_CM = 7.5
             const val P7_5_MANTA_COMP_CM = 31.5
             const val P7_5_MANTA_LARG_CM = 31.5
-
             // 10 x 10 cm – manta 31 x 31 cm
             const val PASTILHA_ESP_P10_MM = 6.0       // 10 x 10 cm
             const val P10_LADO_CM = 10.0
@@ -235,13 +224,10 @@ object CalcRevestimentoRules {
         const val PECA_MIN_CM = 5.0
         const val PECA_MAX_CM = 200.0
         val PECA_RANGE_CM = PECA_MIN_CM..PECA_MAX_CM
-
         // Espessura padrão para specs (mm)
         const val ESP_PADRAO_MM = 60.0
-
         val ESP_RANGE_MM = Peca.INTERTRAVADO_ESP_RANGE_MM
         val SOBRA_RANGE_PCT = Peca.SOBRA_RANGE_PCT
-
         // Camadas típicas (m) para areia/BGS/concreto conforme tráfego
         const val ESP_AREIA_LEVE_M = 0.03
         const val ESP_BGS_LEVE_M = 0.08
@@ -249,7 +235,6 @@ object CalcRevestimentoRules {
         const val ESP_BGS_MEDIO_M = 0.12
         const val ESP_AREIA_PESADO_M = 0.05
         const val ESP_CONCRETO_PESADO_M = 0.14
-
         // Consumo de materiais complementares
         const val MALHA_Q196_M2_POR_CHAPA = 10.0
         const val CIMENTO_SACOS_M3_BASE = 8.0
@@ -258,15 +243,12 @@ object CalcRevestimentoRules {
     object MarmoreGranito {
         // Espessuras padrão (mm) por contexto
         const val ESP_FALLBACK_MM = 20.0
-
         const val ESP_PISO_SECO_SEMI_MM = 18.0
         const val ESP_PISO_MOLHADO_MM = 20.0
         const val ESP_PISO_SEMPRE_MM = 22.0
-
         const val ESP_PAREDE_SECO_SEMI_MM = 15.0
         const val ESP_PAREDE_MOLHADO_MM = 18.0
         const val ESP_PAREDE_SEMPRE_MM = 22.0
-
         // Espessura típica de leito (areia+cimento) para MG (m)
         const val ESP_COLCHAO_DEFAULT_M = 0.03
         // Quantidade de fixadores mecânicos por m²
@@ -275,7 +257,6 @@ object CalcRevestimentoRules {
 
     object PedraPortuguesa {
         const val ESP_PADRAO_MM = 20.0
-
         // Espessura padrão do colchão (m) para Pedra Portuguesa
         const val ESP_COLCHAO_DEFAULT_M = 0.04
     }
@@ -288,7 +269,7 @@ object CalcRevestimentoRules {
         const val EMB_EPOXI_KG = 1.0
         const val EMB_CIMENTICIO_KG = 5.0
         // Junta mínima considerada no cálculo (mm)
-        const val JUNTA_MIN_MM = 0.5
+        const val JUNTA_MIN_MM = 0.9999999999
         // Defaults para dimensões de peças quando não informadas (cm)
         const val PASTILHA_LADO_DEFAULT_CM = 5.0
         const val PECA_LADO_DEFAULT_CM = 30.0

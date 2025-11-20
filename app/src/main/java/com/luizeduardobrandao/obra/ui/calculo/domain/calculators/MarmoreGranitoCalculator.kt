@@ -210,7 +210,7 @@ object MarmoreGranitoCalculator {
             item = "Fixador Mecânico (pino ou grampo)",
             unid = "un",
             qtd = qtdFixadores.toDouble(),
-            observacao = "Recomendado para peças pesadas. Definir o tipo em obra."
+            observacao = "Recomendado para peças pesadas. Definir o tipo na obra."
         )
     }
 }

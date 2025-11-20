@@ -1000,7 +1000,7 @@
     <string name="calc_piece_helper_m">Em metros • Ex: 1,20.</string>
     <string name="calc_step4_piece_esp_helper_with_default">Em milímetros • Ex: %s.</string>
     <string name="calc_step4_peca_esp_intertravado_helper">Em centímetros • Ex: 6.</string>
-    <string name="calc_step4_junta_helper_default">Em milímetros • Ex: 8.</string>
+    <string name="calc_step4_junta_helper_default">Em milímetros • Ex: 5.</string>
     <string name="helper_junta_piso_ceramico">Em milímetros • Recomendado: 5mm.</string>
     <string name="helper_junta_piso_porcelanato">Em milímetros • Recomendado: 2mm.</string>
     <string name="helper_junta_azulejo">Em milímetros • Recomendado: 5mm.</string>
@@ -1019,7 +1019,7 @@
     <string name="calc_err_esp_intertravado_range">Valor inválido • Limites: 4 cm a 12 cm.</string>
     <string name="calc_err_esp_range_mg_piso">Valor inválido • Limites: 15mm a 40mm.</string>
     <string name="calc_err_esp_range_mg_parede">Valor inválido • Limites: 10mm a 40mm.</string>
-    <string name="calc_err_junta_range">Valor inválido • Limites: 0,5 mm a 20 mm.</string>
+    <string name="calc_err_junta_range">Valor inválido • Limites: 1 mm a 8 mm.</string>
     <string name="calc_err_junta_required">Informe a espessura da junta em mm.</string>
     <string name="calc_err_pecas_caixa_range">Valor inválido • Limites: 1 a 50 ou deixe o campo vazio.</string>
     <string name="calc_err_desnivel_pedra_range">Valor inválido • Limites: 4 cm a 8 cm.</string>

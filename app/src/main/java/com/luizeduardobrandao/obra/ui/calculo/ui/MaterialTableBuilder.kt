@@ -24,22 +24,17 @@ class MaterialTableBuilder(
     // ✅ Helper de responsividade
     private val responsiveHelper = TableResponsiveHelper(context)
 
-    /**
-     * Cria linha de cabeçalho da tabela
-     */
+    /** Cria linha de cabeçalho da tabela */
     @SuppressLint("InflateParams")
     fun makeHeaderRow(): View {
         val row = layoutInflater.inflate(R.layout.item_material_row, null, false)
 
         // Background do header
         row.setBackgroundColor(ContextCompat.getColor(context, R.color.tableHeaderBg))
-
         // Padding responsivo
         row.setPadding(
-            responsiveHelper.headerPaddingHorizontal,
-            responsiveHelper.headerPaddingVertical,
-            responsiveHelper.headerPaddingHorizontal,
-            responsiveHelper.headerPaddingVertical
+            responsiveHelper.headerPaddingHorizontal, responsiveHelper.headerPaddingVertical,
+            responsiveHelper.headerPaddingHorizontal, responsiveHelper.headerPaddingVertical
         )
 
         // Altura mínima responsiva
@@ -52,7 +47,6 @@ class MaterialTableBuilder(
         val tvQtdUsada = row.findViewById<TextView>(R.id.tvQtdUsada)
         val tvQtdComprar = row.findViewById<TextView>(R.id.tvQtdComprar)
         val tvObs = row.findViewById<TextView>(R.id.tvObservacao)
-
         // Coluna Item com texto responsivo
         tvItem.apply {
             text = context.getString(R.string.col_item)
@@ -71,9 +65,7 @@ class MaterialTableBuilder(
             params.verticalBias = 0.5f
             layoutParams = params
         }
-
         tvUnid.visibility = View.GONE
-
         // Coluna Qtd com texto responsivo
         tvQtdUsada.apply {
             text = context.getString(R.string.col_qtd)
@@ -92,7 +84,6 @@ class MaterialTableBuilder(
             params.verticalBias = 0.5f
             layoutParams = params
         }
-
         // Coluna Comprar com texto responsivo
         tvQtdComprar.apply {
             text = context.getString(R.string.col_comprar)
@@ -111,28 +102,22 @@ class MaterialTableBuilder(
             params.verticalBias = 0.5f
             layoutParams = params
         }
-
         tvObs.visibility = View.GONE
-
-        // ✅ Atualizar guidelines
+        // Atualizar guidelines
         updateRowGuidelines(row)
 
         return row
     }
 
-    /**
-     * Cria linha de dados da tabela
-     */
+    /** Cria linha de dados da tabela */
     @SuppressLint("InflateParams")
     fun makeDataRow(item: CalcRevestimentoViewModel.MaterialItem): View {
         val row = layoutInflater.inflate(R.layout.item_material_row, null, false)
 
         // Padding e altura mínima responsivos
         row.setPadding(
-            responsiveHelper.rowPaddingHorizontal,
-            responsiveHelper.rowPaddingVertical,
-            responsiveHelper.rowPaddingHorizontal,
-            responsiveHelper.rowPaddingVertical
+            responsiveHelper.rowPaddingHorizontal, responsiveHelper.rowPaddingVertical,
+            responsiveHelper.rowPaddingHorizontal, responsiveHelper.rowPaddingVertical
         )
         row.minimumHeight = responsiveHelper.rowMinHeight
 
@@ -189,9 +174,7 @@ class MaterialTableBuilder(
         return row
     }
 
-    /**
-     * Atualiza guidelines de uma linha específica
-     */
+    /** Atualiza guidelines de uma linha específica */
     private fun updateRowGuidelines(row: View) {
         val guidelineItemEnd =
             row.findViewById<androidx.constraintlayout.widget.Guideline>(R.id.guidelineItemEnd)
@@ -229,9 +212,7 @@ class MaterialTableBuilder(
         }.replace('.', ',') // se quiser separador brasileiro
     }
 
-    /**
-     * Constrói célula "Comprar" com extração inteligente de embalagens
-     */
+    /** Constrói célula "Comprar" com extração inteligente de embalagens */
     fun buildComprarCell(item: CalcRevestimentoViewModel.MaterialItem): String {
         val alvo = max(0.0, item.qtd)
         if (alvo <= 0.0) return "0"
@@ -246,7 +227,6 @@ class MaterialTableBuilder(
         ) {
             return "Incluso"
         }
-
         // Rodapé PEÇA PRONTA → usa "Peça pronta • [q] peças." para montar "[q] pc"
         if (nome.equals("Rodapé", ignoreCase = true) &&
             obs?.contains("peça pronta") == true
@@ -301,20 +281,18 @@ class MaterialTableBuilder(
 
         // ---------------- REJUNTE ----------------
 
-        // Rejunte epóxi → 1kg, 2kg, 5kg
-        if (nome.contains("Rejunte epóxi", ignoreCase = true) &&
+        if (nome.equals("Rejunte", ignoreCase = true) &&
             unid.equals("kg", true)
         ) {
-            val pack = bestPackCombo(alvo, listOf(5.0, 2.0, 1.0))
-            return pack.toCompraString(unidade = "kg", label = "pct")
-        }
+            val isEpoxi = obs?.contains("epóxi") == true || obs?.contains("epoxi") == true
 
-        // Rejunte cimentício → 5kg
-        if (nome.contains("Rejunte comum", ignoreCase = true) &&
-            unid.equals("kg", true)
-        ) {
-            val n5 = ceil(alvo / 5.0).toInt()
-            return if (n5 <= 0) "0" else if (n5 == 1) "1 pct 5kg" else "$n5 pct 5kg"
+            return if (isEpoxi) { // Pacotes 1kg, 2kg, 5kg
+                val pack = bestPackCombo(alvo, listOf(5.0, 2.0, 1.0))
+                pack.toCompraString(unidade = "kg", label = "pct")
+            } else { //P acotes 5kg
+                val n5 = ceil(alvo / 5.0).toInt()
+                if (n5 <= 0) "0" else if (n5 == 1) "1 pct 5kg" else "$n5 pct 5kg"
+            }
         }
 
         // ---------------- Fixador Mecânico (pino ou grampo) ----------------
@@ -414,9 +392,7 @@ class MaterialTableBuilder(
                     return "${qtd}× ${tam}${u.uppercase()}"
                 }
         }
-
         // ---------------- FALLBACK ----------------
-
         return NumberFormatter.format(alvo)
     }
 
@@ -427,16 +403,9 @@ class MaterialTableBuilder(
         val smallest = sorted.last()
         var best: Map<Double, Int> = emptyMap()
         var bestOver = Double.MAX_VALUE
-        var bestCount = Int.MAX_VALUE
 
         val limits = sorted.associateWith { ceil(target / it).toInt() + 3 }
 
-        // Detecta caso específico da Membrana Acrílica: 18L, 3,6L, 1L
-        val isMembrana =
-            sizes.size == 3 &&
-                    sizes.contains(18.0) &&
-                    sizes.contains(3.6) &&
-                    sizes.contains(1.0)
 
         fun search(idx: Int, acc: Map<Double, Int>) {
             if (idx == sorted.size) {
@@ -444,31 +413,11 @@ class MaterialTableBuilder(
                 if (total < target || total <= 0.0) return
 
                 val over = total - target
-                val count = acc.values.sum()
 
-                if (!isMembrana) {
-                    // Comportamento original para todos os outros casos
-                    if (over < bestOver || (over == bestOver && count < bestCount)) {
-                        best = acc
-                        bestOver = over
-                        bestCount = count
-                    }
-                } else {
-                    // Membrana Acrílica:
-                    // - ainda tenta pouca sobra
-                    // - mas aceita até +1L de sobra se reduzir o nº de embalagens
-                    val smallCount = acc[smallest] ?: 0
-                    val bestSmallCount = best[smallest] ?: Int.MAX_VALUE
-
-                    if (
-                        over < bestOver || // melhor sobra
-                        (over <= bestOver + 1.0 && count < bestCount) || // permite um pouco mais de sobra com menos embalagens
-                        (over == bestOver && count < bestCount && smallCount < bestSmallCount) // em empate, menos frascos de 1L
-                    ) {
-                        best = acc
-                        bestOver = over
-                        bestCount = count
-                    }
+                // Se ainda não temos melhor, ou se este tem menor sobra, atualiza
+                if (over < bestOver) {
+                    best = acc
+                    bestOver = over
                 }
                 return
             }
@@ -479,12 +428,7 @@ class MaterialTableBuilder(
                 val next = if (n == 0) acc else acc + (size to n)
                 val partial = next.entries.sumOf { it.key * it.value }
 
-                // Poda:
-                // para Membrana permitimos pequena folga extra (+1L) na busca
-                val extraTolerancia = if (isMembrana) 1.0 else 0.0
-                if (partial > target + bestOver + extraTolerancia &&
-                    bestOver < Double.MAX_VALUE
-                ) continue
+                if (partial > target + bestOver && bestOver < Double.MAX_VALUE) continue
 
                 search(idx + 1, next)
             }
@@ -496,7 +440,6 @@ class MaterialTableBuilder(
             val n = ceil(target / smallest).toInt()
             return mapOf(smallest to n)
         }
-
         return best
     }
 
@@ -522,9 +465,7 @@ class MaterialTableBuilder(
             }
     }
 
-    /**
-     * Empacota o cimento (kg) em sacos de 25 kg e/ou 50 kg
-     */
+    /** Empacota o cimento (kg) em sacos de 25 kg e/ou 50 kg */
     private fun buildCimentoComprar(cimentoKg: Double): String {
         val kg = cimentoKg.coerceAtLeast(0.0)
         if (kg <= 0.0) return "0"

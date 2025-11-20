@@ -209,93 +209,29 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
     fun setAmbiente(amb: AmbienteType) = viewModelScope.launch {
         val cur = _inputs.value
-        // Piso intertravado: só atualiza o ambiente (classe de argamassa/impermeabilização não se aplica)
+        // Piso intertravado: só atualiza o ambiente (classe de argamassa não se aplica)
         if (cur.revest == RevestimentoType.PISO_INTERTRAVADO) {
             _inputs.value = cur.copy(ambiente = amb)
             return@launch
         }
+        var updated = cur.copy(ambiente = amb) // Atualiza Inputs com novo ambiente
 
-        val classeBase: String = when (amb) {
-            AmbienteType.SECO -> "ACI"
-            AmbienteType.SEMI -> "ACII"
-            AmbienteType.MOLHADO -> "ACIII"
-            AmbienteType.SEMPRE -> "ACIII"
-        }
-
-        val ladoMax = max(cur.pecaCompCm ?: 0.0, cur.pecaLargCm ?: 0.0)
-
-        val classeNova: String = when (cur.revest) {
-            RevestimentoType.PASTILHA -> when (amb) {
-                AmbienteType.SECO -> "ACII"
-                AmbienteType.SEMI -> "ACII"
-                AmbienteType.MOLHADO,
-                AmbienteType.SEMPRE -> "ACIII"
-            }
-
-            RevestimentoType.PISO -> {
-                when (cur.pisoPlacaTipo) {
-                    PlacaTipo.CERAMICA, null -> when (amb) {
-                        AmbienteType.SECO -> when {
-                            ladoMax < 30.0 -> "ACI"
-                            ladoMax < 45.0 -> "ACII"
-                            else -> "ACIII"
-                        }
-
-                        AmbienteType.SEMI -> if (ladoMax < 45.0) "ACII" else "ACIII"
-                        AmbienteType.MOLHADO,
-                        AmbienteType.SEMPRE -> "ACIII"
-                    }
-
-                    PlacaTipo.PORCELANATO -> when (amb) {
-                        AmbienteType.SECO -> "ACII"
-                        AmbienteType.SEMI -> "ACIII"
-                        AmbienteType.MOLHADO,
-                        AmbienteType.SEMPRE -> "ACIII"
-                    }
-                }
-            }
-
-            RevestimentoType.AZULEJO -> when (amb) {
-                AmbienteType.SECO -> when {
-                    ladoMax < 30.0 -> "ACI"
-                    ladoMax < 45.0 -> "ACII"
-                    else -> "ACIII"
-                }
-
-                AmbienteType.SEMI -> if (ladoMax < 45.0) "ACII" else "ACIII"
-                AmbienteType.MOLHADO,
-                AmbienteType.SEMPRE -> "ACIII"
-            }
-
-            else -> classeBase
-        }
-
-        val classeFinal = when {
-            RevestimentoSpecifications.isPedraOuSimilares(cur.revest) -> null
-            else -> classeNova
-        }
-
-        // Atualiza Inputs levando Mármore/Granito em conta
-        var updated = cur.copy(
-            ambiente = amb, classeArgamassa = classeFinal
-        )
-
-        // Se for Mármore/Granito, decidir se devemos recalcular espessura
+        // Lida com espessura automática de Mármore/Granito ao mudar o ambiente
         if (cur.revest == RevestimentoType.MARMORE || cur.revest == RevestimentoType.GRANITO) {
-            // Default anterior, dado o contexto antigo (antes da mudança de ambiente)
             val oldDefaultEsp = RevestimentoSpecifications.getEspessuraPadraoMm(cur)
             val currentEsp = cur.pecaEspMm
-
-            // Consideramos "automático" se: ainda não tinha espessura
-            // OU a espessura atual == default antigo
             val isEspAuto = currentEsp == null || currentEsp == oldDefaultEsp
-            if (isEspAuto) {
+
+            if (isEspAuto) { // Se era automático, "zera" para recalcular com o novo contexto
                 updated = updated.copy(pecaEspMm = null)
             }
-
             // Garante que, se continuar sendo automático, receba o novo default
             updated = ensureDefaultMgEspessuraAfterChange(cur, updated)
         }
+        // Centraliza a lógica de classe de argamassa em ArgamassaSpecifications
+        val classeIndicada = ArgamassaSpecifications.classificarArgamassa(updated)
+        updated = updated.copy(classeArgamassa = classeIndicada)
+
         _inputs.value = updated
     }
 
@@ -343,7 +279,6 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         juntaMm: Double?, sobraPct: Double?, pecasPorCaixa: Int?
     ) = viewModelScope.launch {
         val cur = _inputs.value
-
         // Pastilha: regras específicas
         if (cur.revest == RevestimentoType.PASTILHA) {
             val juntaValida =
@@ -524,7 +459,6 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
 
         val sobra = (i.sobraPct ?: 10.0).coerceIn(0.0, 50.0)
         val itens = mutableListOf<MaterialItem>()
-        var classe: String? = i.classeArgamassa
 
         when {
             i.revest == RevestimentoType.PISO_INTERTRAVADO -> {
@@ -534,20 +468,20 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
                     areaBase,
                     itens
                 )
-                classe = null
             }
 
             RevestimentoSpecifications.isPedraOuSimilares(i.revest) -> {
                 // Pedra / Mármore / Granito: usam áreas diferenciadas para
                 // revestimento, materiais (argamassa/rejunte) e espaçadores/cunhas
-                classe = processarPedraOuSimilares(
+                processarPedraOuSimilares(
                     i, areaRevestimentoM2, areaMateriaisRevestimentoM2,
                     areaEspacadoresCunhasM2, sobra, itens
                 )
             }
 
             else -> processarRevestimentoPadrao(
-                i, areaRevestimentoM2, areaMateriaisRevestimentoM2, areaEspacadoresCunhasM2,
+                i, areaRevestimentoM2, areaMateriaisRevestimentoM2,
+                areaEspacadoresCunhasM2,
                 sobra, itens
             )
         }
@@ -557,6 +491,8 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
                 i, areaRodapeExibM2, rodapePerimetroLiquido, sobra, itens
             )
         }
+        // Classe de argamassa indicada centralizada em ArgamassaSpecifications
+        val classeIndicada = ArgamassaSpecifications.classificarArgamassa(i)
 
         val header = HeaderResumo(
             tipo = i.revest?.name ?: "-",
@@ -573,9 +509,8 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             juntaMm = i.juntaMm ?: 0.0,
             sobraPct = sobra
         )
-
         _resultado.value =
-            UiState.Success(ResultResultado(Resultado(header, classe, itens)))
+            UiState.Success(ResultResultado(Resultado(header, classeIndicada, itens)))
         _step.value = 7
     }
 

@@ -51,7 +51,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="16dp"
+            android:paddingHorizontal="10dp"
             android:paddingTop="16dp"
             android:paddingBottom="0dp">
 
@@ -64,15 +64,14 @@
                 android:outAnimation="@android:anim/fade_out"
                 tools:ignore="UselessParent">
 
-                <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 0 – Abertura (Centralizado Programaticamente) -->
-                <!-- ═══════════════════════════════════════════ -->
+                <!-- =========== TELA 0 – Abertura (Centralizado Programaticamente) =========== -->
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_horizontal"
                     android:orientation="vertical"
-                    android:paddingHorizontal="12dp">
+                    android:paddingHorizontal="18dp">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -114,14 +113,12 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 1 – Tipo de Revestimento -->
-                <!-- ═══════════════════════════════════════════ -->
+                <!-- ==================== TELA 1 – Tipo de Revestimento ==================== -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingHorizontal="4dp">
+                    android:paddingHorizontal="10dp">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -275,14 +272,12 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 2 – Ambiente -->
-                <!-- ═══════════════════════════════════════════ -->
+                <!-- ==================== TELA 2 – Ambiente ==================== -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingHorizontal="4dp">
+                    android:paddingHorizontal="10dp">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -446,14 +441,12 @@
 
                 </LinearLayout>
 
-                <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 2.1 – Tipo de Tráfego (Piso Intertravado) -->
-                <!-- ═══════════════════════════════════════════ -->
+                <!-- =========== TELA 3 – Tipo de Tráfego (Piso Intertravado) =========== -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingHorizontal="4dp">
+                    android:paddingHorizontal="10dp">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -594,14 +587,12 @@
 
                 </LinearLayout>
 
-                <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 3 – Medidas da Área -->
-                <!-- ═══════════════════════════════════════════ -->
+                <!-- ==================== TELA 4 – Medidas da Área ==================== -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingHorizontal="8dp">
+                    android:paddingHorizontal="14dp">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -705,8 +696,7 @@
                         android:layout_marginTop="12dp"
                         android:text="@string/calc_step3_or"
                         android:textAlignment="center"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textStyle="italic" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilAreaInformada"
@@ -736,14 +726,12 @@
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
 
-                <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 4 – Parâmetros da Peça + Rodapé -->
-                <!-- ═══════════════════════════════════════════ -->
+                <!-- =============== TELA 5 – Medidas do Revestimento + Rodapé =============== -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingHorizontal="8dp">
+                    android:paddingHorizontal="14dp">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -1035,15 +1023,16 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/calc_step5_include"
-                            android:textAppearance="?attr/textAppearanceBodyMedium" />
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textColor="?attr/colorOnSurface" />
 
                         <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchRodape"
@@ -1153,7 +1142,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/calc_step4_switch_pecas_caixa"
-                            android:textAppearance="?attr/textAppearanceBodyMedium" />
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textColor="?attr/colorOnSurface" />
 
                         <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchPecasPorCaixa"
@@ -1184,7 +1174,6 @@
                                 android:inputType="number" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
-
                     <!-- Switch "Desnível" (apenas Mármore/Granito; Pedra continua padrão) -->
                     <LinearLayout
                         android:id="@+id/rowDesnivelSwitchStep4"
@@ -1200,7 +1189,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/calc_step4_switch_desnivel"
-                            android:textAppearance="?attr/textAppearanceBodyMedium" />
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textColor="?attr/colorOnSurface" />
 
                         <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchDesnivel"
@@ -1234,14 +1224,11 @@
 
                 </LinearLayout>
 
-                <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 6 – Revisão -->
-                <!-- ═══════════════════════════════════════════ -->
+                <!-- ================== TELA 6 – Revisão ================== -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="8dp">
+                    android:orientation="vertical">
 
                     <!-- Título da tela -->
                     <TextView
@@ -1254,7 +1241,6 @@
                         android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceHeadline5"
                         android:textStyle="bold" />
-
                     <!-- Card de Revisão -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardResumoRevisao"
@@ -1270,7 +1256,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:padding="16dp">
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="12dp">
 
                             <!-- Cabeçalho do card -->
                             <LinearLayout
@@ -1354,9 +1341,7 @@
                         app:iconTint="?attr/colorOnPrimary" />
                 </LinearLayout>
 
-                <!-- ═══════════════════════════════════════════ -->
-                <!-- TELA 7 – Resultado -->
-                <!-- ═══════════════════════════════════════════ -->
+                <!-- ================== TELA 7 – Tabela Resultado ==================-->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -1478,7 +1463,7 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Barra inferior (Navegação) -->
+    <!-- ================== Barra inferior (Navegação) ================== -->
     <LinearLayout
         android:id="@+id/bottomBar"
         android:layout_width="0dp"
