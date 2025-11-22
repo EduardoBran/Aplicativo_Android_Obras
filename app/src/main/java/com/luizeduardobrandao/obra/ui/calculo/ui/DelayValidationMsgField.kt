@@ -12,22 +12,18 @@ import com.google.android.material.textfield.TextInputEditText
 class DelayValidationMsgField(
     private val delayMs: Long = 1240L
 ) {
-
     // Mapa campo → Runnable pendente
     private val pending = mutableMapOf<TextInputEditText, Runnable>()
 
-    /**
-     * Agenda [block] para ser executado depois de [delayMs] milissegundos,
-     * desde que não haja nova digitação nesse mesmo campo.
-     */
+    /** Agenda [block] para ser executado depois de [delayMs] milissegundos,
+     * desde que não haja nova digitação nesse mesmo campo. */
     fun schedule(et: TextInputEditText, block: () -> Unit) {
         // Cancela runnable anterior (se existir)
         pending[et]?.let { previous ->
             et.removeCallbacks(previous)
         }
-
+        // Remove antes de executar para não ficar lixo no mapa
         val runnable = Runnable {
-            // Remove antes de executar para não ficar lixo no mapa
             pending.remove(et)
             block()
         }

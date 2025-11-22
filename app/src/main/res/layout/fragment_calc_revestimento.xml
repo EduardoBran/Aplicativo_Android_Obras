@@ -118,155 +118,442 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingHorizontal="10dp">
+                    android:paddingHorizontal="8dp">
 
+                    <!-- Título principal -->
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="8dp"
                         android:text="@string/calc_step1_title"
                         android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceHeadline5"
                         android:textStyle="bold" />
 
-                    <RadioGroup
-                        android:id="@+id/rgRevest"
+                    <!-- Subtítulo discreto -->
+                    <TextView
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:text="@string/calc_step1_subtitle"
+                        android:textAlignment="center"
+                        android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-                        <com.google.android.material.radiobutton.MaterialRadioButton
+
+                    <!-- Grade de cards clicáveis para escolher o tipo de revestimento -->
+                    <GridLayout
+                        android:id="@+id/gridRevest"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:alignmentMode="alignMargins"
+                        android:columnCount="2"
+                        android:useDefaultMargins="true">
+
+                        <!-- Piso -->
+                        <com.google.android.material.card.MaterialCardView
                             android:id="@+id/rbPiso"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="@string/calc_step1_opt_piso"
-                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+                            android:layout_columnWeight="1"
+                            android:layout_marginEnd="5dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            app:cardBackgroundColor="@color/calc_tile_background_color"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="2dp"
+                            app:rippleColor="@color/calc_tile_ripple_color"
+                            app:strokeColor="@color/calc_tile_stroke_color"
+                            app:strokeWidth="2dp">
 
-                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_horizontal"
+                                android:orientation="vertical"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="12dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/calc_step1_opt_piso"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="@string/calc_step1_opt_piso_desc"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Azulejo -->
+                        <com.google.android.material.card.MaterialCardView
                             android:id="@+id/rbAzulejo"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="@string/calc_step1_opt_azulejo"
-                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+                            android:layout_columnWeight="1"
+                            android:layout_marginStart="5dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            app:cardBackgroundColor="@color/calc_tile_background_color"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="2dp"
+                            app:rippleColor="@color/calc_tile_ripple_color"
+                            app:strokeColor="@color/calc_tile_stroke_color"
+                            app:strokeWidth="2dp">
 
-                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_horizontal"
+                                android:orientation="vertical"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="12dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/calc_step1_opt_azulejo"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="@string/calc_step1_opt_azulejo_desc"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Pastilha -->
+                        <com.google.android.material.card.MaterialCardView
                             android:id="@+id/rbPastilha"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="@string/calc_step1_opt_pastilha"
-                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+                            android:layout_columnWeight="1"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginEnd="5dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            app:cardBackgroundColor="@color/calc_tile_background_color"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="2dp"
+                            app:rippleColor="@color/calc_tile_ripple_color"
+                            app:strokeColor="@color/calc_tile_stroke_color"
+                            app:strokeWidth="2dp">
 
-                        <com.google.android.material.radiobutton.MaterialRadioButton
-                            android:id="@+id/rbPedra"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="@string/calc_step1_opt_pedra"
-                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_horizontal"
+                                android:orientation="vertical"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="12dp">
 
-                        <com.google.android.material.radiobutton.MaterialRadioButton
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/calc_step1_opt_pastilha"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="@string/calc_step1_opt_pastilha_desc"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Piso Intertravado -->
+                        <com.google.android.material.card.MaterialCardView
                             android:id="@+id/rbPisoIntertravado"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="@string/calc_step1_opt_piso_intertravado"
-                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+                            android:layout_columnWeight="1"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginTop="6dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            app:cardBackgroundColor="@color/calc_tile_background_color"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="2dp"
+                            app:rippleColor="@color/calc_tile_ripple_color"
+                            app:strokeColor="@color/calc_tile_stroke_color"
+                            app:strokeWidth="2dp">
 
-                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_horizontal"
+                                android:orientation="vertical"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="12dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/calc_step1_opt_piso_intertravado"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="@string/calc_step1_opt_piso_intertravado_desc"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Mármore -->
+                        <com.google.android.material.card.MaterialCardView
                             android:id="@+id/rbMarmore"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="@string/calc_step1_opt_marmore"
-                            android:textAppearance="?attr/textAppearanceTitleMedium" />
+                            android:layout_columnWeight="1"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginEnd="5dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            app:cardBackgroundColor="@color/calc_tile_background_color"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="2dp"
+                            app:rippleColor="@color/calc_tile_ripple_color"
+                            app:strokeColor="@color/calc_tile_stroke_color"
+                            app:strokeWidth="2dp">
 
-                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_horizontal"
+                                android:orientation="vertical"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="12dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/calc_step1_opt_marmore"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="@string/calc_step1_opt_marmore_desc"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Granito -->
+                        <com.google.android.material.card.MaterialCardView
                             android:id="@+id/rbGranito"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="@string/calc_step1_opt_granito"
-                            android:textAppearance="?attr/textAppearanceTitleMedium" />
-                    </RadioGroup>
+                            android:layout_columnWeight="1"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginTop="6dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            app:cardBackgroundColor="@color/calc_tile_background_color"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="2dp"
+                            app:rippleColor="@color/calc_tile_ripple_color"
+                            app:strokeColor="@color/calc_tile_stroke_color"
+                            app:strokeWidth="2dp">
 
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_horizontal"
+                                android:orientation="vertical"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="12dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/calc_step1_opt_granito"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="@string/calc_step1_opt_granito_desc"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Pedra Portuguesa -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/rbPedra"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginEnd="5dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            app:cardBackgroundColor="@color/calc_tile_background_color"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="2dp"
+                            app:rippleColor="@color/calc_tile_ripple_color"
+                            app:strokeColor="@color/calc_tile_stroke_color"
+                            app:strokeWidth="2dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_horizontal"
+                                android:orientation="vertical"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="12dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/calc_step1_opt_pedra"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="@string/calc_step1_opt_pedra_desc"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+                    </GridLayout>
+
+                    <!-- Tipo da Peça (mesmo id, agora com cara de card de seção) -->
                     <LinearLayout
                         android:id="@+id/groupPlacaTipo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
-                        android:baselineAligned="false"
+                        android:layout_marginTop="20dp"
+                        android:background="@drawable/bg_calc_section_card"
                         android:orientation="vertical"
-                        android:visibility="gone">
+                        android:padding="12dp"
+                        android:visibility="visible">
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
                             android:text="@string/calc_step1_placa_tipo"
+                            android:textAlignment="center"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textStyle="bold" />
 
                         <RadioGroup
                             android:id="@+id/rgPlacaTipo"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_horizontal"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center"
                             android:orientation="horizontal">
 
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/rbCeramica"
-                                android:layout_width="wrap_content"
+                                style="@style/Calc.SegmentedRadioButton"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:layout_marginEnd="8dp"
+                                android:layout_weight="1"
                                 android:text="@string/calc_step1_piso_ceramica" />
 
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/rbPorcelanato"
-                                android:layout_width="wrap_content"
+                                style="@style/Calc.SegmentedRadioButton"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="16dp"
+                                android:layout_marginStart="8dp"
+                                android:layout_weight="1"
                                 android:text="@string/calc_step1_piso_porcelanato" />
                         </RadioGroup>
                     </LinearLayout>
+
                     <!-- Grupo de Aplicação específico para Mármore/Granito -->
                     <LinearLayout
                         android:id="@+id/groupMgAplicacao"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
+                        android:layout_marginTop="20dp"
+                        android:background="@drawable/bg_calc_section_card"
                         android:orientation="vertical"
+                        android:padding="12dp"
                         android:visibility="gone">
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
                             android:text="@string/calc_step1_mg_aplicacao_title"
+                            android:textAlignment="center"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textStyle="bold" />
 
                         <RadioGroup
                             android:id="@+id/rgMgAplicacao"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_horizontal"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="10dp"
+                            android:gravity="center"
                             android:orientation="horizontal">
 
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/rbMgPiso"
-                                android:layout_width="wrap_content"
+                                style="@style/Calc.SegmentedRadioButton"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:layout_marginEnd="8dp"
+                                android:layout_weight="1"
                                 android:text="@string/calc_mg_aplicacao_piso" />
 
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/rbMgParede"
-                                android:layout_width="wrap_content"
+                                style="@style/Calc.SegmentedRadioButton"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="16dp"
+                                android:layout_marginStart="8dp"
+                                android:layout_weight="1"
                                 android:text="@string/calc_mg_aplicacao_parede" />
                         </RadioGroup>
                     </LinearLayout>
@@ -404,7 +691,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_gravity="center"
-                                    android:text="@string/icon_card_informação"
+                                    android:text="@string/icon_card_informaçao"
                                     android:textColor="?attr/colorPrimary"
                                     android:textSize="20sp" />
                             </FrameLayout>
@@ -550,7 +837,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_gravity="center"
-                                    android:text="@string/icon_card_informação"
+                                    android:text="@string/icon_card_informaçao"
                                     android:textColor="?attr/colorPrimary"
                                     android:textSize="20sp" />
                             </FrameLayout>
@@ -1421,7 +1708,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_gravity="center"
-                                    android:text="@string/icon_card_informação"
+                                    android:text="@string/icon_card_informaçao"
                                     android:textColor="?attr/colorPrimary"
                                     android:textSize="20sp" />
                             </FrameLayout>

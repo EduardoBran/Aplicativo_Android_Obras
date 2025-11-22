@@ -67,10 +67,8 @@ class ToolbarManager(
     private fun navigateToHome() {
         // Tenta voltar para Home se já estiver na pilha
         if (navController.popBackStack(R.id.homeFragment, false)) return
-
         // Se não tiver Home, tenta voltar para Work (lista de obras)
         if (navController.popBackStack(R.id.workFragment, false)) return
-
         // Fallback seguro: navega ou faz navigateUp
         try {
             navController.navigate(R.id.workFragment)

@@ -1,24 +1,30 @@
 package com.luizeduardobrandao.obra.ui.calculo.ui
 
+import android.content.Context
 import android.view.View
 import android.widget.RadioGroup
+import com.google.android.material.card.MaterialCardView
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
 
-/**
- * Gerencia a sincronização de RadioGroups com o estado do ViewModel
+/** Gerencia a sincronização de componentes de UI com o estado do ViewModel
  *
  * Responsável por:
  * - Sincronizar RadioGroups sem disparar listeners
+ * - Sincronizar seleção visual de Cards
  * - Evitar loops infinitos de atualização
  * - Manter estado consistente entre UI e ViewModel
- *  * Inclui:
- *  * - Tipo de revestimento, tipo de placa, ambiente
- *  * - Material de rodapé (agora exibido dentro da tela de Medidas da Peça)
- *  * - Tipo de tráfego (Piso Intertravado)
+ *
+ * Inclui:
+ * - Tipo de revestimento (cards visuais)
+ * - Tipo de placa, ambiente
+ * - Material de rodapé (agora exibido dentro da tela de Medidas da Peça)
+ * - Tipo de tráfego (Piso Intertravado)
+ * - Aplicação MG (Piso/Parede)
+ * - Tamanho de pastilha
  */
-class RadioGroupSynchronizer {
+class InputSynchronizer(private val context: Context) {
 
     /** Marca ou desmarca um RadioGroup de forma segura */
     private fun RadioGroup.setCheckedSafely(id: Int?) {
@@ -31,21 +37,17 @@ class RadioGroupSynchronizer {
         }
     }
 
-    /**
-     * Sincroniza todos os RadioGroups com o estado atual dos Inputs
-     *
-     * @param inputs Estado atual do ViewModel
-     * @param rgRevest RadioGroup de tipo de revestimento
-     * @param rgPlacaTipo RadioGroup de tipo de placa (cerâmica/porcelanato)
-     * @param rgAmbiente RadioGroup de tipo de ambiente
-     * @param rgRodapeMat RadioGroup de material de rodapé
-     * @param rgTrafego RadioGroup de tipo de tráfego
-     * @param rgPastilhaTamanho RadioGroup de tamanho de pastilha cerâmica
-     * @param rgPastilhaPorcelanatoTamanho RadioGroup de tamanho de pastilha porcelanato
-     */
+    /** Sincroniza todos os RadioGroups com o estado atual dos Inputs
+     *  @param inputs Estado atual do ViewModel
+     *  @param rgPlacaTipo RadioGroup de tipo de placa (cerâmica/porcelanato)
+     *  @param rgAmbiente RadioGroup de tipo de ambiente
+     *  @param rgRodapeMat RadioGroup de material de rodapé
+     *  @param rgTrafego RadioGroup de tipo de tráfego
+     *  @param rgPastilhaTamanho RadioGroup de tamanho de pastilha cerâmica
+     *  @param rgPastilhaPorcelanatoTamanho RadioGroup de tamanho de pastilha porcelanato
+     *  @param rgMgAplicacao RadioGroup de aplicação MG (Piso/Parede) */
     fun syncAllRadioGroups(
         inputs: CalcRevestimentoViewModel.Inputs,
-        rgRevest: RadioGroup,
         rgPlacaTipo: RadioGroup,
         rgAmbiente: RadioGroup,
         rgRodapeMat: RadioGroup,
@@ -54,8 +56,6 @@ class RadioGroupSynchronizer {
         rgPastilhaPorcelanatoTamanho: RadioGroup,
         rgMgAplicacao: RadioGroup
     ) {
-        // Sincroniza tipo de revestimento
-        syncRevestimento(inputs.revest, rgRevest)
         // Sincroniza tipo de placa (cerâmica/porcelanato)
         syncPlacaTipo(inputs.pisoPlacaTipo, rgPlacaTipo)
         // Sincroniza aplicação (Piso/Parede) específica de Mármore/Granito
@@ -75,12 +75,39 @@ class RadioGroupSynchronizer {
         }
     }
 
-    /** Sincroniza RadioGroup de tipo de revestimento */
-    private fun syncRevestimento(
-        revest: CalcRevestimentoViewModel.RevestimentoType?,
-        rgRevest: RadioGroup
+    /** Sincroniza seleção visual dos cards de tipo de revestimento
+     *  @param selected Tipo de revestimento selecionado
+     *  @param cards Lista de todos os cards de revestimento */
+    fun syncRevestimentoCards(
+        selected: CalcRevestimentoViewModel.RevestimentoType?,
+        vararg cards: MaterialCardView
     ) {
-        val radioId = when (revest) {
+        // Cores do tema
+        val colorPrimary = com.google.android.material.R.attr.colorPrimary
+        val colorOutlineVariant = com.google.android.material.R.attr.colorOutlineVariant
+        val colorPrimaryContainer = com.google.android.material.R.attr.colorPrimaryContainer
+        val colorSurface = com.google.android.material.R.attr.colorSurface
+        // Resolve as cores dos atributos do tema
+        val typedValue = android.util.TypedValue()
+        val theme = context.theme
+
+        theme.resolveAttribute(colorPrimary, typedValue, true)
+        val primaryColor = typedValue.data
+        theme.resolveAttribute(colorOutlineVariant, typedValue, true)
+        val outlineColor = typedValue.data
+        theme.resolveAttribute(colorPrimaryContainer, typedValue, true)
+        val primaryContainerColor = typedValue.data
+        theme.resolveAttribute(colorSurface, typedValue, true)
+        val surfaceColor = typedValue.data
+        // Zera seleção visual de todos os cards
+        cards.forEach { card ->
+            card.isChecked = false
+            card.isSelected = false
+            card.strokeColor = outlineColor
+            card.setCardBackgroundColor(surfaceColor)
+        }
+        // Mapeia tipo de revestimento para ID do card
+        val selectedCardId = when (selected) {
             CalcRevestimentoViewModel.RevestimentoType.PISO -> R.id.rbPiso
             CalcRevestimentoViewModel.RevestimentoType.AZULEJO -> R.id.rbAzulejo
             CalcRevestimentoViewModel.RevestimentoType.PASTILHA -> R.id.rbPastilha
@@ -90,7 +117,14 @@ class RadioGroupSynchronizer {
             CalcRevestimentoViewModel.RevestimentoType.GRANITO -> R.id.rbGranito
             null -> null
         }
-        rgRevest.setCheckedSafely(radioId)
+        // Marca apenas o card selecionado
+        val selectedCard = cards.find { it.id == selectedCardId }
+        selectedCard?.apply {
+            isChecked = true
+            isSelected = true
+            strokeColor = primaryColor
+            setCardBackgroundColor(primaryContainerColor)
+        }
     }
 
     /** Sincroniza RadioGroup de tipo de placa (cerâmica/porcelanato) */
@@ -116,13 +150,10 @@ class RadioGroupSynchronizer {
 
         val isMg = revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
                 revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
-
-        if (!isMg) {
-            // Cenário não é MG → nenhum botão marcado
+        if (!isMg) { // Cenário não é MG → nenhum botão marcado
             rgMgAplicacao.setCheckedSafely(null)
             return
         }
-
         val radioId = when (aplic) {
             CalcRevestimentoViewModel.AplicacaoType.PISO -> R.id.rbMgPiso
             CalcRevestimentoViewModel.AplicacaoType.PAREDE -> R.id.rbMgParede
@@ -172,11 +203,10 @@ class RadioGroupSynchronizer {
         rgRodapeMat.setCheckedSafely(radioId)
     }
 
-    /** * Sincroniza RadioGroup de tamanho de pastilha */
+    /** Sincroniza RadioGroup de tamanho de pastilha */
     private fun syncPastilhaTamanho(
         formato: RevestimentoSpecifications.PastilhaFormato?,
-        rgPastilhaTamanho: RadioGroup,
-        rgPastilhaPorcelanatoTamanho: RadioGroup
+        rgPastilhaTamanho: RadioGroup, rgPastilhaPorcelanatoTamanho: RadioGroup
     ) {
         val (ceramicaId, porcelanatoId) = when (formato) {
             RevestimentoSpecifications.PastilhaFormato.P5 -> R.id.rbPastilha5 to null

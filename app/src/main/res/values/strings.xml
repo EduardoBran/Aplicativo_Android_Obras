@@ -906,8 +906,8 @@
 
     <!-- TELA 1 -->
     <string name="calc_step1_title">Tipo de Revestimento</string>
-    <string name="calc_step1_opt_piso">Piso (cerâmico ou porcelanato)</string>
-    <string name="calc_step1_placa_tipo">Tipo da Peça:</string>
+    <string name="calc_step1_opt_piso">Piso</string>
+    <string name="calc_step1_placa_tipo">Qual o tipo da peça?</string>
     <string name="calc_step1_opt_azulejo">Azulejo</string>
     <string name="calc_step1_opt_pastilha">Pastilha</string>
     <string name="calc_step1_opt_pedra">Pedra Portuguesa</string>
@@ -928,6 +928,16 @@
     <string name="calc_home_title">Tela Principal</string>
     <string name="calc_home_dialog_title">Retornar a Tela Principal</string>
     <string name="calc_home_dialog_message">Deseja retornar a tela principal do app?</string>
+
+    <string name="calc_step1_subtitle">Escolha o tipo de revestimento que será instalado</string>
+    <string name="calc_step1_opt_piso_desc">Pisos cerâmicos ou porcelanatos internos e externos</string>
+    <string name="calc_step1_opt_azulejo_desc">Azulejos cerâmicos ou porcelanatos para paredes</string>
+    <string name="calc_step1_opt_pastilha_desc">Pastilhas cerâmicas e porcelanatos para superfícies</string>
+    <string name="calc_step1_opt_pedra_desc">Pedras portuguesas para áreas externas de circulação</string>
+    <string name="calc_step1_opt_piso_intertravado_desc">Piso intertravado para calçadas, acessos e garagens</string>
+    <string name="calc_step1_opt_marmore_desc">Mármores para pisos e paredes internas e externas</string>
+    <string name="calc_step1_opt_granito_desc">Granitos para pisos e paredes internas e externas</string>
+
 
     <!-- TELA 2 -->
     <string name="calc_step2_title">Tipo de Ambiente</string>
@@ -1138,7 +1148,7 @@
 
     <!-- TELA 8 -->
     <string name="calc_table_title">📋 Lista de Materiais</string>
-    <string name="icon_card_informação">ℹ️</string>
+    <string name="icon_card_informaçao">ℹ️</string>
     <string name="calc_table_hint">Os valores consideram consumos técnicos conforme NBR 14081, TCPO e especificações de fabricantes.\n\nA coluna "Comprar" indica as embalagens comerciais necessárias (arredondadas para cima).</string>
     <string name="col_item">Item</string>
     <string name="col_qtd">Qtd</string>

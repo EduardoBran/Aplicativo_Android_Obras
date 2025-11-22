@@ -6,11 +6,8 @@ import com.luizeduardobrandao.obra.ui.calculo.domain.calculators.RodapeCalculato
 import com.luizeduardobrandao.obra.ui.calculo.domain.rules.CalcRevestimentoRules
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
 
-/**
- * Utilitário para validações de formulário por etapa.
- *
- * Mapeamento atual de etapas:
- *
+/** Utilitário para validações de formulário por etapa.
+ *  Mapeamento atual de etapas:
  * 0 – Abertura (sem validação)
  * 1 – Tipo de Revestimento
  * 2 – Tipo de Ambiente
@@ -21,21 +18,17 @@ import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.Revestimento
  * 7 – Resultado (sem validação específica)
  */
 object ValidationHelper {
-
     // Atalhos para regras numéricas
     private val Medidas = CalcRevestimentoRules.Medidas
     private val PecaRules = CalcRevestimentoRules.Peca
     private val RodapeRules = CalcRevestimentoRules.Rodape
     private val InterRules = CalcRevestimentoRules.Intertravado
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * STEP 1 – Tipo de Revestimento
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** =========== STEP 1 – Tipo de Revestimento =========== */
     fun validateStep1(inputs: Inputs): StepValidation {
         return when {
             inputs.revest == null ->
                 StepValidation(false)
-
             // Piso exige seleção de tipo de placa (Cerâmica / Porcelanato)
             inputs.revest == RevestimentoType.PISO && inputs.pisoPlacaTipo == null ->
                 StepValidation(false)
@@ -44,9 +37,7 @@ object ValidationHelper {
         }
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * STEP 2 – Tipo de Ambiente
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** =========== STEP 2 – Tipo de Ambiente */
     fun validateStep2Ambiente(inputs: Inputs): StepValidation {
         return if (inputs.ambiente == null)
             StepValidation(false)
@@ -54,9 +45,7 @@ object ValidationHelper {
             StepValidation(true)
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * STEP 3 – Tipo de Tráfego (apenas Piso Intertravado)
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ===========STEP 3 – Tipo de Tráfego (apenas Piso Intertravado) */
     fun validateStep3Trafego(inputs: Inputs): StepValidation {
         return if (inputs.revest == RevestimentoType.PISO_INTERTRAVADO) {
             if (inputs.trafego == null)
@@ -68,9 +57,7 @@ object ValidationHelper {
         }
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * STEP 4 – Medidas da Área
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** =========== STEP 4 – Medidas da Área =========== */
     fun validateStep4AreaDimensions(inputs: Inputs): StepValidation {
         // Caso 1: usuário informou diretamente a área total (modo "área informada")
         inputs.areaInformadaM2?.let { area ->
@@ -98,22 +85,18 @@ object ValidationHelper {
             val c = inputs.compM
             val h = inputs.altM
             val paredes = inputs.paredeQtd
-
             // Campos obrigatórios
             if (c == null || h == null || paredes == null) {
                 return StepValidation(false)
             }
-
             // Quantidade de paredes dentro do range permitido
             if (paredes !in Medidas.PAREDE_QTD_MIN..Medidas.PAREDE_QTD_MAX) {
                 return StepValidation(false)
             }
-
             val areaBruta = c * h * paredes
             if (areaBruta <= 0.0) {
                 return StepValidation(false)
             }
-
             val abertura = inputs.aberturaM2
             if (abertura != null) {
                 if (abertura < Medidas.ABERTURA_MIN_M2) {
@@ -123,7 +106,6 @@ object ValidationHelper {
                     return StepValidation(false)
                 }
             }
-
             val areaLiquida = areaBruta - (abertura ?: 0.0)
             return when {
                 areaLiquida < Medidas.AREA_TOTAL_MIN_M2 ->
@@ -151,9 +133,7 @@ object ValidationHelper {
         }
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * STEP 5 – Medidas da Peça + Rodapé (quando habilitado)
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** =========== STEP 5 – Medidas da Peça + Rodapé (quando habilitado) =========== */
     fun validateStep5PecaDimensions(inputs: Inputs): StepValidation {
         // 1) Validação da peça (sem rodapé)
         val baseValidation = when {
@@ -162,8 +142,7 @@ object ValidationHelper {
             RevestimentoSpecifications.isPedraOuSimilares(inputs.revest) -> validatePedra(inputs)
             else -> validateRevestimentoPadrao(inputs)
         }
-        if (!baseValidation.isValid) {
-            // Se a peça não está válida, nem adianta olhar rodapé
+        if (!baseValidation.isValid) { // Se a peça não está válida, nem adianta olhar rodapé
             return baseValidation
         }
         // 2) Se rodape= false, ou se o switch estiver desligado, valida somente a peça.
@@ -174,10 +153,7 @@ object ValidationHelper {
         return validateRodape(inputs)
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * VALIDAÇÕES ESPECÍFICAS POR TIPO DE REVESTIMENTO
-     * ════════════════════════════════════════════════════════════════════════ */
-
+    /** =========== VALIDAÇÕES ESPECÍFICAS POR TIPO DE REVESTIMENTO =========== */
     private fun validatePastilha(inputs: Inputs): StepValidation {
         // Formato da pastilha é obrigatório
         if (inputs.pastilhaFormato == null) {
@@ -239,23 +215,18 @@ object ValidationHelper {
             // Dimensões são obrigatórias
             inputs.pecaCompCm == null || inputs.pecaLargCm == null ->
                 StepValidation(false)
-
             // Devem respeitar o range genérico de peça
             inputs.pecaCompCm !in PecaRules.GENERIC_RANGE_CM ||
                     inputs.pecaLargCm !in PecaRules.GENERIC_RANGE_CM ->
                 StepValidation(false)
-
             // Junta obrigatória
             inputs.juntaMm == null ->
                 StepValidation(false)
-
             // Junta deve estar dentro do range padrão
             inputs.juntaMm !in PecaRules.JUNTA_RANGE_MM ->
                 StepValidation(false)
-
             // Sobra, se informada, precisa estar no range
-            inputs.sobraPct != null &&
-                    inputs.sobraPct !in PecaRules.SOBRA_RANGE_PCT ->
+            inputs.sobraPct != null && inputs.sobraPct !in PecaRules.SOBRA_RANGE_PCT ->
                 StepValidation(false)
 
             else -> StepValidation(true)
@@ -287,13 +258,10 @@ object ValidationHelper {
         }
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * VALIDAÇÃO DO RODAPÉ (usada quando rodapeEnable == true e o cenário possui rodapé)
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ==== VALIDAÇÃO RODAPÉ (usada quando rodapeEnable == true e o cenário possui rodapé) ==== */
     private fun validateRodape(inputs: Inputs): StepValidation {
         // Se o switch estiver desligado, não trava a navegação
         if (!inputs.rodapeEnable) return StepValidation(true)
-
         // Altura obrigatória e dentro do range
         val altura = inputs.rodapeAlturaCm
         when (altura) {
@@ -303,7 +271,6 @@ object ValidationHelper {
             !in RodapeRules.ALTURA_RANGE_CM ->
                 return StepValidation(false)
         }
-
         // Caso 1: Rodapé com peça pronta → precisa do comprimento comercial válido
         if (inputs.rodapeMaterial == RodapeMaterial.PECA_PRONTA) {
             val compM = inputs.rodapeCompComercialM
@@ -325,7 +292,6 @@ object ValidationHelper {
                 }
             }
         }
-
         // Caso 2: Rodapé com mesma peça → exige apenas perímetro positivo
         val per = RodapeCalculator.rodapePerimetroM(inputs)
         return if (per == null || per <= 0.0)

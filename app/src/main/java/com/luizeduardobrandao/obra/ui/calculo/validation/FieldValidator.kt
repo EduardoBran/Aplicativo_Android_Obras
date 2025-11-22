@@ -13,16 +13,12 @@ import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.Revestimento
 import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import com.luizeduardobrandao.obra.ui.calculo.utils.UnitConverter
 
-/**
- * Gerenciador centralizado de:
+/** Gerenciador centralizado de:
  *  - Regras de negócio de campos / Validações (live e blur)
- *  - Mensagens de erro / Helper texts / hints dinâmicos
- */
+ *  - Mensagens de erro / Helper texts / hints dinâmicos */
 class FieldValidator(
-    private val viewModel: CalcRevestimentoViewModel,
-    private val getString: (Int) -> String
+    private val viewModel: CalcRevestimentoViewModel, private val getString: (Int) -> String
 ) {
-
     // Atalhos para regras
     private val medidas = CalcRevestimentoRules.Medidas
     private val pecaRules = CalcRevestimentoRules.Peca
@@ -35,36 +31,26 @@ class FieldValidator(
     private val rodapeAlturaRange = rodapeRules.ALTURA_RANGE_CM
     private val rodapeCompCmRange = rodapeRules.COMP_COMERCIAL_RANGE_CM
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * TIPOS DE CONFIG AUXILIAR
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ===================== TIPOS DE CONFIG AUXILIAR ===================== */
     private data class RangeConfig(
-        val min: Double,
-        val max: Double,
-        val errorMsgRes: Int,
-        val required: Boolean = false,
-        val requiredMsgRes: Int? = null
+        val min: Double, val max: Double, val errorMsgRes: Int,
+        val required: Boolean = false, val requiredMsgRes: Int? = null
     )
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * API GENÉRICA
-     * Mostra/limpa erro inline no campo (mantém o slot de erro sempre ativo)
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ===================== API GENÉRICA =====================
+     * Mostra/limpa erro inline no campo (mantém o slot de erro sempre ativo) */
     fun setInlineError(et: TextInputEditText, til: TextInputLayout?, msg: String?) {
         if (til == null) {
-            if (et.error == msg) return // Se o erro já é exatamente o mesmo, não faz nada
+            if (et.error == msg) return  // Se o erro já é exatamente o mesmo, não faz nada
             et.error = msg
         } else {
             if (til.error == msg) return // Se o erro já é exatamente o mesmo, não faz nada
-            // Slot de erro sempre habilitado (você já reserva o espaço no layout)
             til.isErrorEnabled = true
             til.error = msg
         }
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * ESPESSURA (PEÇA) – LÓGICA COMPLETA
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ===================== ESPESSURA (PEÇA) – LÓGICA COMPLETA ===================== */
     private fun buildEspessuraConfig(): RangeConfig {
         val i = viewModel.inputs.value
         val revest = i.revest
@@ -83,39 +69,29 @@ class FieldValidator(
             // Mármore / Granito – já eram obrigatórios
             isMG && aplic == AplicacaoType.PAREDE ->
                 RangeConfig(
-                    min = pecaRules.MG_PAREDE_ESP_MIN_MM,
-                    max = pecaRules.MG_PAREDE_ESP_MAX_MM,
+                    min = pecaRules.MG_PAREDE_ESP_MIN_MM, max = pecaRules.MG_PAREDE_ESP_MAX_MM,
                     errorMsgRes = R.string.calc_err_esp_range_mg_parede,
                     required = true, requiredMsgRes = R.string.calc_err_esp_required
                 )
 
             isMG && aplic == AplicacaoType.PISO ->
                 RangeConfig(
-                    min = pecaRules.MG_PISO_ESP_MIN_MM,
-                    max = pecaRules.MG_PISO_ESP_MAX_MM,
+                    min = pecaRules.MG_PISO_ESP_MIN_MM, max = pecaRules.MG_PISO_ESP_MAX_MM,
                     errorMsgRes = R.string.calc_err_esp_range_mg_piso,
                     required = true, requiredMsgRes = R.string.calc_err_esp_required
                 )
             // Demais revestimentos (Piso, Azulejo, Pedra, etc.) – agora obrigatórios
             else ->
                 RangeConfig(
-                    min = pecaRules.ESP_PADRAO_MIN_MM,
-                    max = pecaRules.ESP_PADRAO_MAX_MM,
+                    min = pecaRules.ESP_PADRAO_MIN_MM, max = pecaRules.ESP_PADRAO_MAX_MM,
                     errorMsgRes = R.string.calc_err_esp_range,
-                    required = true,
-                    requiredMsgRes = R.string.calc_err_esp_required
+                    required = true, requiredMsgRes = R.string.calc_err_esp_required
                 )
         }
     }
 
-    /**
-     * Verifica se há erro na espessura (Pastilha nunca bloqueia / Mármore e Granito obrigatórios)
-     * Usado por refreshNextEnabled()
-     */
-    fun hasEspessuraErrorNow(
-        et: TextInputEditText,
-        isPastilha: Boolean,
-        espValueMm: Double?
+    fun hasEspessuraErrorNow( // Verifica erro na espessura (Pastilha nunca bloqueia / Mármore e Granito obrigatórios)
+        et: TextInputEditText, isPastilha: Boolean, espValueMm: Double?
     ): Boolean {
         if (isPastilha) return false
 
@@ -127,15 +103,10 @@ class FieldValidator(
         return espValueMm == null || espValueMm !in config.min..config.max
     }
 
-    /** Validação live + mensagem de erro para espessura */
-    fun validateEspessuraLive(
-        et: TextInputEditText,
-        til: TextInputLayout,
-        isPastilha: Boolean,
-        espValueMm: Double?
+    fun validateEspessuraLive( // Validação live + mensagem de erro para espessura
+        et: TextInputEditText, til: TextInputLayout, isPastilha: Boolean, espValueMm: Double?
     ) {
-        if (isPastilha) {
-            // Pastilha não usa espessura para validação
+        if (isPastilha) { // Pastilha não usa espessura para validação
             setInlineError(et, til, null)
             return
         }
@@ -157,23 +128,19 @@ class FieldValidator(
         setInlineError(et, til, msg)
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * JUNTA
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ===================== JUNTA ===================== */
     private fun buildJuntaRange(): ClosedRange<Double> {
         val revest = viewModel.inputs.value.revest
         val isPastilha = revest == RevestimentoType.PASTILHA
         return if (isPastilha) pecaRules.PASTILHA_JUNTA_RANGE_MM else pecaRules.JUNTA_RANGE_MM
     }
 
-    /** Verifica se há erro na junta atualmente */
     fun hasJuntaErrorNow(
-        et: TextInputEditText,
-        juntaValue: Double?, // em mm
+        // Verifica se há erro na junta atualmente
+        et: TextInputEditText, juntaValue: Double?, // em mm
     ): Boolean {
         val txtEmpty = et.text.isNullOrBlank()
         val revest = viewModel.inputs.value.revest
-
         val juntaRange = buildJuntaRange()
 
         // Junta obrigatória para todos, exceto: Pastilha e Piso Intertravado (campo oculto na UI)
@@ -187,16 +154,12 @@ class FieldValidator(
         return juntaValue == null || juntaValue !in juntaRange
     }
 
-    /** Validação live + mensagem da junta */
-    fun validateJuntaLive(
-        et: TextInputEditText,
-        til: TextInputLayout,
-        juntaValueMm: Double?
+    fun validateJuntaLive( // Validação live + mensagem da junta
+        et: TextInputEditText, til: TextInputLayout, juntaValueMm: Double?
     ) {
         val txtEmpty = et.text.isNullOrBlank()
         val revest = viewModel.inputs.value.revest
 
-        // Mesma regra de obrigatoriedade que hasJuntaErrorNow()
         val juntaObrigatoria =
             revest != RevestimentoType.PASTILHA &&
                     revest != RevestimentoType.PISO_INTERTRAVADO
@@ -227,59 +190,44 @@ class FieldValidator(
         setInlineError(et, til, getString(msgRes))
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * DESNÍVEL
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ===================== DESNÍVEL ===================== */
     private fun buildDesnivelRange(): RangeConfig? {
         val revest = viewModel.inputs.value.revest
         return when (revest) {
             RevestimentoType.PEDRA ->
                 RangeConfig(
-                    min = desnivelRules.PEDRA_MIN_CM,
-                    max = desnivelRules.PEDRA_MAX_CM,
+                    min = desnivelRules.PEDRA_MIN_CM, max = desnivelRules.PEDRA_MAX_CM,
                     errorMsgRes = R.string.calc_err_desnivel_pedra_range,
-                    required = true,
-                    requiredMsgRes = R.string.calc_err_desnivel_required
+                    required = true, requiredMsgRes = R.string.calc_err_desnivel_required
                 )
 
             RevestimentoType.MARMORE,
             RevestimentoType.GRANITO ->
                 RangeConfig(
-                    min = desnivelRules.MG_MIN_CM,
-                    max = desnivelRules.MG_MAX_CM,
+                    min = desnivelRules.MG_MIN_CM, max = desnivelRules.MG_MAX_CM,
                     errorMsgRes = R.string.calc_err_desnivel_mg_range,
-                    required = true,
-                    requiredMsgRes = R.string.calc_err_desnivel_required
+                    required = true, requiredMsgRes = R.string.calc_err_desnivel_required
                 )
 
             else -> null
         }
     }
 
-    /** Verifica se há erro no desnível (considera visibilidade e tipo do revestimento) */
-    fun hasDesnivelErrorNow(
-        et: TextInputEditText,
-        tilVisible: Boolean,
-        desnivelCm: Double?
+    fun hasDesnivelErrorNow( // Verifica se há erro no desnível (considera visibilidade e tipo do revestimento)
+        et: TextInputEditText, tilVisible: Boolean, desnivelCm: Double?
     ): Boolean {
         if (!tilVisible) return false
 
         val cfg = buildDesnivelRange() ?: return false
         val txtEmpty = et.text.isNullOrBlank()
-
-        // Pedra / MG: campo obrigatório quando visível
-        if (cfg.required && txtEmpty) return true
+        if (cfg.required && txtEmpty) return true // Pedra / MG: campo obrigatório quando visível
         if (txtEmpty) return false
 
         return desnivelCm == null || desnivelCm !in cfg.min..cfg.max
     }
 
-    /** Validação live + mensagem para desnível */
-    fun validateDesnivelLive(
-        et: TextInputEditText,
-        til: TextInputLayout,
-        tilVisible: Boolean,
-        desnivelCm: Double?
+    fun validateDesnivelLive( // Validação live + mensagem para desnível
+        et: TextInputEditText, til: TextInputLayout, tilVisible: Boolean, desnivelCm: Double?
     ) {
         if (!tilVisible) {
             setInlineError(et, til, null)
@@ -307,19 +255,13 @@ class FieldValidator(
         setInlineError(et, til, msg)
     }
 
-    /** Validação no blur para desnível */
-    fun validateDesnivelOnBlur(
-        et: TextInputEditText,
-        til: TextInputLayout,
-        tilVisible: Boolean,
-        desnivelCm: Double?
+    fun validateDesnivelOnBlur( // Validação no blur para desnível
+        et: TextInputEditText, til: TextInputLayout, tilVisible: Boolean, desnivelCm: Double?
     ) {
         validateDesnivelLive(et, til, tilVisible, desnivelCm)
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * PEÇAS POR CAIXA
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ===================== PEÇAS POR CAIXA ===================== */
     fun hasPecasPorCaixaErrorNow(et: TextInputEditText): Boolean {
         val txt = et.text
         if (txt.isNullOrBlank()) return false
@@ -328,8 +270,7 @@ class FieldValidator(
     }
 
     fun validatePecasPorCaixaLive(
-        et: TextInputEditText,
-        til: TextInputLayout
+        et: TextInputEditText, til: TextInputLayout
     ) {
         val hasErr = hasPecasPorCaixaErrorNow(et)
         val msg =
@@ -337,9 +278,7 @@ class FieldValidator(
         setInlineError(et, til, msg)
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * ÁREA TOTAL
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ===================== ÁREA TOTAL ===================== */
     fun hasAreaTotalErrorNow(et: TextInputEditText): Boolean {
         val txt = et.text
         if (txt.isNullOrBlank()) return false
@@ -352,10 +291,8 @@ class FieldValidator(
         return !et.text.isNullOrBlank() && v != null && v in areaTotalRange
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * VALIDADORES GENÉRICOS (REUTILIZADOS INTERNAMENTE)
-     * ════════════════════════════════════════════════════════════════════════ */
-    /** Valida range simples e mostra erro no blur */
+    /** ============= VALIDADORES GENÉRICOS (REUTILIZADOS INTERNAMENTE) ============= */
+    // Valida range simples e mostra erro no blur
     fun validateRangeOnBlur(
         et: TextInputEditText, til: TextInputLayout?, parse: () -> Double?,
         range: ClosedRange<Double>, errMsg: String
@@ -368,16 +305,14 @@ class FieldValidator(
                 setInlineError(et, til, null)
                 return@setOnFocusChangeListener
             }
-
             val ok = v != null && v in range
             setInlineError(et, til, if (ok) null else errMsg)
         }
     }
 
-    /** Valida peça no blur com lógica específica por tipo (Mármore/Granito x demais) */
+    // Valida peça no blur com lógica específica por tipo (Mármore/Granito x demais)
     fun validatePecaOnBlur(
-        et: TextInputEditText,
-        til: TextInputLayout
+        et: TextInputEditText, til: TextInputLayout
     ) {
         et.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
@@ -396,7 +331,6 @@ class FieldValidator(
                 isMG -> (cm != null && cm in 10.0..2000.1)  // 0,10m a 20,0m
                 else -> (cm != null && cm in 5.0..200.0)    // 5 a 200 cm
             }
-
             val msg = when {
                 ok -> null
                 isMG -> getString(R.string.calc_piece_err_m)
@@ -406,17 +340,13 @@ class FieldValidator(
         }
     }
 
-    /** Valida dimensão em tempo real (suprime erros se área total estiver válida) */
+    // Valida dimensão em tempo real (suprime erros se área total estiver válida)
     fun validateDimLive(
-        et: TextInputEditText,
-        til: TextInputLayout,
-        range: ClosedRange<Double>,
-        errMsg: String,
-        isAreaTotalValid: Boolean
+        et: TextInputEditText, til: TextInputLayout, range: ClosedRange<Double>,
+        errMsg: String, isAreaTotalValid: Boolean
     ) {
         val v = et.text?.toString()?.replace(",", ".")?.toDoubleOrNull()
         val ok = et.text.isNullOrBlank() || (v != null && v in range)
-
         if (isAreaTotalValid) {
             setInlineError(et, til, null)
         } else {
@@ -424,40 +354,27 @@ class FieldValidator(
         }
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * MEDIDAS (COMP / LARG / ALT / ÁREA INFORMADA / PAREDE QTD / ABERTURA)
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ========= MEDIDAS (COMP / LARG / ALT / ÁREA INFORMADA / PAREDE QTD / ABERTURA) ========= */
     fun validateCompOrLargLive(
-        et: TextInputEditText,
-        til: TextInputLayout,
-        isAreaTotalValid: Boolean
+        et: TextInputEditText, til: TextInputLayout, isAreaTotalValid: Boolean
     ) {
         validateDimLive(
-            et,
-            til,
-            compLargeRange,
-            getString(R.string.calc_err_medida_comp_larg_m),
-            isAreaTotalValid
+            et, til, compLargeRange,
+            getString(R.string.calc_err_medida_comp_larg_m), isAreaTotalValid
         )
     }
 
     fun validateAlturaLive(
-        et: TextInputEditText,
-        til: TextInputLayout,
-        isAreaTotalValid: Boolean
+        et: TextInputEditText, til: TextInputLayout, isAreaTotalValid: Boolean
     ) {
         validateDimLive(
-            et,
-            til,
-            alturaRange,
-            getString(R.string.calc_err_medida_alt_m),
-            isAreaTotalValid
+            et, til, alturaRange,
+            getString(R.string.calc_err_medida_alt_m), isAreaTotalValid
         )
     }
 
     fun validateAreaInformadaLive(
-        etAreaInformada: TextInputEditText,
-        tilAreaInformada: TextInputLayout
+        etAreaInformada: TextInputEditText, tilAreaInformada: TextInputLayout
     ) {
         val v = etAreaInformada.text?.toString()
             ?.replace(",", ".")?.toDoubleOrNull()
@@ -473,12 +390,10 @@ class FieldValidator(
     }
 
     fun validateAreaInformadaOnBlur(
-        etAreaInformada: TextInputEditText,
-        tilAreaInformada: TextInputLayout
+        etAreaInformada: TextInputEditText, tilAreaInformada: TextInputLayout
     ) {
         validateRangeOnBlur(
-            etAreaInformada,
-            tilAreaInformada,
+            etAreaInformada, tilAreaInformada,
             {
                 etAreaInformada.text?.toString()
                     ?.replace(",", ".")?.toDoubleOrNull()
@@ -488,8 +403,7 @@ class FieldValidator(
     }
 
     fun validateParedeQtdLive(
-        etParedeQtd: TextInputEditText,
-        tilParedeQtd: TextInputLayout
+        etParedeQtd: TextInputEditText, tilParedeQtd: TextInputLayout
     ) {
         val qtd = etParedeQtd.text?.toString()?.toIntOrNull()
         val msg = when {
@@ -501,8 +415,7 @@ class FieldValidator(
     }
 
     fun validateParedeQtdOnBlur(
-        etParedeQtd: TextInputEditText,
-        tilParedeQtd: TextInputLayout
+        etParedeQtd: TextInputEditText, tilParedeQtd: TextInputLayout
     ) {
         validateRangeOnBlur(
             etParedeQtd, tilParedeQtd,
@@ -512,8 +425,7 @@ class FieldValidator(
     }
 
     fun validateAberturaLive(
-        etAbertura: TextInputEditText,
-        tilAbertura: TextInputLayout
+        etAbertura: TextInputEditText, tilAbertura: TextInputLayout
     ) {
         val abertura = etAbertura.text?.toString()
             ?.replace(",", ".")?.toDoubleOrNull()
@@ -539,8 +451,7 @@ class FieldValidator(
     }
 
     fun validateAberturaOnBlur(
-        etAbertura: TextInputEditText,
-        tilAbertura: TextInputLayout
+        etAbertura: TextInputEditText, tilAbertura: TextInputLayout
     ) {
         etAbertura.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
@@ -548,12 +459,9 @@ class FieldValidator(
         }
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * PEÇA (COMP/LARG) – LIVE
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ================ PEÇA (COMP/LARG) – LIVE ================ */
     fun validatePecaLive(
-        et: TextInputEditText,
-        til: TextInputLayout
+        et: TextInputEditText, til: TextInputLayout
     ) {
         val raw = et.text?.toString()?.replace(",", ".")
         if (raw.isNullOrBlank()) {
@@ -578,23 +486,18 @@ class FieldValidator(
         setInlineError(et, til, msg)
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * SOBRA TÉCNICA
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ================ SOBRA TÉCNICA ================  */
     fun validateSobraLive(
-        etSobra: TextInputEditText,
-        tilSobra: TextInputLayout
+        etSobra: TextInputEditText, tilSobra: TextInputLayout
     ) {
         val raw = etSobra.text?.toString()?.replace(",", ".")
         val s = raw?.toDoubleOrNull()
 
         val msg = when {
-            // Campo vazio → mensagem específica
-            raw.isNullOrBlank() ->
+            raw.isNullOrBlank() ->                           // Campo vazio → mensagem específica
                 getString(R.string.calc_err_sobra_required)
 
-            // Valor inválido → mensagem de faixa
-            s == null || s !in pecaRules.SOBRA_RANGE_PCT ->
+            s == null || s !in pecaRules.SOBRA_RANGE_PCT -> // Valor inválido → mensagem de faixa
                 getString(R.string.calc_err_sobra_range)
 
             else -> null
@@ -606,8 +509,7 @@ class FieldValidator(
         etSobra: TextInputEditText,
         tilSobra: TextInputLayout
     ) {
-        if (etSobra.text.isNullOrBlank()) {
-            // Restaura automaticamente 10%
+        if (etSobra.text.isNullOrBlank()) { // Restaura automaticamente 10%
             etSobra.setText(getString(R.string.valor_default_sobra))
             setInlineError(etSobra, tilSobra, null)
             return
@@ -624,16 +526,12 @@ class FieldValidator(
         setInlineError(etSobra, tilSobra, msg)
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * RODAPÉ (ALTURA, ABERTURA, COMP. COMERCIAL)
-     *  - Se o rodapé não está ativo, NENHUM campo de rodapé mostra erro
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ================ RODAPÉ (ALTURA, ABERTURA, COMP. COMERCIAL) ================
+     *  - Se o rodapé não está ativo, NENHUM campo de rodapé mostra erro  */
     fun validateRodapeAlturaLive(
-        et: TextInputEditText,
-        til: TextInputLayout
+        et: TextInputEditText, til: TextInputLayout
     ) {
-        // Se o rodapé não está ativo, não valida e limpa qualquer erro antigo
-        if (!shouldValidateRodape()) {
+        if (!shouldValidateRodape()) { // Se o rodapé não está ativo, não valida e limpa qualquer erro antigo
             setInlineError(et, til, null)
             return
         }
@@ -641,7 +539,6 @@ class FieldValidator(
         val vCm = UnitConverter.mToCmIfLooksLikeMeters(
             et.text?.toString()?.replace(",", ".")?.toDoubleOrNull()
         )
-
         val msg = when {
             et.text.isNullOrBlank() -> null
             vCm == null || vCm !in rodapeAlturaRange ->
@@ -649,19 +546,16 @@ class FieldValidator(
 
             else -> null
         }
-
         setInlineError(et, til, msg)
     }
 
     fun validateRodapeAlturaOnBlur(
-        et: TextInputEditText,
-        til: TextInputLayout
+        et: TextInputEditText, til: TextInputLayout
     ) {
         et.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
 
-            // Se o rodapé não está ativo, limpa o erro e não valida
-            if (!shouldValidateRodape()) {
+            if (!shouldValidateRodape()) { // Se o rodapé não está ativo, limpa o erro e não valida
                 setInlineError(et, til, null)
                 return@setOnFocusChangeListener
             }
@@ -682,18 +576,15 @@ class FieldValidator(
     }
 
     fun validateRodapeAberturaLive(
-        et: TextInputEditText,
-        til: TextInputLayout
+        et: TextInputEditText, til: TextInputLayout
     ) {
-        // Rodapé não ativo → nenhum erro deve ser exibido
-        if (!shouldValidateRodape()) {
+        if (!shouldValidateRodape()) { // Rodapé não ativo → nenhum erro deve ser exibido
             setInlineError(et, til, null)
             return
         }
 
         val texto = et.text?.toString()
         val aberturaM = texto?.replace(",", ".")?.toDoubleOrNull()
-
         val msg = if (texto.isNullOrBlank()) {
             null
         } else {
@@ -712,26 +603,21 @@ class FieldValidator(
     }
 
     fun validateRodapeAberturaOnBlur(
-        et: TextInputEditText,
-        til: TextInputLayout
+        et: TextInputEditText, til: TextInputLayout
     ) {
         et.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
 
-            // Rodapé não ativo → limpa erro
-            if (!shouldValidateRodape()) {
+            if (!shouldValidateRodape()) { // Rodapé não ativo → limpa erro
                 setInlineError(et, til, null)
                 return@setOnFocusChangeListener
             }
-
             validateRodapeAberturaLive(et, til)
         }
     }
 
     fun validateRodapeCompComercialLive(
-        et: TextInputEditText,
-        til: TextInputLayout,
-        isPecaProntaSelecionada: Boolean
+        et: TextInputEditText, til: TextInputLayout, isPecaProntaSelecionada: Boolean
     ) {
         // Se rodapé não está ativo OU não é peça pronta → não mostra erro
         if (!shouldValidateRodape() || !isPecaProntaSelecionada) {
@@ -752,72 +638,55 @@ class FieldValidator(
     }
 
     fun validateRodapeCompComercialOnBlur(
-        et: TextInputEditText,
-        til: TextInputLayout
+        et: TextInputEditText, til: TextInputLayout
     ) {
         et.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
 
-            // Rodapé inativo → não deixa erro pendurado
-            if (!shouldValidateRodape()) {
+            if (!shouldValidateRodape()) { // Rodapé inativo → não deixa erro pendurado
                 setInlineError(et, til, null)
                 return@setOnFocusChangeListener
             }
-
             val compCm = et.text?.toString()?.replace(",", ".")?.toDoubleOrNull()
-
             if (et.text.isNullOrBlank()) {
                 setInlineError(et, til, null)
                 return@setOnFocusChangeListener
             }
-
             val ok = compCm != null && compCm in rodapeCompCmRange
             val msg = if (ok) null else getString(R.string.calc_err_rodape_comp_cm_range)
             setInlineError(et, til, msg)
         }
     }
 
-    /**
-     * Indica se, no estado atual, devemos considerar validações de rodapé.
-     * Rodapé só é "ativo" quando:
+    /** Indica se, no estado atual, devemos considerar validações de rodapé. Rodapé só "ativo" quando:
      *  - o cenário possui etapa de rodapé (hasRodapeStep == true), e
      *  - o switch de rodapé está ligado (rodapeEnable == true).
-     * Alinhado com: ValidatonHelper, VisibilityManager (switch + campos) e RequiredIconManager
-     */
+     * Alinhado com: ValidatonHelper, VisibilityManager (switch + campos) e RequiredIconManager */
     private fun shouldValidateRodape(): Boolean {
         val i = viewModel.inputs.value
         val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(i)
         return hasRodapeStep && i.rodapeEnable
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * HELPERS / HINTS DINÂMICOS (ESPESSURA, PEÇA, JUNTA, DESNÍVEL)
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ============= HELPERS / HINTS DINÂMICOS (ESPESSURA, PEÇA, JUNTA, DESNÍVEL) ============= */
     fun updateStep4HelperTexts(
         i: Inputs,
-        tilPecaEsp: TextInputLayout,
-        tilPecaComp: TextInputLayout,
-        tilPecaLarg: TextInputLayout,
-        tilJunta: TextInputLayout,
-        tilDesnivel: TextInputLayout
+        tilPecaEsp: TextInputLayout, tilPecaComp: TextInputLayout, tilPecaLarg: TextInputLayout,
+        tilJunta: TextInputLayout, tilDesnivel: TextInputLayout
     ) {
         // Sempre usar o valor padrão calculado pelas especificações no helper text
         val padraoEsp = RevestimentoSpecifications.getEspessuraPadraoMm(i)
 
         val mg = i.revest in setOf(
-            RevestimentoType.MARMORE,
-            RevestimentoType.GRANITO
+            RevestimentoType.MARMORE, RevestimentoType.GRANITO
         )
-
         // Espessura
-        if (i.revest == RevestimentoType.PISO_INTERTRAVADO) {
-            // Continua em centímetros para intertravado
+        if (i.revest == RevestimentoType.PISO_INTERTRAVADO) { // Continua em cm para intertravado
             tilPecaEsp.hint = getString(R.string.calc_step4_peca_esp_intertravado)
             tilPecaEsp.setHelperTextSafely(
                 getString(R.string.calc_step4_peca_esp_intertravado_helper)
             )
-        } else {
-            // Demais revestimentos: helper fixo em milímetros, usando SEMPRE o valor padrão
+        } else { // Demais revestimentos: helper fixo em milímetros, usando SEMPRE o valor padrão
             tilPecaEsp.hint = getString(R.string.calc_step4_peca_esp)
             val template = getString(R.string.calc_step4_piece_esp_helper_with_default)
 
@@ -828,9 +697,7 @@ class FieldValidator(
 
             tilPecaEsp.setHelperTextSafely(helper)
         }
-
         val pastilha = (i.revest == RevestimentoType.PASTILHA)
-
         // Junta / Peça
         when {
             pastilha -> {
@@ -851,7 +718,6 @@ class FieldValidator(
                 )
             }
         }
-
         // Desnível
         when (i.revest) {
             RevestimentoType.PEDRA ->
@@ -866,8 +732,7 @@ class FieldValidator(
     }
 
     fun updateJuntaHelperText(
-        i: Inputs,
-        tilJunta: TextInputLayout
+        i: Inputs, tilJunta: TextInputLayout
     ) {
         val helper = when (i.revest) {
             RevestimentoType.PISO -> {
@@ -887,47 +752,35 @@ class FieldValidator(
             RevestimentoType.PISO_INTERTRAVADO -> getString(R.string.helper_junta_piso_intertravado)
             else -> null
         }
-
         tilJunta.setHelperTextSafely(helper)
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * ESPESSURA PADRÃO MÁRMORE / GRANITO (ANTES NO FRAGMENT)
-     * ════════════════════════════════════════════════════════════════════════ */
-    /**
-     * Garante valor padrão de espessura para Mármore/Granito conforme regras:
+    /** ============== ESPESSURA PADRÃO MÁRMORE / GRANITO (ANTES NO FRAGMENT) ==============
+     *  Garante valor padrão de espessura para Mármore/Granito conforme regras:
      *  - Usa RevestimentoSpecifications.getEspessuraPadraoMm(inputs)
      *  - Só aplica se pecaEspMm == null (ainda não editado)
-     *  - Só aplica se ambiente e aplicação estiverem definidos
-     */
+     *  - Só aplica se ambiente e aplicação estiverem definidos */
     fun ensureDefaultMgEspessura(userEdited: Boolean) {
         if (userEdited) return
 
         val i = viewModel.inputs.value
         val isMG = i.revest == RevestimentoType.MARMORE || i.revest == RevestimentoType.GRANITO
-
         if (!isMG) return
         if (i.ambiente == null || i.aplicacao == null) return
-
         val defaultMm = RevestimentoSpecifications.getEspessuraPadraoMm(i)
-
-        // Já está com o valor padrão atual → não faz nada
-        if (i.pecaEspMm == defaultMm) return
-
+        if (i.pecaEspMm == defaultMm) return // Já está com o valor padrão atual → não faz nada
         viewModel.setPecaParametros(
             i.pecaCompCm, i.pecaLargCm, defaultMm, i.juntaMm, i.sobraPct, i.pecasPorCaixa
         )
     }
 
-    /* ════════════════════════════════════════════════════════════════════════
-     * HELPERS INTERNOS
-     * ════════════════════════════════════════════════════════════════════════ */
+    /** ============== HELPERS INTERNOS  ============== */
     private fun isMGNow(): Boolean {
         val r = viewModel.inputs.value.revest
         return r == RevestimentoType.MARMORE || r == RevestimentoType.GRANITO
     }
 
-    /** Define helper text de forma segura (preserva erro atual) */
+    // Define helper text de forma segura (preserva erro atual)
     private fun TextInputLayout.setHelperTextSafely(newText: CharSequence?) {
         if (!error.isNullOrEmpty()) { // 1) Se há erro visível, NÃO mexemos no helper
             return

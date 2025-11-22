@@ -40,10 +40,10 @@ class StepNavigationHandler {
         onSetupNovoCalculo: () -> Unit,
         onRestoreDefaultBack: () -> Unit
     ) {
-        // Botão Voltar: visível a partir da etapa 1
-        btnBack.isVisible = step > 0
-        // Botão Avançar: visível nas etapas 1..5 ; some na Revisão (6) e Resultado (7)
-        btnNext.isVisible = step in 1..5
+        // Botão Voltar: visível a partir da etapa 2
+        btnBack.isVisible = step > 1
+        // Botão Avançar: visível nas etapas 2..5 ; some na Revisão (6) e Resultado (7)
+        btnNext.isVisible = step in 2..5
         // Botão Calcular: visível na etapa de Revisão (6); some nas demais
         btnCalcular.isVisible = (step == 6)
         // Configura botão especial "Novo Cálculo" na etapa de resultado (step 7)

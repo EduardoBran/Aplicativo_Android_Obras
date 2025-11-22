@@ -20,8 +20,7 @@ class RequiredIconManager(private val context: Context) {
 
         val hasIconNow = currentEnd != null
 
-        // Se o estado desejado já é o atual, não faz nada
-        if (hasIconNow == visible) {
+        if (hasIconNow == visible) { // Se o estado desejado já é o atual, não faz nada
             return
         }
 
@@ -37,7 +36,7 @@ class RequiredIconManager(private val context: Context) {
         et.setCompoundDrawablesRelativeWithIntrinsicBounds(start, top, end, bottom)
     }
 
-    /** Atualiza ícones obrigatórios da Etapa 4 (Medidas da Área) */
+    /** =========== Atualiza ícones obrigatórios da Etapa 4 (Medidas da Área) =========== */
     @Suppress("KotlinConstantConditions")
     fun updateStep4IconsAreaDimensions(
         etComp: TextInputEditText, etLarg: TextInputEditText, etAlt: TextInputEditText,
@@ -96,8 +95,6 @@ class RequiredIconManager(private val context: Context) {
         // Ainda não resolvido → "Área total (m²)" volta a ser caminho obrigatório alternativo
         setRequiredIconVisible(etAreaInformada, true)
 
-        // Regras de obrigatoriedade conforme cenário atual (sem área válida)
-
         // Cenário PAREDE em construção: comprimento + altura + parede (qtd)
         if (altVisible && paredeQtdVisible) {
             val compFilled = !etComp.text.isNullOrBlank()
@@ -135,17 +132,12 @@ class RequiredIconManager(private val context: Context) {
         }
     }
 
-    /** Atualiza ícones obrigatórios da Etapa 5 (Medidas do Revestimento) */
+    /** ========= Atualiza ícones obrigatórios da Etapa 5 (Medidas do Revestimento) ========= */
     fun updateStep5IconsPecaDimensions(
-        etPecaComp: TextInputEditText,
-        etPecaLarg: TextInputEditText,
-        etJunta: TextInputEditText,
-        etPecaEsp: TextInputEditText,
-        etPecasPorCaixa: TextInputEditText,
-        etSobra: TextInputEditText,
-        etDesnivel: TextInputEditText,
-        revest: CalcRevestimentoViewModel.RevestimentoType?,
-        showPecaTamanhoGroup: Boolean
+        etPecaComp: TextInputEditText, etPecaLarg: TextInputEditText, etJunta: TextInputEditText,
+        etPecaEsp: TextInputEditText, etPecasPorCaixa: TextInputEditText,
+        etSobra: TextInputEditText, etDesnivel: TextInputEditText,
+        revest: CalcRevestimentoViewModel.RevestimentoType?, showPecaTamanhoGroup: Boolean
     ) {
         fun tilOf(et: TextInputEditText): TextInputLayout? =
             et.parent?.parent as? TextInputLayout
@@ -184,8 +176,6 @@ class RequiredIconManager(private val context: Context) {
         // Sobra técnica: sempre obrigatória (você já usa valor mínimo automático)
         val sobraObrigatoria = true
 
-        // Peças por caixa: opcional, ícone só quando tiver erro (required = false)
-
         // Aplica regras
         showIconForField(etPecaComp, pecaObrigatoria)
         showIconForField(etPecaLarg, pecaObrigatoria)
@@ -193,28 +183,22 @@ class RequiredIconManager(private val context: Context) {
         showIconForField(etPecaEsp, espObrigatoria)
         showIconForField(etPecasPorCaixa, false)
         showIconForField(etSobra, sobraObrigatoria)
-
         // Desnível depende apenas dele mesmo
         showIconForField(etDesnivel, desnivelObrigatorio)
     }
 
-    /** Atualiza ícones obrigatórios do Rodapé */
+    /** =========== Atualiza ícones obrigatórios do Rodapé =========== */
     fun updateStepRodapeIconFields(
-        etRodapeAltura: TextInputEditText,
-        etRodapeCompComercial: TextInputEditText,
-        hasRodapeStep: Boolean,
-        rodapeOn: Boolean,
-        isPecaPronta: Boolean,
-        tilRodapeCompComercialVisible: Boolean
+        etRodapeAltura: TextInputEditText, etRodapeCompComercial: TextInputEditText,
+        hasRodapeStep: Boolean, rodapeOn: Boolean,
+        isPecaPronta: Boolean, tilRodapeCompComercialVisible: Boolean
     ) {
-        // Cenário NÃO possui etapa de rodapé → nenhum ícone deve aparecer
-        if (!hasRodapeStep) {
+        if (!hasRodapeStep) { // Cenário NÃO possui etapa de rodapé → nenhum ícone deve aparecer
             setRequiredIconVisible(etRodapeAltura, false)
             setRequiredIconVisible(etRodapeCompComercial, false)
             return
         }
-        // Switch de rodapé desligado → nenhum campo de rodapé é obrigatório
-        if (!rodapeOn) {
+        if (!rodapeOn) { // Switch de rodapé desligado → nenhum campo de rodapé é obrigatório
             setRequiredIconVisible(etRodapeAltura, false)
             setRequiredIconVisible(etRodapeCompComercial, false)
             return
@@ -231,7 +215,7 @@ class RequiredIconManager(private val context: Context) {
         }
     }
 
-    /** HELPERS Internos */
+    /** =========== HELPERS Internos =========== */
     private fun parseDouble(et: TextInputEditText): Double? {
         val raw = et.text?.toString()?.trim().orEmpty()
         if (raw.isEmpty()) return null

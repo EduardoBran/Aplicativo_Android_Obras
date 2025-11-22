@@ -198,4 +198,25 @@
         <item name="android:textStyle">normal</item>
     </style>
 
+    <style name="Calc.SegmentedRadioButton" parent="@style/Widget.Material3.CompoundButton.RadioButton">
+        <!-- Esconde a bolinha padrão -->
+        <item name="android:button">@null</item>
+
+        <!-- Fundo arredondado que responde ao checked -->
+        <item name="android:background">@drawable/bg_calc_segmented_option</item>
+
+        <!-- Dimensões / tipografia -->
+        <item name="android:minHeight">40dp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">@font/roboto_mono</item>
+
+        <!-- Cores do texto conforme tema Material -->
+        <item name="useMaterialThemeColors">true</item>
+    </style>
+
+
 </resources>

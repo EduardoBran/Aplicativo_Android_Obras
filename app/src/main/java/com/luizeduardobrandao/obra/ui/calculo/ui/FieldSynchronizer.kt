@@ -6,8 +6,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
 
-/**
- * Gerencia a sincronização de campos de texto com o estado do ViewModel
+/** Gerencia a sincronização de campos de texto com o estado do ViewModel
  *
  * Responsável por:
  * - Sincronizar valores de EditText sem disparar listeners
@@ -17,10 +16,8 @@ import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.Revestimento
  */
 class FieldSynchronizer {
 
-    /**
-     * Sincroniza todos os campos com o estado atual dos Inputs
-     * Detecta reset geral e limpa todos os campos quando inputs == Inputs()
-     */
+    /** Sincroniza todos os campos com o estado atual dos Inputs
+     *  Detecta reset geral e limpa todos os campos quando inputs == Inputs() */
     fun syncAllFields(
         inputs: CalcRevestimentoViewModel.Inputs,
         etComp: TextInputEditText, etLarg: TextInputEditText, etAlt: TextInputEditText,
@@ -54,10 +51,8 @@ class FieldSynchronizer {
             )
             return
         }
-
         // Se não há nenhum valor em nenhum campo relevante, não precisa sincronizar
         if (!hasAnyFieldValue(inputs)) return
-
         // Informação se o cenário atual possui rodapé (para mostrar/limpar campos de rodapé)
         val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
 
@@ -141,12 +136,9 @@ class FieldSynchronizer {
 
     /** Limpa apenas os campos de rodapé (texto + erros), sem mexer nos demais campos da tela. */
     private fun clearRodapeFields(
-        etRodapeAltura: TextInputEditText,
-        etRodapeAbertura: TextInputEditText,
-        etRodapeCompComercial: TextInputEditText,
-        tilRodapeAltura: TextInputLayout,
-        tilRodapeAbertura: TextInputLayout,
-        tilRodapeCompComercial: TextInputLayout
+        etRodapeAltura: TextInputEditText, etRodapeAbertura: TextInputEditText,
+        etRodapeCompComercial: TextInputEditText, tilRodapeAltura: TextInputLayout,
+        tilRodapeAbertura: TextInputLayout, tilRodapeCompComercial: TextInputLayout
     ) {
         listOf(etRodapeAltura, etRodapeAbertura, etRodapeCompComercial).forEach {
             it.text?.clear()
@@ -156,10 +148,8 @@ class FieldSynchronizer {
         }
     }
 
-    /**
-     * Sincroniza campo simples (Double)
-     * Só atualiza se o campo não tiver foco e o valor for diferente
-     */
+    /** Sincroniza campo simples (Double)
+     *  Só atualiza se o campo não tiver foco e o valor for diferente */
     private fun syncField(et: TextInputEditText, value: Double?) {
         if (et.hasFocus()) return
         if (value != null) {
@@ -179,9 +169,8 @@ class FieldSynchronizer {
         }
     }
 
-    /**
-     * Sincroniza campo de peça (com conversão de unidade)
-     * MG: valor em cm, exibição em m (÷100); Outros: valor em cm, exibição em cm (ou detecta m)
+    /** Sincroniza campo de peça (com conversão de unidade)
+     *  MG: valor em cm, exibição em m (÷100); Outros: valor em cm, exibição em cm (ou detecta m)
      */
     private fun syncFieldPeca(et: TextInputEditText, valueCm: Double?, isMG: Boolean) {
         if (et.hasFocus() || valueCm == null) return
@@ -193,7 +182,6 @@ class FieldSynchronizer {
             val asCm = raw * 100.0
             if (kotlin.math.abs(asCm - valueCm) < 1e-6) return
         }
-
         // Display: MG em metros, outros em cm
         val display = if (isMG) valueCm / 100.0 else valueCm
         if (raw == null || kotlin.math.abs(raw - display) > 1e-6) {
@@ -201,13 +189,11 @@ class FieldSynchronizer {
         }
     }
 
-    /**
-     * Sincroniza campo de espessura
-     * Intertravado: armazena em mm, exibe em cm; Outros: armazenado em mm, exibido em mm
+    /** Sincroniza campo de espessura
+     *  Intertravado: armazena em mm, exibe em cm; Outros: armazenado em mm, exibido em mm
      */
     private fun syncEspessuraField(
-        et: TextInputEditText,
-        valueMm: Double?,
+        et: TextInputEditText, valueMm: Double?,
         revest: CalcRevestimentoViewModel.RevestimentoType?
     ) {
         if (et.hasFocus() || valueMm == null) return
@@ -220,11 +206,9 @@ class FieldSynchronizer {
         syncField(et, display)
     }
 
-    /** Sincroniza comprimento comercial do rodapé. ViewModel armazena em metros, tela exibe em cm
-     */
+    /** Sincroniza comprimento comercial do rodapé. ViewModel armazena em metros, tela exibe em cm */
     private fun syncRodapeCompComercialField(
-        et: TextInputEditText,
-        valueM: Double?
+        et: TextInputEditText, valueM: Double?
     ) {
         if (et.hasFocus() || valueM == null) return
         val valueCm = valueM * 100.0
