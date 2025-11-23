@@ -389,21 +389,24 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             1 -> when (i.revest) {
                 RevestimentoType.PEDRA -> 4
                 RevestimentoType.PISO_INTERTRAVADO -> 3
-
                 else -> 2 // Demais revestimentos: seguem para Tipo de Ambiente (2)
             }
-            // 2 – Tipo de Ambiente (não exibido para Pedra Portuguesa e Intertravado)
+            // 2 – Tipo de Ambiente
             2 -> if (i.revest == RevestimentoType.PISO_INTERTRAVADO) 3 else 4
-            // 3 – Tipo de Tráfego (apenas Piso Intertravado) → sempre vai para Medidas da Área (4)
+            // 3 – Tipo de Tráfego → sempre vai para Medidas da Área (4)
             3 -> 4
             // 4 – Medidas da Área → 5 – Medidas da Peça + Rodapé
             4 -> 5
             // 5 – Medidas da Peça + Rodapé → 6 – Revisão
             5 -> 6
-            // 6 – Revisão → 7 – Resultado
+            // 6 – Revisão → para ir ao Resultado precisa passar por calcular()
             6 -> 7
             // 7 – Resultado: permanece em 7
             else -> current
+        }
+        if (next == 7) {        // 🔒 Tela 7 só pode ser acessada via calcular()
+            calcular()          // calcular() já vai setar _step = 7 quando terminar
+            return@launch       // não seta step manualmente aqui
         }
         _step.value = next.coerceAtMost(CalcRevestimentoRules.Steps.MAX)
     }
@@ -413,12 +416,11 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
         var prev = when (val current = _step.value) {
             // 3 – Tráfego: Para PISO_INTERTRAVADO agora volta direto para 1 (Tipo de Revestimento)
             3 -> if (i.revest == RevestimentoType.PISO_INTERTRAVADO) 1 else 2
-
             // 4 – Medidas da Área:
             4 -> when (i.revest) {
                 RevestimentoType.PISO_INTERTRAVADO -> 3 // PISO_INTERTRAVADO: volta para 3 (Tráfego)
                 RevestimentoType.PEDRA -> 1             // PEDRA: volta para etapa 1 (Tipo de Revestimento)
-                else -> 2 // Demais revestimentos: voltam para 2 (Ambiente)
+                else -> 2                               // Demais revestimentos: voltam para 2 (Ambiente)
             }
             // 6 – Revisão → sempre volta para 5 – Medidas da Peça
             6 -> 5
@@ -428,14 +430,19 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
             else -> current - 1
         }
         prev = prev.coerceAtLeast(CalcRevestimentoRules.Steps.MIN)
-        if (prev == 0 || prev == 1) { // Voltar para Abertura (0) ou Tipo Revestimento (1), zera o estado interno
+        if (_step.value == 7 && prev == 6) { // Desconsidera resultado se usuário voltar
+            _resultado.value = UiState.Idle
+        }
+        if (prev == 0 || prev == 1) { // Voltou para Abertura (0) ou Tipo Revestimento (1) → zera estado inteiro
             resetAllInternal()
         }
         _step.value = prev
     }
 
     fun goTo(step: Int) = viewModelScope.launch {
-        _step.value = step.coerceIn(
+        val targetStep =
+            if (step == 7) 6 else step // 🔒 Não permite navegar diretamente para a tela 7 (Resultado).
+        _step.value = targetStep.coerceIn(
             CalcRevestimentoRules.Steps.MIN, CalcRevestimentoRules.Steps.MAX
         )
     }

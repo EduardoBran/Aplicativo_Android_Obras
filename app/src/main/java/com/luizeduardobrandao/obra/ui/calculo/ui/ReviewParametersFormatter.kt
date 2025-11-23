@@ -14,17 +14,31 @@ import com.luizeduardobrandao.obra.ui.calculo.domain.calculators.AreaCalculator
 import com.luizeduardobrandao.obra.ui.calculo.domain.calculators.RodapeCalculator
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
 import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
+import kotlin.math.max
 
-/**
- * Monta o texto da tela de Revisão de Parâmetros usando strings.xml
- */
+/** Monta o texto da tela de Revisão de Parâmetros e Revisão Tela Final usando strings.xml */
 object ReviewParametersFormatter {
 
     fun buildResumoRevisao(context: Context, inputs: Inputs): CharSequence {
         val res = context.resources
-
         // Primeiro monta o texto "normal" (string simples)
         val plainText = buildString {
+
+            // Helpers locais para cálculo de ÁREA BRUTA (sem abertura, sem validação extra)
+            fun paredeAreaBruta(): Double? {
+                val c = inputs.compM ?: return null
+                val h = inputs.altM ?: return null
+                val paredes = inputs.paredeQtd ?: return null
+                val area = c * h * paredes
+                return if (area > 0.0) area else null
+            }
+
+            fun planoAreaBruta(): Double? {
+                val c = inputs.compM ?: return null
+                val l = inputs.largM ?: return null
+                val area = c * l
+                return if (area > 0.0) area else null
+            }
 
             // ----------------- Revestimento -----------------
             val revestText = when (inputs.revest) {
@@ -87,29 +101,34 @@ object ReviewParametersFormatter {
             appendLine(res.getString(R.string.calc_rev_line_revestimento, revestText))
 
             // ----------------- Ambiente -----------------
-            val ambienteLabel = when (inputs.ambiente) {
-                AmbienteType.SECO ->
-                    res.getString(R.string.calc_rev_amb_seco)
+            val esconderAmbiente =
+                inputs.revest == RevestimentoType.PEDRA ||
+                        inputs.revest == RevestimentoType.PISO_INTERTRAVADO
 
-                AmbienteType.SEMI ->
-                    res.getString(R.string.calc_rev_amb_semi)
+            if (!esconderAmbiente) {
+                val ambienteLabel = when (inputs.ambiente) {
+                    AmbienteType.SECO ->
+                        res.getString(R.string.calc_rev_amb_seco)
 
-                AmbienteType.MOLHADO ->
-                    res.getString(R.string.calc_rev_amb_molhado)
+                    AmbienteType.SEMI ->
+                        res.getString(R.string.calc_rev_amb_semi)
 
-                AmbienteType.SEMPRE ->
-                    res.getString(R.string.calc_rev_amb_sempre)
+                    AmbienteType.MOLHADO ->
+                        res.getString(R.string.calc_rev_amb_molhado)
 
-                null -> null
-            }
+                    AmbienteType.SEMPRE ->
+                        res.getString(R.string.calc_rev_amb_sempre)
 
-            appendLine(
-                res.getString(
-                    R.string.calc_rev_line_ambiente,
-                    ambienteLabel ?: res.getString(R.string.calc_rev_value_none)
+                    null -> null
+                }
+
+                appendLine(
+                    res.getString(
+                        R.string.calc_rev_line_ambiente,
+                        ambienteLabel ?: res.getString(R.string.calc_rev_value_none)
+                    )
                 )
-            )
-
+            }
             // ----------------- Tráfego (Intertravado) -----------------
             if (inputs.revest == RevestimentoType.PISO_INTERTRAVADO && inputs.trafego != null) {
 
@@ -131,7 +150,6 @@ object ReviewParametersFormatter {
                     )
                 )
             }
-
             // ----------------- Paredes -----------------
             inputs.paredeQtd
                 ?.takeIf { it > 0 }
@@ -149,18 +167,53 @@ object ReviewParametersFormatter {
                         )
                     )
                 }
-
             // ----------------- Área base -----------------
-            AreaCalculator.areaBaseM2(inputs)?.let { area ->
-                appendLine(
-                    res.getString(
-                        R.string.calc_rev_line_area_total,
-                        NumberFormatter.arred2(area)
-                    )
-                )
-            }
+            // Regra:
+            // - Modo "Área Total" → valor CRU digitado em m² (areaInformadaM2), sem abrir nada.
+            // - Modo "Dimensões" → área BRUTA pelas dimensões (parede ou piso), ignorando abertura.
+            if (inputs.areaTotalMode) {
+                inputs.areaInformadaM2
+                    ?.takeIf { it > 0.0 }
+                    ?.let { areaCrua ->
+                        appendLine(
+                            res.getString(
+                                R.string.calc_rev_line_area_total,
+                                NumberFormatter.arred2(areaCrua)
+                            )
+                        )
+                    }
+            } else {
+                val areaBruta: Double? = when (inputs.revest) {
+                    // Azulejo / Pastilha: parede
+                    RevestimentoType.AZULEJO,
+                    RevestimentoType.PASTILHA -> paredeAreaBruta()
 
-            // ----------------- Abertura parede -----------------
+                    // Mármore / Granito: depende da aplicação
+                    RevestimentoType.MARMORE,
+                    RevestimentoType.GRANITO -> when (inputs.aplicacao) {
+                        AplicacaoType.PAREDE -> paredeAreaBruta()
+                        AplicacaoType.PISO -> planoAreaBruta()
+                        null -> null
+                    }
+
+                    // Demais (piso, pedra, intertravado): piso plano
+                    RevestimentoType.PEDRA,
+                    RevestimentoType.PISO,
+                    RevestimentoType.PISO_INTERTRAVADO -> planoAreaBruta()
+
+                    null -> null
+                }
+
+                areaBruta?.let { area ->
+                    appendLine(
+                        res.getString(
+                            R.string.calc_rev_line_area_total,
+                            NumberFormatter.arred2(area)
+                        )
+                    )
+                }
+            }
+            // ----------------- Abertura parede (apenas exibição do valor) -----------------
             inputs.aberturaM2
                 ?.takeIf { it > 0.0 }
                 ?.let { abertura ->
@@ -171,7 +224,6 @@ object ReviewParametersFormatter {
                         )
                     )
                 }
-
             // ----------------- Dimensão da peça -----------------
             if (inputs.pecaCompCm != null && inputs.pecaLargCm != null) {
                 when (inputs.revest) {
@@ -189,7 +241,7 @@ object ReviewParametersFormatter {
                     }
 
                     RevestimentoType.PEDRA -> {
-                        // Mantém o comportamento atual: não exibe dimensão padrão
+                        // Mantém comportamento atual: não exibe dimensão padrão
                     }
 
                     RevestimentoType.PASTILHA -> {
@@ -213,7 +265,6 @@ object ReviewParametersFormatter {
                     }
                 }
             }
-
             // ----------------- Espessura -----------------
             inputs.pecaEspMm?.let { espMm ->
                 if (inputs.revest == RevestimentoType.PISO_INTERTRAVADO) {
@@ -233,7 +284,6 @@ object ReviewParametersFormatter {
                     )
                 }
             }
-
             // ----------------- Junta -----------------
             inputs.juntaMm?.let {
                 appendLine(
@@ -243,7 +293,6 @@ object ReviewParametersFormatter {
                     )
                 )
             }
-
             // ----------------- Peças por caixa -----------------
             inputs.pecasPorCaixa?.let {
                 appendLine(
@@ -253,7 +302,6 @@ object ReviewParametersFormatter {
                     )
                 )
             }
-
             // ----------------- Desnível -----------------
             inputs.desnivelCm?.let {
                 appendLine(
@@ -263,7 +311,6 @@ object ReviewParametersFormatter {
                     )
                 )
             }
-
             // ----------------- Rodapé (apenas texto de resumo) -----------------
             if (inputs.rodapeEnable &&
                 RevestimentoSpecifications.hasRodapeStep(inputs) &&
@@ -298,7 +345,6 @@ object ReviewParametersFormatter {
                     )
                 }
         }
-
         // Agora aplica o "bullet maior" usando Span
         return applyBigIconCharSpan(context, plainText)
     }
@@ -322,13 +368,9 @@ object ReviewParametersFormatter {
                 )
             )
         } else {
-            val areaBaseM2 = RodapeCalculator.rodapeAreaBaseExibicaoM2(inputs)
             sb.appendLine(
                 res.getString(
-                    R.string.calc_rev_line_rodape_mesma_peca,
-                    NumberFormatter.arred2(areaBaseM2),
-                    NumberFormatter.arred1(alturaCm),
-                    NumberFormatter.arred2(areaM2)
+                    R.string.calc_rev_line_rodape_mesma_peca, NumberFormatter.arred2(areaM2)
                 )
             )
         }
@@ -391,11 +433,9 @@ object ReviewParametersFormatter {
             // Métricas do texto normal (antes de aumentar o tamanho)
             val fmOrig = paint.fontMetricsInt
             val centerOrig = baseline + (fmOrig.ascent + fmOrig.descent) / 2f
-
             // Configura o paint pro ícone maior
             paint.color = color
             paint.textSize = oldSize * relativeSize
-
             // Métricas do ícone maior
             val fmBig = paint.fontMetricsInt
             val centerBigOffset = (fmBig.ascent + fmBig.descent) / 2f
@@ -409,5 +449,159 @@ object ReviewParametersFormatter {
             paint.color = oldColor
             paint.textSize = oldSize
         }
+    }
+
+    /** Card Resumo Tela Final */
+    fun buildResumoResultadoCard(context: Context, inputs: Inputs): CharSequence? {
+        val res = context.resources
+        val linhas = mutableListOf<String>()
+
+        // 1) ÁREA TOTAL AJUSTADA (base + sobra técnica)
+        val areaBaseLiquida = AreaCalculator.areaBaseM2(inputs) ?: 0.0
+
+        // Área do rodapé (já com desconto do vão, se informado)
+        val areaRodapeLiquidaM2: Double = if (
+            inputs.rodapeEnable &&
+            RevestimentoSpecifications.hasRodapeStep(inputs) &&
+            inputs.rodapeAlturaCm != null
+        ) {
+            val perimetroBase = RodapeCalculator.rodapePerimetroM(inputs) ?: 0.0
+            val descontoRodapeM = inputs.rodapeDescontarVaoM.coerceAtLeast(0.0)
+            val perimetroLiquido = max(0.0, perimetroBase - descontoRodapeM)
+            val alturaM = inputs.rodapeAlturaCm / 100.0
+            perimetroLiquido * alturaM
+        } else {
+            0.0
+        }
+
+        // Soma da área líquida do ambiente + área líquida do rodapé
+        val areaTotalSemSobra = areaBaseLiquida + areaRodapeLiquidaM2
+        // Aplica sobra técnica em cima do total
+        val sobraPct = inputs.sobraPct ?: 0.0
+        val areaTotalConsiderada = if (sobraPct > 0.0) {
+            areaTotalSemSobra * (1 + sobraPct / 100.0)
+        } else {
+            areaTotalSemSobra
+        }
+
+        if (areaTotalConsiderada > 0.0) {
+            linhas += res.getString(
+                R.string.calc_result_card_area_total,
+                NumberFormatter.arred2(areaTotalConsiderada)
+            )
+        }
+
+        // 2) Revestimento + dimensão da peça (sem parede/abertura/rodapé)
+        val revestText = when (inputs.revest) {
+            RevestimentoType.PISO -> {
+                if (inputs.pisoPlacaTipo == PlacaTipo.PORCELANATO)
+                    res.getString(R.string.calc_rev_revest_piso_porcelanato)
+                else
+                    res.getString(R.string.calc_rev_revest_piso_ceramico)
+            }
+
+            RevestimentoType.AZULEJO -> {
+                if (inputs.pisoPlacaTipo == PlacaTipo.PORCELANATO)
+                    res.getString(R.string.calc_rev_revest_azulejo_porcelanato)
+                else
+                    res.getString(R.string.calc_rev_revest_azulejo_ceramico)
+            }
+
+            RevestimentoType.PASTILHA -> {
+                if (inputs.pisoPlacaTipo == PlacaTipo.PORCELANATO)
+                    res.getString(R.string.calc_rev_revest_pastilha_porcelanato)
+                else
+                    res.getString(R.string.calc_rev_revest_pastilha_ceramico)
+            }
+
+            RevestimentoType.PEDRA ->
+                res.getString(R.string.calc_rev_revest_pedra)
+
+            RevestimentoType.PISO_INTERTRAVADO ->
+                res.getString(R.string.calc_rev_revest_piso_intertravado)
+
+            RevestimentoType.MARMORE -> when (inputs.aplicacao) {
+                AplicacaoType.PISO ->
+                    res.getString(R.string.calc_rev_revest_marmore_piso)
+
+                AplicacaoType.PAREDE ->
+                    res.getString(R.string.calc_rev_revest_marmore_parede)
+
+                null ->
+                    res.getString(R.string.calc_rev_revest_marmore)
+            }
+
+            RevestimentoType.GRANITO -> when (inputs.aplicacao) {
+                AplicacaoType.PISO ->
+                    res.getString(R.string.calc_rev_revest_granito_piso)
+
+                AplicacaoType.PAREDE ->
+                    res.getString(R.string.calc_rev_revest_granito_parede)
+
+                null ->
+                    res.getString(R.string.calc_rev_revest_granito)
+            }
+
+            null ->
+                res.getString(R.string.calc_rev_value_none)
+        }
+
+        val linhaRevest = when {
+            // Pedra Portuguesa: NÃO exibe comprimento/largura
+            inputs.revest == RevestimentoType.PEDRA ||
+                    inputs.pecaCompCm == null || inputs.pecaLargCm == null -> {
+                res.getString(
+                    R.string.calc_result_card_revestimento_simple,
+                    revestText
+                )
+            }
+            // Mármore/Granito → medidas EM METROS
+            inputs.revest == RevestimentoType.MARMORE ||
+                    inputs.revest == RevestimentoType.GRANITO -> {
+                val compM = inputs.pecaCompCm / 100.0
+                val largM = inputs.pecaLargCm / 100.0
+                res.getString(
+                    R.string.calc_result_card_revestimento_m,
+                    revestText,
+                    NumberFormatter.arred2(compM),
+                    NumberFormatter.arred2(largM)
+                )
+            }
+            // Pastilha → cm com decimais (usa String formatada)
+            inputs.revest == RevestimentoType.PASTILHA -> {
+                res.getString(
+                    R.string.calc_result_card_revestimento_cm_decimal,
+                    revestText,
+                    NumberFormatter.format(inputs.pecaCompCm),
+                    NumberFormatter.format(inputs.pecaLargCm)
+                )
+            }
+            // Demais revestimentos → cm com 0 casas
+            else -> {
+                res.getString(
+                    R.string.calc_result_card_revestimento_cm,
+                    revestText,
+                    NumberFormatter.arred0(inputs.pecaCompCm),
+                    NumberFormatter.arred0(inputs.pecaLargCm)
+                )
+            }
+        }
+        linhas += linhaRevest
+
+        // 3) Sobra técnica considerada no cálculo
+        inputs.sobraPct
+            ?.takeIf { it >= 0 }
+            ?.let { sobra ->
+                val sobraFmt = NumberFormatter.format(sobra)
+                linhas += res.getString(
+                    R.string.calc_result_card_sobra,
+                    sobraFmt
+                )
+            }
+
+        if (linhas.isEmpty()) return null
+
+        val texto = linhas.joinToString("\n")
+        return applyBigIconCharSpan(context, texto)
     }
 }

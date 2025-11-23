@@ -962,30 +962,35 @@
     <string name="calc_step_trafego_pesado_desc">Acessos de caminhões, rampas de carga, docas e áreas sujeitas a tráfego intenso e cargas elevadas.</string>
     <string name="calc_step_trafego_help">Escolha o tipo de tráfego conforme o peso e a frequência dos veículos sobre o piso intertravado; isso ajusta a espessura das camadas e o tipo de impermeabilização recomendados.</string>
 
+
     <!-- TELA 3 -->
     <string name="calc_step3_title">Medidas da Área</string>
     <string name="calc_step3_comp">Comprimento (m)</string>
     <string name="calc_step3_larg">Largura (m)</string>
     <string name="calc_step3_alt">Altura (m)</string>
-    <string name="calc_step3_or">Ou informe diretamente:</string>
-    <string name="calc_step3_area_total">Área total (m²)</string>
-    <string name="text_area_total_aviso">Com Área total informada, as medidas acima são ignoradas no cálculo da área base.</string>
-
     <string name="calc_step3_parede_qtd">Parede (qtd)</string>
-    <string name="calc_step3_parede_qtd_helper">Informe quantas paredes serão revestidas (1 a 20).</string>
-
     <string name="calc_step3_abertura">Abertura (m²)</string>
+    <string name="calc_step3_switch_area_total">Prefere informar área em m²?</string>
+    <string name="calc_step3_area_total">Área total (m²)</string>
+
+    <string name="calc_step3_comp_helper">Em metros • Ex: 4</string>
+    <string name="calc_step3_larg_helper">Em metros • Ex: 3,20</string>
+    <string name="calc_step3_alt_helper">Em metros • Ex: 2</string>
+    <string name="calc_step3_parede_qtd_helper">Informe quantas paredes serão revestidas (1 a 20).</string>
     <string name="calc_step3_abertura_helper">Área a ser descontada (portas, janelas, etc.). Opcional.</string>
 
-    <string name="calc_err_parede_qtd_range">Valor inválido • Limites: 1 a 20.</string>
-    <string name="calc_err_abertura_maior_area">A abertura não pode ser maior que a área total das paredes.</string>
-
-    <!-- Medidas da área (step 3) -->
     <string name="calc_err_medida_comp_larg_m">Valor inválido • Limites: 0,01 m a 10.000 m.</string>
     <string name="calc_err_medida_alt_m">Valor inválido • Limites: 0,01 m a 100 m.</string>
+    <string name="calc_err_parede_qtd_range">Valor inválido • Limites: 1 a 20.</string>
+    <string name="calc_err_abertura_maior_area">A abertura não pode ser maior que a área total das paredes.</string>
     <string name="calc_err_area_total">Valor inválido • Limites: 0,1 m² a 50.000 m².</string>
 
-    <string name="calc_step3_switch_area_total">Prefere informar área em m²?</string>
+    <string name="calc_step3_area_help_title">Como informar a área total</string>
+    <string name="calc_step3_area_help">
+    Você pode informar a área de duas formas:
+    pelas medidas ou informando diretamente o m² total. O resultado do cálculo é o mesmo.
+    </string>
+
 
     <!-- ======== TELA 4 ======== -->
     <string name="calc_step4_title">Medidas do Revestimento</string>
@@ -1055,6 +1060,7 @@
     <string name="calc_pastilha_p10p">10 × 10</string>
     <string name="calc_pastilha_tamanho_helper">Escolha as medidas para a sua pastilha.</string>
     <string name="calc_pastilha_junta_helper">Em milímetros • Valor padrão: 3</string>
+    <string name="calc_err_tamanho_range">Valor inválido.</string>
     <string name="calc_err_junta_pastilha_range">Para pastilha, use entre 1 e 3 mm.</string>
     <string name="calc_err_junta_pastilha_required">Informe a espessura da junta da pastilha.</string>
     <string name="calc_pastilha_porcelanato_tamanho_title">Selecione o tamanho da pastilha (porcelanato)</string>
@@ -1086,7 +1092,7 @@
     <string name="calc_step6_imp_aditivo_sika1">Aditivo impermeabilizante (Sika 1 ou similar)</string>
 
 
-    <!-- ========TELA 7 ======== -->
+    <!-- ======== TELA Revisão de Parâmetros ======== -->
     <!-- Revisão – valores genéricos -->
     <string name="calc_rev_value_none">—</string>
 
@@ -1136,8 +1142,8 @@
     <string name="calc_rev_line_desnivel">• 📉 Desnível: %1$.1f cm</string>
 
     <!-- Revisão – rodapé -->
-    <string name="calc_rev_line_rodape_peca_pronta">• 📏 Rodapé: %1$.2f m²\n(peça pronta)</string>
-    <string name="calc_rev_line_rodape_mesma_peca">• 📏 Rodapé: %1$.2f m² × %2$.1f cm = %3$.2f m²\n(mesma peça)</string>
+    <string name="calc_rev_line_rodape_peca_pronta">• 📏 Rodapé (peça pronta): %1$.2f m²</string>
+    <string name="calc_rev_line_rodape_mesma_peca">• 📏 Rodapé (mesma peça): %1$.2f m²</string>
     <string name="calc_rev_line_abertura_rodape">• ➖ Abertura (rodapé): %1$.2f m</string>
 
     <!-- Revisão – impermeabilização e sobra -->
@@ -1147,8 +1153,17 @@
     <string name="cont_btn_calcular">Calcular materiais</string>
 
 
-    <!-- TELA 8 -->
-    <string name="calc_table_title">📋 Lista de Materiais</string>
+    <!-- TELA Final Cálculo de Material -->
+    <string name="calc_table_title">Lista de Materiais</string>
+
+    <string name="calc_result_card_title">🧾 Resumo do Cálculo</string>
+    <string name="calc_result_card_area_total">• 📐 Área total considerada: %1$.2f m²</string>
+    <string name="calc_result_card_revestimento_cm">• 🔲 %1$s: %2$.0f × %3$.0f cm</string>
+    <string name="calc_result_card_revestimento_m">• 🔲 %1$s: %2$.2f × %3$.2f m</string>
+    <string name="calc_result_card_revestimento_cm_decimal">• 🔲 %1$s: %2$s × %3$s cm</string>
+    <string name="calc_result_card_revestimento_simple">• 🔲 %1$s</string>
+    <string name="calc_result_card_sobra">• 📉 Sobra técnica considerada: %1$s%%</string>
+
     <string name="icon_card_informaçao">ℹ️</string>
     <string name="calc_table_hint">Os valores consideram consumos técnicos conforme NBR 14081, TCPO e especificações de fabricantes.\n\nA coluna "Comprar" indica as embalagens comerciais necessárias (arredondadas para cima).</string>
     <string name="col_item">Item</string>

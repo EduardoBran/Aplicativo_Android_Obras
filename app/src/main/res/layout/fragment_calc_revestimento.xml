@@ -232,7 +232,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_columnWeight="1"
-                            android:layout_marginTop="6dp"
+                            android:layout_marginTop="8dp"
                             android:layout_marginEnd="5dp"
                             android:clickable="true"
                             android:focusable="true"
@@ -277,7 +277,7 @@
                             android:layout_height="wrap_content"
                             android:layout_columnWeight="1"
                             android:layout_marginStart="5dp"
-                            android:layout_marginTop="6dp"
+                            android:layout_marginTop="8dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackgroundBorderless"
@@ -320,7 +320,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_columnWeight="1"
-                            android:layout_marginTop="6dp"
+                            android:layout_marginTop="8dp"
                             android:layout_marginEnd="5dp"
                             android:clickable="true"
                             android:focusable="true"
@@ -365,7 +365,7 @@
                             android:layout_height="wrap_content"
                             android:layout_columnWeight="1"
                             android:layout_marginStart="5dp"
-                            android:layout_marginTop="6dp"
+                            android:layout_marginTop="8dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackgroundBorderless"
@@ -408,7 +408,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_columnWeight="1"
-                            android:layout_marginTop="6dp"
+                            android:layout_marginTop="8dp"
                             android:layout_marginEnd="5dp"
                             android:clickable="true"
                             android:focusable="true"
@@ -873,7 +873,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="@string/calc_step3_comp"
-                            app:helperText="Em metros • Ex: 5,50"
+                            app:helperText="@string/calc_step3_comp_helper"
                             app:helperTextEnabled="true">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -890,7 +890,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:hint="@string/calc_step3_larg"
-                            app:helperText="Em metros • Ex: 3,20"
+                            app:helperText="@string/calc_step3_larg_helper"
                             app:helperTextEnabled="true">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -908,7 +908,7 @@
                             android:layout_marginTop="8dp"
                             android:hint="@string/calc_step3_alt"
                             android:visibility="gone"
-                            app:helperText="Em metros • Ex: 2,80"
+                            app:helperText="@string/calc_step3_alt_helper"
                             app:helperTextEnabled="true">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -1002,6 +1002,71 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                     </LinearLayout>
+                    <!-- Card de ajuda: como informar a área total -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardAreaHelp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="?attr/colorOutlineVariant"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:baselineAligned="false"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:padding="16dp">
+
+                            <!-- Ícone em container circular (mesmo estilo dos outros cards) -->
+                            <FrameLayout
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="12dp"
+                                android:background="@drawable/calc_circle_info_background">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:text="@string/icon_card_informaçao"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:textSize="20sp" />
+                            </FrameLayout>
+
+                            <!-- Texto do card -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:lineSpacingExtra="2dp"
+                                    android:text="@string/calc_step3_area_help_title"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:lineSpacingExtra="4dp"
+                                    android:text="@string/calc_step3_area_help"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                                    android:textColor="?attr/colorOnSurfaceVariant" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
                 <!-- =============== TELA 5 – Medidas do Revestimento + Rodapé =============== -->
@@ -1622,8 +1687,62 @@
                         android:letterSpacing="0.02"
                         android:text="@string/calc_table_title"
                         android:textAlignment="center"
-                        android:textAppearance="?attr/textAppearanceTitleLarge"
-                        android:textColor="?attr/colorPrimary" />
+                        android:textAppearance="?attr/textAppearanceHeadline5"
+                        android:textColor="?attr/colorPrimary"
+                        android:textStyle="bold" />
+                    <!-- CARD: Resumo do cálculo final -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardResultadoResumo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:visibility="gone"
+                        app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
+                        app:strokeColor="?attr/colorOutlineVariant"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="10dp">
+
+                            <!-- Cabeçalho -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="8dp"
+                                    android:text="@string/calc_result_card_title"
+                                    android:textAlignment="center"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="17sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <!-- Texto com as linhas (Área, Revestimento, Sobra) -->
+                            <TextView
+                                android:id="@+id/tvResultadoResumo"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:fontFamily="sans-serif"
+                                android:letterSpacing="0.01"
+                                android:lineSpacingExtra="8dp"
+                                android:lineSpacingMultiplier="1.1"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="15sp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
                     <!-- Card Tabela -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardTabela"

@@ -80,6 +80,10 @@ object CalcRevestimentoRules {
         const val SOBRA_MAX_PCT = 50.0
         const val SOBRA_DEFAULT_PCT = 10.0
         val SOBRA_RANGE_PCT = SOBRA_MIN_PCT..SOBRA_MAX_PCT
+        // Valores específicos para Pastilha
+        const val PASTILHA_MIN_CM = 1.5
+        const val PASTILHA_MAX_CM = 11.0
+        val PASTILHA_RANGE_CM = PASTILHA_MIN_CM..PASTILHA_MAX_CM
     }
 
     object Piso {

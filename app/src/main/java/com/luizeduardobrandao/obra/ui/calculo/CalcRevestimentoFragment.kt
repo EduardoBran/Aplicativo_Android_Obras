@@ -1102,10 +1102,12 @@ class CalcRevestimentoFragment : Fragment() {
                     val compCm = convertPecaDimensionToCm(getDoubleValue(etPecaComp))
                     val largCm = convertPecaDimensionToCm(getDoubleValue(etPecaLarg))
                     val compInRange = when {
+                        isPastilha() -> compCm != null && compCm in CalcRevestimentoRules.Peca.PASTILHA_RANGE_CM
                         isMg -> compCm != null && compCm in CalcRevestimentoRules.Peca.MG_RANGE_CM
                         else -> compCm != null && compCm in CalcRevestimentoRules.Peca.GENERIC_RANGE_CM
                     }
                     val largInRange = when {
+                        isPastilha() -> largCm != null && largCm in CalcRevestimentoRules.Peca.PASTILHA_RANGE_CM
                         isMg -> largCm != null && largCm in CalcRevestimentoRules.Peca.MG_RANGE_CM
                         else -> largCm != null && largCm in CalcRevestimentoRules.Peca.GENERIC_RANGE_CM
                     }
@@ -1178,6 +1180,13 @@ class CalcRevestimentoFragment : Fragment() {
         tableContainer.addView(tableBuilder.makeHeaderRow())
         r.itens.forEach { tableContainer.addView(tableBuilder.makeDataRow(it)) }
         tableContainer.post { applyTableResponsiveness() } // Aplicar responsividade após renderização
+        // Atualiza card de resumo final (área AJUSTADA)
+        val resumoFinal = ReviewParametersFormatter.buildResumoResultadoCard(
+            requireContext(),
+            viewModel.inputs.value
+        )
+        cardResultadoResumo.isVisible = resumoFinal != null
+        tvResultadoResumo.text = resumoFinal
     }
 
     // Aplica responsividade aos elementos da tabela

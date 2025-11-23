@@ -475,16 +475,19 @@ class FieldValidator(
             setInlineError(et, til, null)
             return
         }
-
         val num = raw.toDoubleOrNull()
+        val revest = viewModel.inputs.value.revest
         val isMG = isMGNow()
+        val isPastilha = revest == RevestimentoType.PASTILHA
         val cm = UnitConverter.parsePecaToCm(num, isMG)
         val inRange = when {
+            isPastilha -> (cm != null && cm in pecaRules.PASTILHA_RANGE_CM)
             isMG -> (cm != null && cm in pecaRules.MG_RANGE_CM)
             else -> (cm != null && cm in pecaRules.GENERIC_RANGE_CM)
         }
         val msg = when {
             inRange -> null
+            isPastilha -> getString(R.string.calc_err_tamanho_range)
             isMG -> getString(R.string.calc_piece_err_m)
             else -> getString(R.string.calc_piece_err_cm)
         }
@@ -513,7 +516,6 @@ class FieldValidator(
             setInlineError(etSobra, tilSobra, null)
             return
         }
-
         val s = etSobra.text?.toString()
             ?.replace(",", ".")?.toDoubleOrNull()
         val msg = when {
