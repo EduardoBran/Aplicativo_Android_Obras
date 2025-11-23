@@ -8,26 +8,19 @@ import com.google.android.material.textfield.TextInputLayout
 import com.luizeduardobrandao.obra.R
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel
 
-/**
- * Gerencia a exibição de ícones de campos obrigatórios
- */
+/** Gerencia a exibição de ícones de campos obrigatórios */
 class RequiredIconManager(private val context: Context) {
-
-    /** Define visibilidade do ícone "obrigatório" no campo */
+    // Define visibilidade do ícone "obrigatório" no campo
     fun setRequiredIconVisible(et: TextInputEditText, visible: Boolean) {
         val drawables = et.compoundDrawablesRelative
-        val currentEnd = drawables[2] // drawable atual na direita
-
+        val currentEnd = drawables[2] // Ícone na direita
         val hasIconNow = currentEnd != null
-
-        if (hasIconNow == visible) { // Se o estado desejado já é o atual, não faz nada
+        if (hasIconNow == visible) {  // Se o estado desejado já é o atual, não faz nada
             return
         }
-
         val start = drawables[0]
         val top = drawables[1]
         val bottom = drawables[3]
-
         val end = if (visible) {
             AppCompatResources.getDrawable(context, R.drawable.ic_required)?.apply {
                 setTint(ContextCompat.getColor(context, R.color.md_theme_light_error))
@@ -37,11 +30,11 @@ class RequiredIconManager(private val context: Context) {
     }
 
     /** =========== Atualiza ícones obrigatórios da Etapa 4 (Medidas da Área) =========== */
-    @Suppress("KotlinConstantConditions")
     fun updateStep4IconsAreaDimensions(
         etComp: TextInputEditText, etLarg: TextInputEditText, etAlt: TextInputEditText,
         etParedeQtd: TextInputEditText, etAbertura: TextInputEditText,
-        etAreaInformada: TextInputEditText, altVisible: Boolean, paredeQtdVisible: Boolean
+        etAreaInformada: TextInputEditText, altVisible: Boolean, paredeQtdVisible: Boolean,
+        areaTotalMode: Boolean
     ) {
         // Valores numéricos (null se vazio ou inválido)
         val comp = parseDouble(etComp)
@@ -50,16 +43,24 @@ class RequiredIconManager(private val context: Context) {
         val paredeQtd = parseInt(etParedeQtd)
         val abertura = parseDouble(etAbertura)
         val area = parseDouble(etAreaInformada)
-
-        // Validação da área total direta
-        val areaValida = area != null && area in 0.01..50000.0
-        // Cenário plano (PISO, etc): comprimento x largura
-        val dimsPlanoValid =
+        //Validação da área total APENAS quando o switch está LIGADO
+        val areaValida = areaTotalMode && area != null && area in 0.01..50000.0
+        // ===================== MODO "ÁREA TOTAL" (switch ligado) =====================
+        if (areaTotalMode) {
+            setRequiredIconVisible(etComp, false)
+            setRequiredIconVisible(etLarg, false)
+            setRequiredIconVisible(etAlt, false)
+            setRequiredIconVisible(etParedeQtd, false)
+            setRequiredIconVisible(etAbertura, false)
+            setRequiredIconVisible(etAreaInformada, !areaValida)
+            return
+        }
+        // ===================== MODO "DIMENSÕES" (switch desligado) =====================
+        val dimsPlanoValid = // Cenário plano (PISO, etc): comprimento x largura
             !altVisible && !paredeQtdVisible &&
                     comp != null && comp in 0.01..10000.0 &&
                     larg != null && larg in 0.01..10000.0
         // Cenário parede (AZULEJO/PASTILHA/MG parede):
-        // comprimento x altura x paredeQtd, abertura opcional (>=0 e <= área bruta)
         val dimsParedeValid = if (altVisible && paredeQtdVisible) {
             if (comp != null && comp in 0.01..10000.0 &&
                 alt != null && alt in 0.01..100.0 &&
@@ -68,7 +69,7 @@ class RequiredIconManager(private val context: Context) {
                 val areaBruta = comp * alt * paredeQtd
                 if (areaBruta > 0.0) {
                     val aberturaOk = when (abertura) {
-                        null -> true // não preenchida → ok
+                        null -> true
                         in 0.0..areaBruta -> true
                         else -> false
                     }
@@ -82,54 +83,48 @@ class RequiredIconManager(private val context: Context) {
         } else {
             false
         }
-        // Se ALGUMA forma de obter área é válida (área direta OU dimensões completas),
-        // nenhum campo precisa exibir ícone de obrigatório.
-        if (areaValida || dimsPlanoValid || dimsParedeValid) {
+        // Se dimensões completas estão OK, nenhum campo precisa de ícone
+        if (dimsPlanoValid || dimsParedeValid) {
             setRequiredIconVisible(etComp, false)
             setRequiredIconVisible(etLarg, false)
             if (altVisible) setRequiredIconVisible(etAlt, false)
             if (paredeQtdVisible) setRequiredIconVisible(etParedeQtd, false)
             setRequiredIconVisible(etAreaInformada, false)
+            setRequiredIconVisible(etAbertura, false)
             return
         }
-        // Ainda não resolvido → "Área total (m²)" volta a ser caminho obrigatório alternativo
+        // Área Total continua sendo alternativa, mas só mostra ícone se o campo estiver visível
         setRequiredIconVisible(etAreaInformada, true)
 
-        // Cenário PAREDE em construção: comprimento + altura + parede (qtd)
+        // Cenário PAREDE: comp + alt + parede
         if (altVisible && paredeQtdVisible) {
             val compFilled = !etComp.text.isNullOrBlank()
             val altFilled = !etAlt.text.isNullOrBlank()
             val paredeFilled = !etParedeQtd.text.isNullOrBlank()
-
             setRequiredIconVisible(etComp, !compFilled)
             setRequiredIconVisible(etAlt, !altFilled)
             setRequiredIconVisible(etParedeQtd, !paredeFilled)
-            // Largura não é usada aqui
             setRequiredIconVisible(etLarg, false)
+            setRequiredIconVisible(etAbertura, false)
             return
         }
-
-        // Cenário PLANO em construção: comp + larg
+        // Cenário PLANO: comp + larg
         if (!altVisible && !paredeQtdVisible) {
             val compFilled = !etComp.text.isNullOrBlank()
             val largFilled = !etLarg.text.isNullOrBlank()
-
             setRequiredIconVisible(etComp, !compFilled)
             setRequiredIconVisible(etLarg, !largFilled)
             setRequiredIconVisible(etAlt, false)
             setRequiredIconVisible(etParedeQtd, false)
+            setRequiredIconVisible(etAbertura, false)
             return
         }
-        // Estado intermediário (altura visível sem parede ainda definida)
-        if (altVisible && !paredeQtdVisible) {
-            val compFilled = !etComp.text.isNullOrBlank()
-            val altFilled = !etAlt.text.isNullOrBlank()
-
-            setRequiredIconVisible(etComp, !compFilled)
-            setRequiredIconVisible(etAlt, !altFilled)
-            setRequiredIconVisible(etParedeQtd, false)
-            setRequiredIconVisible(etLarg, false)
-        }
+        // Estado intermediário
+        setRequiredIconVisible(etComp, etComp.text.isNullOrBlank())
+        setRequiredIconVisible(etLarg, false)
+        setRequiredIconVisible(etAlt, altVisible && etAlt.text.isNullOrBlank())
+        setRequiredIconVisible(etParedeQtd, false)
+        setRequiredIconVisible(etAbertura, false)
     }
 
     /** ========= Atualiza ícones obrigatórios da Etapa 5 (Medidas do Revestimento) ========= */

@@ -1,7 +1,6 @@
 package com.luizeduardobrandao.obra.ui.calculo.domain.utils
 
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
-import com.luizeduardobrandao.obra.ui.calculo.domain.calculators.AreaCalculator
 import com.luizeduardobrandao.obra.ui.calculo.domain.calculators.RodapeCalculator
 import com.luizeduardobrandao.obra.ui.calculo.domain.rules.CalcRevestimentoRules
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
@@ -59,19 +58,33 @@ object ValidationHelper {
 
     /** =========== STEP 4 – Medidas da Área =========== */
     fun validateStep4AreaDimensions(inputs: Inputs): StepValidation {
-        // Caso 1: usuário informou diretamente a área total (modo "área informada")
-        inputs.areaInformadaM2?.let { area ->
-            return when {
-                area < Medidas.AREA_TOTAL_MIN_M2 ->
-                    StepValidation(false)
-
-                area > Medidas.AREA_TOTAL_MAX_M2 ->
-                    StepValidation(false)
-
-                else -> StepValidation(true)
+        // ===== CASO 1: MODO "ÁREA TOTAL" (switch ligado) =====
+        if (inputs.areaTotalMode) {
+            val areaInformada = inputs.areaInformadaM2
+            // 1.1) Área total é obrigatória e deve estar no range permitido
+            if (areaInformada == null ||
+                areaInformada < Medidas.AREA_TOTAL_MIN_M2 || areaInformada > Medidas.AREA_TOTAL_MAX_M2
+            ) {
+                return StepValidation(false)
             }
+            // 1.2) Abertura, se informada, não pode ser negativa nem maior/igual à área informada
+            val abertura = inputs.aberturaM2
+            if (abertura != null) {
+                if (abertura < Medidas.ABERTURA_MIN_M2) {
+                    return StepValidation(false)
+                }
+                if (abertura >= areaInformada) {
+                    return StepValidation(false)
+                }
+                val areaLiquida = areaInformada - abertura
+                if (areaLiquida < Medidas.AREA_TOTAL_MIN_M2 || areaLiquida > Medidas.AREA_TOTAL_MAX_M2
+                ) {
+                    return StepValidation(false)
+                }
+            }
+            return StepValidation(true)
         }
-        // Caso 2: modo parede (azulejo / pastilha / MG parede)
+        // ===== CASO 2: MODO "DIMENSÕES" - PAREDE =====
         val isParedeMode =
             inputs.revest == RevestimentoType.AZULEJO ||
                     inputs.revest == RevestimentoType.PASTILHA ||
@@ -80,7 +93,6 @@ object ValidationHelper {
                                     inputs.revest == RevestimentoType.GRANITO) &&
                                     inputs.aplicacao == AplicacaoType.PAREDE
                             )
-
         if (isParedeMode) {
             val c = inputs.compM
             val h = inputs.altM
@@ -89,7 +101,9 @@ object ValidationHelper {
             if (c == null || h == null || paredes == null) {
                 return StepValidation(false)
             }
-            // Quantidade de paredes dentro do range permitido
+            // Validações de range
+            if (c !in Medidas.COMP_LARG_RANGE_M) return StepValidation(false)
+            if (h !in Medidas.ALTURA_RANGE_M) return StepValidation(false)
             if (paredes !in Medidas.PAREDE_QTD_MIN..Medidas.PAREDE_QTD_MAX) {
                 return StepValidation(false)
             }
@@ -102,7 +116,7 @@ object ValidationHelper {
                 if (abertura < Medidas.ABERTURA_MIN_M2) {
                     return StepValidation(false)
                 }
-                if (abertura > areaBruta) {
+                if (abertura >= areaBruta) {
                     return StepValidation(false)
                 }
             }
@@ -117,16 +131,37 @@ object ValidationHelper {
                 else -> StepValidation(true)
             }
         }
-        // Caso 3: piso / demais – usa AreaCalculator.areaBaseM2
-        val area = AreaCalculator.areaBaseM2(inputs)
+        // ===== CASO 3: MODO "DIMENSÕES" - PISO/PLANO =====
+        val c = inputs.compM
+        val l = inputs.largM
+        // Campos obrigatórios
+        if (c == null || l == null) {
+            return StepValidation(false)
+        }
+        // Validações de range
+        if (c !in Medidas.COMP_LARG_RANGE_M) return StepValidation(false)
+        if (l !in Medidas.COMP_LARG_RANGE_M) return StepValidation(false)
+
+        val areaBruta = c * l
+        if (areaBruta <= 0.0) {
+            return StepValidation(false)
+        }
+        // Abertura (opcional)
+        val abertura = inputs.aberturaM2
+        if (abertura != null) {
+            if (abertura < Medidas.ABERTURA_MIN_M2) {
+                return StepValidation(false)
+            }
+            if (abertura >= areaBruta) {
+                return StepValidation(false)
+            }
+        }
+        val areaLiquida = areaBruta - (abertura ?: 0.0)
         return when {
-            area == null ->
+            areaLiquida < Medidas.AREA_TOTAL_MIN_M2 ->
                 StepValidation(false)
 
-            area < Medidas.AREA_TOTAL_MIN_M2 ->
-                StepValidation(false)
-
-            area > Medidas.AREA_TOTAL_MAX_M2 ->
+            areaLiquida > Medidas.AREA_TOTAL_MAX_M2 ->
                 StepValidation(false)
 
             else -> StepValidation(true)

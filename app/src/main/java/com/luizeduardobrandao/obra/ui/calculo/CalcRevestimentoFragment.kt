@@ -37,8 +37,7 @@ import java.io.FileOutputStream
 
 /** Fragment para cálculo de materiais de revestimento
  *  Wizard de etapas: 1. Tela Inicial | 2. Revestimento | 3. Ambiente | 3. Tráfego (Intertravado)
- *  4. Medidas da Área | 5. Medidas da Peça | 6. Revisão de Parâmetros | 7. Tabela Resultado
- */
+ *  4. Medidas da Área | 5. Medidas da Peça | 6. Revisão de Parâmetros | 7. Tabela Resultado */
 @AndroidEntryPoint
 class CalcRevestimentoFragment : Fragment() {
 
@@ -140,6 +139,7 @@ class CalcRevestimentoFragment : Fragment() {
         setupStep2AmbTypeListeners()
         setupStep3TrafTypeListeners()
         setupStep4AreaListeners()
+        setupAreaTotalSwitchStep4()
         setupStep4Switches()
         setupStep5PecaParametersListeners()
         setupRodapeListeners()
@@ -179,8 +179,7 @@ class CalcRevestimentoFragment : Fragment() {
     /** ======================= LISTENERS DE ETAPAS ======================= */
     // Etapa 1: Tipo de revestimento
     private fun setupStep1RevTypeListeners() = with(binding) {
-        // 1) Clicks nos cards (Piso, Azulejo, Pastilha, Pedra, Intertravado, Mármore, Granito)
-        val revestCards = listOf(
+        val revestCards = listOf( // 1) Clicks nos Cards de Revestimento
             rbPiso, rbAzulejo, rbPastilha, rbPedra, rbPisoIntertravado, rbMarmore, rbGranito
         )
 
@@ -289,31 +288,58 @@ class CalcRevestimentoFragment : Fragment() {
         setupTotalAreaField()
     }
 
+    // Etapa 4: Switch "Prefere informar área em m²"
+    private fun setupAreaTotalSwitchStep4() = with(binding) {
+        switchAreaTotal.setOnCheckedChangeListener { _, isChecked ->
+            if (isSyncing) return@setOnCheckedChangeListener
+            // Atualiza o modo no ViewModel
+            viewModel.setAreaTotalMode(isChecked)
+            // Atualiza visibilidade dos grupos
+            groupMedidasRetangulares.isVisible = !isChecked
+            groupAreaTotalInformada.isVisible = isChecked
+
+            if (isChecked) { // Ao habilitar o switch, apenas o campo "Abertura" é limpo
+                if (!etAbertura.text.isNullOrBlank()) {
+                    etAbertura.text?.clear()
+                    tilAbertura.error = null
+                }
+            } else {// Voltando para o modo por dimensões: erro de Área Total não é mais relevante
+                tilAreaInformada.error = null
+            }
+            updateRequiredIconsForStep3Area()
+            refreshNextButtonEnabled()
+        }
+    }
+
     // Configura campos de medidas da área (Comp/Larg/Alt)
     private fun setupAreaDimensionFields(
         et: TextInputEditText, til: TextInputLayout
     ) {
-        et.doAfterTextChanged {
+        et.doAfterTextChanged { // Atualiza medidas no ViewModel respeitando o modo atual
             viewModel.setMedidas(
                 getDoubleValue(binding.etComp), getDoubleValue(binding.etLarg),
                 getDoubleValue(binding.etAlt), getDoubleValue(binding.etAreaInformada)
             )
+
+            val isAreaTotalMode = binding.switchAreaTotal.isChecked
+            val isAreaTotalValid =
+                isAreaTotalMode && validator.isAreaTotalValidNow(binding.etAreaInformada)
+
             if (til.isVisible) {
-                val isAreaValid = validator.isAreaTotalValidNow(binding.etAreaInformada)
                 if (et === binding.etAlt) {
-                    validator.validateAlturaLive(et, til, isAreaValid)
+                    validator.validateAlturaLive(et, til, isAreaTotalValid)
                 } else {
-                    validator.validateCompOrLargLive(et, til, isAreaValid)
+                    validator.validateCompOrLargLive(et, til, isAreaTotalValid)
                 }
             } else {
                 validator.setInlineError(et, til, null)
             }
             updateRequiredIconsForStep3Area()
 
+            // Revalida Abertura com a nova área bruta apenas no modo DIMENSÕES
             if (binding.tilAbertura.isVisible &&
-                !binding.etAbertura.text.isNullOrBlank() &&
-                binding.etAreaInformada.text.isNullOrBlank()
-            ) { // Revalida Abertura com a área bruta nova (comp/alt/parede atualizados no ViewModel)
+                !binding.etAbertura.text.isNullOrBlank() && !binding.switchAreaTotal.isChecked
+            ) {
                 validator.validateAberturaLive(binding.etAbertura, binding.tilAbertura)
             }
             refreshNextButtonEnabled()
@@ -341,8 +367,8 @@ class CalcRevestimentoFragment : Fragment() {
             validator.validateParedeQtdLive(etParedeQtd, tilParedeQtd)
             updateRequiredIconsForStep3Area()
 
-            if (tilAbertura.isVisible && !etAbertura.text.isNullOrBlank() &&
-                etAreaInformada.text.isNullOrBlank()
+            if (tilAbertura.isVisible && // Revalida Abertura com a nova quantidade de paredes
+                !etAbertura.text.isNullOrBlank() && !switchAreaTotal.isChecked
             ) {
                 validator.validateAberturaLive(etAbertura, tilAbertura)
             }
@@ -363,34 +389,37 @@ class CalcRevestimentoFragment : Fragment() {
         validator.validateAberturaOnBlur(etAbertura, tilAbertura)
     }
 
-    // Configura campo de área total informada
+    // Configura campo de Área Total informada
     private fun setupTotalAreaField() = with(binding) {
         etAreaInformada.doAfterTextChanged {
-            viewModel.setMedidas(
+            viewModel.setMedidas( // Atualiza medidas no ViewModel respeitando o modo atual
                 getDoubleValue(etComp), getDoubleValue(etLarg),
                 getDoubleValue(etAlt), getDoubleValue(etAreaInformada)
             )
-            // Valida a própria Área Total
-            validator.validateAreaInformadaLive(etAreaInformada, tilAreaInformada)
-            // Limpa ou revalida C/L/A + Parede + Abertura conforme Área Total
-            val isValidArea = validator.isAreaTotalValidNow(etAreaInformada)
-            if (isValidArea) {
-                // Área Total válida → DOMINA a etapa 4
-                validator.setInlineError(etComp, tilComp, null)
-                validator.setInlineError(etLarg, tilLarg, null)
-                if (tilAltura.isVisible) {
-                    validator.setInlineError(etAlt, tilAltura, null)
+
+            val isAreaTotalMode = switchAreaTotal.isChecked
+
+            if (isAreaTotalMode) { // Modo "Área total": este campo passa a ser o caminho principal
+                validator.validateAreaInformadaLive(etAreaInformada, tilAreaInformada)
+
+                val isValidArea = validator.isAreaTotalValidNow(etAreaInformada)
+                if (isValidArea) { // Área Total válida domina: dimensões e parede deixam de exibir erro
+                    validator.setInlineError(etComp, tilComp, null)
+                    validator.setInlineError(etLarg, tilLarg, null)
+                    if (tilAltura.isVisible) {
+                        validator.setInlineError(etAlt, tilAltura, null)
+                    }
+                    validator.setInlineError(etParedeQtd, tilParedeQtd, null)
                 }
-                //Limpar também Parede (qtd) e Abertura
-                validator.setInlineError(etParedeQtd, tilParedeQtd, null)
-                validator.setInlineError(etAbertura, tilAbertura, null)
-            } else { // Área Total vazia ou inválida → volta a usar as dimensões
+                // Abertura sempre é validada no contexto da Área Total
+                validator.validateAberturaLive(etAbertura, tilAbertura)
+            } else { // Modo "Dimensões": Área Total é apenas opcional e não domina a etapa
+                validator.validateAreaInformadaLive(etAreaInformada, tilAreaInformada)
+                // Volta a validar C/L/A + Parede + Abertura pelo contexto dimensional
                 validateAllAreaDimensions()
-                // Revalida Parede/Abertura com o novo contexto
                 validator.validateParedeQtdLive(etParedeQtd, tilParedeQtd)
                 validator.validateAberturaLive(etAbertura, tilAbertura)
             }
-            tvAreaTotalAviso.isVisible = !etAreaInformada.text.isNullOrBlank()
             updateRequiredIconsForStep3Area()
             refreshNextButtonEnabled()
         }
@@ -775,16 +804,23 @@ class CalcRevestimentoFragment : Fragment() {
     private fun syncAllInputsWithViewModel() = with(binding) {
         isSyncing = true
         val inputs = viewModel.inputs.value
-        inputSynchronizer.syncAllRadioGroups(     // Sincroniza RadioGroups
+
+        inputSynchronizer.syncAllRadioGroups(
             inputs,
             rgPlacaTipo, rgAmbiente, rgRodapeMat, rgTrafego,
             rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho, rgMgAplicacao
         )
-        inputSynchronizer.syncRevestimentoCards(  // Sincroniza cards de revestimento
+        inputSynchronizer.syncRevestimentoCards(
             inputs.revest,
             rbPiso, rbAzulejo, rbPastilha, rbPedra, rbPisoIntertravado, rbMarmore, rbGranito
         )
-        fieldSynchronizer.syncAllFields(          // Sincroniza campos de texto
+
+        // Switch "Prefere informar o m² total?" segue o estado do ViewModel
+        switchAreaTotal.isChecked = inputs.areaTotalMode
+        groupMedidasRetangulares.isVisible = !inputs.areaTotalMode
+        groupAreaTotalInformada.isVisible = inputs.areaTotalMode
+
+        fieldSynchronizer.syncAllFields(
             inputs,
             etComp, etLarg, etAlt, etParedeQtd, etAbertura, etAreaInformada,
             etPecaComp, etPecaLarg, etPecaEsp, etJunta, etSobra, etPecasPorCaixa,
@@ -825,7 +861,7 @@ class CalcRevestimentoFragment : Fragment() {
     private fun updateAllComponentsVisibility() = with(binding) {
         visibilityManager.updateAllVisibilities(
             viewModel.inputs.value,
-            tvAreaTotalAviso, groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho,
+            groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho,
             groupPastilhaPorcelanatoTamanho, groupRodapeFields, groupMgAplicacao,
             tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
             tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa,
@@ -980,7 +1016,7 @@ class CalcRevestimentoFragment : Fragment() {
     private fun updateRequiredIconsForStep3Area() = with(binding) {
         iconManager.updateStep4IconsAreaDimensions(
             etComp, etLarg, etAlt, etParedeQtd, etAbertura, etAreaInformada,
-            tilAltura.isVisible, tilParedeQtd.isVisible
+            tilAltura.isVisible, tilParedeQtd.isVisible, switchAreaTotal.isChecked
         )
     }
 
@@ -1046,21 +1082,13 @@ class CalcRevestimentoFragment : Fragment() {
                 enabled = inputs.aplicacao != null
             }
         }
-        if (step >= 4) { // Etapa 4 (Medidas da Área)
-            val areaTxt = etAreaInformada.text
-            val hasAreaTotalPreenchida = !areaTxt.isNullOrBlank()
-
-            enabled = if (hasAreaTotalPreenchida) { // Área Total preenchida → Valor prevalece
-                !validator.hasAreaTotalErrorNow(etAreaInformada)
-            } else if (enabled) { // Sem Área Total → complementa o que o ViewModel já validou
-                !validator.hasAreaTotalErrorNow(etAreaInformada) &&
-                        tilParedeQtd.error.isNullOrEmpty() &&
-                        tilAbertura.error.isNullOrEmpty()
-            } else {
-                false // validateStep já reprovou por outro motivo (ex.: dimensões ruins)
-            }
+        if (step >= 4) { // Etapa 4: Medidas da Área; Validação principal (dimensões x área total)
+            enabled = validation.isValid &&
+                    tilParedeQtd.error.isNullOrEmpty() &&
+                    tilAbertura.error.isNullOrEmpty() &&
+                    (!inputs.areaTotalMode || tilAreaInformada.error.isNullOrEmpty())
         }
-        if (enabled && step >= 5) { // Etapa 5 (Medidas do Revestimento)
+        if (enabled && step >= 5) { // Etapa 5: Medidas do Revestimento
             val isPedra = inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PEDRA
             val isMg = isMG()
             enabled = when {
@@ -1201,7 +1229,6 @@ class CalcRevestimentoFragment : Fragment() {
         val result = mutableListOf<T>()
         val stack = ArrayDeque<View>()
         stack.add(this)
-
         while (stack.isNotEmpty()) {
             val view = stack.removeFirst()
             if (view is T) {

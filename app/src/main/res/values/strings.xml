@@ -966,7 +966,7 @@
     <string name="calc_step3_title">Medidas da Área</string>
     <string name="calc_step3_comp">Comprimento (m)</string>
     <string name="calc_step3_larg">Largura (m)</string>
-    <string name="calc_step3_alt">Altura (m) (somente parede)</string>
+    <string name="calc_step3_alt">Altura (m)</string>
     <string name="calc_step3_or">Ou informe diretamente:</string>
     <string name="calc_step3_area_total">Área total (m²)</string>
     <string name="text_area_total_aviso">Com Área total informada, as medidas acima são ignoradas no cálculo da área base.</string>
@@ -985,6 +985,7 @@
     <string name="calc_err_medida_alt_m">Valor inválido • Limites: 0,01 m a 100 m.</string>
     <string name="calc_err_area_total">Valor inválido • Limites: 0,1 m² a 50.000 m².</string>
 
+    <string name="calc_step3_switch_area_total">Prefere informar área em m²?</string>
 
     <!-- ======== TELA 4 ======== -->
     <string name="calc_step4_title">Medidas do Revestimento</string>

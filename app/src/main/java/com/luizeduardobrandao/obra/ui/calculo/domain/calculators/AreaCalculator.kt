@@ -3,14 +3,10 @@ package com.luizeduardobrandao.obra.ui.calculo.domain.calculators
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel.*
 import kotlin.math.sqrt
 
-/**
- * Utilitário para cálculos de Medidas da Área
- */
+/** Utilitário para cálculos de Medidas da Área */
 object AreaCalculator {
 
-    /**
-     * Calcula área de paredes (com quantidade de paredes e aberturas)
-     */
+    /** Calcula área de paredes (com quantidade de paredes e aberturas) */
     private fun areaParedeM2(inputs: Inputs): Double? {
         val c = inputs.compM ?: return null
         val h = inputs.altM ?: return null
@@ -27,14 +23,40 @@ object AreaCalculator {
         return if (areaLiquida > 0.0) areaLiquida else null
     }
 
-    /**
-     * Calcula área base do ambiente em m²
-     */
-    fun areaBaseM2(inputs: Inputs): Double? {
-        // 1) Área total informada tem prioridade
-        inputs.areaInformadaM2?.takeIf { it > 0 }?.let { return it }
+    /** Calcula área de ambiente plano (piso, etc.) com possível abertura */
+    private fun areaRetangularComAbertura(
+        compM: Double?,
+        largM: Double?,
+        aberturaM2: Double?
+    ): Double? {
+        val c = compM ?: return null
+        val l = largM ?: return null
 
-        val (c, l) = inputs.compM to inputs.largM
+        val areaBruta = c * l
+        if (areaBruta <= 0.0) return null
+
+        val abertura = aberturaM2 ?: 0.0
+        if (abertura < 0.0 || abertura > areaBruta) return null
+
+        val areaLiquida = areaBruta - abertura
+        return if (areaLiquida > 0.0) areaLiquida else null
+    }
+
+    /** Calcula área base do ambiente em m² */
+    fun areaBaseM2(inputs: Inputs): Double? {
+        // 1) Área total informada tem prioridade (modo "Prefere informar área em m²?")
+        inputs.areaInformadaM2
+            ?.takeIf { it > 0.0 }
+            ?.let { areaInformada ->
+                val abertura = inputs.aberturaM2 ?: 0.0
+                if (abertura < 0.0 || abertura > areaInformada) return null
+
+                val areaLiquida = areaInformada - abertura
+                return if (areaLiquida > 0.0) areaLiquida else null
+            }
+
+        val c = inputs.compM
+        val l = inputs.largM
 
         return when (inputs.revest) {
             // Azulejo e Pastilha: sempre parede
@@ -45,18 +67,15 @@ object AreaCalculator {
             RevestimentoType.MARMORE,
             RevestimentoType.GRANITO -> when (inputs.aplicacao) {
                 AplicacaoType.PAREDE -> areaParedeM2(inputs)
-                AplicacaoType.PISO -> if (c != null && l != null) c * l else null
+                AplicacaoType.PISO -> areaRetangularComAbertura(c, l, inputs.aberturaM2)
                 else -> null
             }
-
-            // Demais: lógica plana (piso, pedra, intertravado, etc.)
-            else -> if (c != null && l != null) c * l else null
+            // Demais: lógica plana (piso, pedra, intertravado, etc.) com possível abertura
+            else -> areaRetangularComAbertura(c, l, inputs.aberturaM2)
         }
     }
 
-    /**
-     * Retorna o perímetro máximo possível de rodapé (em metros)
-     */
+    /** Retorna o perímetro máximo possível de rodapé (em metros) */
     fun getRodapePerimetroPossivel(inputs: Inputs): Double? {
         if (!inputs.rodapeEnable) return null
 
@@ -66,7 +85,6 @@ object AreaCalculator {
         ) {
             return inputs.rodapePerimetroManualM
         }
-
         val comp = inputs.compM
         val larg = inputs.largM
 

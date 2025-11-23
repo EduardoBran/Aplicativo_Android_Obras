@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     tools:context=".ui.calculo.CalcRevestimentoFragment"
     tools:ignore="TooManyViews">
-
     <!-- Toolbar -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
@@ -30,9 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="end" />
-
     </com.google.android.material.appbar.MaterialToolbar>
-
     <!-- Conteúdo -->
     <ScrollView
         android:id="@+id/scrollContent"
@@ -65,7 +62,6 @@
                 tools:ignore="UselessParent">
 
                 <!-- =========== TELA 0 – Abertura (Centralizado Programaticamente) =========== -->
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -112,14 +108,12 @@
                             android:textSize="@dimen/calc_btn_normal_text" />
                     </LinearLayout>
                 </LinearLayout>
-
                 <!-- ==================== TELA 1 – Tipo de Revestimento ==================== -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:paddingHorizontal="8dp">
-
                     <!-- Título principal -->
                     <TextView
                         android:layout_width="match_parent"
@@ -130,7 +124,6 @@
                         android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceHeadline5"
                         android:textStyle="bold" />
-
                     <!-- Subtítulo discreto -->
                     <TextView
                         android:layout_width="match_parent"
@@ -139,8 +132,6 @@
                         android:text="@string/calc_step1_subtitle"
                         android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceBodyLarge" />
-
-
                     <!-- Grade de cards clicáveis para escolher o tipo de revestimento -->
                     <GridLayout
                         android:id="@+id/gridRevest"
@@ -149,7 +140,6 @@
                         android:alignmentMode="alignMargins"
                         android:columnCount="2"
                         android:useDefaultMargins="true">
-
                         <!-- Piso -->
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/rbPiso"
@@ -193,7 +183,6 @@
                                     android:textAppearance="?attr/textAppearanceBodyMedium" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
-
                         <!-- Azulejo -->
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/rbAzulejo"
@@ -237,7 +226,6 @@
                                     android:textAppearance="?attr/textAppearanceBodyMedium" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
-
                         <!-- Pastilha -->
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/rbPastilha"
@@ -282,7 +270,6 @@
                                     android:textAppearance="?attr/textAppearanceBodyMedium" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
-
                         <!-- Piso Intertravado -->
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/rbPisoIntertravado"
@@ -327,7 +314,6 @@
                                     android:textAppearance="?attr/textAppearanceBodyMedium" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
-
                         <!-- Mármore -->
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/rbMarmore"
@@ -372,7 +358,6 @@
                                     android:textAppearance="?attr/textAppearanceBodyMedium" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
-
                         <!-- Granito -->
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/rbGranito"
@@ -417,7 +402,6 @@
                                     android:textAppearance="?attr/textAppearanceBodyMedium" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
-
                         <!-- Pedra Portuguesa -->
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/rbPedra"
@@ -463,8 +447,7 @@
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
                     </GridLayout>
-
-                    <!-- Tipo da Peça (mesmo id, agora com cara de card de seção) -->
+                    <!-- Tipo da Peça -->
                     <LinearLayout
                         android:id="@+id/groupPlacaTipo"
                         android:layout_width="match_parent"
@@ -510,8 +493,7 @@
                                 android:text="@string/calc_step1_piso_porcelanato" />
                         </RadioGroup>
                     </LinearLayout>
-
-                    <!-- Grupo de Aplicação específico para Mármore/Granito -->
+                    <!-- Tipo de Aplicação (Mármore / Granito) -->
                     <LinearLayout
                         android:id="@+id/groupMgAplicacao"
                         android:layout_width="match_parent"
@@ -580,7 +562,6 @@
                         android:id="@+id/rgAmbiente"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
-
                         <!-- Seco -->
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbSeco"
@@ -599,7 +580,6 @@
                             android:text="@string/calc_amb_desc_seco"
                             android:textAppearance="?attr/textAppearanceBodyMedium"
                             android:textColor="?attr/colorOnSurfaceVariant" />
-
                         <!-- Semi Molhado -->
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbSemi"
@@ -619,7 +599,6 @@
                             android:text="@string/calc_amb_desc_semi"
                             android:textAppearance="?attr/textAppearanceBodyMedium"
                             android:textColor="?attr/colorOnSurfaceVariant" />
-
                         <!-- Molhado -->
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbMolhado"
@@ -639,7 +618,6 @@
                             android:text="@string/calc_amb_desc_molhado"
                             android:textAppearance="?attr/textAppearanceBodyMedium"
                             android:textColor="?attr/colorOnSurfaceVariant" />
-
                         <!-- Sempre Molhado -->
                         <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rbSempre"
@@ -679,7 +657,6 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
                             android:padding="16dp">
-
                             <!-- Ícone em um container circular -->
                             <FrameLayout
                                 android:layout_width="40dp"
@@ -695,7 +672,6 @@
                                     android:textColor="?attr/colorPrimary"
                                     android:textSize="20sp" />
                             </FrameLayout>
-
                             <!-- Conteúdo -->
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -725,9 +701,7 @@
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
-
                 </LinearLayout>
-
                 <!-- =========== TELA 3 – Tipo de Tráfego (Piso Intertravado) =========== -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -825,7 +799,6 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
                             android:padding="16dp">
-
                             <!-- Ícone em um container circular -->
                             <FrameLayout
                                 android:layout_width="40dp"
@@ -841,7 +814,6 @@
                                     android:textColor="?attr/colorPrimary"
                                     android:textSize="20sp" />
                             </FrameLayout>
-
                             <!-- Conteúdo -->
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -871,7 +843,6 @@
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
-
                 </LinearLayout>
 
                 <!-- ==================== TELA 4 – Medidas da Área ==================== -->
@@ -890,75 +861,83 @@
                         android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceHeadline5"
                         android:textStyle="bold" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/tilComp"
+                    <!-- Grupo da Área Total (Comp / Larg / Altura / Parede) -->
+                    <LinearLayout
+                        android:id="@+id/groupMedidasRetangulares"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/calc_step3_comp"
-                        app:helperText="Em metros • Ex: 5,50"
-                        app:helperTextEnabled="true">
+                        android:orientation="vertical">
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etComp"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilComp"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:digits="0123456789,."
-                            android:inputType="numberDecimal" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                            android:hint="@string/calc_step3_comp"
+                            app:helperText="Em metros • Ex: 5,50"
+                            app:helperTextEnabled="true">
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/tilLarg"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:hint="@string/calc_step3_larg"
-                        app:helperText="Em metros • Ex: 3,20"
-                        app:helperTextEnabled="true">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etComp"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:digits="0123456789,."
+                                android:inputType="numberDecimal" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etLarg"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilLarg"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:digits="0123456789,."
-                            android:inputType="numberDecimal" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                            android:layout_marginTop="8dp"
+                            android:hint="@string/calc_step3_larg"
+                            app:helperText="Em metros • Ex: 3,20"
+                            app:helperTextEnabled="true">
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/tilAltura"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:hint="@string/calc_step3_alt"
-                        android:visibility="gone"
-                        app:helperText="Em metros • Ex: 2,80"
-                        app:helperTextEnabled="true">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etLarg"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:digits="0123456789,."
+                                android:inputType="numberDecimal" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etAlt"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilAltura"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:digits="0123456789,."
-                            android:inputType="numberDecimal" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                            android:layout_marginTop="8dp"
+                            android:hint="@string/calc_step3_alt"
+                            android:visibility="gone"
+                            app:helperText="Em metros • Ex: 2,80"
+                            app:helperTextEnabled="true">
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/tilParedeQtd"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:hint="@string/calc_step3_parede_qtd"
-                        android:visibility="gone"
-                        app:helperText="@string/calc_step3_parede_qtd_helper"
-                        app:helperTextEnabled="true">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etAlt"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:digits="0123456789,."
+                                android:inputType="numberDecimal" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etParedeQtd"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilParedeQtd"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="number" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                            android:layout_marginTop="8dp"
+                            android:hint="@string/calc_step3_parede_qtd"
+                            android:visibility="gone"
+                            app:helperText="@string/calc_step3_parede_qtd_helper"
+                            app:helperTextEnabled="true">
 
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etParedeQtd"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="number" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <!-- Campo Abertura (sempre visível, mas reposicionado conforme modo) -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilAbertura"
                         android:layout_width="match_parent"
@@ -976,41 +955,53 @@
                             android:digits="0123456789,."
                             android:inputType="numberDecimal" />
                     </com.google.android.material.textfield.TextInputLayout>
-
-                    <TextView
+                    <!-- Campo Área total informada manualmente (visível apenas com o switch ativado) -->
+                    <LinearLayout
+                        android:id="@+id/groupAreaTotalInformada"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="@string/calc_step3_or"
-                        android:textAlignment="center"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical"
+                        android:visibility="gone">
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/tilAreaInformada"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:hint="@string/calc_step3_area_total"
-                        app:helperText="Em m² • Ex: 17,60"
-                        app:helperTextEnabled="true">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etAreaInformada"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilAreaInformada"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:digits="0123456789,."
-                            android:inputType="numberDecimal" />
+                            android:hint="@string/calc_step3_area_total"
+                            app:helperText="Em m² • Ex: 17,60"
+                            app:helperTextEnabled="true">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etAreaInformada"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:digits="0123456789,."
+                                android:inputType="numberDecimal" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+                    <!-- Switch: prefere informar área em m² (sempre na parte inferior) -->
+                    <LinearLayout
+                        android:id="@+id/rowAreaTotalSwitchStep3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <TextView
-                            android:id="@+id/tvAreaTotalAviso"
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="@string/text_area_total_aviso"
-                            android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="@color/warning"
-                            android:visibility="gone" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                            android:layout_weight="1"
+                            android:text="@string/calc_step3_switch_area_total"
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textColor="?attr/colorOnSurface" />
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switchAreaTotal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- =============== TELA 5 – Medidas do Revestimento + Rodapé =============== -->
@@ -1029,7 +1020,6 @@
                         android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceHeadline5"
                         android:textStyle="bold" />
-
                     <!-- Grupo específico visível para Pastilha (Cerâmica) -->
                     <LinearLayout
                         android:id="@+id/groupPastilhaTamanho"
@@ -1092,7 +1082,6 @@
                             android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="13sp" />
                     </LinearLayout>
-
                     <!-- Grupo específico visível para Pastilha (Porcelanato) -->
                     <LinearLayout
                         android:id="@+id/groupPastilhaPorcelanatoTamanho"
@@ -1115,7 +1104,6 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
                             android:layout_marginTop="10dp">
-
                             <!-- Linha 1 -->
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/rbPastilhaP1_5"
@@ -1143,7 +1131,6 @@
                                 android:text="@string/calc_pastilha_p2_5"
                                 android:textColor="?attr/colorOnSurface"
                                 android:textSize="16sp" />
-
                             <!-- Linha 2 -->
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/rbPastilhaP2_2"
@@ -1171,7 +1158,6 @@
                                 android:text="@string/calc_pastilha_p5_10"
                                 android:textColor="?attr/colorOnSurface"
                                 android:textSize="16sp" />
-
                             <!-- Linha 3 -->
                             <com.google.android.material.radiobutton.MaterialRadioButton
                                 android:id="@+id/rbPastilhaP5_15"
@@ -1284,9 +1270,8 @@
                                 android:digits="0123456789,."
                                 android:inputType="numberDecimal" />
                         </com.google.android.material.textfield.TextInputLayout>
-
                     </LinearLayout>
-
+                    <!-- Campo Sobra Técnica -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSobra"
                         android:layout_width="match_parent"
@@ -1516,7 +1501,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
-
                     <!-- Título da tela -->
                     <TextView
                         android:layout_width="match_parent"
@@ -1545,14 +1529,12 @@
                             android:orientation="vertical"
                             android:paddingHorizontal="10dp"
                             android:paddingVertical="12dp">
-
                             <!-- Cabeçalho do card -->
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:gravity="center_vertical"
                                 android:orientation="horizontal">
-
                                 <!-- Ícone do card -->
                                 <TextView
                                     android:layout_width="wrap_content"
@@ -1560,7 +1542,6 @@
                                     android:text="@string/icon_card_revisao"
                                     android:textColor="?attr/colorPrimary"
                                     android:textSize="20sp" />
-
                                 <!-- Título do card -->
                                 <TextView
                                     android:layout_width="0dp"
@@ -1573,7 +1554,6 @@
                                     android:textSize="18sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
-
                             <!-- Subtítulo -->
                             <TextView
                                 android:layout_width="match_parent"
@@ -1583,7 +1563,6 @@
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="16sp" />
-
                             <!-- Divider -->
                             <com.google.android.material.divider.MaterialDivider
                                 android:layout_width="match_parent"
@@ -1591,7 +1570,6 @@
                                 android:layout_marginTop="14dp"
                                 app:dividerColor="?attr/colorOutline"
                                 app:dividerThickness="1dp" />
-
                             <!-- Conteúdo com os parâmetros -->
                             <TextView
                                 android:id="@+id/tvResumoRevisao"
@@ -1633,7 +1611,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
-
                     <!-- Título Tabela -->
                     <TextView
                         android:id="@+id/tvTabelaTitulo"
@@ -1647,7 +1624,6 @@
                         android:textAlignment="center"
                         android:textAppearance="?attr/textAppearanceTitleLarge"
                         android:textColor="?attr/colorPrimary" />
-
                     <!-- Card Tabela -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardTabela"
@@ -1678,7 +1654,6 @@
                         app:dividerInsetEnd="8dp"
                         app:dividerInsetStart="8dp"
                         app:dividerThickness="1dp" />
-
                     <!-- Card de Informação -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardInformation"
@@ -1745,7 +1720,6 @@
                         app:iconGravity="start"
                         app:iconTint="@color/md_theme_light_onPrimary" />
                 </LinearLayout>
-
             </ViewFlipper>
         </LinearLayout>
     </ScrollView>
@@ -1783,7 +1757,6 @@
             android:contentDescription="@string/cont_btn_avancar"
             android:text="@string/generic_next"
             android:textSize="@dimen/calc_btn_normal_text" />
-
     </LinearLayout>
 
     <!-- ProgressBar para loading -->
@@ -1807,5 +1780,4 @@
             android:indeterminate="true"
             app:indicatorColor="?attr/colorPrimary" />
     </FrameLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
