@@ -382,39 +382,53 @@ class CalcRevestimentoViewModel @Inject constructor() : ViewModel() {
     /** ======================= NAVEGAÇÃO ENTRE ETAPAS ======================= */
     fun nextStep() = viewModelScope.launch {
         val i = _inputs.value
-        var next = _step.value + 1
-        // Etapa 3 (Tráfego) só existe para Piso Intertravado
-        if (next == 3 && i.revest != RevestimentoType.PISO_INTERTRAVADO) {
-            next = 4
+        val next = when (val current = _step.value) {
+            // 0 – Abertura → sempre vai para 1
+            0 -> 1
+            // 1 – Tipo de Revestimento
+            1 -> when (i.revest) {
+                RevestimentoType.PEDRA -> 4
+                RevestimentoType.PISO_INTERTRAVADO -> 3
+
+                else -> 2 // Demais revestimentos: seguem para Tipo de Ambiente (2)
+            }
+            // 2 – Tipo de Ambiente (não exibido para Pedra Portuguesa e Intertravado)
+            2 -> if (i.revest == RevestimentoType.PISO_INTERTRAVADO) 3 else 4
+            // 3 – Tipo de Tráfego (apenas Piso Intertravado) → sempre vai para Medidas da Área (4)
+            3 -> 4
+            // 4 – Medidas da Área → 5 – Medidas da Peça + Rodapé
+            4 -> 5
+            // 5 – Medidas da Peça + Rodapé → 6 – Revisão
+            5 -> 6
+            // 6 – Revisão → 7 – Resultado
+            6 -> 7
+            // 7 – Resultado: permanece em 7
+            else -> current
         }
-        // 6 = Revisão de Parâmetros -> 7 = Resultado final
         _step.value = next.coerceAtMost(CalcRevestimentoRules.Steps.MAX)
     }
 
     fun prevStep() = viewModelScope.launch {
         val i = _inputs.value
-        var prev = _step.value - 1
+        var prev = when (val current = _step.value) {
+            // 3 – Tráfego: Para PISO_INTERTRAVADO agora volta direto para 1 (Tipo de Revestimento)
+            3 -> if (i.revest == RevestimentoType.PISO_INTERTRAVADO) 1 else 2
 
-        when (_step.value) {
-            // Etapa 3 (Tráfego) só existe para Piso Intertravado → sempre volta para 2
-            3 -> {
-                prev = 2
+            // 4 – Medidas da Área:
+            4 -> when (i.revest) {
+                RevestimentoType.PISO_INTERTRAVADO -> 3 // PISO_INTERTRAVADO: volta para 3 (Tráfego)
+                RevestimentoType.PEDRA -> 1             // PEDRA: volta para etapa 1 (Tipo de Revestimento)
+                else -> 2 // Demais revestimentos: voltam para 2 (Ambiente)
             }
-            // Etapa 4 (Medidas da Área): Piso Intertravado (volta para 3), outras (voltam para 2)
-            4 -> {
-                prev = if (i.revest == RevestimentoType.PISO_INTERTRAVADO) 3 else 2
-            }
-            // Etapa 6 = Revisão de Parâmetros: sempre volta para Medidas da Peça
-            6 -> {
-                prev = 5
-            }
-            // Etapa 7 = Resultado final: sempre volta para Revisão (6)
-            7 -> {
-                prev = 6
-            }
+            // 6 – Revisão → sempre volta para 5 – Medidas da Peça
+            6 -> 5
+            // 7 – Resultado → sempre volta para 6 – Revisão
+            7 -> 6
+            // Demais casos: comportamento padrão, step-1
+            else -> current - 1
         }
         prev = prev.coerceAtLeast(CalcRevestimentoRules.Steps.MIN)
-        if (prev == 0 || prev == 1) {
+        if (prev == 0 || prev == 1) { // Voltar para Abertura (0) ou Tipo Revestimento (1), zera o estado interno
             resetAllInternal()
         }
         _step.value = prev

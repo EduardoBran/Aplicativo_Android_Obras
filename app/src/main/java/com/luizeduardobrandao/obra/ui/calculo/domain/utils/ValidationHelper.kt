@@ -36,15 +36,20 @@ object ValidationHelper {
         }
     }
 
-    /** =========== STEP 2 – Tipo de Ambiente */
+    /** ==== STEP 2 – Tipo de Ambiente (Não exibe; Pedra Portuguesa e Piso Intertravado) ==== */
     fun validateStep2Ambiente(inputs: Inputs): StepValidation {
+        if (inputs.revest == RevestimentoType.PEDRA ||
+            inputs.revest == RevestimentoType.PISO_INTERTRAVADO
+        ) {
+            return StepValidation(true)
+        }
         return if (inputs.ambiente == null)
             StepValidation(false)
         else
             StepValidation(true)
     }
 
-    /** ===========STEP 3 – Tipo de Tráfego (apenas Piso Intertravado) */
+    /** ======= STEP 3 – Tipo de Tráfego (exibido apenas para Piso Intertravado) ======= */
     fun validateStep3Trafego(inputs: Inputs): StepValidation {
         return if (inputs.revest == RevestimentoType.PISO_INTERTRAVADO) {
             if (inputs.trafego == null)

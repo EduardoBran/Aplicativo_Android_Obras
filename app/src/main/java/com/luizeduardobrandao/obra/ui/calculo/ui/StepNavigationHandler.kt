@@ -8,27 +8,23 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.google.android.material.button.MaterialButton
 
-/**
- * Gerencia a navegação entre etapas do wizard
+/** Gerencia a navegação entre etapas do wizard
+ *  Responsável por:
+ *   - Configurar botões de navegação (Voltar/Avançar/Calcular)
+ *   - Ajustar layout conforme etapa atual (bottom bar / centralização tela 0)
+ *   - Gerenciar visibilidade de menus
+ *   - Configurar botão "Novo Cálculo" na etapa de resultado
  *
- * Responsável por:
- * - Configurar botões de navegação (Voltar/Avançar/Calcular)
- * - Ajustar layout conforme etapa
- * - Gerenciar visibilidade de menus
- * - Configurar botão "Novo Cálculo"
- *
- * Mapeamento atual de etapas:
- * 0 – Abertura
- * 1 – Tipo de Revestimento
- * 2 – Tipo de Ambiente
- * 3 – Tipo de Tráfego (apenas Piso Intertravado)
- * 4 – Medidas da Área
- * 5 – Medidas do Parâmetro
- * 6 – Revisão de Parâmetros
- * 7 – Resultado Final (Tabela)
- */
+ *  Mapeamento lógico de etapas (índice do ViewFlipper):
+ *   0 – Abertura
+ *   1 – Tipo de Revestimento
+ *   2 – Tipo de Ambiente (não exibida para PEDRA e PISO_INTERTRAVADO)
+ *   3 – Tipo de Tráfego (apenas PISO_INTERTRAVADO)
+ *   4 – Medidas da Área
+ *   5 – Medidas da Peça + Rodapé
+ *   6 – Revisão de Parâmetros
+ *   7 – Resultado Final (Tabela) */
 class StepNavigationHandler {
-
     /** Atualiza botões e layout conforme a etapa atual */
     fun handleStepNavigation(
         step: Int,
