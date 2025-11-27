@@ -5,6 +5,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.luizeduardobrandao.obra.ui.calculo.CalcRevestimentoViewModel
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
+import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 
 /** Gerencia a sincronização de campos de texto com o estado do ViewModel
  *
@@ -26,6 +27,7 @@ class FieldSynchronizer {
         etSobra: TextInputEditText, etPecasPorCaixa: TextInputEditText,
         etDesnivel: TextInputEditText, etRodapeAltura: TextInputEditText,
         etRodapeAbertura: TextInputEditText, etRodapeCompComercial: TextInputEditText,
+        etPisoVinilicoDemaos: TextInputEditText,
         tilComp: TextInputLayout, tilLarg: TextInputLayout, tilAltura: TextInputLayout,
         tilParedeQtd: TextInputLayout, tilAbertura: TextInputLayout,
         tilAreaInformada: TextInputLayout, tilPecaComp: TextInputLayout,
@@ -33,6 +35,7 @@ class FieldSynchronizer {
         tilPecasPorCaixa: TextInputLayout, tilDesnivel: TextInputLayout,
         tilSobra: TextInputLayout, tilRodapeAltura: TextInputLayout,
         tilRodapeAbertura: TextInputLayout, tilRodapeCompComercial: TextInputLayout,
+        tilPisoVinilicoDemaos: TextInputLayout,
         rgPastilhaTamanho: RadioGroup, rgPastilhaPorcelanatoTamanho: RadioGroup, isMG: Boolean
     ) {
         // Detecta reset geral
@@ -41,10 +44,10 @@ class FieldSynchronizer {
                 etComp, etLarg, etAlt, etParedeQtd, etAbertura, etAreaInformada,
                 etPecaComp, etPecaLarg, etPecaEsp, etJunta, etSobra, etPecasPorCaixa,
                 etDesnivel, etRodapeAltura, etRodapeAbertura, etRodapeCompComercial,
-                tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
-                tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa,
+                etPisoVinilicoDemaos, tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura,
+                tilAreaInformada, tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa,
                 tilDesnivel, tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial,
-                rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho
+                tilPisoVinilicoDemaos, rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho
             )
             return
         }
@@ -52,7 +55,6 @@ class FieldSynchronizer {
         if (!hasAnyFieldValue(inputs)) return
         // Informação se o cenário atual possui rodapé (para mostrar/limpar campos de rodapé)
         val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
-
         // ─── Medidas da Área ───
         syncField(etComp, inputs.compM)
         syncField(etLarg, inputs.largM)
@@ -79,6 +81,14 @@ class FieldSynchronizer {
                 tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial
             )
         }
+        // ✅ Para Piso Vinílico: sincroniza rodapePerimetroManualM com etRodapeAltura
+        if (inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO) {
+            syncIntField(etPisoVinilicoDemaos, inputs.pisoVinilicoQtdDemaos)
+            // Perímetro de rodapé (reutiliza etRodapeAltura para armazenar METROS)
+            if (hasRodapeStep && inputs.rodapeEnable) {
+                syncField(etRodapeAltura, inputs.rodapePerimetroManualM)
+            }
+        }
     }
 
     /** Verifica se há algum valor de campo nos inputs */
@@ -88,7 +98,8 @@ class FieldSynchronizer {
                 inputs.pecaCompCm != null || inputs.pecaLargCm != null || inputs.juntaMm != null ||
                 inputs.sobraPct != null || inputs.desnivelCm != null || inputs.paredeQtd != null ||
                 inputs.aberturaM2 != null || inputs.rodapeAlturaCm != null ||
-                inputs.rodapeCompComercialM != null || inputs.rodapeDescontarVaoM > 0.0
+                inputs.rodapeCompComercialM != null || inputs.rodapeDescontarVaoM > 0.0 ||
+                inputs.pisoVinilicoQtdDemaos != null || inputs.rodapePerimetroManualM != null
     }
 
     /** Limpa todos os campos e erros */
@@ -100,24 +111,26 @@ class FieldSynchronizer {
         etJunta: TextInputEditText, etSobra: TextInputEditText, etPecasPorCaixa: TextInputEditText,
         etDesnivel: TextInputEditText, etRodapeAltura: TextInputEditText,
         etRodapeAbertura: TextInputEditText, etRodapeCompComercial: TextInputEditText,
+        etPisoVinilicoDemaos: TextInputEditText,
         tilComp: TextInputLayout, tilLarg: TextInputLayout, tilAltura: TextInputLayout,
         tilParedeQtd: TextInputLayout, tilAbertura: TextInputLayout,
         tilAreaInformada: TextInputLayout, tilPecaComp: TextInputLayout,
         tilPecaLarg: TextInputLayout, tilPecaEsp: TextInputLayout, tilJunta: TextInputLayout,
         tilPecasPorCaixa: TextInputLayout, tilDesnivel: TextInputLayout, tilSobra: TextInputLayout,
         tilRodapeAltura: TextInputLayout, tilRodapeAbertura: TextInputLayout,
-        tilRodapeCompComercial: TextInputLayout,
+        tilRodapeCompComercial: TextInputLayout, tilPisoVinilicoDemaos: TextInputLayout,
         rgPastilhaTamanho: RadioGroup, rgPastilhaPorcelanatoTamanho: RadioGroup
     ) {
         listOf( // Limpa textos
-            etComp, etLarg, etAlt, etParedeQtd, etAbertura, etAreaInformada,
-            etPecaComp, etPecaLarg, etPecaEsp, etJunta, etSobra, etPecasPorCaixa,
-            etDesnivel, etRodapeAltura, etRodapeAbertura, etRodapeCompComercial
+            etComp, etLarg, etAlt, etParedeQtd, etAbertura, etAreaInformada, etPecaComp,
+            etPecaLarg, etPecaEsp, etJunta, etSobra, etPecasPorCaixa, etDesnivel,
+            etRodapeAltura, etRodapeAbertura, etRodapeCompComercial, etPisoVinilicoDemaos
         ).forEach { it.text?.clear() }
+
         listOf( // Limpa erros
-            tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
-            tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa,
-            tilDesnivel, tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial
+            tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada, tilPecaComp,
+            tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa, tilDesnivel, tilSobra,
+            tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial, tilPisoVinilicoDemaos
         ).forEach { it.error = null }
         // Limpa RadioGroups de pastilha
         rgPastilhaTamanho.clearCheck()
@@ -152,10 +165,10 @@ class FieldSynchronizer {
             }
             return
         }
-
         val currentNum = et.text?.toString()?.replace(",", ".")?.toDoubleOrNull()
         if (currentNum != value) {
-            et.setText(value.toString().replace(".", ","))
+            val formatted = NumberFormatter.formatSemDecimaisDesnecessarias(value)
+            et.setText(formatted)
         }
     }
 
@@ -196,10 +209,10 @@ class FieldSynchronizer {
         // Display: MG em metros, outros em cm
         val display = if (isMG) valueCm / 100.0 else valueCm
         if (raw == null || kotlin.math.abs(raw - display) > 1e-6) {
-            et.setText(display.toString().replace(".", ","))
+            val formatted = NumberFormatter.formatSemDecimaisDesnecessarias(display)
+            et.setText(formatted)
         }
     }
-
 
     /** Sincroniza campo de espessura
      *  Intertravado: armazena em mm, exibe em cm; Outros: armazenado em mm, exibido em mm */
@@ -234,6 +247,32 @@ class FieldSynchronizer {
         val currentNum = et.text?.toString()?.replace(",", ".")?.toDoubleOrNull()
         if (currentNum == null || kotlin.math.abs(currentNum - valueCm) > 1e-6) {
             et.setText(valueCm.toString().replace(".", ","))
+        }
+    }
+
+    /** Normaliza exibição de valores padrão auto-preenchidos */
+    fun normalizeAutoPredefinedFieldValues(
+        inputs: CalcRevestimentoViewModel.Inputs,
+        etPecaEsp: TextInputEditText, etJunta: TextInputEditText,
+        etSobra: TextInputEditText, etDesnivel: TextInputEditText
+    ) {
+        val espDisplay = when (inputs.revest) {
+            CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO ->
+                inputs.pecaEspMm?.div(10.0)
+
+            else -> inputs.pecaEspMm
+        }
+        normalizeAutoField(etPecaEsp, espDisplay)
+        normalizeAutoField(etJunta, inputs.juntaMm)
+        normalizeAutoField(etSobra, inputs.sobraPct)
+        normalizeAutoField(etDesnivel, inputs.desnivelCm)
+    }
+
+    private fun normalizeAutoField(editText: TextInputEditText, value: Double?) {
+        if (editText.hasFocus()) return
+        val adjusted = NumberFormatter.adjustDefaultFieldText(editText.text?.toString(), value)
+        if (adjusted != null && adjusted != editText.text?.toString()) {
+            editText.setText(adjusted)
         }
     }
 }

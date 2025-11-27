@@ -221,13 +221,13 @@ class MaterialTableBuilder(
         val unid = item.unid
         val obs = item.observacao?.lowercase(Locale.getDefault())
 
-        // Rodapé MESMA PEÇA → mostrar "Incluso" (m² extra já está somado no piso)
+        // ============== BLOCO 1: RODAPÉ (casos especiais) ==============
         if (nome.equals("Rodapé", ignoreCase = true) &&
             obs?.contains("mesma peça") == true
         ) {
             return "Incluso"
         }
-        // Rodapé PEÇA PRONTA → usa "Peça pronta • [q] peças." para montar "[q] pc"
+
         if (nome.equals("Rodapé", ignoreCase = true) &&
             obs?.contains("peça pronta") == true
         ) {
@@ -238,23 +238,74 @@ class MaterialTableBuilder(
             }
         }
 
-        // ---------------- ESPECIAIS / EXCEÇÕES ----------------
+        // ============== BLOCO 2: MATERIAIS ESPECÍFICOS (SEMPRE PRIMEIRO!) ==============
 
-        // Pedra em m² → mostrar só metragem
+        // REJUNTE (1kg e 5kg)
+        if (nome.contains("Rejunte", ignoreCase = true) &&
+            unid.equals("kg", true)
+        ) {
+            val pack = bestPackCombo(alvo, listOf(5.0, 1.0))
+            return pack.entries
+                .filter { it.value > 0 }
+                .sortedByDescending { it.key }
+                .joinToString(" + ") { (size, count) ->
+                    val sizeInt = size.toInt()
+                    if (count == 1) "1 sc ${sizeInt}kg"
+                    else "$count sc ${sizeInt}kg"
+                }.ifEmpty { "0" }
+        }
+
+        // ESPAÇADORES E CUNHAS (50un e 100un)
+        if ((nome.equals("Espaçadores", ignoreCase = true) ||
+                    nome.equals("Cunhas", ignoreCase = true)) &&
+            unid.equals("un", ignoreCase = true)
+        ) {
+            val qtdTotal = alvo.toInt().coerceAtLeast(0)
+            if (qtdTotal <= 0) return "0un"
+
+            val pack = bestPackCombo(qtdTotal.toDouble(), listOf(100.0, 50.0))
+            return pack.entries
+                .filter { it.value > 0 }
+                .sortedByDescending { it.key }
+                .joinToString(" + ") { (size, count) ->
+                    val sizeInt = size.toInt()
+                    if (count == 1) "1 pct ${sizeInt}un"
+                    else "$count pct ${sizeInt}un"
+                }.ifEmpty { "0un" }
+        }
+
+        // MASSA PVA (20kg)
+        if (nome.contains("Massa PVA", ignoreCase = true) &&
+            unid.equals("kg", ignoreCase = true)
+        ) {
+            val sacos20 = ceil(alvo / 20.0).toInt().coerceAtLeast(1)
+            return if (sacos20 == 1) "1 sc 20kg" else "$sacos20 sc 20kg"
+        }
+
+        // COLA PARA PISO VINÍLICO (1kg, 4kg, 18kg)
+        if (nome.contains("Cola", ignoreCase = true) &&
+            unid.equals("kg", ignoreCase = true)
+        ) {
+            return buildColaComprar(alvo)
+        }
+
+        // ============== BLOCO 3: OUTROS MATERIAIS ESPECÍFICOS ==============
+
+        // Pedra em m²
         if ((unid.equals("m²", true) || unid.equals("m2", true)) &&
             nome.contains("pedra", ignoreCase = true)
         ) {
             return NumberFormatter.format(alvo)
         }
 
-        // Areia geral em m³ → sacos de 20 kg (densidade ~1400 kg/m³)
+        // Areia geral em m³
         if (nome.equals("Areia", ignoreCase = true) && unid.equals("m³", true)) {
             val areiaKg = alvo * 1400.0
             val sacos20 = ceil(areiaKg / 20.0).toInt().coerceAtLeast(1)
             return if (sacos20 == 1) "1 sc 20kg" else "$sacos20 sc 20kg"
         }
 
-        // Argamassa colante → sacos 20kg
+        // Argamassa colante
         if (nome.startsWith("Argamassa", ignoreCase = true) &&
             unid.equals("kg", true)
         ) {
@@ -262,7 +313,7 @@ class MaterialTableBuilder(
             return if (n20 == 1) "1 sc 20kg" else "$n20 sc 20kg"
         }
 
-        // Piso intertravado: areia assentamento m³ → sacos 20kg
+        // Areia de assentamento
         if (nome.equals("Areia de assentamento", ignoreCase = true) &&
             unid.equals("m³", true)
         ) {
@@ -271,31 +322,14 @@ class MaterialTableBuilder(
             return if (sacos20 == 1) "1 sc 20kg" else "$sacos20 sc 20kg"
         }
 
-
-        // Cimento para estabilização / genérico → sacos 25kg/50kg
+        // Cimento
         if (nome.equals("Cimento", ignoreCase = true) &&
             unid.equals("kg", ignoreCase = true)
         ) {
             return buildCimentoComprar(alvo)
         }
 
-        // ---------------- REJUNTE ----------------
-
-        if (nome.equals("Rejunte", ignoreCase = true) &&
-            unid.equals("kg", true)
-        ) {
-            val isEpoxi = obs?.contains("epóxi") == true || obs?.contains("epoxi") == true
-
-            return if (isEpoxi) { // Pacotes 1kg, 2kg, 5kg
-                val pack = bestPackCombo(alvo, listOf(5.0, 2.0, 1.0))
-                pack.toCompraString(unidade = "kg", label = "pct")
-            } else { //P acotes 5kg
-                val n5 = ceil(alvo / 5.0).toInt()
-                if (n5 <= 0) "0" else if (n5 == 1) "1 pct 5kg" else "$n5 pct 5kg"
-            }
-        }
-
-        // ---------------- Fixador Mecânico (pino ou grampo) ----------------
+        // Fixador Mecânico
         if (nome.contains("Fixador Mecânico", ignoreCase = true) &&
             unid.equals("un", ignoreCase = true)
         ) {
@@ -303,12 +337,11 @@ class MaterialTableBuilder(
             return if (n <= 0) "0un" else "${n}un"
         }
 
-        // PASTILHA - Usa observação "Mantas por m²: X • Y peças." para montar "Nmn ou Ypc"
+        // PASTILHA
         if (nome.contains("Pastilha", ignoreCase = true) &&
             (unid.equals("m²", true) || unid.equals("m2", true)) &&
             obs != null
         ) {
-            // Extrai "Mantas por m²: X"
             val mantasPorM2Match = Regex(
                 pattern = """mantas por m²:\s*([\d.,]+)""",
                 option = RegexOption.IGNORE_CASE
@@ -319,14 +352,12 @@ class MaterialTableBuilder(
                 ?.replace(",", ".")
                 ?.toDoubleOrNull()
 
-            // Extrai "[totalPecas] peças"
             val totalPecas = Regex("""(\d+)\s+peças""")
                 .find(obs)
                 ?.groupValues
                 ?.get(1)
                 ?.toIntOrNull()
 
-            // item.qtd = área total em m² já com sobra → calcula total de mantas
             val totalMantas = mantasPorM2
                 ?.let { ceil(alvo * it).toInt().coerceAtLeast(1) }
 
@@ -343,14 +374,13 @@ class MaterialTableBuilder(
                     return "${totalPecas}pc"
                 }
             }
-            // Se por algum motivo não conseguir extrair, deixa cair no fallback abaixo
         }
 
-        // ---------------- HEURÍSTICAS BASEADAS NA OBS ----------------
+        // ============== BLOCO 4: HEURÍSTICAS GENÉRICAS (SEMPRE POR ÚLTIMO!) ==============
 
         if (obs?.contains("informativo") == true) return "—"
 
-        // Mármore/Granito com "N peças" na observação → mostrar N pc
+        // Mármore/Granito com "N peças"
         val isMGItem = nome.startsWith("Mármore", ignoreCase = true) ||
                 nome.startsWith("Granito", ignoreCase = true)
 
@@ -385,84 +415,129 @@ class MaterialTableBuilder(
                 if (partes.isNotEmpty()) return partes.joinToString(" + ")
             }
 
-            // "10 sacos de 20 kg", "3 baldes de 18L" etc.
+            // "10 sacos de 20 kg"
             Regex("""(\d+)\s*(?:x|sacos?\s+de|pacotes?\s+de|baldes?\s+de)\s*([\d.,]+)\s*(kg|l|un|unid|unidades)""")
                 .find(obs)?.let {
                     val (qtd, tam, u) = it.destructured
                     return "${qtd}× ${tam}${u.uppercase()}"
                 }
         }
-        // ---------------- FALLBACK ----------------
+
+        // ============== FALLBACK ==============
         return NumberFormatter.format(alvo)
     }
 
     // ================= HELPERS INTERNOS =================
 
     private fun bestPackCombo(target: Double, sizes: List<Double>): Map<Double, Int> {
+        if (target <= 0.0) return emptyMap()
+
         val sorted = sizes.sortedDescending()
-        val smallest = sorted.last()
-        var best: Map<Double, Int> = emptyMap()
-        var bestOver = Double.MAX_VALUE
 
-        val limits = sorted.associateWith { ceil(target / it).toInt() + 3 }
+        // Estratégia gulosa: usa o maior tamanho possível primeiro
+        val result = mutableMapOf<Double, Int>()
+        var remaining = target
 
+        for (size in sorted) {
+            if (remaining <= 0.0) break
 
-        fun search(idx: Int, acc: Map<Double, Int>) {
-            if (idx == sorted.size) {
-                val total = acc.entries.sumOf { it.key * it.value }
-                if (total < target || total <= 0.0) return
-
-                val over = total - target
-
-                // Se ainda não temos melhor, ou se este tem menor sobra, atualiza
-                if (over < bestOver) {
-                    best = acc
-                    bestOver = over
-                }
-                return
-            }
-
-            val size = sorted[idx]
-            val maxN = limits[size] ?: 5
-            for (n in 0..maxN) {
-                val next = if (n == 0) acc else acc + (size to n)
-                val partial = next.entries.sumOf { it.key * it.value }
-
-                if (partial > target + bestOver && bestOver < Double.MAX_VALUE) continue
-
-                search(idx + 1, next)
+            val count = (remaining / size).toInt()
+            if (count > 0) {
+                result[size] = count
+                remaining -= count * size
             }
         }
 
-        search(0, emptyMap())
-
-        if (best.isEmpty()) {
-            val n = ceil(target / smallest).toInt()
-            return mapOf(smallest to n)
+        // Se sobrou resto, completa com o menor tamanho
+        if (remaining > 0.0) {
+            val smallest = sorted.last()
+            val extraCount = ceil(remaining / smallest).toInt()
+            result[smallest] = (result[smallest] ?: 0) + extraCount
         }
-        return best
+
+        return result
     }
 
-    private fun Map<Double, Int>.toCompraString(
-        unidade: String,
-        label: String? = null
-    ): String {
-        return entries
-            .filter { it.value > 0 }
-            .sortedByDescending { it.key }
-            .joinToString(" + ") { (size, count) ->
-                val sizeStr = if (size % 1.0 == 0.0)
-                    size.toInt().toString()
-                else
-                    size.toString().replace('.', ',')
-                if (label != null) {
-                    if (count == 1) "1 $label ${sizeStr}$unidade"
-                    else "$count $label ${sizeStr}$unidade"
-                } else {
-                    val countStr = if (count == 1) "1x" else "${count}x"
-                    "$countStr ${sizeStr}$unidade"
+    /** Empacota cola (kg) em potes de 1kg, 4kg e 18kg (máximo 2 tipos) */
+    private fun buildColaComprar(colaKg: Double): String {
+        val kg = colaKg.coerceAtLeast(0.0)
+        if (kg <= 0.0) return "0"
+
+        // Tenta combinações de 2 tamanhos apenas
+        val sizes = listOf(18.0, 4.0, 1.0)
+
+        // Estratégia: encontrar a melhor combinação de EXATAMENTE 2 tipos
+        data class Combo(
+            val tipo1: Double,
+            val qtd1: Int,
+            val tipo2: Double?,
+            val qtd2: Int?,
+            val total: Double,
+            val sobra: Double
+        )
+
+        val combos = mutableListOf<Combo>()
+
+        // Tentar todas as combinações de 2 tamanhos
+        for (i in sizes.indices) {
+            for (j in i + 1 until sizes.size) {
+                val maior = sizes[i]
+                val menor = sizes[j]
+
+                // Quantos do maior?
+                val maxMaior = ceil(kg / maior).toInt() + 2
+                for (qtdMaior in 0..maxMaior) {
+                    val restoMaior = kg - (qtdMaior * maior)
+                    if (restoMaior <= 0.0) {
+                        // Só o tamanho maior já resolve
+                        if (qtdMaior > 0) {
+                            combos += Combo(
+                                maior,
+                                qtdMaior,
+                                null,
+                                null,
+                                qtdMaior * maior,
+                                qtdMaior * maior - kg
+                            )
+                        }
+                    } else {
+                        // Completa com o menor
+                        val qtdMenor = ceil(restoMaior / menor).toInt()
+                        val total = (qtdMaior * maior) + (qtdMenor * menor)
+                        if (total >= kg) {
+                            combos += Combo(maior, qtdMaior, menor, qtdMenor, total, total - kg)
+                        }
+                    }
                 }
             }
+        }
+
+        // Tentar apenas 1 tamanho
+        for (size in sizes) {
+            val qtd = ceil(kg / size).toInt()
+            combos += Combo(size, qtd, null, null, qtd * size, qtd * size - kg)
+        }
+
+        // Escolher a melhor: menor sobra, depois menos embalagens
+        val melhor = combos
+            .filter { it.total >= kg }
+            .minWithOrNull(compareBy({ it.sobra }, { (it.qtd1 + (it.qtd2 ?: 0)) }))
+            ?: Combo(1.0, ceil(kg).toInt(), null, null, ceil(kg), 0.0)
+
+        // Montar string
+        val partes = mutableListOf<String>()
+
+        if (melhor.qtd1 > 0) {
+            val sizeInt = melhor.tipo1.toInt()
+            partes += if (melhor.qtd1 == 1) "1 pt ${sizeInt}kg" else "${melhor.qtd1} pt ${sizeInt}kg"
+        }
+
+        if (melhor.tipo2 != null && melhor.qtd2 != null && melhor.qtd2 > 0) {
+            val sizeInt = melhor.tipo2.toInt()
+            partes += if (melhor.qtd2 == 1) "1 pt ${sizeInt}kg" else "${melhor.qtd2} pt ${sizeInt}kg"
+        }
+
+        return if (partes.isEmpty()) "0" else partes.joinToString(" + ")
     }
 
     /** Empacota o cimento (kg) em sacos de 25 kg e/ou 50 kg */

@@ -48,13 +48,9 @@ class InputSynchronizer(private val context: Context) {
      *  @param rgMgAplicacao RadioGroup de aplicação MG (Piso/Parede) */
     fun syncAllRadioGroups(
         inputs: CalcRevestimentoViewModel.Inputs,
-        rgPlacaTipo: RadioGroup,
-        rgAmbiente: RadioGroup,
-        rgRodapeMat: RadioGroup,
-        rgTrafego: RadioGroup,
-        rgPastilhaTamanho: RadioGroup,
-        rgPastilhaPorcelanatoTamanho: RadioGroup,
-        rgMgAplicacao: RadioGroup
+        rgPlacaTipo: RadioGroup, rgAmbiente: RadioGroup, rgRodapeMat: RadioGroup,
+        rgTrafego: RadioGroup, rgPastilhaTamanho: RadioGroup,
+        rgPastilhaPorcelanatoTamanho: RadioGroup, rgMgAplicacao: RadioGroup
     ) {
         // Sincroniza tipo de placa (cerâmica/porcelanato)
         syncPlacaTipo(inputs.pisoPlacaTipo, rgPlacaTipo)
@@ -115,6 +111,7 @@ class InputSynchronizer(private val context: Context) {
             CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO -> R.id.rbPisoIntertravado
             CalcRevestimentoViewModel.RevestimentoType.MARMORE -> R.id.rbMarmore
             CalcRevestimentoViewModel.RevestimentoType.GRANITO -> R.id.rbGranito
+            CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO -> R.id.rbPisoVinilico
             null -> null
         }
         // Marca apenas o card selecionado

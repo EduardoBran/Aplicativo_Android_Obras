@@ -23,7 +23,6 @@ object ReviewParametersFormatter {
         val res = context.resources
         // Primeiro monta o texto "normal" (string simples)
         val plainText = buildString {
-
             // Helpers locais para cálculo de ÁREA BRUTA (sem abertura, sem validação extra)
             fun paredeAreaBruta(): Double? {
                 val c = inputs.compM ?: return null
@@ -72,6 +71,9 @@ object ReviewParametersFormatter {
                 RevestimentoType.PISO_INTERTRAVADO ->
                     res.getString(R.string.calc_rev_revest_piso_intertravado)
 
+                RevestimentoType.PISO_VINILICO ->
+                    res.getString(R.string.calc_rev_revest_piso_vinilico)
+
                 RevestimentoType.MARMORE -> when (inputs.aplicacao) {
                     AplicacaoType.PISO ->
                         res.getString(R.string.calc_rev_revest_marmore_piso)
@@ -79,8 +81,7 @@ object ReviewParametersFormatter {
                     AplicacaoType.PAREDE ->
                         res.getString(R.string.calc_rev_revest_marmore_parede)
 
-                    null ->
-                        // fallback se por algum motivo ainda não tiver aplicação definida
+                    null ->  // fallback se por algum motivo ainda não tiver aplicação definida
                         res.getString(R.string.calc_rev_revest_marmore)
                 }
 
@@ -103,7 +104,8 @@ object ReviewParametersFormatter {
             // ----------------- Ambiente -----------------
             val esconderAmbiente =
                 inputs.revest == RevestimentoType.PEDRA ||
-                        inputs.revest == RevestimentoType.PISO_INTERTRAVADO
+                        inputs.revest == RevestimentoType.PISO_INTERTRAVADO ||
+                        inputs.revest == RevestimentoType.PISO_VINILICO
 
             if (!esconderAmbiente) {
                 val ambienteLabel = when (inputs.ambiente) {
@@ -121,7 +123,6 @@ object ReviewParametersFormatter {
 
                     null -> null
                 }
-
                 appendLine(
                     res.getString(
                         R.string.calc_rev_line_ambiente,
@@ -129,9 +130,9 @@ object ReviewParametersFormatter {
                     )
                 )
             }
+
             // ----------------- Tráfego (Intertravado) -----------------
             if (inputs.revest == RevestimentoType.PISO_INTERTRAVADO && inputs.trafego != null) {
-
                 val trafegoLabel = when (inputs.trafego) {
                     TrafegoType.LEVE ->
                         res.getString(R.string.calc_step_trafego_leve)
@@ -142,7 +143,6 @@ object ReviewParametersFormatter {
                     TrafegoType.PESADO ->
                         res.getString(R.string.calc_step_trafego_pesado)
                 }
-
                 appendLine(
                     res.getString(
                         R.string.calc_rev_line_trafego,
@@ -158,13 +158,8 @@ object ReviewParametersFormatter {
                         res.getString(R.string.calc_rev_parede_singular)
                     else
                         res.getString(R.string.calc_rev_parede_plural)
-
                     appendLine(
-                        res.getString(
-                            R.string.calc_rev_line_paredes,
-                            label,
-                            qtd
-                        )
+                        res.getString(R.string.calc_rev_line_paredes, label, qtd)
                     )
                 }
             // ----------------- Área base -----------------
@@ -177,17 +172,14 @@ object ReviewParametersFormatter {
                     ?.let { areaCrua ->
                         appendLine(
                             res.getString(
-                                R.string.calc_rev_line_area_total,
-                                NumberFormatter.arred2(areaCrua)
+                                R.string.calc_rev_line_area_total, NumberFormatter.arred2(areaCrua)
                             )
                         )
                     }
             } else {
                 val areaBruta: Double? = when (inputs.revest) {
                     // Azulejo / Pastilha: parede
-                    RevestimentoType.AZULEJO,
-                    RevestimentoType.PASTILHA -> paredeAreaBruta()
-
+                    RevestimentoType.AZULEJO, RevestimentoType.PASTILHA -> paredeAreaBruta()
                     // Mármore / Granito: depende da aplicação
                     RevestimentoType.MARMORE,
                     RevestimentoType.GRANITO -> when (inputs.aplicacao) {
@@ -195,35 +187,33 @@ object ReviewParametersFormatter {
                         AplicacaoType.PISO -> planoAreaBruta()
                         null -> null
                     }
-
                     // Demais (piso, pedra, intertravado): piso plano
-                    RevestimentoType.PEDRA,
-                    RevestimentoType.PISO,
-                    RevestimentoType.PISO_INTERTRAVADO -> planoAreaBruta()
+                    RevestimentoType.PEDRA, RevestimentoType.PISO,
+                    RevestimentoType.PISO_INTERTRAVADO,
+                    RevestimentoType.PISO_VINILICO -> planoAreaBruta()
 
                     null -> null
                 }
-
                 areaBruta?.let { area ->
                     appendLine(
                         res.getString(
-                            R.string.calc_rev_line_area_total,
-                            NumberFormatter.arred2(area)
+                            R.string.calc_rev_line_area_total, NumberFormatter.arred2(area)
                         )
                     )
                 }
             }
+
             // ----------------- Abertura parede (apenas exibição do valor) -----------------
             inputs.aberturaM2
                 ?.takeIf { it > 0.0 }
                 ?.let { abertura ->
                     appendLine(
                         res.getString(
-                            R.string.calc_rev_line_abertura_parede,
-                            NumberFormatter.arred2(abertura)
+                            R.string.calc_rev_line_abertura_parede, NumberFormatter.arred2(abertura)
                         )
                     )
                 }
+
             // ----------------- Dimensão da peça -----------------
             if (inputs.pecaCompCm != null && inputs.pecaLargCm != null) {
                 when (inputs.revest) {
@@ -234,15 +224,12 @@ object ReviewParametersFormatter {
                         appendLine(
                             res.getString(
                                 R.string.calc_rev_line_peca_m,
-                                NumberFormatter.arred2(compM),
-                                NumberFormatter.arred2(largM)
+                                NumberFormatter.arred2(compM), NumberFormatter.arred2(largM)
                             )
                         )
                     }
-
-                    RevestimentoType.PEDRA -> {
-                        // Mantém comportamento atual: não exibe dimensão padrão
-                    }
+                    // Mantém comportamento atual: não exibe dimensão padrão
+                    RevestimentoType.PEDRA -> {}
 
                     RevestimentoType.PASTILHA -> {
                         appendLine(
@@ -271,15 +258,13 @@ object ReviewParametersFormatter {
                     val espCm = espMm / 10.0
                     appendLine(
                         res.getString(
-                            R.string.calc_rev_line_espessura_cm,
-                            NumberFormatter.arred1(espCm)
+                            R.string.calc_rev_line_espessura_cm, NumberFormatter.arred1(espCm)
                         )
                     )
                 } else {
                     appendLine(
                         res.getString(
-                            R.string.calc_rev_line_espessura_mm,
-                            NumberFormatter.arred1(espMm)
+                            R.string.calc_rev_line_espessura_mm, NumberFormatter.arred1(espMm)
                         )
                     )
                 }
@@ -288,8 +273,7 @@ object ReviewParametersFormatter {
             inputs.juntaMm?.let {
                 appendLine(
                     res.getString(
-                        R.string.calc_rev_line_junta,
-                        NumberFormatter.arred2(it)
+                        R.string.calc_rev_line_junta, NumberFormatter.arred2(it)
                     )
                 )
             }
@@ -297,8 +281,7 @@ object ReviewParametersFormatter {
             inputs.pecasPorCaixa?.let {
                 appendLine(
                     res.getString(
-                        R.string.calc_rev_line_pecas_caixa,
-                        it
+                        R.string.calc_rev_line_pecas_caixa, it
                     )
                 )
             }
@@ -306,14 +289,54 @@ object ReviewParametersFormatter {
             inputs.desnivelCm?.let {
                 appendLine(
                     res.getString(
-                        R.string.calc_rev_line_desnivel,
-                        NumberFormatter.arred1(it)
+                        R.string.calc_rev_line_desnivel, NumberFormatter.arred1(it)
                     )
                 )
             }
+            // Piso Vinílico - Auto-Adesivo
+            if (inputs.revest == RevestimentoType.PISO_VINILICO) {
+                val autoAdesivoText = if (inputs.pisoVinilicoAutoAdesivo) {
+                    res.getString(R.string.calc_rev_piso_vinilico_auto_adesivo_sim)
+                } else {
+                    res.getString(R.string.calc_rev_piso_vinilico_auto_adesivo_nao)
+                }
+                appendLine(
+                    res.getString(
+                        R.string.calc_rev_line_piso_vinilico_auto_adesivo, autoAdesivoText
+                    )
+                )
+            }
+            // Piso Vinílico - Desnível Ativo + Tipo + Demãos
+            if (inputs.revest == RevestimentoType.PISO_VINILICO &&
+                inputs.pisoVinilicoDesnivelAtivo
+            ) {
+                // Tipo de piso (Grosso/Liso)
+                val tipoText = when (inputs.pisoVinilicoDesnivelTipo) {
+                    PisoVinilicoDesnivelTipo.GROSSO ->
+                        res.getString(R.string.calc_piso_vinilico_piso_grosso)
+
+                    PisoVinilicoDesnivelTipo.FINO ->
+                        res.getString(R.string.calc_piso_vinilico_piso_liso)
+
+                    null ->
+                        res.getString(R.string.calc_piso_vinilico_piso_grosso) // Padrão
+                }
+                appendLine(
+                    res.getString(
+                        R.string.calc_rev_line_piso_vinilico_tipo, tipoText
+                    )
+                )
+                // Quantidade de demãos
+                inputs.pisoVinilicoQtdDemaos?.let { qtd ->
+                    appendLine(
+                        res.getString(
+                            R.string.calc_rev_line_piso_vinilico_demaos, qtd
+                        )
+                    )
+                }
+            }
             // ----------------- Rodapé (apenas texto de resumo) -----------------
-            if (inputs.rodapeEnable &&
-                RevestimentoSpecifications.hasRodapeStep(inputs) &&
+            if (inputs.rodapeEnable && RevestimentoSpecifications.hasRodapeStep(inputs) &&
                 inputs.rodapeAlturaCm != null
             ) {
                 appendRodapeResumo(context, this, inputs)
@@ -331,7 +354,6 @@ object ReviewParametersFormatter {
                         )
                     }
             }
-
             // ----------------- Sobra técnica -----------------
             inputs.sobraPct
                 ?.takeIf { it >= 0 }
@@ -339,32 +361,33 @@ object ReviewParametersFormatter {
                     val sobraFmt = NumberFormatter.format(sobra)
                     append(
                         res.getString(
-                            R.string.calc_rev_line_sobra_tecnica,
-                            sobraFmt
+                            R.string.calc_rev_line_sobra_tecnica, sobraFmt
                         )
                     )
                 }
         }
-        // Agora aplica o "bullet maior" usando Span
-        return applyBigIconCharSpan(context, plainText)
+        return applyBigIconCharSpan(context, plainText) // Aplica o "bullet maior" usando Span
     }
 
     private fun appendRodapeResumo(
-        context: Context,
-        sb: StringBuilder,
-        inputs: Inputs
+        context: Context, sb: StringBuilder, inputs: Inputs
     ) {
         val res = context.resources
+        if (inputs.revest == RevestimentoType.PISO_VINILICO) { // Vinílico: Usa abertura em METROS
+            sb.appendLine(
+                res.getString(R.string.calc_rev_line_rodape_piso_vinilico)
+            )
+            return
+        }
+        // OUTROS REVESTIMENTOS: Usa lógica normal
         val perimetro = RodapeCalculator.rodapePerimetroM(inputs) ?: return
         val alturaCm = inputs.rodapeAlturaCm ?: return
         val alturaM = alturaCm / 100.0
         val areaM2 = perimetro * alturaM
-
         if (inputs.rodapeMaterial == RodapeMaterial.PECA_PRONTA) {
             sb.appendLine(
                 res.getString(
-                    R.string.calc_rev_line_rodape_peca_pronta,
-                    NumberFormatter.arred2(areaM2)
+                    R.string.calc_rev_line_rodape_peca_pronta, NumberFormatter.arred2(areaM2)
                 )
             )
         } else {
@@ -380,56 +403,38 @@ object ReviewParametersFormatter {
     private fun applyBigIconCharSpan(context: Context, text: String): CharSequence {
         val spannable = SpannableStringBuilder(text)
         val iconChar = '•'
-
         val scale = 1.4f // tamanho do ícone
         val color = ContextCompat.getColor(context, R.color.icon_review_summary)
-
         var index = text.indexOf(iconChar)
         while (index >= 0) {
             spannable.setSpan(
-                CenteredIconChar(color, scale),
-                index,
-                index + 1,
+                CenteredIconChar(color, scale), index, index + 1,
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
             index = text.indexOf(iconChar, index + 1)
         }
-
         return spannable
     }
 
     private class CenteredIconChar(
-        @ColorInt private val color: Int,
-        private val relativeSize: Float
+        @ColorInt private val color: Int, private val relativeSize: Float
     ) : ReplacementSpan() {
 
         override fun getSize(
-            paint: Paint,
-            text: CharSequence,
-            start: Int,
-            end: Int,
-            fm: Paint.FontMetricsInt?
+            paint: Paint, text: CharSequence, start: Int, end: Int, fm: Paint.FontMetricsInt?
         ): Int {
             val p = Paint(paint)
             p.textSize = paint.textSize * relativeSize
-            // largura suficiente para desenhar o "•" maior
-            return p.measureText("•").toInt()
+            return p.measureText("•").toInt()      // largura suficiente para desenhar o "•" maior
         }
 
         override fun draw(
             canvas: Canvas,
-            text: CharSequence,
-            start: Int,
-            end: Int,
-            x: Float,
-            top: Int,
-            baseline: Int,
-            bottom: Int,
-            paint: Paint
+            text: CharSequence, start: Int, end: Int, x: Float, top: Int,
+            baseline: Int, bottom: Int, paint: Paint
         ) {
             val oldColor = paint.color
             val oldSize = paint.textSize
-
             // Métricas do texto normal (antes de aumentar o tamanho)
             val fmOrig = paint.fontMetricsInt
             val centerOrig = baseline + (fmOrig.ascent + fmOrig.descent) / 2f
@@ -439,7 +444,6 @@ object ReviewParametersFormatter {
             // Métricas do ícone maior
             val fmBig = paint.fontMetricsInt
             val centerBigOffset = (fmBig.ascent + fmBig.descent) / 2f
-
             // Baseline do ícone para que o CENTRO dele coincida com o centro da linha original
             val bulletBaseline = centerOrig - centerBigOffset
 
@@ -458,7 +462,6 @@ object ReviewParametersFormatter {
 
         // 1) ÁREA TOTAL AJUSTADA (base + sobra técnica)
         val areaBaseLiquida = AreaCalculator.areaBaseM2(inputs) ?: 0.0
-
         // Área do rodapé (já com desconto do vão, se informado)
         val areaRodapeLiquidaM2: Double = if (
             inputs.rodapeEnable &&
@@ -473,7 +476,6 @@ object ReviewParametersFormatter {
         } else {
             0.0
         }
-
         // Soma da área líquida do ambiente + área líquida do rodapé
         val areaTotalSemSobra = areaBaseLiquida + areaRodapeLiquidaM2
         // Aplica sobra técnica em cima do total
@@ -486,11 +488,9 @@ object ReviewParametersFormatter {
 
         if (areaTotalConsiderada > 0.0) {
             linhas += res.getString(
-                R.string.calc_result_card_area_total,
-                NumberFormatter.arred2(areaTotalConsiderada)
+                R.string.calc_result_card_area_total, NumberFormatter.arred2(areaTotalConsiderada)
             )
         }
-
         // 2) Revestimento + dimensão da peça (sem parede/abertura/rodapé)
         val revestText = when (inputs.revest) {
             RevestimentoType.PISO -> {
@@ -520,6 +520,9 @@ object ReviewParametersFormatter {
             RevestimentoType.PISO_INTERTRAVADO ->
                 res.getString(R.string.calc_rev_revest_piso_intertravado)
 
+            RevestimentoType.PISO_VINILICO ->
+                res.getString(R.string.calc_rev_revest_piso_vinilico)
+
             RevestimentoType.MARMORE -> when (inputs.aplicacao) {
                 AplicacaoType.PISO ->
                     res.getString(R.string.calc_rev_revest_marmore_piso)
@@ -546,32 +549,26 @@ object ReviewParametersFormatter {
                 res.getString(R.string.calc_rev_value_none)
         }
 
-        val linhaRevest = when {
-            // Pedra Portuguesa: NÃO exibe comprimento/largura
+        val linhaRevest = when { // Pedra Portuguesa: NÃO exibe comprimento/largura
             inputs.revest == RevestimentoType.PEDRA ||
                     inputs.pecaCompCm == null || inputs.pecaLargCm == null -> {
                 res.getString(
-                    R.string.calc_result_card_revestimento_simple,
-                    revestText
+                    R.string.calc_result_card_revestimento_simple, revestText
                 )
             }
             // Mármore/Granito → medidas EM METROS
-            inputs.revest == RevestimentoType.MARMORE ||
-                    inputs.revest == RevestimentoType.GRANITO -> {
+            inputs.revest == RevestimentoType.MARMORE || inputs.revest == RevestimentoType.GRANITO -> {
                 val compM = inputs.pecaCompCm / 100.0
                 val largM = inputs.pecaLargCm / 100.0
                 res.getString(
-                    R.string.calc_result_card_revestimento_m,
-                    revestText,
-                    NumberFormatter.arred2(compM),
-                    NumberFormatter.arred2(largM)
+                    R.string.calc_result_card_revestimento_m, revestText,
+                    NumberFormatter.arred2(compM), NumberFormatter.arred2(largM)
                 )
             }
             // Pastilha → cm com decimais (usa String formatada)
             inputs.revest == RevestimentoType.PASTILHA -> {
                 res.getString(
-                    R.string.calc_result_card_revestimento_cm_decimal,
-                    revestText,
+                    R.string.calc_result_card_revestimento_cm_decimal, revestText,
                     NumberFormatter.format(inputs.pecaCompCm),
                     NumberFormatter.format(inputs.pecaLargCm)
                 )
@@ -579,28 +576,23 @@ object ReviewParametersFormatter {
             // Demais revestimentos → cm com 0 casas
             else -> {
                 res.getString(
-                    R.string.calc_result_card_revestimento_cm,
-                    revestText,
+                    R.string.calc_result_card_revestimento_cm, revestText,
                     NumberFormatter.arred0(inputs.pecaCompCm),
                     NumberFormatter.arred0(inputs.pecaLargCm)
                 )
             }
         }
         linhas += linhaRevest
-
         // 3) Sobra técnica considerada no cálculo
         inputs.sobraPct
             ?.takeIf { it >= 0 }
             ?.let { sobra ->
                 val sobraFmt = NumberFormatter.format(sobra)
                 linhas += res.getString(
-                    R.string.calc_result_card_sobra,
-                    sobraFmt
+                    R.string.calc_result_card_sobra, sobraFmt
                 )
             }
-
         if (linhas.isEmpty()) return null
-
         val texto = linhas.joinToString("\n")
         return applyBigIconCharSpan(context, texto)
     }

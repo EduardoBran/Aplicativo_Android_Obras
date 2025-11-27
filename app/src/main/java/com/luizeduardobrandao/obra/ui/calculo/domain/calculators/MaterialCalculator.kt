@@ -74,7 +74,6 @@ object MaterialCalculator {
             } else {
                 "Verificar tipo de rejunte na obra."
             }
-
         itens += MaterialItem(
             item = "Rejunte",
             unid = "kg",
@@ -99,25 +98,23 @@ object MaterialCalculator {
         val areaPecaM2 = (inputs.pecaCompCm / 100.0) * (inputs.pecaLargCm / 100.0)
         val pecasNec = ceil((areaM2 / areaPecaM2) * (1 + sobra / 100.0))
         val espacadores = ceil(pecasNec * 3.0).toInt()
-        val pacEsp100 = pacotesDe100Un(espacadores)
-        val obsPacEsp = if (pacEsp100 == 1)
-            "1 pacote de 100 unidades."
-        else
-            "$pacEsp100 pacotes de 100 unidades."
+        val juntaMm = inputs.juntaMm ?: 0.0
 
+        val obsEspacadores = "Espaçador de ${NumberFormatter.arred1(juntaMm)}mm.\nValidar na obra."
         itens += MaterialItem(
             item = "Espaçadores",
             unid = "un",
             qtd = espacadores.toDouble(),
-            observacao = obsPacEsp
+            observacao = obsEspacadores
         )
 
         if (inputs.revest == RevestimentoType.PISO || inputs.revest == RevestimentoType.AZULEJO) {
+            val obsCunhas = "Cunha para sistema nivelador."
             itens += MaterialItem(
                 item = "Cunhas",
                 unid = "un",
                 qtd = espacadores.toDouble(),
-                observacao = obsPacEsp
+                observacao = obsCunhas
             )
         }
     }
@@ -153,7 +150,4 @@ object MaterialCalculator {
         }
         return sb.toString()
     }
-
-    private fun pacotesDe100Un(quantUn: Int) = ceilPos(quantUn / 100.0)
-    private fun ceilPos(v: Double) = max(0, ceil(v).toInt())
 }

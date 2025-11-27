@@ -170,7 +170,6 @@ class RequiredIconManager(private val context: Context) {
                     revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
         // Sobra técnica: sempre obrigatória (você já usa valor mínimo automático)
         val sobraObrigatoria = true
-
         // Aplica regras
         showIconForField(etPecaComp, pecaObrigatoria)
         showIconForField(etPecaLarg, pecaObrigatoria)
@@ -180,6 +179,34 @@ class RequiredIconManager(private val context: Context) {
         showIconForField(etSobra, sobraObrigatoria)
         // Desnível depende apenas dele mesmo
         showIconForField(etDesnivel, desnivelObrigatorio)
+    }
+
+    /** =========== Atualiza ícones obrigatórios do Piso Vinílico =========== */
+    fun updatePisoVinilicoIconFields(
+        etPisoVinilicoDemaos: TextInputEditText, etRodapePerimetroManual: TextInputEditText,
+        revest: CalcRevestimentoViewModel.RevestimentoType?,
+        desnivelAtivo: Boolean, rodapeOn: Boolean
+    ) {
+        // Só aplica para Piso Vinílico
+        if (revest != CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO) {
+            setRequiredIconVisible(etPisoVinilicoDemaos, false)
+            setRequiredIconVisible(etRodapePerimetroManual, false)
+            return
+        }
+        // Qtd de Demãos: obrigatório quando switch de desnível ATIVO
+        if (desnivelAtivo) {
+            val demaosPreenchido = !etPisoVinilicoDemaos.text.isNullOrBlank()
+            setRequiredIconVisible(etPisoVinilicoDemaos, !demaosPreenchido)
+        } else {
+            setRequiredIconVisible(etPisoVinilicoDemaos, false)
+        }
+        // Perímetro de Rodapé: obrigatório quando switch de rodapé ATIVO
+        if (rodapeOn) {
+            val perimetroPreenchido = !etRodapePerimetroManual.text.isNullOrBlank()
+            setRequiredIconVisible(etRodapePerimetroManual, !perimetroPreenchido)
+        } else {
+            setRequiredIconVisible(etRodapePerimetroManual, false)
+        }
     }
 
     /** =========== Atualiza ícones obrigatórios do Rodapé =========== */

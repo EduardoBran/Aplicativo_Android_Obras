@@ -905,39 +905,44 @@
     <string name="generic_start">Começar</string>
 
     <!-- TELA 1 -->
+    <!-- Nomes Revestimentos -->
     <string name="calc_step1_title">Tipo de Revestimento</string>
     <string name="calc_step1_opt_piso">Piso</string>
-    <string name="calc_step1_placa_tipo">Qual o tipo da peça?</string>
+    <string name="calc_step1_opt_piso_vinilico">Piso Vinílico</string>
     <string name="calc_step1_opt_azulejo">Azulejo</string>
     <string name="calc_step1_opt_pastilha">Pastilha</string>
-    <string name="calc_step1_opt_pedra">Pedra Portuguesa</string>
-    <string name="calc_step1_opt_piso_intertravado">Piso Intertravado</string>
     <string name="calc_step1_opt_marmore">Mármore</string>
     <string name="calc_step1_opt_granito">Granito</string>
+    <string name="calc_step1_opt_piso_intertravado">Piso Intertravado</string>
+    <string name="calc_step1_opt_pedra">Pedra Portuguesa</string>
+
+    <!-- Diálogo aplicação Ceramica/Porcelnato (Piso/Azulejo/Pastilha/Mármore/Granito -->
+    <string name="calc_step1_placa_tipo">Qual o tipo da peça?</string>
     <string name="calc_step1_piso_tipo">Tipo de Piso:</string>
     <string name="calc_step1_piso_ceramica">Cerâmica</string>
     <string name="calc_step1_piso_porcelanato">Porcelanato</string>
-    <string name="calc_validate_step">Preencha os campos obrigatórios desta etapa.</string>
-    <string name="cont_btn_avancar">Avançar para próxima etapa</string>
-    <string name="cont_btn_back">Voltar para etapa anterior</string>
-    <!-- Diálogo aplicação Mármore/Granito -->
     <string name="calc_step1_mg_aplicacao_title">Onde será instalado?</string>
     <string name="calc_mg_aplicacao_piso">Piso</string>
     <string name="calc_mg_aplicacao_parede">Parede</string>
-    <!-- Diálogo aplicação ícone Home na toolbar -->
+
+    <!-- Frases descrições de cada revestimento -->
+    <string name="calc_step1_subtitle">Escolha o tipo de revestimento que será instalado</string>
+    <string name="calc_step1_opt_piso_desc">Pisos cerâmicos ou porcelanatos internos e externos</string>
+    <string name="calc_step1_opt_piso_vinilico_desc">Revestimento vinílico para áreas internas.</string>
+    <string name="calc_step1_opt_azulejo_desc">Azulejos cerâmicos ou porcelanatos para paredes</string>
+    <string name="calc_step1_opt_pastilha_desc">Pastilhas cerâmicas e porcelanatos para superfícies</string>
+    <string name="calc_step1_opt_marmore_desc">Mármores para pisos e paredes internas e externas</string>
+    <string name="calc_step1_opt_granito_desc">Granitos para pisos e paredes internas e externas</string>
+    <string name="calc_step1_opt_piso_intertravado_desc">Piso intertravado para calçadas, acessos e garagens</string>
+    <string name="calc_step1_opt_pedra_desc">Pedras portuguesas para áreas externas de circulação</string>
+
+    <!-- Diálogo aplicação ícone Home na toolbar e botões -->
     <string name="calc_home_title">Tela Principal</string>
     <string name="calc_home_dialog_title">Retornar a Tela Principal</string>
     <string name="calc_home_dialog_message">Deseja retornar a tela principal do app?</string>
-
-    <string name="calc_step1_subtitle">Escolha o tipo de revestimento que será instalado</string>
-    <string name="calc_step1_opt_piso_desc">Pisos cerâmicos ou porcelanatos internos e externos</string>
-    <string name="calc_step1_opt_azulejo_desc">Azulejos cerâmicos ou porcelanatos para paredes</string>
-    <string name="calc_step1_opt_pastilha_desc">Pastilhas cerâmicas e porcelanatos para superfícies</string>
-    <string name="calc_step1_opt_pedra_desc">Pedras portuguesas para áreas externas de circulação</string>
-    <string name="calc_step1_opt_piso_intertravado_desc">Piso intertravado para calçadas, acessos e garagens</string>
-    <string name="calc_step1_opt_marmore_desc">Mármores para pisos e paredes internas e externas</string>
-    <string name="calc_step1_opt_granito_desc">Granitos para pisos e paredes internas e externas</string>
-
+    <string name="calc_validate_step">Preencha os campos obrigatórios desta etapa.</string>
+    <string name="cont_btn_avancar">Avançar para próxima etapa</string>
+    <string name="cont_btn_back">Voltar para etapa anterior</string>
 
     <!-- TELA 2 -->
     <string name="calc_step2_title">Tipo de Ambiente</string>
@@ -992,7 +997,7 @@
     </string>
 
 
-    <!-- ======== TELA 4 ======== -->
+    <!-- ======== TELA 4 Medidas do Revestimento ======== -->
     <string name="calc_step4_title">Medidas do Revestimento</string>
     <string name="generic_next">Avançar</string>
 
@@ -1066,8 +1071,6 @@
     <string name="calc_pastilha_porcelanato_tamanho_title">Selecione o tamanho da pastilha (porcelanato)</string>
     <string name="calc_pastilha_porcelanato_tamanho_helper">Escolha uma das opções de manta de pastilha em porcelanato, com base nas medidas em centímetros.</string>
 
-
-    <!-- TELA 5 -->
     <string name="calc_step5_title">Rodapé</string>
     <string name="calc_step5_include">Incluir rodapé no cálculo</string>
     <string name="calc_step5_altura">Altura (cm)</string>
@@ -1081,6 +1084,40 @@
     <string name="calc_step5_abertura_largura_total">Abertura (m) (opcional)</string>
     <string name="calc_step5_abertura_largura_total_helper">Largura total do(s) vão(s) sem rodapé • Ex: 0,80 ou 1,60.</string>
     <string name="calc_err_rodape_abertura_maior_perimetro">O valor informado ultrapassa o total de rodapé possível no ambiente.</string>
+
+    <!-- Piso Vinílico -->
+    <string name="calc_step4_switch_piso_auto_adesivo">Piso Auto Desivo:</string>
+    <string name="calc_step4_switch_piso_desnivelado">Piso Desnivelado?</string>
+
+    <string name="calc_piso_vinilico_local_aplicacao">Local de Aplicação:</string>
+    <string name="calc_piso_vinilico_local_options">…</string>
+    <string name="calc_piso_vinilico_piso_grosso">Piso Grosso</string>
+    <string name="calc_piso_vinilico_piso_liso">Piso Liso</string>
+
+    <string name="calc_piso_vinilico_qtd_demaos">Qtd de Demãos</string>
+    <string name="calc_piso_vinilico_qtd_demaos_helper">Informe a quantidade de demãos de massa niveladora/cola que será aplicada.</string>
+
+    <string name="calc_piso_vinilico_tipo_menu_content_description">Alterar o tipo de piso vinílico (Grosso ou Liso)</string>
+
+    <!-- Piso Vinílico - Validações -->
+    <string name="calc_err_piso_vinilico_demaos_required">Informe a quantidade de demãos</string>
+    <string name="calc_err_piso_vinilico_demaos_range">Quantidade de demãos deve ser entre 1 e 4</string>
+    <string name="calc_err_piso_vinilico_rodape_required">Informe o perímetro do rodapé em metros</string>
+    <string name="calc_err_piso_vinilico_rodape_min">Perímetro do rodapé deve ser maior que 0,50 m</string>
+    <string name="calc_err_piso_vinilico_rodape_max">Perímetro do rodapé não pode exceder 500 m</string>
+    <string name="calc_err_piso_vinilico_rodape_range">Perímetro deve estar entre 0,50 m e 500 m</string>
+
+    <!-- Piso Vinílico - Helpers -->
+    <string name="calc_piso_vinilico_peca_comp_helper">Em centímetros • Ex: 135</string>
+    <string name="calc_piso_vinilico_peca_larg_helper">Em centímetros • Ex: 24</string>
+
+    <string name="calc_rev_revest_piso_vinilico">Piso Vinílico</string>
+    <string name="calc_rev_line_piso_vinilico_auto_adesivo">• Piso Auto-Adesivo: %1$s</string>
+    <string name="calc_rev_piso_vinilico_auto_adesivo_sim">Sim</string>
+    <string name="calc_rev_piso_vinilico_auto_adesivo_nao">Não (usa cola)</string>
+    <string name="calc_rev_line_piso_vinilico_tipo">• Local de Aplicação: %1$s</string>
+    <string name="calc_rev_line_piso_vinilico_demaos">• Quantidade de Demãos: %1$d</string>
+    <string name="calc_rev_line_rodape_piso_vinilico">• Rodapé: %1$s m (≈ %2$s m²)</string>
 
     <!-- TELA 6 -->
     <string name="calc_step6_title">Impermeabilização</string>

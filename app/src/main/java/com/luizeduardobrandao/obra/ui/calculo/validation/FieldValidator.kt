@@ -94,12 +94,10 @@ class FieldValidator(
         et: TextInputEditText, isPastilha: Boolean, espValueMm: Double?
     ): Boolean {
         if (isPastilha) return false
-
         val txt = et.text
         val config = buildEspessuraConfig()
         if (config.required && txt.isNullOrBlank()) return true
         if (!config.required && txt.isNullOrBlank()) return false
-
         return espValueMm == null || espValueMm !in config.min..config.max
     }
 
@@ -110,16 +108,13 @@ class FieldValidator(
             setInlineError(et, til, null)
             return
         }
-
         val txtEmpty = et.text.isNullOrBlank()
         val config = buildEspessuraConfig()
-
         val ok = when {
             config.required && txtEmpty -> false
             !config.required && txtEmpty -> true
             else -> espValueMm != null && espValueMm in config.min..config.max
         }
-
         val msg = when {
             config.required && txtEmpty -> config.requiredMsgRes?.let { getString(it) }
             !ok -> getString(config.errorMsgRes)
@@ -142,10 +137,8 @@ class FieldValidator(
         val juntaObrigatoria =
             revest != RevestimentoType.PASTILHA &&
                     revest != RevestimentoType.PISO_INTERTRAVADO
-
         if (juntaObrigatoria && txtEmpty) return true
         if (txtEmpty) return false
-
         return juntaValue == null || juntaValue !in juntaRange
     }
 
@@ -155,7 +148,6 @@ class FieldValidator(
         val juntaObrigatoria =
             revest != RevestimentoType.PASTILHA &&
                     revest != RevestimentoType.PISO_INTERTRAVADO
-
         val hasErr = hasJuntaErrorNow(et, juntaValueMm)
 
         if (!hasErr) {
@@ -207,12 +199,10 @@ class FieldValidator(
         et: TextInputEditText, tilVisible: Boolean, desnivelCm: Double?
     ): Boolean {
         if (!tilVisible) return false
-
         val cfg = buildDesnivelRange() ?: return false
         val txtEmpty = et.text.isNullOrBlank()
         if (cfg.required && txtEmpty) return true
         if (txtEmpty) return false
-
         return desnivelCm == null || desnivelCm !in cfg.min..cfg.max
     }
 
@@ -303,7 +293,6 @@ class FieldValidator(
             val num = raw.toDoubleOrNull()
             val isMG = isMGNow()
             val cm = UnitConverter.parsePecaToCm(num, isMG)
-
             val ok = when {
                 isMG -> (cm != null && cm in 10.0..2000.1)
                 else -> (cm != null && cm in 5.0..200.0)
@@ -402,14 +391,11 @@ class FieldValidator(
     fun validateAberturaLive(etAbertura: TextInputEditText, tilAbertura: TextInputLayout) {
         val texto = etAbertura.text?.toString()
         val i = viewModel.inputs.value
-        // Campo em branco → abertura opcional, não exibe erro
-        if (texto.isNullOrBlank()) {
+        if (texto.isNullOrBlank()) { // Campo em branco → abertura opcional, não exibe erro
             setInlineError(etAbertura, tilAbertura, null)
             return
         }
-
         val abertura = texto.replace(",", ".").toDoubleOrNull()
-
         val msg = when {
             // Valor inválido ou negativo
             abertura == null || abertura < 0.0 ->
@@ -433,7 +419,6 @@ class FieldValidator(
                                             i.revest == RevestimentoType.GRANITO) &&
                                             i.aplicacao == AplicacaoType.PAREDE
                                     )
-
                 val areaBruta = if (isParedeMode) {
                     val c = i.compM
                     val h = i.altM
@@ -527,6 +512,48 @@ class FieldValidator(
         setInlineError(etSobra, tilSobra, msg)
     }
 
+    /** ================ PISO VINÍLICO - QTD DE DEMÃOS ================ */
+    private fun hasPisoVinilicoDemaosErrorNow(et: TextInputEditText): Boolean {
+        val txt = et.text
+        if (txt.isNullOrBlank()) return false
+        val n = txt.toString().toIntOrNull()
+        return n == null || n !in CalcRevestimentoRules.PisoVinilico.QTD_DEMAOS_RANGE
+    }
+
+    fun validatePisoVinilicoDemaosLive(et: TextInputEditText, til: TextInputLayout) {
+        val i = viewModel.inputs.value
+        // Só valida se for Piso Vinílico e switch desnível ativo
+        if (i.revest != RevestimentoType.PISO_VINILICO ||
+            !i.pisoVinilicoDesnivelAtivo
+        ) {
+            setInlineError(et, til, null)
+            return
+        }
+        val hasErr = hasPisoVinilicoDemaosErrorNow(et)
+        val msg = if (hasErr) getString(R.string.calc_err_piso_vinilico_demaos_range) else null
+        setInlineError(et, til, msg)
+    }
+
+    fun validatePisoVinilicoDemaosOnBlur(et: TextInputEditText, til: TextInputLayout) {
+        et.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) return@setOnFocusChangeListener
+            val i = viewModel.inputs.value
+
+            if (i.revest != RevestimentoType.PISO_VINILICO || !i.pisoVinilicoDesnivelAtivo) {
+                setInlineError(et, til, null)
+                return@setOnFocusChangeListener
+            }
+            if (et.text.isNullOrBlank()) {
+                setInlineError(et, til, getString(R.string.calc_err_piso_vinilico_demaos_required))
+                return@setOnFocusChangeListener
+            }
+            val n = et.text.toString().toIntOrNull()
+            val ok = n != null && n in CalcRevestimentoRules.PisoVinilico.QTD_DEMAOS_RANGE
+            val msg = if (ok) null else getString(R.string.calc_err_piso_vinilico_demaos_range)
+            setInlineError(et, til, msg)
+        }
+    }
+
     /** ================ RODAPÉ (ALTURA, ABERTURA, COMP. COMERCIAL) ================ */
     fun validateRodapeAlturaLive(et: TextInputEditText, til: TextInputLayout) {
         if (!shouldValidateRodape()) {
@@ -549,21 +576,17 @@ class FieldValidator(
     fun validateRodapeAlturaOnBlur(et: TextInputEditText, til: TextInputLayout) {
         et.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
-
             if (!shouldValidateRodape()) {
                 setInlineError(et, til, null)
                 return@setOnFocusChangeListener
             }
-
             val vCm = UnitConverter.mToCmIfLooksLikeMeters(
                 et.text?.toString()?.replace(",", ".")?.toDoubleOrNull()
             )
-
             if (et.text.isNullOrBlank()) {
                 setInlineError(et, til, null)
                 return@setOnFocusChangeListener
             }
-
             val ok = vCm != null && vCm in rodapeAlturaRange
             val msg = if (ok) null else getString(R.string.calc_err_rodape_altura_range)
             setInlineError(et, til, msg)
@@ -598,7 +621,6 @@ class FieldValidator(
     fun validateRodapeAberturaOnBlur(et: TextInputEditText, til: TextInputLayout) {
         et.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) return@setOnFocusChangeListener
-
             if (!shouldValidateRodape()) {
                 setInlineError(et, til, null)
                 return@setOnFocusChangeListener
@@ -657,7 +679,6 @@ class FieldValidator(
         tilJunta: TextInputLayout, tilDesnivel: TextInputLayout
     ) {
         val padraoEsp = RevestimentoSpecifications.getEspessuraPadraoMm(i)
-
         val mg = i.revest in setOf(
             RevestimentoType.MARMORE, RevestimentoType.GRANITO
         )
@@ -666,15 +687,23 @@ class FieldValidator(
             tilPecaEsp.setHelperTextSafely(
                 getString(R.string.calc_step4_peca_esp_intertravado_helper)
             )
+        }
+        // Validação específica Piso Vinílico
+        if (i.revest == RevestimentoType.PISO_VINILICO) {
+            tilPecaComp.hint = getString(R.string.calc_step4_peca_comp_cm)
+            tilPecaLarg.hint = getString(R.string.calc_step4_peca_larg_cm)
+            tilPecaComp.setHelperTextSafely(getString(R.string.calc_piso_vinilico_peca_comp_helper))
+            tilPecaLarg.setHelperTextSafely(getString(R.string.calc_piso_vinilico_peca_larg_helper))
+            tilPecaEsp.setHelperTextSafely(null)
+            tilJunta.setHelperTextSafely(null)
+            return
         } else {
             tilPecaEsp.hint = getString(R.string.calc_step4_peca_esp)
             val template = getString(R.string.calc_step4_piece_esp_helper_with_default)
-
             val helper = String.format(
                 template,
                 NumberFormatter.format(padraoEsp)
             )
-
             tilPecaEsp.setHelperTextSafely(helper)
         }
         val pastilha = (i.revest == RevestimentoType.PASTILHA)
@@ -733,7 +762,6 @@ class FieldValidator(
 
     fun ensureDefaultMgEspessura(userEdited: Boolean) {
         if (userEdited) return
-
         val i = viewModel.inputs.value
         val isMG = i.revest == RevestimentoType.MARMORE || i.revest == RevestimentoType.GRANITO
         if (!isMG) return

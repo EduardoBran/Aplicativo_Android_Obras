@@ -22,6 +22,7 @@ object ValidationHelper {
     private val PecaRules = CalcRevestimentoRules.Peca
     private val RodapeRules = CalcRevestimentoRules.Rodape
     private val InterRules = CalcRevestimentoRules.Intertravado
+    private val PisoVinilicoRules = CalcRevestimentoRules.PisoVinilico
 
     /** =========== STEP 1 – Tipo de Revestimento =========== */
     fun validateStep1(inputs: Inputs): StepValidation {
@@ -36,10 +37,11 @@ object ValidationHelper {
         }
     }
 
-    /** ==== STEP 2 – Tipo de Ambiente (Não exibe; Pedra Portuguesa e Piso Intertravado) ==== */
+    /** ==== STEP 2 – Tipo de Ambiente (Não exibe; P. Portuguesa e Piso Inter e Vinílico) ==== */
     fun validateStep2Ambiente(inputs: Inputs): StepValidation {
         if (inputs.revest == RevestimentoType.PEDRA ||
-            inputs.revest == RevestimentoType.PISO_INTERTRAVADO
+            inputs.revest == RevestimentoType.PISO_INTERTRAVADO ||
+            inputs.revest == RevestimentoType.PISO_VINILICO
         ) {
             return StepValidation(true)
         }
@@ -179,6 +181,8 @@ object ValidationHelper {
         val baseValidation = when {
             inputs.revest == RevestimentoType.PISO_INTERTRAVADO -> validateIntertravado(inputs)
             inputs.revest == RevestimentoType.PASTILHA -> validatePastilha(inputs)
+            // Validação específica para Piso Vinílico
+            inputs.revest == RevestimentoType.PISO_VINILICO -> validatePisoVinilico(inputs)
             RevestimentoSpecifications.isPedraOuSimilares(inputs.revest) -> validatePedra(inputs)
             else -> validateRevestimentoPadrao(inputs)
         }
@@ -298,12 +302,62 @@ object ValidationHelper {
         }
     }
 
+    private fun validatePisoVinilico(inputs: Inputs): StepValidation {
+        return when {
+            // Dimensões são obrigatórias
+            inputs.pecaCompCm == null || inputs.pecaLargCm == null ->
+                StepValidation(false, "Informe as dimensões da régua/placa vinílica")
+            // Devem respeitar o range específico do Piso Vinílico
+            inputs.pecaCompCm !in PisoVinilicoRules.COMP_RANGE_CM ||
+                    inputs.pecaLargCm !in PisoVinilicoRules.LARG_RANGE_CM ->
+                StepValidation(false, "Dimensões fora do range permitido")
+            // Sobra, se informada, precisa estar no range
+            inputs.sobraPct != null && inputs.sobraPct !in PecaRules.SOBRA_RANGE_PCT ->
+                StepValidation(false, "Sobra técnica fora do range permitido")
+            // Se switch de desnível estiver ativo, valida quantidade de demãos
+            inputs.pisoVinilicoDesnivelAtivo -> {
+                val qtdDemaos = inputs.pisoVinilicoQtdDemaos
+                when {
+                    qtdDemaos == null ->
+                        StepValidation(false, "Informe a quantidade de demãos")
+
+                    qtdDemaos !in PisoVinilicoRules.QTD_DEMAOS_RANGE ->
+                        StepValidation(false, "Quantidade de demãos inválida (1-4)")
+                    // Tipo de desnível é obrigatório quando switch ativo
+                    inputs.pisoVinilicoDesnivelTipo == null ->
+                        StepValidation(false, "Selecione o tipo de piso (Grosso/Liso)")
+
+                    else -> StepValidation(true)
+                }
+            }
+
+            else -> StepValidation(true)
+        }
+    }
+
     /** ==== VALIDAÇÃO RODAPÉ (usada quando rodapeEnable == true e o cenário possui rodapé) ==== */
     private fun validateRodape(inputs: Inputs): StepValidation {
-        // Se o switch estiver desligado, não trava a navegação
         if (!inputs.rodapeEnable) return StepValidation(true)
+
         // Altura obrigatória e dentro do range
         val altura = inputs.rodapeAlturaCm
+        // Piso Vinílico: Rodapé é informado em METROS (não em centímetros)
+        if (inputs.revest == RevestimentoType.PISO_VINILICO) {
+            val rodapeM = inputs.rodapePerimetroManualM
+            return when {
+                rodapeM == null ->
+                    StepValidation(false, "Informe o perímetro do rodapé em metros")
+
+                rodapeM < PisoVinilicoRules.RODAPE_MIN_M ->
+                    StepValidation(false, "Perímetro do rodapé muito pequeno")
+
+                rodapeM > PisoVinilicoRules.RODAPE_MAX_M ->
+                    StepValidation(false, "Perímetro do rodapé muito grande")
+
+                else -> StepValidation(true)
+            }
+        }
+        // Validação padrão para outros revestimentos
         when (altura) {
             null ->
                 return StepValidation(false)

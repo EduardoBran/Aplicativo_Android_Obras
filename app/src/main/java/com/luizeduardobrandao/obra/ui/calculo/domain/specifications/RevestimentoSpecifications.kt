@@ -108,6 +108,8 @@ object RevestimentoSpecifications {
             RevestimentoType.PISO_INTERTRAVADO ->
                 InterRules.ESP_PADRAO_MM
 
+            RevestimentoType.PISO_VINILICO -> 0.0
+
             RevestimentoType.MARMORE,
             RevestimentoType.GRANITO -> {
                 val amb = inputs.ambiente
@@ -192,6 +194,8 @@ object RevestimentoSpecifications {
             RevestimentoType.MARMORE,
             RevestimentoType.GRANITO -> JuntaPadrao.MG_MM
 
+            RevestimentoType.PISO_VINILICO -> 0.0
+
             else -> JuntaPadrao.GENERICO_MM
         }
     }
@@ -200,6 +204,8 @@ object RevestimentoSpecifications {
     fun hasRodapeStep(inputs: Inputs): Boolean {
         return when (inputs.revest) {
             RevestimentoType.PISO -> true
+            RevestimentoType.PISO_VINILICO -> true
+
             RevestimentoType.MARMORE,
             RevestimentoType.GRANITO ->
                 inputs.aplicacao == AplicacaoType.PISO

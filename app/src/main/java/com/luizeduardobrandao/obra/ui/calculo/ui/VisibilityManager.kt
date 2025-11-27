@@ -4,6 +4,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.RadioGroup
+import android.widget.TextView
 import androidx.core.view.isVisible
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -35,17 +36,25 @@ class VisibilityManager {
         // Campos individuais - Rodapé
         tilRodapeAltura: TextInputLayout, tilRodapeAbertura: TextInputLayout,
         tilRodapeCompComercial: TextInputLayout,
+        // Campo Quantidade de Demãos (Apenas para Piso Vinílico)
+        tilPisoVinilicoDemaos: TextInputLayout,
         // EditTexts (para limpeza)
         etLarg: TextInputEditText, etAlt: TextInputEditText, etParedeQtd: TextInputEditText,
         etAbertura: TextInputEditText, etPecaEsp: TextInputEditText, etJunta: TextInputEditText,
         etPecasPorCaixa: TextInputEditText, etRodapeAbertura: TextInputEditText,
+        // EditText (apenas para Piso Vinílico)
+        etPisoVinilicoDemaos: TextInputEditText,
         // RadioGroups
         rgPlacaTipo: RadioGroup,
         // Switches
-        switchRodape: CompoundButton,
-        // NOVOS grupos para switches adicionais
+        switchRodape: CompoundButton, switchPisoAutoAdesivo: CompoundButton,
+        switchPisoDesnivelado: CompoundButton,
+        // Grupos para switches adicionais
         rowPecasPorCaixaSwitch: View, groupPecasPorCaixaFields: View,
-        rowDesnivelSwitchStep4: View, groupDesnivelFields: View
+        rowDesnivelSwitchStep4: View, groupDesnivelFields: View,
+        // Grupos do Piso Vinílico
+        rowPisoAutoAdesivoSwitch: View, rowPisoDesniveladoSwitch: View,
+        groupPisoDesniveladoFields: View, tvRodapeMaterialLabel: TextView, rgRodapeMat: RadioGroup
     ) {
         updateGroupVisibilities(                    // Atualiza grupos principais
             inputs,
@@ -63,8 +72,16 @@ class VisibilityManager {
         )
         updateRodapeFieldsVisibility(               // Atualiza campos de rodapé (visibilidade + limpeza)
             inputs, groupRodapeFields,
-            tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial, etRodapeAbertura
+            tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial, etRodapeAbertura,
+            tvRodapeMaterialLabel, rgRodapeMat
         )
+        (tilRodapeAltura.editText as? TextInputEditText)?.let {
+            updatePisoVinilicoFieldsVisibility(
+                inputs, tilPisoVinilicoDemaos, tilRodapeAltura, etPisoVinilicoDemaos, it,
+                rowPisoAutoAdesivoSwitch, rowPisoDesniveladoSwitch, groupPisoDesniveladoFields,
+                switchPisoAutoAdesivo, switchPisoDesnivelado
+            )
+        }
         updateSwitchStates(inputs, switchRodape)    // Atualiza Switch Rodapé
         reorderDesnivelAndSobraForPedra(            // Reordena campo Desnível em Pedra Portuguesa
             inputs = inputs, tilSobra = tilSobra, groupDesnivelFields = groupDesnivelFields,
@@ -75,10 +92,9 @@ class VisibilityManager {
 
     /** Atualiza visibilidade dos grupos principais */
     private fun updateGroupVisibilities(
-        inputs: CalcRevestimentoViewModel.Inputs,
-        groupPlacaTipo: View, groupPecaTamanho: View, groupPastilhaTamanho: View,
-        groupPastilhaPorcelanatoTamanho: View, groupRodapeFields: View, groupMgAplicacao: View,
-        switchRodape: CompoundButton
+        inputs: CalcRevestimentoViewModel.Inputs, groupPlacaTipo: View, groupPecaTamanho: View,
+        groupPastilhaTamanho: View, groupPastilhaPorcelanatoTamanho: View, groupRodapeFields: View,
+        groupMgAplicacao: View, switchRodape: CompoundButton
     ) {
         val revest = inputs.revest
         // Grupo de tipo de placa (cerâmica/porcelanato)
@@ -111,12 +127,12 @@ class VisibilityManager {
             groupPastilhaTamanho.isVisible = false
             groupPastilhaPorcelanatoTamanho.isVisible = false
         }
-        val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
         // Linha inteira "Incluir rodapé" (TextView + switch)
+        val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
         val rowRodapeSwitch = switchRodape.parent as? View
         rowRodapeSwitch?.isVisible = hasRodapeStep
-        // Switch Rodapé visível apenas quando existe etapa de rodapé
-        switchRodape.isVisible = hasRodapeStep
+        switchRodape.isVisible =
+            hasRodapeStep // Switch Rodapé visível apenas quando existe etapa de rodapé
     }
 
     /** Atualiza visibilidade campos medidas da área (Comp/Larg/Alt/Parede/Abertura/Área Total) */
@@ -133,7 +149,6 @@ class VisibilityManager {
                 inputs.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
         val isParedeMG = isMG && inputs.aplicacao == CalcRevestimentoViewModel.AplicacaoType.PAREDE
         val isParedeMode = isAzulejo || isPastilha || isParedeMG
-
         val isAreaTotalMode = inputs.areaTotalMode
 
         if (isAreaTotalMode) {  // == MODO ÁREA TOTAL == (Esconde dimensões: Comp/Larg/Alt/Parede)
@@ -141,10 +156,9 @@ class VisibilityManager {
             tilLarg.isVisible = false
             tilAltura.isVisible = false
             tilParedeQtd.isVisible = false
-            // Mostra Área Total + Abertura
             tilAreaInformada.isVisible = true
             tilAbertura.isVisible = true
-        } else { // == MODO DIMENSÕES ==
+        } else {                // == MODO DIMENSÕES ==
             tilAreaInformada.isVisible = false
             tilAbertura.isVisible = true
 
@@ -153,7 +167,7 @@ class VisibilityManager {
                 tilAltura.isVisible = true
                 tilParedeQtd.isVisible = true
                 tilLarg.isVisible = false
-            } else { // Piso / planos: Comprimento + Largura + Abertura
+            } else {           // Piso / planos: Comprimento + Largura + Abertura
                 tilComp.isVisible = true
                 tilAltura.isVisible = false
                 tilParedeQtd.isVisible = false
@@ -180,13 +194,11 @@ class VisibilityManager {
 
     /** Atualiza visibilidade dos campos de peça */
     private fun updatePieceFieldsVisibility(
-        inputs: CalcRevestimentoViewModel.Inputs,
-        tilPecaEsp: TextInputLayout, tilJunta: TextInputLayout,
-        tilPecasPorCaixa: TextInputLayout, tilDesnivel: TextInputLayout,
+        inputs: CalcRevestimentoViewModel.Inputs, tilPecaEsp: TextInputLayout,
+        tilJunta: TextInputLayout, tilPecasPorCaixa: TextInputLayout, tilDesnivel: TextInputLayout,
         etPecaEsp: TextInputEditText, etJunta: TextInputEditText,
-        etPecasPorCaixa: TextInputEditText,
-        rowPecasPorCaixaSwitch: View, groupPecasPorCaixaFields: View,
-        rowDesnivelSwitchStep4: View, groupDesnivelFields: View
+        etPecasPorCaixa: TextInputEditText, rowPecasPorCaixaSwitch: View,
+        groupPecasPorCaixaFields: View, rowDesnivelSwitchStep4: View, groupDesnivelFields: View
     ) {
         val isPastilha = inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
         val isIntertravado =
@@ -194,21 +206,23 @@ class VisibilityManager {
         val isMG = inputs.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
                 inputs.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
         val isPedra = inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PEDRA
-        // Espessura: oculta para Pastilha
-        tilPecaEsp.isVisible = !isPastilha
-        if (isPastilha) {
+        val isPisoVinilico =
+            inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO
+        // Espessura: oculta para Pastilha e Piso Vinílico
+        tilPecaEsp.isVisible = !isPastilha && !isPisoVinilico
+        if (isPastilha || isPisoVinilico) {
             etPecaEsp.text?.clear()
             tilPecaEsp.error = null
         }
-        // Junta: oculta para Piso Intertravado, visível para demais
-        val showJunta = !isIntertravado
+        // Junta: oculta para Piso Intertravado e Piso Vinílico
+        val showJunta = !isIntertravado && !isPisoVinilico
         tilJunta.isVisible = showJunta
         if (!showJunta) {
             etJunta.text?.clear()
             tilJunta.error = null
         }
         // Peças por caixa: oculta para MG, Pedra e Intertravado
-        val hidePecasPorCaixa = isMG || isPedra || isIntertravado
+        val hidePecasPorCaixa = isMG || isPedra || isIntertravado || isPisoVinilico
         if (hidePecasPorCaixa) {
             rowPecasPorCaixaSwitch.isVisible = false
             groupPecasPorCaixaFields.isVisible = false
@@ -219,7 +233,6 @@ class VisibilityManager {
             rowPecasPorCaixaSwitch.isVisible = true
             tilPecasPorCaixa.isVisible = true
         }
-
         val showDesnivel = inputs.revest in setOf(
             CalcRevestimentoViewModel.RevestimentoType.PEDRA,
             CalcRevestimentoViewModel.RevestimentoType.MARMORE,
@@ -248,17 +261,53 @@ class VisibilityManager {
         }
     }
 
+    /** Atualiza visibilidade dos campos específicos do Piso Vinílico */
+    private fun updatePisoVinilicoFieldsVisibility(
+        inputs: CalcRevestimentoViewModel.Inputs, tilPisoVinilicoDemaos: TextInputLayout,
+        tilRodapeAltura: TextInputLayout, etPisoVinilicoDemaos: TextInputEditText,
+        etRodapeAltura: TextInputEditText?, rowPisoAutoAdesivoSwitch: View,
+        rowPisoDesniveladoSwitch: View, groupPisoDesniveladoFields: View,
+        switchPisoAutoAdesivo: CompoundButton, switchPisoDesnivelado: CompoundButton
+    ) {
+        val isPisoVinilico =
+            inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO
+        if (!isPisoVinilico) { // Oculta TODOS os componentes específicos do Piso Vinílico
+            rowPisoAutoAdesivoSwitch.isVisible = false
+            rowPisoDesniveladoSwitch.isVisible = false
+            groupPisoDesniveladoFields.isVisible = false
+            tilPisoVinilicoDemaos.isVisible = false// Limpa valores
+            etPisoVinilicoDemaos.text?.clear()
+            tilPisoVinilicoDemaos.error = null
+            return
+        }
+        // ===== PISO VINÍLICO: Exibe componentes específicos de visibilidade =====
+        rowPisoAutoAdesivoSwitch.isVisible = true
+        rowPisoDesniveladoSwitch.isVisible = true
+        val desnivelAtivo = inputs.pisoVinilicoDesnivelAtivo
+        groupPisoDesniveladoFields.isVisible = desnivelAtivo
+        if (!desnivelAtivo) { // Limpa campo de demãos quando switch desativado
+            etPisoVinilicoDemaos.text?.clear()
+            tilPisoVinilicoDemaos.error = null
+        }
+        // Campo "Qtd de Demãos" visível dentro do grupo
+        tilPisoVinilicoDemaos.isVisible = desnivelAtivo
+        // Atualiza estado dos switches
+        switchPisoAutoAdesivo.isChecked = inputs.pisoVinilicoAutoAdesivo
+        switchPisoDesnivelado.isChecked = desnivelAtivo
+    }
+
     /** Atualiza visibilidade dos campos de rodapé */
     private fun updateRodapeFieldsVisibility(
-        inputs: CalcRevestimentoViewModel.Inputs,
-        groupRodapeFields: View, tilRodapeAltura: TextInputLayout,
-        tilRodapeAbertura: TextInputLayout, tilRodapeCompComercial: TextInputLayout,
-        etRodapeAbertura: TextInputEditText
+        inputs: CalcRevestimentoViewModel.Inputs, groupRodapeFields: View,
+        tilRodapeAltura: TextInputLayout, tilRodapeAbertura: TextInputLayout,
+        tilRodapeCompComercial: TextInputLayout, etRodapeAbertura: TextInputEditText,
+        tvRodapeMaterialLabel: TextView, rgRodapeMat: RadioGroup
     ) {
         val hasRodapeStep = RevestimentoSpecifications.hasRodapeStep(inputs)
         val rodapeOn = hasRodapeStep && inputs.rodapeEnable
+        val isPisoVinilico =
+            inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO
         groupRodapeFields.isVisible = rodapeOn
-
         if (!rodapeOn) { // Limpa valores e erros de TODOS os campos de rodapé
             (tilRodapeAltura.editText as? TextInputEditText)?.text?.clear()
             etRodapeAbertura.text?.clear()
@@ -266,6 +315,33 @@ class VisibilityManager {
             tilRodapeAltura.error = null
             tilRodapeAbertura.error = null
             tilRodapeCompComercial.error = null
+            return
+        }
+        // ===== RODAPÉ ATIVO =====
+        if (isPisoVinilico) { // Piso Vinílico: Comportamento personalizada
+            tilRodapeAltura.isVisible = true
+            tilRodapeAbertura.isVisible = true
+            tilRodapeCompComercial.isVisible = false
+            tvRodapeMaterialLabel.isVisible = false
+            rgRodapeMat.isVisible = false
+            // Limpa campos que não são usados pelo Piso Vinílico
+            (tilRodapeCompComercial.editText as? TextInputEditText)?.text?.clear()
+            tilRodapeCompComercial.error = null
+            // Atualização de hints
+            tilRodapeAltura.hint = "Perímetro do Rodapé"
+            tilRodapeAltura.helperText = "Em metros • Ex: 2"
+            tilRodapeAbertura.hint = "Largura de Aberturas (m)"
+            tilRodapeAbertura.helperText = "Soma das larguras de portas/janelas • Em metros"
+        } else { // Demais Revestimentos: Lógica normal (altura em cm)
+            tilRodapeAltura.isVisible = true
+            tilRodapeAbertura.isVisible = true
+            tvRodapeMaterialLabel.isVisible = true
+            rgRodapeMat.isVisible = true
+            // Restaura hint/helper original
+            tilRodapeAltura.hint = "Altura do Rodapé"
+            tilRodapeAltura.helperText = "Em centímetros • Ex: 7"
+            tilRodapeAbertura.hint = "Largura de Aberturas (m)"
+            tilRodapeAbertura.helperText = "Soma das larguras de portas/janelas • Em metros"
         }
     }
 
@@ -310,7 +386,6 @@ class VisibilityManager {
         val isPedra =
             inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PEDRA
         if (parent.indexOfChild(groupDesnivelFields) == -1) return
-
         if (isPedra && groupDesnivelFields.isVisible && !rowDesnivelSwitchStep4.isVisible) {
             val sobraIndex = parent.indexOfChild(tilSobra)
             val desnivelIndex = parent.indexOfChild(groupDesnivelFields)

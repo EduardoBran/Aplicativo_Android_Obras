@@ -24,7 +24,6 @@ import com.luizeduardobrandao.obra.databinding.FragmentCalcRevestimentoBinding
 import com.luizeduardobrandao.obra.ui.calculo.domain.rules.CalcRevestimentoRules
 import com.luizeduardobrandao.obra.ui.calculo.domain.specifications.RevestimentoSpecifications
 import com.luizeduardobrandao.obra.ui.calculo.ui.*
-import com.luizeduardobrandao.obra.ui.calculo.utils.NumberFormatter
 import com.luizeduardobrandao.obra.ui.calculo.utils.PdfGenerator
 import com.luizeduardobrandao.obra.ui.calculo.utils.UnitConverter
 import com.luizeduardobrandao.obra.ui.calculo.validation.FieldValidator
@@ -151,7 +150,7 @@ class CalcRevestimentoFragment : Fragment() {
         listOf(
             tilComp, tilLarg, tilAltura, tilAreaInformada, tilParedeQtd, tilAbertura,
             tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa, tilDesnivel, tilSobra,
-            tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial
+            tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial, tilPisoVinilicoDemaos
         ).forEach { it.isErrorEnabled = true }
     }
 
@@ -180,15 +179,16 @@ class CalcRevestimentoFragment : Fragment() {
     // Etapa 1: Tipo de revestimento
     private fun setupStep1RevTypeListeners() = with(binding) {
         val revestCards = listOf( // 1) Clicks nos Cards de Revestimento
-            rbPiso, rbAzulejo, rbPastilha, rbPedra, rbPisoIntertravado, rbMarmore, rbGranito
+            rbPiso, rbAzulejo, rbPastilha, rbPedra, rbPisoIntertravado, rbMarmore, rbGranito,
+            rbPisoVinilico
         )
 
         fun handleRevestClick(viewId: Int) {
             if (isSyncing) return
             val newType = mapRadioIdToRevestimento(viewId) ?: return
             inputSynchronizer.syncRevestimentoCards( // Atualiza visual de seleção dos cards
-                newType,
-                rbPiso, rbAzulejo, rbPastilha, rbPedra, rbPisoIntertravado, rbMarmore, rbGranito
+                newType, rbPiso, rbAzulejo, rbPastilha, rbPedra, rbPisoIntertravado,
+                rbMarmore, rbGranito, rbPisoVinilico
             )
             viewModel.setPlacaTipo(null) // Sempre limpar tipo de de revestimento
             if (newType == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
@@ -217,7 +217,8 @@ class CalcRevestimentoFragment : Fragment() {
                     }
                     // Tipos sem subtipo → clicou no tipo, avança direto
                     CalcRevestimentoViewModel.RevestimentoType.PEDRA,
-                    CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO -> {
+                    CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO,
+                    CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO -> {
                         tryAutoAdvanceFromStep1()
                     }
                 }
@@ -297,13 +298,12 @@ class CalcRevestimentoFragment : Fragment() {
             // Atualiza visibilidade dos grupos
             groupMedidasRetangulares.isVisible = !isChecked
             groupAreaTotalInformada.isVisible = isChecked
-
             if (isChecked) { // Ao habilitar o switch, apenas o campo "Abertura" é limpo
                 if (!etAbertura.text.isNullOrBlank()) {
                     etAbertura.text?.clear()
                     tilAbertura.error = null
                 }
-            } else {// Voltando para o modo por dimensões: erro de Área Total não é mais relevante
+            } else { // Voltando para o modo por dimensões: erro de Área Total não é mais relevante
                 tilAreaInformada.error = null
             }
             updateRequiredIconsForStep3Area()
@@ -320,11 +320,9 @@ class CalcRevestimentoFragment : Fragment() {
                 getDoubleValue(binding.etComp), getDoubleValue(binding.etLarg),
                 getDoubleValue(binding.etAlt), getDoubleValue(binding.etAreaInformada)
             )
-
             val isAreaTotalMode = binding.switchAreaTotal.isChecked
             val isAreaTotalValid =
                 isAreaTotalMode && validator.isAreaTotalValidNow(binding.etAreaInformada)
-
             if (til.isVisible) {
                 if (et === binding.etAlt) {
                     validator.validateAlturaLive(et, til, isAreaTotalValid)
@@ -335,8 +333,7 @@ class CalcRevestimentoFragment : Fragment() {
                 validator.setInlineError(et, til, null)
             }
             updateRequiredIconsForStep3Area()
-
-            // Revalida Abertura com a nova área bruta apenas no modo DIMENSÕES
+            // Revalida Abertura com a nova área bruta
             if (binding.tilAbertura.isVisible &&
                 !binding.etAbertura.text.isNullOrBlank() && !binding.switchAreaTotal.isChecked
             ) {
@@ -363,10 +360,8 @@ class CalcRevestimentoFragment : Fragment() {
         etParedeQtd.doAfterTextChanged {
             val qtd = etParedeQtd.text?.toString()?.toIntOrNull()
             viewModel.setParedeQtd(qtd)
-
             validator.validateParedeQtdLive(etParedeQtd, tilParedeQtd)
             updateRequiredIconsForStep3Area()
-
             if (tilAbertura.isVisible && // Revalida Abertura com a nova quantidade de paredes
                 !etAbertura.text.isNullOrBlank() && !switchAreaTotal.isChecked
             ) {
@@ -396,12 +391,9 @@ class CalcRevestimentoFragment : Fragment() {
                 getDoubleValue(etComp), getDoubleValue(etLarg),
                 getDoubleValue(etAlt), getDoubleValue(etAreaInformada)
             )
-
             val isAreaTotalMode = switchAreaTotal.isChecked
-
             if (isAreaTotalMode) { // Modo "Área total": este campo passa a ser o caminho principal
                 validator.validateAreaInformadaLive(etAreaInformada, tilAreaInformada)
-
                 val isValidArea = validator.isAreaTotalValidNow(etAreaInformada)
                 if (isValidArea) { // Área Total válida domina: dimensões e parede deixam de exibir erro
                     validator.setInlineError(etComp, tilComp, null)
@@ -411,8 +403,7 @@ class CalcRevestimentoFragment : Fragment() {
                     }
                     validator.setInlineError(etParedeQtd, tilParedeQtd, null)
                 }
-                // Abertura sempre é validada no contexto da Área Total
-                validator.validateAberturaLive(etAbertura, tilAbertura)
+                validator.validateAberturaLive(etAbertura, tilAbertura) // Abertura sempre é validada no contexto da Área Total
             } else { // Modo "Dimensões": Área Total é apenas opcional e não domina a etapa
                 validator.validateAreaInformadaLive(etAreaInformada, tilAreaInformada)
                 // Volta a validar C/L/A + Parede + Abertura pelo contexto dimensional
@@ -435,6 +426,7 @@ class CalcRevestimentoFragment : Fragment() {
         setupPecasPorCaixaField()
         setupDesnivelField()
         setupSobraField()
+        setupPisoVinilicoDemaosField()
         // Helper inicial da junta baseado no revestimento atual
         validator.updateJuntaHelperText(viewModel.inputs.value, tilJunta)
         rgPastilhaTamanho.setOnCheckedChangeListener { _, id ->
@@ -451,6 +443,18 @@ class CalcRevestimentoFragment : Fragment() {
             updateRequiredIconsForStep4PecaParameters()
             refreshNextButtonEnabled()
         }
+    }
+
+    // Campo Qtd de Demãos (Piso Vinílico)
+    private fun setupPisoVinilicoDemaosField() = with(binding) {
+        etPisoVinilicoDemaos.doAfterTextChanged {
+            val qtd = etPisoVinilicoDemaos.text?.toString()?.toIntOrNull()
+            viewModel.setPisoVinilicoQtdDemaos(qtd)
+            validator.validatePisoVinilicoDemaosLive(etPisoVinilicoDemaos, tilPisoVinilicoDemaos)
+            updateRequiredIconsPisoVinilico()
+            refreshNextButtonEnabled()
+        }
+        validator.validatePisoVinilicoDemaosOnBlur(etPisoVinilicoDemaos, tilPisoVinilicoDemaos)
     }
 
     // Etapa 4: Switches extras (Peças por caixa / Desnível MG)
@@ -473,14 +477,11 @@ class CalcRevestimentoFragment : Fragment() {
                 refreshNextButtonEnabled()
             }
         }
-        // Switch "Desnível" (layout só para MG)
-        switchDesnivel.setOnCheckedChangeListener { _, isChecked ->
+        switchDesnivel.setOnCheckedChangeListener { _, isChecked -> // Switch "Desnível" (layout só para MG)
             if (isSyncing) return@setOnCheckedChangeListener
             val inputs = viewModel.inputs.value
             val revest = inputs.revest
-            val isMg =
-                revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
-                        revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
+            val isMg = isMG()
             val isPedra = revest == CalcRevestimentoViewModel.RevestimentoType.PEDRA
             if (!isMg) { // Pedra: sem switch "lógico", apenas visibilidade antiga
                 groupDesnivelFields.isVisible = isPedra && tilDesnivel.isVisible
@@ -513,6 +514,80 @@ class CalcRevestimentoFragment : Fragment() {
                 refreshNextButtonEnabled()
             }
         }
+        switchPisoAutoAdesivo.setOnCheckedChangeListener { _, isChecked -> // Switch "Piso Auto-Adesivo" (layout só para Piso Vinílico)
+            if (isSyncing) return@setOnCheckedChangeListener
+            viewModel.setPisoVinilicoAutoAdesivo(isChecked)
+            if (viewModel.step.value in 1..6) {
+                refreshNextButtonEnabled()
+            }
+        }
+        switchPisoDesnivelado.setOnCheckedChangeListener { _, isChecked -> // Switch "Piso Desnivelado" (layout só para Piso Vinílico)
+            if (isSyncing) return@setOnCheckedChangeListener
+            val inputs = viewModel.inputs.value
+            if (inputs.revest != CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO) {
+                return@setOnCheckedChangeListener
+            }
+            viewModel.setPisoVinilicoDesnivelAtivo(isChecked)
+            groupPisoDesniveladoFields.isVisible = isChecked
+            if (isChecked) { // Pré-preenche quantidade de demãos padrão (2)
+                val currentDemaos = etPisoVinilicoDemaos.text?.toString()?.toIntOrNull()
+                if (currentDemaos == null) {
+                    val defaultDemaos = CalcRevestimentoRules.PisoVinilico.QTD_DEMAOS_DEFAULT
+                    etPisoVinilicoDemaos.setText(defaultDemaos.toString())
+                    viewModel.setPisoVinilicoQtdDemaos(defaultDemaos)
+                }
+            } else { // Limpa campo e ViewModel quando switch desativado
+                etPisoVinilicoDemaos.text?.clear()
+                tilPisoVinilicoDemaos.error = null
+                viewModel.setPisoVinilicoQtdDemaos(null)
+            }
+            updateRequiredIconsForStep4PecaParameters()
+            updateRequiredIconsPisoVinilico()
+            smoothScrollToggle(switchPisoDesnivelado.isChecked)
+            if (viewModel.step.value in 1..6) {
+                refreshNextButtonEnabled()
+            }
+        }
+        tvPisoVinilicoTipoMenu.setOnClickListener { // Click no menu de seleção de tipo (Grosso/Liso)
+            val inputs = viewModel.inputs.value
+            if (inputs.revest != CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO) return@setOnClickListener
+            showPisoVinilicoTipoMenu()
+        }
+    }
+
+    /** Exibe menu de seleção Piso Grosso / Piso Liso */
+    private fun showPisoVinilicoTipoMenu() = with(binding) {
+        val popup = androidx.appcompat.widget.PopupMenu(requireContext(), tvPisoVinilicoTipoMenu)
+        popup.menu.add(0, 1, 0, getString(R.string.calc_piso_vinilico_piso_grosso))       // Adiciona opções ao menu
+        popup.menu.add(0, 2, 1, getString(R.string.calc_piso_vinilico_piso_liso))         // Adiciona opções ao menu
+        val tipoAtual = viewModel.inputs.value.pisoVinilicoDesnivelTipo // Marca opção atual
+        when (tipoAtual) {
+            CalcRevestimentoViewModel.PisoVinilicoDesnivelTipo.GROSSO ->
+                popup.menu.findItem(1)?.isChecked = true
+
+            CalcRevestimentoViewModel.PisoVinilicoDesnivelTipo.FINO ->
+                popup.menu.findItem(2)?.isChecked = true
+
+            else -> {}
+        }
+        popup.setOnMenuItemClickListener { item ->           // Handler de seleção
+            val novoTipo = when (item.itemId) {
+                1 -> CalcRevestimentoViewModel.PisoVinilicoDesnivelTipo.GROSSO
+                2 -> CalcRevestimentoViewModel.PisoVinilicoDesnivelTipo.FINO
+                else -> return@setOnMenuItemClickListener false
+            }
+            viewModel.setPisoVinilicoDesnivelTipo(novoTipo)  // Atualiza ViewModel
+            tvPisoVinilicoTipoValor.text = when (novoTipo) { // Atualiza texto exibido
+                CalcRevestimentoViewModel.PisoVinilicoDesnivelTipo.GROSSO ->
+                    getString(R.string.calc_piso_vinilico_piso_grosso)
+
+                CalcRevestimentoViewModel.PisoVinilicoDesnivelTipo.FINO ->
+                    getString(R.string.calc_piso_vinilico_piso_liso)
+            }
+
+            true
+        }
+        popup.show()
     }
 
     // Configura campos de peça
@@ -559,7 +634,6 @@ class CalcRevestimentoFragment : Fragment() {
             updateRequiredIconsForStep4PecaParameters()
             refreshNextButtonEnabled()
         }
-
         etPecaEsp.setOnFocusChangeListener { _, hasFocus -> // Validação ao perder o foco
             if (hasFocus) return@setOnFocusChangeListener
             validator.validateEspessuraLive(
@@ -626,19 +700,31 @@ class CalcRevestimentoFragment : Fragment() {
 
     // Etapa: Rodapé
     private fun setupRodapeListeners() = with(binding) {
-        switchRodape.setOnCheckedChangeListener { _, _ ->
+        switchRodape.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked && // Usa etRodapeAltura PARA PERÍMETRO DO PISO VINÍLICO
+                viewModel.inputs.value.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO
+            ) {
+                val currentPerimetro = getDoubleValue(etRodapeAltura)
+                if (currentPerimetro == null) {
+                    val defaultPerimetro = CalcRevestimentoRules.PisoVinilico.RODAPE_DEFAULT_M
+                    etRodapeAltura.setText(defaultPerimetro.toString().replace(".", ","))
+                }
+            }
             updateRodapeFields()
             updateRequiredIconsRodapeFields()
-            smoothScrollToggle(switchRodape.isChecked) // Scroll suave para topo/fim conforme estado do switch
+            smoothScrollToggle(switchRodape.isChecked)
             if (viewModel.step.value in 1..6) {
                 refreshNextButtonEnabled()
             }
         }
-        rgRodapeMat.setOnCheckedChangeListener { _, checkedId ->
+
+        rgRodapeMat.setOnCheckedChangeListener { _, checkedId -> // Ignora para Piso Vinílico
             if (isSyncing) return@setOnCheckedChangeListener
+            if (viewModel.inputs.value.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO) {
+                return@setOnCheckedChangeListener
+            }
             val isPecaPronta = (checkedId == R.id.rbRodapePeca)
             tilRodapeCompComercial.isVisible = isPecaPronta
-
             if (!isPecaPronta) {
                 etRodapeCompComercial.text?.clear()
                 tilRodapeCompComercial.error = null
@@ -651,7 +737,10 @@ class CalcRevestimentoFragment : Fragment() {
             if (viewModel.step.value in 1..6) refreshNextButtonEnabled()
         }
 
-        etRodapeAltura.doAfterTextChanged {
+        etRodapeAltura.doAfterTextChanged { // Retorna antecipadamente para Piso Vinílico
+            if (viewModel.inputs.value.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO) {
+                return@doAfterTextChanged
+            }
             val text = etRodapeAltura.text?.toString().orEmpty()
             updateRodapeFields()
             updateRequiredIconsRodapeFields()
@@ -672,7 +761,10 @@ class CalcRevestimentoFragment : Fragment() {
         }
         validator.validateRodapeAlturaOnBlur(etRodapeAltura, tilRodapeAltura)
 
-        etRodapeAbertura.doAfterTextChanged {
+        etRodapeAbertura.doAfterTextChanged { // Retorna antecipadamente para Piso Vinílico
+            if (viewModel.inputs.value.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO) {
+                return@doAfterTextChanged
+            }
             updateRodapeFields()
             updateRequiredIconsRodapeFields()
             validator.validateRodapeAberturaLive(etRodapeAbertura, tilRodapeAbertura)
@@ -680,7 +772,10 @@ class CalcRevestimentoFragment : Fragment() {
         }
         validator.validateRodapeAberturaOnBlur(etRodapeAbertura, tilRodapeAbertura)
 
-        etRodapeCompComercial.doAfterTextChanged {
+        etRodapeCompComercial.doAfterTextChanged { // Retorna antecipadamente para Piso Vinílico
+            if (viewModel.inputs.value.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO) {
+                return@doAfterTextChanged
+            }
             val text = etRodapeCompComercial.text?.toString().orEmpty()
             updateRodapeFields()
             updateRequiredIconsRodapeFields()
@@ -688,7 +783,6 @@ class CalcRevestimentoFragment : Fragment() {
                 refreshNextButtonEnabled()
             }
 
-            // Verifica se o campo está realmente valendo (só quando peça pronta)
             fun isPecaProntaSelecionada(): Boolean =
                 switchRodape.isChecked && rgRodapeMat.checkedRadioButtonId ==
                         R.id.rbRodapePeca && tilRodapeCompComercial.isVisible
@@ -748,12 +842,10 @@ class CalcRevestimentoFragment : Fragment() {
         viewModel.inputs.collect { i ->
             syncAllInputsWithViewModel()
             updateAllComponentsVisibility()
-            // Espessura padrão automática para Mármore/Granito
-            validator.ensureDefaultMgEspessura(espessuraUserEdited)
+            validator.ensureDefaultMgEspessura(espessuraUserEdited) // Espessura padrão automática para Mármore/Granito
             // Helpers dinâmicos (espessura, peça, junta, desnível)
             validator.updateStep4HelperTexts(
-                i,
-                binding.tilPecaEsp, binding.tilPecaComp, binding.tilPecaLarg,
+                i, binding.tilPecaEsp, binding.tilPecaComp, binding.tilPecaLarg,
                 binding.tilJunta, binding.tilDesnivel
             )
             val hasPecasPorCaixa = i.pecasPorCaixa != null // Sincroniza switch com os inputs
@@ -768,8 +860,7 @@ class CalcRevestimentoFragment : Fragment() {
                 binding.groupPecasPorCaixaFields.isVisible = binding.switchPecasPorCaixa.isChecked
             }
             // Desnível: regra diferente para Pedra x MG
-            val isMg = i.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
-                    i.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
+            val isMg = isMG()
             val isPedra = i.revest == CalcRevestimentoViewModel.RevestimentoType.PEDRA
             binding.rowDesnivelSwitchStep4.isVisible = isMg
             binding.switchDesnivel.isVisible = isMg
@@ -804,71 +895,60 @@ class CalcRevestimentoFragment : Fragment() {
     private fun syncAllInputsWithViewModel() = with(binding) {
         isSyncing = true
         val inputs = viewModel.inputs.value
-
         inputSynchronizer.syncAllRadioGroups(
-            inputs,
-            rgPlacaTipo, rgAmbiente, rgRodapeMat, rgTrafego,
+            inputs, rgPlacaTipo, rgAmbiente, rgRodapeMat, rgTrafego,
             rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho, rgMgAplicacao
         )
         inputSynchronizer.syncRevestimentoCards(
-            inputs.revest,
-            rbPiso, rbAzulejo, rbPastilha, rbPedra, rbPisoIntertravado, rbMarmore, rbGranito
+            inputs.revest, rbPiso, rbAzulejo, rbPastilha, rbPedra, rbPisoIntertravado,
+            rbMarmore, rbGranito, rbPisoVinilico
         )
-
         // Switch "Prefere informar o m² total?" segue o estado do ViewModel
         switchAreaTotal.isChecked = inputs.areaTotalMode
         groupMedidasRetangulares.isVisible = !inputs.areaTotalMode
         groupAreaTotalInformada.isVisible = inputs.areaTotalMode
 
         fieldSynchronizer.syncAllFields(
-            inputs,
-            etComp, etLarg, etAlt, etParedeQtd, etAbertura, etAreaInformada,
-            etPecaComp, etPecaLarg, etPecaEsp, etJunta, etSobra, etPecasPorCaixa,
-            etDesnivel, etRodapeAltura, etRodapeAbertura, etRodapeCompComercial,
+            inputs, etComp, etLarg, etAlt, etParedeQtd, etAbertura, etAreaInformada, etPecaComp,
+            etPecaLarg, etPecaEsp, etJunta, etSobra, etPecasPorCaixa, etDesnivel,
+            etRodapeAltura, etRodapeAbertura, etRodapeCompComercial, etPisoVinilicoDemaos,
             tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
             tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa,
             tilDesnivel, tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial,
-            rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho, isMG()
+            tilPisoVinilicoDemaos, rgPastilhaTamanho, rgPastilhaPorcelanatoTamanho, isMG()
         )
-        normalizeAutoPredefinedFieldValues()
+        fieldSynchronizer.normalizeAutoPredefinedFieldValues(
+            inputs, etPecaEsp, etJunta, etSobra, etDesnivel
+        )
+
+        if (isPisoVinilico()) {
+            tvPisoVinilicoTipoValor.text = when (inputs.pisoVinilicoDesnivelTipo) {
+                CalcRevestimentoViewModel.PisoVinilicoDesnivelTipo.GROSSO ->
+                    getString(R.string.calc_piso_vinilico_piso_grosso)
+
+                CalcRevestimentoViewModel.PisoVinilicoDesnivelTipo.FINO ->
+                    getString(R.string.calc_piso_vinilico_piso_liso)
+
+                null -> getString(R.string.calc_piso_vinilico_piso_grosso) // Padrão
+            }
+        }
         isSyncing = false
-    }
-
-    // Normaliza exibição dos valores padrão auto-preenchidos
-    private fun normalizeAutoPredefinedFieldValues() = with(binding) {
-        val i = viewModel.inputs.value
-        val espDisplay = when (i.revest) { // Intertravado, espessura armazenada mm; exibida em cm
-            CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO ->
-                i.pecaEspMm?.div(10.0) // mm → cm
-            else ->
-                i.pecaEspMm                 // demais revestimentos continuam em mm
-        }
-        normalizeAutoField(etPecaEsp, espDisplay)
-        normalizeAutoField(etJunta, i.juntaMm)
-        normalizeAutoField(etSobra, i.sobraPct)
-        normalizeAutoField(etDesnivel, i.desnivelCm)
-    }
-
-    private fun normalizeAutoField(editText: TextInputEditText, value: Double?) {
-        if (editText.hasFocus()) return
-        val adjusted = NumberFormatter.adjustDefaultFieldText(editText.text?.toString(), value)
-        if (adjusted != null && adjusted != editText.text?.toString()) {
-            editText.setText(adjusted)
-        }
     }
 
     // Atualiza visibilidade de componentes conforme inputs
     private fun updateAllComponentsVisibility() = with(binding) {
         visibilityManager.updateAllVisibilities(
-            viewModel.inputs.value,
-            groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho,
+            viewModel.inputs.value, groupPlacaTipo, groupPecaTamanho, groupPastilhaTamanho,
             groupPastilhaPorcelanatoTamanho, groupRodapeFields, groupMgAplicacao,
             tilComp, tilLarg, tilAltura, tilParedeQtd, tilAbertura, tilAreaInformada,
             tilPecaComp, tilPecaLarg, tilPecaEsp, tilJunta, tilPecasPorCaixa,
             tilDesnivel, tilSobra, tilRodapeAltura, tilRodapeAbertura, tilRodapeCompComercial,
-            etLarg, etAlt, etParedeQtd, etAbertura, etPecaEsp, etJunta, etPecasPorCaixa,
-            etRodapeAbertura, rgPlacaTipo, switchRodape, rowPecasPorCaixaSwitch,
-            groupPecasPorCaixaFields, rowDesnivelSwitchStep4, groupDesnivelFields
+            tilPisoVinilicoDemaos, etLarg, etAlt, etParedeQtd, etAbertura, etPecaEsp, etJunta,
+            etPecasPorCaixa, etRodapeAbertura, etPisoVinilicoDemaos, rgPlacaTipo,
+            switchRodape, switchPisoAutoAdesivo, switchPisoDesnivelado,
+            rowPecasPorCaixaSwitch, groupPecasPorCaixaFields, rowDesnivelSwitchStep4,
+            groupDesnivelFields, rowPisoAutoAdesivoSwitch, rowPisoDesniveladoSwitch,
+            groupPisoDesniveladoFields, tvRodapeMaterialLabel, rgRodapeMat
         )
     }
 
@@ -905,6 +985,7 @@ class CalcRevestimentoFragment : Fragment() {
             5 -> {
                 updateRequiredIconsForStep4PecaParameters() // peça
                 updateRequiredIconsRodapeFields()           // rodapé (switch + campos)
+                updateRequiredIconsPisoVinilico()
             }
         }
     }
@@ -993,6 +1074,17 @@ class CalcRevestimentoFragment : Fragment() {
 
     // Atualiza rodapé no ViewModel
     private fun updateRodapeFields() = with(binding) {
+        if (isPisoVinilico()) { // PISO VINÍLICO: Reutiliza etRodapeAltura para perímetro em METROS
+            val perimetroM = getDoubleValue(etRodapeAltura) // ✅ USA CAMPO EXISTENTE
+            viewModel.setRodape(
+                enable = switchRodape.isChecked, alturaCm = null, perimetroManualM = perimetroM,
+                descontarVaoM = 0.0, perimetroAuto = false,
+                material = CalcRevestimentoViewModel.RodapeMaterial.MESMA_PECA,
+                orientacaoMaior = true, compComercialM = null
+            )
+            return@with
+        }
+        // Outros Revestimentos
         val material = if (rgRodapeMat.checkedRadioButtonId == R.id.rbRodapeMesma)
             CalcRevestimentoViewModel.RodapeMaterial.MESMA_PECA
         else
@@ -1005,9 +1097,9 @@ class CalcRevestimentoFragment : Fragment() {
         val aberturaM = getDoubleValue(etRodapeAbertura)?.coerceAtLeast(0.0) ?: 0.0
         viewModel.setRodape(
             enable = switchRodape.isChecked,
-            alturaCm = convertMetersToCm(getDoubleValue(etRodapeAltura)), perimetroManualM = null,
-            descontarVaoM = aberturaM, perimetroAuto = true, material = material,
-            orientacaoMaior = true, compComercialM = compProntaM
+            alturaCm = convertMetersToCm(getDoubleValue(etRodapeAltura)),
+            perimetroManualM = null, descontarVaoM = aberturaM, perimetroAuto = true,
+            material = material, orientacaoMaior = true, compComercialM = compProntaM
         )
     }
 
@@ -1042,6 +1134,15 @@ class CalcRevestimentoFragment : Fragment() {
         )
     }
 
+    // Atualiza ícones obrigatórios do Piso Vinílico
+    private fun updateRequiredIconsPisoVinilico() = with(binding) {
+        val inputs = viewModel.inputs.value
+        iconManager.updatePisoVinilicoIconFields(
+            etPisoVinilicoDemaos, etRodapeAltura, inputs.revest,
+            inputs.pisoVinilicoDesnivelAtivo, inputs.rodapeEnable
+        )
+    }
+
     /** ======================= VALIDAÇÃO E HABILITAÇÃO ======================= */
     // Revalida todas as dimensões (Comp/Larg/Alt/Parede/Abertura/Area Total)
     private fun validateAllAreaDimensions() = with(binding) {
@@ -1073,9 +1174,7 @@ class CalcRevestimentoFragment : Fragment() {
                 revest == CalcRevestimentoViewModel.RevestimentoType.PISO ||
                         revest == CalcRevestimentoViewModel.RevestimentoType.AZULEJO ||
                         revest == CalcRevestimentoViewModel.RevestimentoType.PASTILHA
-            val isMg =
-                revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
-                        revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO
+            val isMg = isMG()
             if (precisaTipoPlaca) {  // Escolher Tipo Cerâmica ou Porcelanato
                 enabled = inputs.pisoPlacaTipo != null
             } else if (isMg) {       // MG precisa escolher Piso/Parede
@@ -1091,11 +1190,34 @@ class CalcRevestimentoFragment : Fragment() {
         if (enabled && step >= 5) { // Etapa 5: Medidas do Revestimento
             val isPedra = inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PEDRA
             val isMg = isMG()
+            val isPisoVinilico =
+                inputs.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO
+
             enabled = when {
                 isPedra -> { // Regra Pedra Portuguesa: considerar apenas desnível + sobra técnica
                     !validator.hasDesnivelErrorNow(
                         etDesnivel, tilDesnivel.isVisible, getDoubleValue(etDesnivel)
                     ) && tilSobra.error.isNullOrEmpty()
+                }
+
+                isPisoVinilico -> {
+                    val compCm = convertPecaDimensionToCm(getDoubleValue(etPecaComp))
+                    val largCm = convertPecaDimensionToCm(getDoubleValue(etPecaLarg))
+                    val compInRange =
+                        compCm != null && compCm in CalcRevestimentoRules.PisoVinilico.COMP_RANGE_CM
+                    val largInRange =
+                        largCm != null && largCm in CalcRevestimentoRules.PisoVinilico.LARG_RANGE_CM
+                    // Valida Qtd de Demãos se switch ativo
+                    val demaosOk = if (inputs.pisoVinilicoDesnivelAtivo) {
+                        val qtd = etPisoVinilicoDemaos.text?.toString()?.toIntOrNull()
+                        qtd != null && qtd in CalcRevestimentoRules.PisoVinilico.QTD_DEMAOS_RANGE &&
+                                tilPisoVinilicoDemaos.error.isNullOrEmpty()
+                    } else {
+                        true
+                    }
+                    compInRange && largInRange && tilSobra.error.isNullOrEmpty() &&
+                            tilPecaComp.error.isNullOrEmpty() &&
+                            tilPecaLarg.error.isNullOrEmpty() && demaosOk
                 }
 
                 else -> {
@@ -1118,8 +1240,7 @@ class CalcRevestimentoFragment : Fragment() {
                             true
                         }
                     val desnivelVisivelAgora = when { // Switch Desnível (Tratamento diferente MG)
-                        inputs.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
-                                inputs.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO ->
+                        isMG() ->
                             switchDesnivel.isVisible && switchDesnivel.isChecked
 
                         else -> tilDesnivel.isVisible
@@ -1141,29 +1262,38 @@ class CalcRevestimentoFragment : Fragment() {
                 }
             }
         }
-        if (enabled && step >= 5) { // Etapa Rodapé dentro de Medidas do Revestimento
-            var rodapeOk = tilRodapeAbertura.error.isNullOrEmpty()
-            if (inputs.rodapeEnable) {
-                val alturaCm = convertMetersToCm(getDoubleValue(etRodapeAltura))
-                val alturaOk = alturaCm != null &&
-                        alturaCm in CalcRevestimentoRules.Rodape.ALTURA_RANGE_CM &&
+        if (step >= 5) { // Etapa Rodapé dentro de Medidas do Revestimento (Vinílico valida em metros)
+            if (inputs.revest ==
+                CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO && inputs.rodapeEnable
+            ) {
+                val perimetroM = getDoubleValue(etRodapeAltura)
+                val perimetroOk = perimetroM != null &&
+                        perimetroM >= CalcRevestimentoRules.PisoVinilico.RODAPE_MIN_M &&
+                        perimetroM <= CalcRevestimentoRules.PisoVinilico.RODAPE_MAX_M &&
                         tilRodapeAltura.error.isNullOrEmpty()
-                rodapeOk = rodapeOk && alturaOk
-                if (inputs.rodapeMaterial == CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA) {
-                    val compCm = getDoubleValue(etRodapeCompComercial)
-                    val compOk = compCm != null &&
-                            compCm in CalcRevestimentoRules.Rodape.COMP_COMERCIAL_RANGE_CM &&
-                            tilRodapeCompComercial.error.isNullOrEmpty()
-                    rodapeOk = rodapeOk && compOk
+                enabled = enabled && perimetroOk
+            } else { // Outros Revestimentos
+                var rodapeOk = tilRodapeAbertura.error.isNullOrEmpty()
+                if (inputs.rodapeEnable) {
+                    val alturaCm = convertMetersToCm(getDoubleValue(etRodapeAltura))
+                    val alturaOk = alturaCm != null &&
+                            alturaCm in CalcRevestimentoRules.Rodape.ALTURA_RANGE_CM &&
+                            tilRodapeAltura.error.isNullOrEmpty()
+                    rodapeOk = rodapeOk && alturaOk
+                    if (inputs.rodapeMaterial == CalcRevestimentoViewModel.RodapeMaterial.PECA_PRONTA) {
+                        val compCm = getDoubleValue(etRodapeCompComercial)
+                        val compOk = compCm != null &&
+                                compCm in CalcRevestimentoRules.Rodape.COMP_COMERCIAL_RANGE_CM &&
+                                tilRodapeCompComercial.error.isNullOrEmpty()
+                        rodapeOk = rodapeOk && compOk
+                    }
                 }
+                enabled = enabled && rodapeOk
             }
-            enabled = rodapeOk
         }
         btnNext.isEnabled = enabled
         // ----- Ajuste extra para dimensões de Mármore/Granito -----
-        if ((inputs.revest == CalcRevestimentoViewModel.RevestimentoType.MARMORE ||
-                    inputs.revest == CalcRevestimentoViewModel.RevestimentoType.GRANITO) &&
-            step >= 5
+        if (isMG() && step >= 5
         ) {
             val compValid = convertPecaDimensionToCm(getDoubleValue(etPecaComp))
                 ?.let { it in CalcRevestimentoRules.Peca.MG_RANGE_CM } == true
@@ -1180,58 +1310,58 @@ class CalcRevestimentoFragment : Fragment() {
         tableContainer.addView(tableBuilder.makeHeaderRow())
         r.itens.forEach { tableContainer.addView(tableBuilder.makeDataRow(it)) }
         tableContainer.post { applyTableResponsiveness() } // Aplicar responsividade após renderização
-        // Atualiza card de resumo final (área AJUSTADA)
-        val resumoFinal = ReviewParametersFormatter.buildResumoResultadoCard(
-            requireContext(),
-            viewModel.inputs.value
-        )
+        val resumoFinal =
+            ReviewParametersFormatter.buildResumoResultadoCard( // Atualiza card de resumo final (área AJUSTADA)
+                requireContext(), viewModel.inputs.value
+            )
         cardResultadoResumo.isVisible = resumoFinal != null
         tvResultadoResumo.text = resumoFinal
     }
 
-    // Aplica responsividade aos elementos da tabela
-    private fun applyTableResponsiveness() = with(binding) {
-        val responsiveHelper = TableResponsiveHelper(requireContext())
-        val titleViews =
-            (viewFlipper.getChildAt(9) as? LinearLayout)?.children?.filterIsInstance<TextView>()
-        titleViews?.firstOrNull { it.text == getString(R.string.calc_table_title) }
-            ?.let { tvTitulo ->
-                responsiveHelper.setTextSizeSp(tvTitulo, responsiveHelper.titleTextSize)
-                (tvTitulo.layoutParams as? ViewGroup.MarginLayoutParams)?.apply {
-                    topMargin = responsiveHelper.titleMarginTop
-                    bottomMargin = responsiveHelper.titleMarginBottom
-                    tvTitulo.layoutParams = this
+    private fun applyTableResponsiveness() =
+        with(binding) { // Responsividade aos elementos da tabela
+            val responsiveHelper = TableResponsiveHelper(requireContext())
+            val titleViews =
+                (viewFlipper.getChildAt(9) as? LinearLayout)?.children?.filterIsInstance<TextView>()
+            titleViews?.firstOrNull { it.text == getString(R.string.calc_table_title) }
+                ?.let { tvTitulo ->
+                    responsiveHelper.setTextSizeSp(tvTitulo, responsiveHelper.titleTextSize)
+                    (tvTitulo.layoutParams as? ViewGroup.MarginLayoutParams)?.apply {
+                        topMargin = responsiveHelper.titleMarginTop
+                        bottomMargin = responsiveHelper.titleMarginBottom
+                        tvTitulo.layoutParams = this
+                    }
+                }
+            val cardTabela =
+                tableContainer.parent as? com.google.android.material.card.MaterialCardView
+            cardTabela?.apply {     // Card da tabela
+                radius = responsiveHelper.cardCornerRadius
+                cardElevation = responsiveHelper.cardElevation
+            }
+            cardInformation.apply { // Card de informação
+                radius = responsiveHelper.infoCardCornerRadius
+                setPadding(
+                    responsiveHelper.infoCardPadding, responsiveHelper.infoCardPadding,
+                    responsiveHelper.infoCardPadding, responsiveHelper.infoCardPadding
+                )
+                (layoutParams as? ViewGroup.MarginLayoutParams)?.apply {
+                    topMargin = responsiveHelper.infoCardMarginTop
+                    cardInformation.layoutParams = this
                 }
             }
-        val cardTabela = tableContainer.parent as? com.google.android.material.card.MaterialCardView
-        cardTabela?.apply {     // Card da tabela
-            radius = responsiveHelper.cardCornerRadius
-            cardElevation = responsiveHelper.cardElevation
-        }
-        cardInformation.apply { // Card de informação
-            radius = responsiveHelper.infoCardCornerRadius
-            setPadding(
-                responsiveHelper.infoCardPadding, responsiveHelper.infoCardPadding,
-                responsiveHelper.infoCardPadding, responsiveHelper.infoCardPadding
-            )
-            (layoutParams as? ViewGroup.MarginLayoutParams)?.apply {
-                topMargin = responsiveHelper.infoCardMarginTop
-                cardInformation.layoutParams = this
+            val tvInfoText = cardInformation.findViewById(android.R.id.text1)
+                ?: cardInformation.findViewTreeDescendants<TextView>()
+                    .firstOrNull { it.text == getString(R.string.calc_table_hint) }
+            tvInfoText?.let { // Texto do card de informação
+                responsiveHelper.setTextSizeSp(it, responsiveHelper.infoCardTextSize)
             }
+            (dividerTabelaInfo.layoutParams as? ViewGroup.MarginLayoutParams)?.apply { // Divider
+                topMargin = responsiveHelper.infoCardMarginTop
+                dividerTabelaInfo.layoutParams = this
+            }
+            // Margens extras apenas no primeiro e último item de dados (ignorando o cabeçalho)
+            responsiveHelper.applyEdgeItemMargins(tableContainer, skipHeader = true)
         }
-        val tvInfoText = cardInformation.findViewById(android.R.id.text1)
-            ?: cardInformation.findViewTreeDescendants<TextView>()
-                .firstOrNull { it.text == getString(R.string.calc_table_hint) }
-        tvInfoText?.let { // Texto do card de informação
-            responsiveHelper.setTextSizeSp(it, responsiveHelper.infoCardTextSize)
-        }
-        (dividerTabelaInfo.layoutParams as? ViewGroup.MarginLayoutParams)?.apply { // Divider
-            topMargin = responsiveHelper.infoCardMarginTop
-            dividerTabelaInfo.layoutParams = this
-        }
-        // Margens extras apenas no primeiro e último item de dados (ignorando o cabeçalho)
-        responsiveHelper.applyEdgeItemMargins(tableContainer, skipHeader = true)
-    }
 
     // Helper para encontrar views descendentes
     private inline fun <reified T : View> View.findViewTreeDescendants(): List<T> {
@@ -1337,6 +1467,7 @@ class CalcRevestimentoFragment : Fragment() {
         R.id.rbPisoIntertravado -> CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO
         R.id.rbMarmore -> CalcRevestimentoViewModel.RevestimentoType.MARMORE
         R.id.rbGranito -> CalcRevestimentoViewModel.RevestimentoType.GRANITO
+        R.id.rbPisoVinilico -> CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO
         else -> null
     }
 
@@ -1390,6 +1521,9 @@ class CalcRevestimentoFragment : Fragment() {
     private fun isIntertravado() =
         viewModel.inputs.value.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_INTERTRAVADO
 
+    private fun isPisoVinilico() =
+        viewModel.inputs.value.revest == CalcRevestimentoViewModel.RevestimentoType.PISO_VINILICO
+
     private fun convertPecaDimensionToCm(v: Double?) = UnitConverter.parsePecaToCm(v, isMG())
     private fun convertMetersToCm(v: Double?) = UnitConverter.mToCmIfLooksLikeMeters(v)
     private fun convertMetersToMillimeters(v: Double?) = UnitConverter.mToMmIfLooksLikeMeters(v)
@@ -1422,8 +1556,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    // Validação adiada no 1º dígito
-    private fun applyDeferredValidationPattern(
+    private fun applyDeferredValidationPattern( // Validação adiada no 1º dígito
         et: TextInputEditText, til: TextInputLayout, text: String, onValidateNow: () -> Unit,
         onAfterDeferredValidation: (() -> Unit)? = null,
         onFirstDigitBeforeSchedule: (() -> Unit)? = null
@@ -1452,8 +1585,7 @@ class CalcRevestimentoFragment : Fragment() {
         }
     }
 
-    // Garante que o topo da tela está visível sem flicker
-    private fun ensureScrollAtTopWithoutFlicker(step: Int) {
+    private fun ensureScrollAtTopWithoutFlicker(step: Int) { // Garante que o topo da tela está visível sem flicker
         val sv = binding.scrollContent
         val root = binding.rootCalc
         val shouldHijackFocus =
